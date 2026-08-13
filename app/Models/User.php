@@ -88,4 +88,19 @@ class User extends Authenticatable
     {
         return $value ?: ($this->attributes['avatar'] ?? ($this->attributes['photo'] ?? null));
     }
+
+    public function getProfileImageUrlAttribute()
+    {
+        $img = $this->image;
+        if (!empty($img)) {
+            if (file_exists(public_path('uploads/website/profile/' . $img))) {
+                return asset('uploads/website/profile/' . $img);
+            }
+            if (file_exists(public_path('uploads/profile/' . $img))) {
+                return asset('uploads/profile/' . $img);
+            }
+            return asset('uploads/website/profile/' . $img);
+        }
+        return asset('assets/img/bg/profile.png');
+    }
 }

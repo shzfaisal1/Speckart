@@ -40,11 +40,17 @@ class ProfileController extends Controller
             $file = $request->file('image');
             $filename = time() . '_' . rand(1000, 9999) . '.' . $file->getClientOriginalExtension();
 
-            $uploadPath = public_path('uploads/profile');
-            if (!file_exists($uploadPath)) {
-                mkdir($uploadPath, 0755, true);
+            $websiteUploadPath = public_path('uploads/website/profile');
+            if (!file_exists($websiteUploadPath)) {
+                mkdir($websiteUploadPath, 0755, true);
             }
-            $file->move($uploadPath, $filename);
+            $file->move($websiteUploadPath, $filename);
+
+            $legacyUploadPath = public_path('uploads/profile');
+            if (!file_exists($legacyUploadPath)) {
+                mkdir($legacyUploadPath, 0755, true);
+            }
+            @copy($websiteUploadPath . '/' . $filename, $legacyUploadPath . '/' . $filename);
 
             $updateData = [];
             if (Schema::hasColumn('users', 'image')) {
@@ -70,7 +76,7 @@ class ProfileController extends Controller
             return response()->json([
                 'success'   => true,
                 'message'   => 'Profile picture updated successfully!',
-                'image_url' => asset('uploads/profile/' . $filename),
+                'image_url' => asset('uploads/website/profile/' . $filename),
             ]);
         }
 
