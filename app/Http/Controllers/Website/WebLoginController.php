@@ -102,6 +102,13 @@ class WebLoginController extends Controller
 
         $login_id   = trim($request->email);
         $login_type = filter_var($login_id, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        // Check if user is registered
+        $user = User::where('email', $login_id)->orWhere('phone', $login_id)->first();
+        if (!$user) {
+            return back()->with('error', 'Account not registered. Please register first.')->withInput();
+        }
+
         $otp        = '1234';
 
         // Store in session for verification
@@ -269,6 +276,16 @@ class WebLoginController extends Controller
 
         $loginId   = trim($request->email);
         $loginType = filter_var($loginId, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        // Check if user is registered
+        $user = User::where('email', $loginId)->orWhere('phone', $loginId)->first();
+        if (!$user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Account not registered. Please register first.',
+            ], 422);
+        }
+
         $otp       = '1234'; // Replace with real OTP logic
 
         session([
