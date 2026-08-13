@@ -78,7 +78,11 @@ class WebLoginController extends Controller
             // Ignore if tbl_client structure differs
         }
 
+        $guestSessionId = session()->getId();
         Auth::login($user);
+        try {
+            app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
+        } catch (\Throwable $e) {}
 
         return redirect()->route('home')->with('success', 'Account created successfully! Welcome to Speckarts, ' . $user->name . '.');
     }
@@ -195,7 +199,11 @@ class WebLoginController extends Controller
         }
 
         // Log the user in via the web guard
+        $guestSessionId = session()->getId();
         Auth::login($user, $request->boolean('remember'));
+        try {
+            app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
+        } catch (\Throwable $e) {}
 
         // Redirect to intended URL or home
         $redirectTo = session()->pull('url.intended', route('home'));
@@ -258,7 +266,11 @@ class WebLoginController extends Controller
             }
         }
 
+        $guestSessionId = session()->getId();
         Auth::login($user, false);
+        try {
+            app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'status'   => 'success',
