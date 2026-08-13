@@ -262,36 +262,37 @@
 
                                 <li class="dropdown pe-0">
 
-                                    <a href="login.html">
+                                    @guest
+                                        {{-- Guest: show Sign up / Sign In link --}}
+                                        <a href="{{ route('login.web') }}">
+                                            <p>
+                                                <img src="{{ asset('website/assets/img/icon/Signup.png') }}" alt="Login">
+                                            </p>
+                                            <p>Sign up / Sign In</p>
+                                        </a>
+                                    @endguest
 
-                                        <p>
-                                            <img src="{{ asset('website/assets/img/icon/Signup.png') }}" alt="Login">
-                                        </p>
-
-                                        <p>
-                                            Sign up/Sign In
-                                        </p>
-
-                                    </a>
-
-                                    <!--
-                                        Logged-in state (static example markup, shown when a user is authenticated).
-                                        Swap the block above for this one manually if you need to preview the logged-in UI.
-
-                                    <a href="profile.html">
-                                        <p>
-                                            <img src="{{ asset('website/assets/img/icon/user.png') }}" alt="John Doe" class="profile-avatar">
-                                        </p>
-                                        <p>John Doe</p>
-                                    </a>
-                                    <ul class="dropdown-nav">
-                                        <li class="dropdown-item"><a href="profile.html">Profile</a></li>
-                                        <li class="dropdown-item"><a href="my-order.html">My Order</a></li>
-                                        <li class="dropdown-item"><a href="my-address.html">My Addresses</a></li>
-                                        <li class="dropdown-item"><a href="my-prescription.html">My Prescription</a></li>
-                                        <li class="dropdown-item"><a href="logout.html">Logout</a></li>
-                                    </ul>
-                                    -->
+                                    @auth
+                                        {{-- Authenticated: show user avatar + name with dropdown --}}
+                                        <a href="javascript:void(0);" class="dropdown-toggle">
+                                            <p>
+                                                <img src="{{ asset('website/assets/img/icon/user.png') }}" alt="{{ Auth::user()->name }}" class="profile-avatar">
+                                            </p>
+                                            <p>{{ Auth::user()->name }}</p>
+                                        </a>
+                                        <ul class="dropdown-nav">
+                                            <li class="dropdown-item"><a href="{{ route('profile') }}">Profile</a></li>
+                                            <li class="dropdown-item"><a href="{{ route('my-orders') }}">My Orders</a></li>
+                                            <li class="dropdown-item"><a href="{{ route('my-addresses') }}">My Addresses</a></li>
+                                            <li class="dropdown-item"><a href="{{ route('my-prescriptions') }}">My Prescriptions</a></li>
+                                            <li class="dropdown-item">
+                                                <form method="POST" action="{{ route('logout.web') }}" style="display:inline;">
+                                                    @csrf
+                                                    <button type="submit" style="background:none;border:none;padding:0;cursor:pointer;color:inherit;">Logout</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    @endauth
 
                                 </li>
                             </ul>
@@ -1782,36 +1783,37 @@
 
                 <li class="has-dropdown">
 
-                    <a href="login.html">
+                    @guest
+                        {{-- Guest: show Sign up / Sign In link --}}
+                        <a href="{{ route('login.web') }}">
+                            <p class="mb-0">
+                                <img src="{{ asset('website/assets/img/icon/Signup.png') }}" alt="Login">
+                            </p>
+                            <p class="mb-0">Sign up / Sign In</p>
+                        </a>
+                    @endguest
 
-                        <p class="mb-0">
-                            <img src="{{ asset('website/assets/img/icon/Signup.png') }}" alt="Login">
-                        </p>
-
-                        <p class="mb-0">
-                            Sign up/Sign In
-                        </p>
-
-                    </a>
-
-                    <!--
-                        Logged-in state (static example markup, shown when a user is authenticated).
-                        Swap the block above for this one manually if you need to preview the logged-in UI.
-
-                    <a href="profile.html" class="dropdown-toggle">
-                        <p class="mb-0">
-                            <img src="{{ asset('website/assets/img/icon/user.png') }}" alt="John Doe" class="profile-avatar">
-                        </p>
-                        <p class="mb-0">John Doe</p>
-                    </a>
-                    <ul class="submenu">
-                        <li><a href="profile.html">Profile</a></li>
-                        <li><a href="my-order.html">My Order</a></li>
-                        <li><a href="my-address.html">My Addresses</a></li>
-                        <li><a href="my-prescription.html">My Prescription</a></li>
-                        <li><a href="logout.html">Logout</a></li>
-                    </ul>
-                    -->
+                    @auth
+                        {{-- Authenticated: show user avatar + name with dropdown --}}
+                        <a href="javascript:void(0);" class="dropdown-toggle">
+                            <p class="mb-0">
+                                <img src="{{ asset('website/assets/img/icon/user.png') }}" alt="{{ Auth::user()->name }}" class="profile-avatar">
+                            </p>
+                            <p class="mb-0">{{ Auth::user()->name }}</p>
+                        </a>
+                        <ul class="submenu">
+                            <li><a href="{{ route('profile') }}">Profile</a></li>
+                            <li><a href="{{ route('my-orders') }}">My Orders</a></li>
+                            <li><a href="{{ route('my-addresses') }}">My Addresses</a></li>
+                            <li><a href="{{ route('my-prescriptions') }}">My Prescriptions</a></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout.web') }}" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" style="background:none;border:none;padding:0;cursor:pointer;color:inherit;">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    @endauth
 
                 </li>
 

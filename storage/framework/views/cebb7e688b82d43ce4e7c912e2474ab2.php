@@ -1,0 +1,1 @@
+<?php /**PATH C:\xampp\htdocs\Merge_speckart_09-07_26\resources\views/frontend/index.blade.php ENDPATH**/ ?>
