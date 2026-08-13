@@ -7,16 +7,23 @@ use Illuminate\Http\Request;
 
 class PrescriptionController extends Controller
 {
-    public function add_power(){
-         return view('website.web.prescription.add-power');
+    public function add_power()
+    {
+        return view('website.prescription.add-power');
     }
-    public function saved_prescription(){
-         return view('website.web.prescription.add-power-saved-prescription');
+
+    public function saved_prescription()
+    {
+        return view('website.prescription.add-power-saved-prescription');
     }
-    public function prescription_manually(){
-         return view('website.web.prescription.add-power-prescription-manually');
+
+    public function prescription_manually()
+    {
+        return view('website.prescription.add-power-prescription-manually');
     }
-    public function my_prescription(){
-         return view('website.web.prescription.my-prescription');
+
+    public function my_prescription()
+    {
+        return view('website.prescription.my-prescription');
     }
 }

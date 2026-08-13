@@ -48,7 +48,7 @@ class WebLoginController extends Controller
 
         $success = 'OTP Sent! For testing, use: 1234';
 
-        return view('website.web.auth.otp-web', compact('login_type', 'login_id', 'otp', 'success'))
+        return view('website.auth.otp-web', compact('login_type', 'login_id', 'otp', 'success'))
             ->with([
                 'login_type' => $loginType,
                 'login_id'   => $loginId,
