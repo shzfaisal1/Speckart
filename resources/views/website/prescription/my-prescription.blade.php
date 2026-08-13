@@ -150,10 +150,10 @@
                                 <span class="rx-badge">{{ $rx->power_type ?? 'Single Vision' }}</span>
                             </div>
 
-                            <form action="{{ route('my-prescriptions.delete', $rx->id) }}" method="POST" onsubmit="return confirmDeleteRx(this, '{{ addslashes($rx->prescription_name) }}');">
+                            <form action="{{ route('my-prescriptions.delete', $rx->id) }}" method="POST" class="delete-rx-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-semibold" style="font-size: 12px; border-color: #f87171; color: #dc2626;">
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-semibold delete-rx-btn" style="font-size: 12px; border-color: #f87171; color: #dc2626;" data-rx-name="{{ addslashes($rx->prescription_name) }}">
                                     <i class="fas fa-trash-alt me-1"></i> Delete
                                 </button>
                             </form>
@@ -411,50 +411,58 @@
             </form>
         </div>
     </div>
+</div>
+
+<!-- Modal 3: Confirm Delete -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+        <div class="modal-content rounded-4 border-0 shadow text-center">
+            <div class="modal-body p-4 pt-5">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:60px; height:60px; background:#fdecec;">
+                    <i class="fas fa-exclamation-triangle" style="color:#dc2626; font-size:22px;"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="color:#07484A;">Delete this prescription?</h5>
+                <p class="text-muted mb-0" style="font-size: 13.5px;">
+                    This will permanently remove <strong id="confirmRxName" style="color:#333;"></strong> from My Prescriptions. This can't be undone.
+                </p>
+            </div>
+            <div class="modal-footer border-top-0 pb-4 px-4 pt-0 d-flex gap-2">
+                <button type="button" class="btn btn-light rounded-3 flex-fill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn rounded-3 flex-fill fw-semibold" id="confirmDeleteBtn" style="background:#dc2626; color:#fff;">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    function confirmDeleteRx(form, rxName) {
-        if (typeof toastr !== 'undefined') {
-            toastr.clear();
-            var toast = toastr.warning(
-                `<div class="p-1 text-center">
-                    <div class="fw-bold mb-2 text-dark" style="font-size:14px;">Delete "${rxName}"?</div>
-                    <div class="small text-muted mb-3">This prescription will be permanently removed.</div>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button type="button" id="btn-del-confirm-yes" class="btn btn-sm btn-danger px-3 py-1 fw-bold rounded-pill" style="font-size:12px;">Yes, Delete</button>
-                        <button type="button" id="btn-del-confirm-no" class="btn btn-sm btn-light border px-3 py-1 rounded-pill" style="font-size:12px;">Cancel</button>
-                    </div>
-                </div>`,
-                'Confirm Deletion',
-                {
-                    closeButton: true,
-                    allowHtml: true,
-                    timeOut: 0,
-                    extendedTimeOut: 0,
-                    tapToDismiss: false,
-                    positionClass: 'toast-top-center'
-                }
-            );
+    (function() {
+        let formToDelete = null;
+        const confirmModalEl = document.getElementById('confirmDeleteModal');
+        const confirmModal = new bootstrap.Modal(confirmModalEl);
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        const confirmName = document.getElementById('confirmRxName');
 
-            setTimeout(function() {
-                var btnYes = document.getElementById('btn-del-confirm-yes');
-                var btnNo  = document.getElementById('btn-del-confirm-no');
-                if (btnYes) {
-                    btnYes.onclick = function() {
-                        toastr.clear(toast);
-                        form.submit();
-                    };
-                }
-                if (btnNo) {
-                    btnNo.onclick = function() {
-                        toastr.clear(toast);
-                    };
-                }
-            }, 100);
+        document.querySelectorAll('.delete-rx-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                formToDelete = btn.closest('.delete-rx-form');
+                confirmName.textContent = '"' + btn.getAttribute('data-rx-name') + '"';
+                confirmModal.show();
+            });
+        });
 
-            return false;
-        }
-        return confirm('Are you sure you want to delete "' + rxName + '"?');
-    }
+        confirmBtn.addEventListener('click', function() {
+            if (!formToDelete) return;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Deleting…';
+            formToDelete.submit();
+        });
+
+        confirmModalEl.addEventListener('hidden.bs.modal', function() {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Delete';
+            formToDelete = null;
+        });
+    })();
 </script>
 
 @endsection
