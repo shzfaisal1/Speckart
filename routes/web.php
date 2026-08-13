@@ -94,6 +94,9 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/saved-prescription',      [\App\Http\Controllers\Website\PrescriptionController::class, 'saved_prescription'])->name('saved-prescription');
     Route::get('/prescription-manually',   [\App\Http\Controllers\Website\PrescriptionController::class, 'prescription_manually'])->name('prescription-manually');
     Route::get('/my-prescriptions',        [\App\Http\Controllers\Website\PrescriptionController::class, 'my_prescription'])->name('my-prescriptions');
+    Route::post('/my-prescriptions/upload', [\App\Http\Controllers\Website\PrescriptionController::class, 'upload_prescription'])->name('my-prescriptions.upload');
+    Route::post('/my-prescriptions/manual', [\App\Http\Controllers\Website\PrescriptionController::class, 'save_manual_prescription'])->name('my-prescriptions.manual');
+    Route::delete('/my-prescriptions/{id}', [\App\Http\Controllers\Website\PrescriptionController::class, 'delete_prescription'])->name('my-prescriptions.delete');
 
     // Customer Profiles & Addresses
     Route::get('/profile',                 [\App\Http\Controllers\Website\ProfileController::class, 'profile'])->name('profile');
