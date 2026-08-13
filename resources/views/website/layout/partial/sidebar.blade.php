@@ -214,14 +214,14 @@
                         </div>
                         <div class="top-menu-list d-lg-block d-md-none d-none">
                             <ul class="ps-0">
-                                <li>
-                                    <a href="track-order.html">
-                                        <p>
-                                            <img src="{{ asset('website/assets/img/icon/Track-Order.png') }}" alt="">
-                                        </p>
-                                        <p>Track Order</p>
-                                    </a>
-                                </li>
+                                <!--<li>-->
+                                <!--    <a href="track-order.html">-->
+                                <!--        <p>-->
+                                <!--            <img src="{{ asset('website/assets/img/icon/Track-Order.png') }}" alt="">-->
+                                <!--        </p>-->
+                                <!--        <p>Track Order</p>-->
+                                <!--    </a>-->
+                                <!--</li>-->
 
 
 
@@ -245,20 +245,20 @@
                                         <p>My Cart</p>
                                     </a>
                                 </li>
-                                <li class="dropdown">
-                                    <a href="#">
-                                        <p>
-                                            <img src="{{ asset('website/assets/img/icon/More.png') }}" alt="">
-                                        </p>
-                                        <p>More</p>
-                                    </a>
-                                    <ul class="dropdown-nav">
-                                        <li class="dropdown-item"><a href="#">Lawn Care</a></li>
-                                        <li class="dropdown-item"><a href="#">Walling &amp; Fencing</a></li>
-                                        <li class="dropdown-item"><a href="#">Landscape design</a></li>
-                                        <li class="dropdown-item"><a href="#">Grounds Maintenance</a></li>
-                                    </ul>
-                                </li>
+                                <!--<li class="dropdown">-->
+                                <!--    <a href="#">-->
+                                <!--        <p>-->
+                                <!--            <img src="{{ asset('website/assets/img/icon/More.png') }}" alt="">-->
+                                <!--        </p>-->
+                                <!--        <p>More</p>-->
+                                <!--    </a>-->
+                                <!--    <ul class="dropdown-nav">-->
+                                <!--        <li class="dropdown-item"><a href="#">Lawn Care</a></li>-->
+                                <!--        <li class="dropdown-item"><a href="#">Walling &amp; Fencing</a></li>-->
+                                <!--        <li class="dropdown-item"><a href="#">Landscape design</a></li>-->
+                                <!--        <li class="dropdown-item"><a href="#">Grounds Maintenance</a></li>-->
+                                <!--    </ul>-->
+                                <!--</li>-->
 
                                 <li class="dropdown pe-0">
 

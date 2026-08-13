@@ -1053,8 +1053,7 @@ class InventoryController extends Controller
     
             $headerStyle = $sheet->getStyle('A1:L1');
             $headerStyle->getFont()->setBold(true);
-            $headerStyle->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFEFEFEF');
+            $headerStyle->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFEFEFEF');
             $headerStyle->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
     
             $fileName = 'AUDIT_REPORT_' . now()->format('Ymd_His') . '.xlsx';
@@ -1120,8 +1119,7 @@ class InventoryController extends Controller
         }
         if ($search1 != '') 
         {
-            $totalData->where('productdetails', 'like', '%' . $search1 . '%')
-            ->orWhere('product_code', 'like', '%' . $search1 . '%');
+            $totalData->where('productdetails', 'like', '%' . $search1 . '%')->orWhere('product_code', 'like', '%' . $search1 . '%');
         }
         $totalData = $totalData->count();
         
