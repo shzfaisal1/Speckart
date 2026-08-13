@@ -1,4 +1,4 @@
-   @extends('web.layout.master')
+   @extends('website.layout.master')
     @section('content')
         <div class="power">
             <div class="container">
