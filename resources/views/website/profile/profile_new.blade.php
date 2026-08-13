@@ -369,7 +369,7 @@
                     <div class="ps-avatar-wrap">
                         <div class="avatar-ring">
                             <div class="avatar-preview" id="imagePreview"
-                                style="background-image:url('{{ $user->image ? asset('uploads/profile/' . $user->image) : asset('assets/img/bg/profile.png') }}')">
+                                style="background-image:url('{{ $user->profile_image_url }}')">
                             </div>
                             <label for="imageUpload" class="avatar-edit-btn" title="Change photo">
                                 <i class="bi bi-pencil-fill"></i>

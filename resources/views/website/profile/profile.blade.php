@@ -343,7 +343,7 @@
                                 </div>
                                 <div class="avatar-preview">
                                     <div id="imagePreview"
-                                        style="background-image: url('{{ $user->image ? asset('uploads/profile/' . $user->image) : asset('assets/img/bg/profile.png') }}');">
+                                        style="background-image: url('{{ $user->profile_image_url }}');">
                                     </div>
                                 </div>
                             </div>
