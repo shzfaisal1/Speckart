@@ -44,6 +44,8 @@ class User extends Authenticatable
         'updated_at',
         'approve_discount',
         'photo',
+        'avatar',
+        'image',
         'pan_img',
         'aadhar_front',
         'aadhar_back'
@@ -51,8 +53,6 @@ class User extends Authenticatable
 
     /**
      * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -86,6 +86,6 @@ class User extends Authenticatable
 
     public function getImageAttribute($value)
     {
-        return $value ?: ($this->attributes['photo'] ?? null);
+        return $value ?: ($this->attributes['avatar'] ?? ($this->attributes['photo'] ?? null));
     }
 }

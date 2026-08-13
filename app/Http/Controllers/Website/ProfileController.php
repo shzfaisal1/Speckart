@@ -24,11 +24,16 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Please log in first.'], 401);
+            return response()->json(['success' => false, 'message' => 'Please log in to upload profile picture.'], 401);
         }
 
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ], [
+            'image.required' => 'Please select an image file to upload.',
+            'image.image'    => 'Uploaded file must be a valid image.',
+            'image.mimes'    => 'Supported image formats are JPG, PNG, GIF, and WEBP.',
+            'image.max'      => 'Maximum allowed file size is 5MB.',
         ]);
 
         if ($request->hasFile('image')) {
@@ -41,7 +46,26 @@ class ProfileController extends Controller
             }
             $file->move($uploadPath, $filename);
 
-            DB::table('users')->where('id', $user->id)->update(['image' => $filename]);
+            $updateData = [];
+            if (Schema::hasColumn('users', 'image')) {
+                $updateData['image'] = $filename;
+            }
+            if (Schema::hasColumn('users', 'avatar')) {
+                $updateData['avatar'] = $filename;
+            }
+            if (Schema::hasColumn('users', 'photo')) {
+                $updateData['photo'] = $filename;
+            }
+
+            if (empty($updateData)) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->string('image')->nullable();
+                });
+                $updateData['image'] = $filename;
+            }
+
+            $updateData['updated_at'] = Carbon::now();
+            DB::table('users')->where('id', $user->id)->update($updateData);
 
             return response()->json([
                 'success'   => true,
