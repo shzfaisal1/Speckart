@@ -150,11 +150,11 @@
                                 <span class="rx-badge">{{ $rx->power_type ?? 'Single Vision' }}</span>
                             </div>
 
-                            <form action="{{ route('my-prescriptions.delete', $rx->id) }}" method="POST" onsubmit="return confirm('Delete this prescription?');">
+                            <form action="{{ route('my-prescriptions.delete', $rx->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete &quot;{{ addslashes($rx->prescription_name) }}&quot;?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm text-danger border-0 bg-transparent p-1" title="Delete Prescription">
-                                    <i class="fas fa-trash-alt fs-5"></i>
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-semibold" style="font-size: 12px; border-color: #f87171; color: #dc2626;">
+                                    <i class="fas fa-trash-alt me-1"></i> Delete
                                 </button>
                             </form>
                         </div>
