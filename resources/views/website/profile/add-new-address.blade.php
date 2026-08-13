@@ -1,4 +1,4 @@
-@extends('web.layout.master')
+@extends('website.layout.master')
 @section('content')
 <section class="account-information-section">
     <div class="container">

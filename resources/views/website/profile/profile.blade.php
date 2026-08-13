@@ -406,42 +406,28 @@
                         <div class="card-body">
                             <ul class="profile-menu">
                                 <li>
-                                    <a href="" class="">
+                                    <a href="{{ route('my-orders') }}">
                                         <i class="fas fa-shopping-bag"></i>
                                         <span>My Orders</span>
                                     </a>
                                 </li>
 
-                                <!--<li>-->
-                                <!--    <a href="#">-->
-                                <!--        <i class="fas fa-cube"></i>-->
-                                <!--        <span>My 3D Model</span>-->
-                                <!--    </a>-->
-                                <!--</li>-->
-
                                 <li>
-                                    <a href="">
+                                    <a href="{{ route('account-info') }}">
                                         <i class="fas fa-user"></i>
                                         <span>Account Information</span>
                                     </a>
                                 </li>
 
-                                <!--<li>-->
-                                <!--    <a href="">-->
-                                <!--        <i class="fas fa-bell"></i>-->
-                                <!--        <span>Manage Notifications</span>-->
-                                <!--    </a>-->
-                                <!--</li>-->
-
                                 <li>
-                                    <a href="">
+                                    <a href="{{ route('my-addresses') }}">
                                         <i class="fas fa-map-marker-alt"></i>
                                         <span>Address Book</span>
                                     </a>
                                 </li>
 
                                 <li>
-                                    <a href="">
+                                    <a href="{{ route('my-prescriptions') }}">
                                         <i class="fas fa-file-medical"></i>
                                         <span>My Prescriptions</span>
                                     </a>
