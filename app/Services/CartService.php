@@ -298,11 +298,114 @@ class CartService
     }
 
     /**
+     * Restore cart from database table to session if session cart is empty
+     */
+    public function loadCartFromDbToSession()
+    {
+        $userId    = Auth::id();
+        $sessionId = session()->getId();
+        $cart      = [];
+
+        try {
+            $dbCart = null;
+            if ($userId) {
+                $dbCart = Cart::where('user_id', $userId)->first();
+            }
+            if (!$dbCart) {
+                $dbCart = Cart::where('session_id', $sessionId)->whereNull('user_id')->first();
+            }
+
+            if ($dbCart) {
+                $dbItems = CartItem::where('cart_id', $dbCart->id)->get();
+                foreach ($dbItems as $dbItem) {
+                    $frame = DB::table('tbl_product_code')->where('id', $dbItem->product_id)->first();
+                    if (!$frame) {
+                        $frame = DB::table('tbl_product_code')->where('product_id', $dbItem->product_id)->first();
+                    }
+
+                    if ($frame) {
+                        $lens = null;
+                        if ($dbItem->lens_package_id) {
+                            $lens = DB::table('tbl_lens_package')->where('package_id', $dbItem->lens_package_id)->first();
+                            if (!$lens) {
+                                $lens = DB::table('lens_packages')->where('id', $dbItem->lens_package_id)->first();
+                            }
+                        }
+
+                        $lensIdKey = $lens ? (isset($lens->package_id) ? $lens->package_id : $lens->id) : 0;
+                        $rxKey = $dbItem->prescription_notes ? md5($dbItem->prescription_notes) : '0';
+                        $cartKey = 'frame_' . $frame->id . '_lens_' . $lensIdKey . '_rx_' . substr($rxKey, 0, 6);
+
+                        $lensPrice = (float) $dbItem->lens_package_price;
+                        $lensName  = 'Basic / Frame Only';
+                        $lensDetails = 'Standard Lenses';
+                        if ($lens) {
+                            $lensName    = $lens->package_name ?? ($lens->lens_type ?? ($lens->name ?? 'Selected Lens Package'));
+                            $lensDetails = $lens->package_details ?? ($lens->short_description ?? '');
+                        }
+
+                        $fPrice = (float) ($dbItem->sale_price ?: ($dbItem->unit_price ?: 0));
+
+                        // Frame Image Path logic
+                        $typeLower = strtolower($frame->product_type ?: 'frame');
+                        $imageUrl  = asset('website/assets/img/bg/Eyeglasses7.png');
+                        if (!empty($frame->main_image)) {
+                            if (!empty($frame->parent_product_code)) {
+                                $path = "uploads/{$typeLower}/product/{$frame->parent_product_code}/{$frame->main_image}";
+                                if (file_exists(public_path($path))) {
+                                    $imageUrl = asset($path);
+                                }
+                            } else {
+                                $pathWithId = "uploads/{$typeLower}/product/{$frame->product_id}/{$frame->main_image}";
+                                if (file_exists(public_path($pathWithId))) {
+                                    $imageUrl = asset($pathWithId);
+                                } elseif (file_exists(public_path($frame->main_image))) {
+                                    $imageUrl = asset($frame->main_image);
+                                }
+                            }
+                        }
+
+                        $cart[$cartKey] = [
+                            'key'               => $cartKey,
+                            'frame_id'          => $frame->id,
+                            'frame_code'        => $frame->product_code,
+                            'frame_name'        => $frame->product_name ?: ($frame->Company . ' ' . $frame->Type . ' Eyeglasses'),
+                            'brand'             => $frame->Company ?? 'Speckart',
+                            'frame_price'       => $fPrice,
+                            'frame_image'       => $imageUrl,
+                            'size'              => $frame->Size ?? 'Medium',
+                            'lens_package_id'   => $lensIdKey,
+                            'lens_name'         => $lensName,
+                            'lens_details'      => $lensDetails,
+                            'lens_price'        => $lensPrice,
+                            'quantity'          => (int) $dbItem->qty,
+                            'prescription_data' => $dbItem->prescription_notes ? json_decode($dbItem->prescription_notes, true) : null,
+                            'promotion_tag'     => $frame->promotion_tag ?? null,
+                            'is_first_frame_free' => isset($frame->promotion_tag) && stripos($frame->promotion_tag, 'First Frame Free') !== false,
+                            'is_bogo_eligible'    => isset($frame->promotion_tag) && (stripos($frame->promotion_tag, 'BOGO') !== false || stripos($frame->promotion_tag, 'Buy 1 Get 1') !== false),
+                        ];
+                    }
+                }
+                if (!empty($cart)) {
+                    session()->put('cart', $cart);
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Error loading cart from DB: ' . $e->getMessage());
+        }
+
+        return $cart;
+    }
+
+    /**
      * Calculate cart totals including BOGO and coupon
      */
     public function getCartCalculations($appliedCoupon = null)
     {
         $cart = session()->get('cart', []);
+        if (empty($cart)) {
+            $cart = $this->loadCartFromDbToSession();
+        }
 
         $frameSubtotal = 0;
         $lensSubtotal  = 0;
