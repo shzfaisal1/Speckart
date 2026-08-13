@@ -1,4 +1,4 @@
-@extends('web.layout.master')
+@extends('website.layout.master')
 
 @section('content')
     <style>
@@ -476,27 +476,26 @@
 
             <div class="row g-4">
 
-                @foreach ($addresses as $address)
+                @forelse ($addresses as $address)
                     <div class="col-lg-4 col-md-6">
 
-                        <div class="address-card {{ $address->is_default ? 'active-address' : '' }}">
+                        <div class="address-card {{ !empty($address->is_default) ? 'active-address' : '' }}">
 
                             <div class="address-header">
 
                                 <div>
-                                    <h5>
-                                        {{ $address->first_name }}
-                                        {{ $address->last_name }}
+                                    <h5 class="mb-1 fw-bold" style="color: #07484A;">
+                                        {{ $address->full_name ?? trim(($address->first_name ?? '') . ' ' . ($address->last_name ?? '')) }}
                                     </h5>
 
-                                    @if ($address->is_default)
+                                    @if (!empty($address->is_default))
                                         <span class="address-badge">
                                             Default Address
                                         </span>
                                     @endif
 
                                     <span class="address-type">
-                                        {{ ucfirst($address->type) }}
+                                        {{ ucfirst($address->address_type ?? $address->type ?? 'Home') }}
                                     </span>
                                 </div>
 
@@ -506,7 +505,18 @@
                                         <i class="bi bi-three-dots"></i>
                                     </button>
 
-                                    <ul class="dropdown-menu">
+                                    <ul class="dropdown-menu shadow border-0 rounded-3">
+
+                                        @if(empty($address->is_default) && isset($address->id))
+                                            <li>
+                                                <form method="POST" action="{{ route('address.default', $address->id) }}">
+                                                    @csrf
+                                                    <button class="dropdown-item">
+                                                        Set as Default
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
 
                                         <li>
                                             <button class="dropdown-item"
@@ -515,17 +525,19 @@
                                             </button>
                                         </li>
 
-                                        <li>
-                                            <form method="POST" action="{{ route('delete_address', $address->id) }}">
-                                                @csrf
-                                                @method('DELETE')
+                                        @if(isset($address->id))
+                                            <li>
+                                                <form method="POST" action="{{ route('delete_address', $address->id) }}">
+                                                    @csrf
+                                                    @method('DELETE')
 
-                                                <button class="dropdown-item text-danger"
-                                                    onclick="return confirm('Delete this address?')">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </li>
+                                                    <button class="dropdown-item text-danger"
+                                                        onclick="return confirm('Delete this address?')">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        @endif
 
                                     </ul>
 
@@ -533,21 +545,14 @@
 
                             </div>
 
-                            <div class="address-body">
+                            <div class="address-body mt-3">
 
-                                <p>
-                                    {{ $address->address_line_1 }}
-                                    {{ $address->address_line_2 }}
-                                    <br>
-
-                                    {{ $address->city }},
-                                    {{ $address->state }}
-                                    -
-                                    {{ $address->pincode }}
+                                <p class="text-muted mb-2" style="font-size: 14px; line-height: 1.5;">
+                                    {{ $address->full_address ?? trim(($address->address_line_1 ?? $address->house_no ?? '') . ', ' . ($address->address_line_2 ?? $address->road_area ?? '') . ' ' . ($address->city ?? '') . ' ' . ($address->state ?? '') . ' - ' . ($address->pincode ?? '')) }}
                                 </p>
 
-                                <div class="contact-info">
-                                    <i class="bi bi-telephone"></i>
+                                <div class="contact-info text-dark fw-medium" style="font-size: 13.5px;">
+                                    <i class="bi bi-telephone text-info me-1"></i>
                                     {{ $address->phone }}
                                 </div>
 
@@ -556,7 +561,18 @@
                         </div>
 
                     </div>
-                @endforeach
+                @empty
+                    <div class="col-12 text-center py-5">
+                        <div class="p-5 bg-white rounded-4 shadow-sm border text-center">
+                            <i class="bi bi-geo-alt display-4 text-muted mb-3 d-block"></i>
+                            <h4 class="fw-bold text-dark">No Addresses Saved Yet</h4>
+                            <p class="text-muted">Save your home, office, or other delivery locations for faster checkout.</p>
+                            <button class="btn btn-theme px-4 py-2 mt-2" onclick="resetForm()" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                                <i class="bi bi-plus-lg me-1"></i> Add Your First Address
+                            </button>
+                        </div>
+                    </div>
+                @endforelse
 
             </div>
 

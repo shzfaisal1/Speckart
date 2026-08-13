@@ -71,4 +71,21 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getFirstNameAttribute()
+    {
+        $parts = explode(' ', trim($this->name ?? ''), 2);
+        return $parts[0] ?? '';
+    }
+
+    public function getLastNameAttribute()
+    {
+        $parts = explode(' ', trim($this->name ?? ''), 2);
+        return $parts[1] ?? '';
+    }
+
+    public function getImageAttribute($value)
+    {
+        return $value ?: ($this->attributes['photo'] ?? null);
+    }
 }
