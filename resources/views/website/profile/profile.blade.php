@@ -338,7 +338,7 @@
                         <div class="profile-section-left1">
                             <div class="avatar-upload">
                                 <div class="avatar-edit">
-                                    <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg" />
+                                    <input type='file' id="imageUpload" accept=".png, .jpg, .jpeg, .webp" />
                                     <label for="imageUpload"></label>
                                 </div>
                                 <div class="avatar-preview">
@@ -577,15 +577,18 @@
         function readURL(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                var reader = new FileReader();
                 reader.onload = function(e) {
                     $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
-                    $('#imagePreview').hide();
-                    $('#imagePreview').fadeIn(650);
+                    $('#imagePreview').hide().fadeIn(650);
                 }
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
 
                 var formData = new FormData();
-                formData.append('image', input.files[0]);
+                formData.append('image', file);
                 formData.append('_token', '{{ csrf_token() }}');
 
                 $.ajax({
@@ -594,21 +597,47 @@
                     data: formData,
                     processData: false,
                     contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
                     success: function(response) {
                         if (response.success) {
-                            toastr.success(response.message);
+                            if (response.image_url) {
+                                $('#imagePreview').css('background-image', 'url("' + response.image_url + '")');
+                            }
+                            if (typeof toastr !== 'undefined') {
+                                toastr.success(response.message || 'Profile picture updated successfully!');
+                            }
                         } else {
-                            toastr.error(response.message);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error(response.message || 'Upload failed.');
+                            }
                         }
                     },
                     error: function(xhr) {
-                        toastr.error('Something went wrong during upload.');
+                        var errMsg = 'Upload failed. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            var firstErrKey = Object.keys(xhr.responseJSON.errors)[0];
+                            if (firstErrKey && xhr.responseJSON.errors[firstErrKey][0]) {
+                                errMsg = xhr.responseJSON.errors[firstErrKey][0];
+                            }
+                        }
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(errMsg);
+                        } else {
+                            alert(errMsg);
+                        }
                     }
                 });
             }
         }
-        $("#imageUpload").change(function() {
-            readURL(this);
+
+        $(document).ready(function() {
+            $(document).on('change', '#imageUpload', function() {
+                readURL(this);
+            });
         });
     </script>
 @endsection
