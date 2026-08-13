@@ -576,9 +576,6 @@
     <script>
         function readURL(input) {
             if (input.files && input.files[0]) {
-                var reader = new FileReader();
-        function readURL(input) {
-            if (input.files && input.files[0]) {
                 var file = input.files[0];
                 var reader = new FileReader();
                 reader.onload = function(e) {
@@ -636,6 +633,7 @@
 
         $(document).ready(function() {
             $(document).on('change', '#imageUpload', function() {
+                alert("hi");
                 readURL(this);
             });
         });

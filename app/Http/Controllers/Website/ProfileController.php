@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\UserAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Carbon\Carbon;
 
 class ProfileController extends Controller
@@ -117,10 +119,21 @@ class ProfileController extends Controller
         ];
 
         if (!empty($validated['phone'])) {
-            $updateData['phone'] = $validated['phone'];
+            if (Schema::hasColumn('users', 'phone')) {
+                $updateData['phone'] = $validated['phone'];
+            }
+            if (Schema::hasColumn('users', 'mobile')) {
+                $updateData['mobile'] = $validated['phone'];
+            }
+            if (Schema::hasColumn('users', 'contact_no')) {
+                $updateData['contact_no'] = $validated['phone'];
+            }
         }
+
         if (!empty($validated['gender'])) {
-            $updateData['gender'] = $validated['gender'];
+            if (Schema::hasColumn('users', 'gender')) {
+                $updateData['gender'] = $validated['gender'];
+            }
         }
 
         DB::table('users')->where('id', $user->id)->update($updateData);
@@ -129,7 +142,7 @@ class ProfileController extends Controller
         DB::table('tbl_customer')->where('customer_id', $user->id)->update([
             'cust_name'  => $fullName,
             'email_id'   => $validated['email'],
-            'contact_no' => $validated['phone'] ?? $user->phone,
+            'contact_no' => $validated['phone'] ?? ($user->phone ?? ''),
         ]);
 
         return redirect()->route('profile')->with('success', 'Account information updated successfully!');
