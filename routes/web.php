@@ -102,12 +102,16 @@ Route::group(['middleware' => ['web']], function ()
     Route::post('/account-info',           [\App\Http\Controllers\Website\ProfileController::class, 'update_account_information'])->name('account-info.update');
     Route::post('/account-info-save',      [\App\Http\Controllers\Website\ProfileController::class, 'update_account_information'])->name('account_information.post');
     Route::get('/notifications',           [\App\Http\Controllers\Website\ProfileController::class, 'manage_notification'])->name('notifications');
-    Route::get('/my-addresses',            [\App\Http\Controllers\Website\ProfileController::class, 'my_address'])->name('my-addresses')->name('my_address');
+    Route::get('/my-addresses',            [\App\Http\Controllers\Website\ProfileController::class, 'my_address'])->name('my-addresses');
+    Route::get('/my-address',              [\App\Http\Controllers\Website\ProfileController::class, 'my_address'])->name('my_address');
     Route::get('/address/create',          [\App\Http\Controllers\Website\ProfileController::class, 'new_address'])->name('address.create');
-    Route::post('/address',                [\App\Http\Controllers\Website\ProfileController::class, 'store_address'])->name('address.store')->name('store_address');
+    Route::post('/address',                [\App\Http\Controllers\Website\ProfileController::class, 'store_address'])->name('address.store');
+    Route::post('/address-store',          [\App\Http\Controllers\Website\ProfileController::class, 'store_address'])->name('store_address');
     Route::get('/address/{id}/edit',        [\App\Http\Controllers\Website\ProfileController::class, 'edit_address'])->name('address.edit');
-    Route::post('/address/{id}',           [\App\Http\Controllers\Website\ProfileController::class, 'update_address'])->name('address.update')->name('update_address');
-    Route::match(['post', 'delete'], '/address/{id}/delete', [\App\Http\Controllers\Website\ProfileController::class, 'delete_address'])->name('address.delete')->name('delete_address');
+    Route::post('/address/{id}',           [\App\Http\Controllers\Website\ProfileController::class, 'update_address'])->name('address.update');
+    Route::post('/address-update/{id}',    [\App\Http\Controllers\Website\ProfileController::class, 'update_address'])->name('update_address');
+    Route::match(['post', 'delete'], '/address/{id}/delete', [\App\Http\Controllers\Website\ProfileController::class, 'delete_address'])->name('address.delete');
+    Route::match(['post', 'delete'], '/address-delete/{id}', [\App\Http\Controllers\Website\ProfileController::class, 'delete_address'])->name('delete_address');
     Route::post('/address/{id}/default',   [\App\Http\Controllers\Website\ProfileController::class, 'set_default_address'])->name('address.default');
 });
 
