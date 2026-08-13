@@ -86,6 +86,8 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/payment',                 [\App\Http\Controllers\Website\OrderController::class, 'payment_page'])->name('payment');
     Route::post('/checkout/complete',      [\App\Http\Controllers\Website\CheckoutController::class, 'completeCheckout'])->name('checkout.complete');
     Route::get('/my-orders',               [\App\Http\Controllers\Website\OrderController::class, 'my_order'])->name('my-orders');
+    Route::post('/my-orders/cancel/{id}',  [\App\Http\Controllers\Website\OrderController::class, 'cancel_order'])->name('my-orders.cancel');
+    Route::post('/my-orders/reorder/{id}', [\App\Http\Controllers\Website\OrderController::class, 'reorder'])->name('my-orders.reorder');
 
     // Eye Prescription
     Route::get('/add-power',               [\App\Http\Controllers\Website\PrescriptionController::class, 'add_power'])->name('add-power');
