@@ -22,6 +22,68 @@ class WebLoginController extends Controller
     }
 
     /**
+     * Show registration page.
+     */
+    public function register_web()
+    {
+        if (Auth::check()) {
+            return redirect()->route('home');
+        }
+        return view('website.auth.registerweb');
+    }
+
+    /**
+     * Store new web user registration.
+     */
+    public function store_register_web(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users,email',
+            'phone'    => 'required|string|max:20|unique:users,phone',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = User::create([
+            'staff_id'  => (string) rand(10000000, 99999999),
+            'name'      => trim($request->name),
+            'email'     => trim($request->email),
+            'phone'     => trim($request->phone),
+            'password'  => Hash::make($request->password),
+            'user_type' => 'B2C',
+            'status'    => 1,
+        ]);
+
+        if (method_exists($user, 'assignRole')) {
+            try {
+                $user->assignRole('Customer');
+            } catch (\Throwable $e) {
+                // Role handling fallback
+            }
+        }
+
+        try {
+            $client_unique_id = 'C' . rand(11, 99) . $user->id . time();
+            \DB::table('tbl_client')->insert([
+                'user_id'          => $user->id,
+                'client_type'      => 'Customer',
+                'client_unique_id' => substr($client_unique_id, 0, 15),
+                'client_name'      => $request->name,
+                'email_id'         => $request->email,
+                'mobile_no'        => $request->phone,
+                'password'         => Hash::make($request->password),
+                'status'           => '1',
+            ]);
+        } catch (\Throwable $e) {
+            // Ignore if tbl_client structure differs
+        }
+
+        Auth::login($user);
+
+        return redirect()->route('home')->with('success', 'Account created successfully! Welcome to Speckarts, ' . $user->name . '.');
+    }
+
+    /**
      * Send OTP — find or create a web user by phone/email.
      * OTP is stored in session. For production, replace with SMS/Email API.
      */

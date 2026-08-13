@@ -36,9 +36,11 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/membership', [\App\Http\Controllers\Website\WebsiteController::class, 'membership'])->name('website.membership');
     // Auth & OTP
     Route::get('/login-web',               [\App\Http\Controllers\Website\WebLoginController::class, 'login_web'])->name('login.web');
-   Route::match(['get', 'post'], '/login-web/send-otp', [\App\Http\Controllers\Website\WebLoginController::class, 'send_otp'])->name('login.web.post');
+     Route::match(['get', 'post'], '/login-web/send-otp', [\App\Http\Controllers\Website\WebLoginController::class, 'send_otp'])->name('login.web.post');
     Route::get('/otp-web',                 [\App\Http\Controllers\Website\WebLoginController::class, 'otp_web'])->name('otp.web');
     Route::post('/otp-web/verify',         [\App\Http\Controllers\Website\WebLoginController::class, 'verify_otp'])->name('otp.web.post');
+    Route::get('/register-web',            [\App\Http\Controllers\Website\WebLoginController::class, 'register_web'])->name('register.web');
+    Route::post('/register-web',           [\App\Http\Controllers\Website\WebLoginController::class, 'store_register_web'])->name('register.web.post');
     Route::post('/logout-web',             [\App\Http\Controllers\Website\WebLoginController::class, 'logout'])->name('logout.web');
     Route::post('/login-web/send-otp-ajax',   [\App\Http\Controllers\Website\WebLoginController::class, 'send_otp_ajax'])->name('login.web.otp.ajax');
     Route::post('/login-web/verify-otp-ajax', [\App\Http\Controllers\Website\WebLoginController::class, 'verify_otp_ajax'])->name('login.web.verify.ajax');

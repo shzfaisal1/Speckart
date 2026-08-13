@@ -51,17 +51,23 @@
                                 </label>
                             </div>
 
-                            <div class="d-flex gap-2 flex-wrap mt-3">
+                            <div class="d-flex gap-2 flex-wrap mt-3 align-items-center">
                                 <button id="modal-send-otp-btn"
                                         class="btn px-4 py-2"
                                         style="background:#11ABB0; color:#fff; border-radius:0; font-size:14px; border:none;">
                                     Continue
                                 </button>
-                                <a href="{{ route('login.web') }}"
+                                <a href="{{ route('register.web') }}"
                                    class="btn px-4 py-2"
                                    style="background:transparent; color:#000; border:1px solid #000; border-radius:0; font-size:14px;">
-                                    Login with Password
+                                    Create Account
                                 </a>
+                            </div>
+
+                            <div class="mt-3 pt-2 border-top">
+                                <p class="mb-0 text-muted" style="font-size: 13px;">
+                                    Don't have an account? <a href="{{ route('register.web') }}" style="color:#11ABB0; font-weight:600; text-decoration:none;">Register Now</a>
+                                </p>
                             </div>
                         </div>
 

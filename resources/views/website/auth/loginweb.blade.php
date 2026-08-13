@@ -136,11 +136,19 @@
                                     </label>
                                 </div>
 
-                                <!-- This button submits the form -->
-                                <button type="submit" class="btn btn-primary">Continue</button>
+                                <div class="d-flex gap-2 flex-wrap align-items-center">
+                                    <!-- This button submits the form -->
+                                    <button type="submit" class="btn btn-primary">Continue</button>
 
-                                <!-- This button opens the link -->
-                                <a href="#" class="btn btn-secondary">Login with Password</a>
+                                    <!-- Register Button -->
+                                    <a href="{{ route('register.web') }}" class="btn btn-secondary">Create Account</a>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-top">
+                                    <p class="mb-0 text-muted" style="font-size: 14px;">
+                                        Don't have an account? <a href="{{ route('register.web') }}" style="color:#11ABB0; font-weight:600; text-decoration:none;">Register Now</a>
+                                    </p>
+                                </div>
                             </form>
 
                         </div>
@@ -149,7 +157,7 @@
                 <div class="col-lg-6">
                     <div class="login-sec-right1">
                         <div class="login-sec-right">
-                            <img src="{{asset('website/assets/img/bg/login.png')}}" alt="">
+                            <img src="{{asset('assets/img/bg/login.png')}}" alt="">
                         </div>
                     </div>
                 </div>

@@ -979,11 +979,13 @@ class InventoryController extends Controller
 
     public function auditExcel($audit_id, $status = "")
     {
-        if (!$audit_id || $status === '') {
+        if (!$audit_id || $status === '') 
+        {
             return back()->with('error', 'Invalid request');
         }
     
-        try {
+        try 
+        {
             ini_set('memory_limit', '2048M');
             set_time_limit(600);
     
@@ -997,7 +999,8 @@ class InventoryController extends Controller
             $row = 2;
             $counter = 1;
     
-            $bstatus = match (strtoupper($status)) {
+            $bstatus = match (strtoupper($status)) 
+            {
                 'MATCH' => [0],
                 'INVALID' => [1],
                 'MISSING' => [2],
@@ -1022,7 +1025,8 @@ class InventoryController extends Controller
                         ->get()
                         ->keyBy('barcode_no');
     
-                    foreach ($barcodeaudits as $barcodeaudit) {
+                    foreach ($barcodeaudits as $barcodeaudit) 
+                    {
                         $tbl_barcode = $barcodeData[$barcodeaudit->barcode] ?? null;
     
                         $sheet->fromArray([
@@ -1042,7 +1046,8 @@ class InventoryController extends Controller
                     }
                 });
     
-            foreach (range('A', 'L') as $columnID) {
+            foreach (range('A', 'L') as $columnID)
+            {
                 $sheet->getColumnDimension($columnID)->setAutoSize(true);
             }
     
@@ -1055,7 +1060,8 @@ class InventoryController extends Controller
             $fileName = 'AUDIT_REPORT_' . now()->format('Ymd_His') . '.xlsx';
             $writer = new Xlsx($spreadsheet);
     
-            return response()->streamDownload(function () use ($writer) {
+            return response()->streamDownload(function () use ($writer)
+            {
                 $writer->save('php://output');
             }, $fileName);
     
