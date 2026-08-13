@@ -84,7 +84,11 @@ class LoginController extends Controller
         if ($user) 
         {
             // Login user directly without checking password
+            $guestSessionId = session()->getId();
             Auth::login($user, $request->filled('remember'));
+            try {
+                app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
+            } catch (\Throwable $e) {}
 
             $role = $user->roles[0]->name ?? null;
             $host = $request->getHost();

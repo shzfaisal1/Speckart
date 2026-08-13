@@ -197,6 +197,80 @@ class CartService
     // ── Database Helper Methods for Dynamic Cart Sync ──────────────────────────
 
     /**
+     * Bind or transfer any guest cart to the logged-in user upon login
+     */
+    public function syncGuestCartToUser($userId, $guestSessionId = null)
+    {
+        if (!$userId) return;
+
+        try {
+            $currentSessionId = session()->getId();
+            $targetSessionId  = $guestSessionId ?: $currentSessionId;
+
+            // 1. Find guest cart by session_id where user_id IS NULL
+            $guestCart = Cart::where('session_id', $targetSessionId)->whereNull('user_id')->first();
+            if (!$guestCart && $targetSessionId !== $currentSessionId) {
+                $guestCart = Cart::where('session_id', $currentSessionId)->whereNull('user_id')->first();
+            }
+
+            // 2. Find or create user cart
+            $userCart = Cart::where('user_id', $userId)->first();
+
+            if ($guestCart) {
+                if (!$userCart) {
+                    // Assign guest cart directly to user
+                    $guestCart->user_id    = $userId;
+                    $guestCart->session_id = $currentSessionId;
+                    $guestCart->save();
+                    $userCart = $guestCart;
+                } else {
+                    // Merge items from guest cart to user cart
+                    $guestItems = CartItem::where('cart_id', $guestCart->id)->get();
+                    foreach ($guestItems as $gItem) {
+                        $existing = CartItem::where('cart_id', $userCart->id)
+                            ->where('product_id', $gItem->product_id)
+                            ->where('lens_package_id', $gItem->lens_package_id)
+                            ->first();
+                        if ($existing) {
+                            $existing->qty += $gItem->qty;
+                            $existing->save();
+                            $gItem->delete();
+                        } else {
+                            $gItem->cart_id = $userCart->id;
+                            $gItem->save();
+                        }
+                    }
+                    $guestCart->delete();
+                }
+            }
+
+            // 3. Re-sync any active session cart items into the user's cart in DB
+            $sessionCart = session()->get('cart', []);
+            if (!empty($sessionCart)) {
+                if (!$userCart) {
+                    $userCart = Cart::create([
+                        'user_id'    => $userId,
+                        'session_id' => $currentSessionId,
+                    ]);
+                } else {
+                    if ($userCart->session_id !== $currentSessionId) {
+                        $userCart->session_id = $currentSessionId;
+                        $userCart->save();
+                    }
+                }
+
+                foreach ($sessionCart as $item) {
+                    if (isset($item['frame_id'])) {
+                        $this->syncDbCartItem($userCart->id, $item);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Error syncing guest cart to user: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get or create the dynamic database Cart record for logged in user or guest session
      */
     public function getOrCreateDbCart()
@@ -217,6 +291,11 @@ class CartService
                         'user_id'    => $userId,
                         'session_id' => $sessionId,
                     ]);
+                }
+            } else {
+                if ($cart->session_id !== $sessionId) {
+                    $cart->session_id = $sessionId;
+                    $cart->save();
                 }
             }
             return $cart;
