@@ -28,6 +28,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
     <style>
         /* login-sec */
         .login-sec-left {
@@ -123,6 +126,9 @@
                             @if(session('success'))
                                 <div class="alert alert-success mt-3">{{ session('success') }}</div>
                             @endif
+                            @if(session('error'))
+                                <div class="alert alert-danger mt-3">{{ session('error') }}</div>
+                            @endif
                             <form action="{{ route('login.web.post') }}" method="POST">
                                 @csrf
                                 <div class="mb-3 mt-3">
@@ -166,6 +172,31 @@
     </section>
 
 
+    <!-- jQuery & Toastr JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": "5000"
+            };
+            @if(session('success'))
+                toastr.success("{{ session('success') }}");
+            @endif
+            @if(session('error'))
+                toastr.error("{{ session('error') }}");
+            @endif
+            @if(session('warning'))
+                toastr.warning("{{ session('warning') }}");
+            @endif
+            @if(session('info'))
+                toastr.info("{{ session('info') }}");
+            @endif
+        });
+    </script>
 </body>
 
 </html>

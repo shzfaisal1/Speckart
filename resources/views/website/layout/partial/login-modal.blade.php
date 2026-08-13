@@ -206,6 +206,9 @@
                 if (otpInput) otpInput.focus();
             } else {
                 showError(errBox, data.message || 'Failed to send OTP. Try again.');
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(data.message || 'Account not registered. Please register first.');
+                }
             }
         })
         .catch(function() {
