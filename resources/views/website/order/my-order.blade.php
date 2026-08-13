@@ -523,33 +523,41 @@
                 </div>
             </div>
 
+            @php
+                $totalCount      = $orders->count();
+                $processingCount = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['0', 'pending', 'processing']))->count();
+                $transitCount    = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['1', 'shipped', 'transit']))->count();
+                $deliveredCount  = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['2', 'delivered']))->count();
+                $cancelledCount  = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['3', 'cancelled']))->count();
+            @endphp
+
             <!-- Summary Cards (double as filters — click to filter by status) -->
             <div class="row g-3 mb-4">
 
                 <div class="col-md-3 col-6">
                     <button type="button" class="order-stat-card is-active" data-filter="all">
-                        <h3>12</h3>
+                        <h3>{{ $totalCount }}</h3>
                         <p>Total Orders</p>
                     </button>
                 </div>
 
                 <div class="col-md-3 col-6">
                     <button type="button" class="order-stat-card" data-filter="transit">
-                        <h3>2</h3>
+                        <h3>{{ $transitCount }}</h3>
                         <p>In Transit</p>
                     </button>
                 </div>
 
                 <div class="col-md-3 col-6">
                     <button type="button" class="order-stat-card" data-filter="delivered">
-                        <h3>8</h3>
+                        <h3>{{ $deliveredCount }}</h3>
                         <p>Delivered</p>
                     </button>
                 </div>
 
                 <div class="col-md-3 col-6">
                     <button type="button" class="order-stat-card" data-filter="cancelled">
-                        <h3>2</h3>
+                        <h3>{{ $cancelledCount }}</h3>
                         <p>Cancelled</p>
                     </button>
                 </div>
@@ -558,228 +566,185 @@
 
             <!-- Filters -->
             <div class="order-filters mb-4">
-                <button class="active" data-filter="all">All Orders</button>
-                <button data-filter="processing">Processing</button>
-                <button data-filter="transit">Shipped</button>
-                <button data-filter="delivered">Delivered</button>
-                <button data-filter="cancelled">Cancelled</button>
+                <button class="active" data-filter="all">All Orders ({{ $totalCount }})</button>
+                <button data-filter="processing">Processing ({{ $processingCount }})</button>
+                <button data-filter="transit">Shipped ({{ $transitCount }})</button>
+                <button data-filter="delivered">Delivered ({{ $deliveredCount }})</button>
+                <button data-filter="cancelled">Cancelled ({{ $cancelledCount }})</button>
             </div>
 
-            <!-- Order Card -->
-            <div class="order-card" data-status="transit">
+            @forelse($orders as $order)
+                @php
+                    $statusStr = strtolower((string)($order->sales_status ?? 0));
+                    if (in_array($statusStr, ['1', 'shipped', 'transit'])) {
+                        $dataStatus  = 'transit';
+                        $statusLabel = 'In Transit';
+                        $statusClass = 'transit';
+                        $statusIcon  = 'fa-truck-fast';
+                    } elseif (in_array($statusStr, ['2', 'delivered'])) {
+                        $dataStatus  = 'delivered';
+                        $statusLabel = 'Delivered';
+                        $statusClass = 'delivered';
+                        $statusIcon  = 'fa-circle-check';
+                    } elseif (in_array($statusStr, ['3', 'cancelled'])) {
+                        $dataStatus  = 'cancelled';
+                        $statusLabel = 'Cancelled';
+                        $statusClass = 'cancelled';
+                        $statusIcon  = 'fa-circle-xmark';
+                    } else {
+                        $dataStatus  = 'processing';
+                        $statusLabel = 'Processing';
+                        $statusClass = 'transit';
+                        $statusIcon  = 'fa-clock';
+                    }
 
-                <div class="order-top">
-                    <span class="status transit">
-                        <i class="fa-solid fa-truck-fast"></i> In Transit
-                    </span>
+                    $orderId      = $order->sale_id ?? $order->id;
+                    $orderNo      = $order->order_no ?? ('SPECK' . $orderId);
+                    $orderDate    = !empty($order->sale_date) ? \Carbon\Carbon::parse($order->sale_date)->format('d M Y') : (\Carbon\Carbon::parse($order->created_at)->format('d M Y'));
+                    $totalPayable = (float)($order->total_payable ?? ($order->pay_amount ?? 0));
+                    $products     = $order->products ?? collect();
+                @endphp
 
-                    <span class="order-id">
-                        Order ID : SPECK12345
-                    </span>
-                </div>
+                <div class="order-card" data-status="{{ $dataStatus }}">
 
-                <div class="row align-items-center">
+                    <div class="order-top">
+                        <span class="status {{ $statusClass }}">
+                            <i class="fa-solid {{ $statusIcon }}"></i> {{ $statusLabel }}
+                        </span>
 
-                    <div class="col-lg-2 col-4">
-                        <div class="product-thumb">
-                            <img src="{{ asset('assets/img/bg/Eyeglasses1.png') }}" alt="">
-                        </div>
+                        <span class="order-id">
+                            Order ID : {{ $orderNo }}
+                        </span>
                     </div>
 
-                    <div class="col-lg-7 col-8">
+                    @forelse($products as $prod)
+                        <div class="row align-items-center {{ !$loop->last ? 'mb-3 pb-3 border-bottom' : '' }}">
 
-                        <h6 class="brand mb-1">
-                            Fastrack
-                        </h6>
+                            <div class="col-lg-2 col-4">
+                                <div class="product-thumb">
+                                    <img src="{{ $prod->image ?? asset('website/assets/img/bg/Eyeglasses1.png') }}" alt="{{ $prod->product_deatils ?? 'Product' }}">
+                                </div>
+                            </div>
 
-                        <h5 class="product-title">
-                            Blue Wayfarer Rimmed Eyeglasses for Men (Medium)
-                        </h5>
+                            <div class="col-lg-7 col-8">
 
-                        <div class="order-meta">
-                            Ordered on 05 Apr 2025
-                        </div>
+                                <h6 class="brand mb-1">
+                                    {{ $prod->product_company ?? 'Speckarts' }}
+                                </h6>
 
-                        <div class="delivery-date">
-                            Expected Delivery:
-                            <strong>09 Apr 2025</strong>
-                        </div>
+                                <h5 class="product-title mb-1">
+                                    {{ $prod->product_deatils ?? 'Eyeglasses Product' }}
+                                </h5>
 
-                        <div class="price">
-                            ₹800
-                        </div>
+                                <div class="order-meta mb-1">
+                                    Ordered on {{ $orderDate }}
+                                    @if(!empty($prod->qty) && $prod->qty > 1)
+                                        | Qty: {{ $prod->qty }}
+                                    @endif
+                                </div>
 
-                        <!-- Progress -->
-                        <div class="order-progress mt-3">
-                            <div class="step active">Ordered</div>
-                            <div class="step active">Packed</div>
-                            <div class="step active">Shipped</div>
-                            <div class="step">Delivered</div>
-                        </div>
+                                @if($dataStatus === 'processing' || $dataStatus === 'transit')
+                                    <div class="delivery-date">
+                                        Expected Delivery: <strong>{{ \Carbon\Carbon::parse($order->sale_date ?? now())->addDays(4)->format('d M Y') }}</strong>
+                                    </div>
+                                @elseif($dataStatus === 'delivered')
+                                    <div class="order-note is-positive">
+                                        <i class="fa-solid fa-box-open me-1"></i> Package delivered — enjoy your new pair
+                                    </div>
+                                @elseif($dataStatus === 'cancelled')
+                                    <div class="order-note is-muted">
+                                        <i class="fa-solid fa-rotate-left me-1"></i> Order cancelled
+                                    </div>
+                                @endif
 
-                    </div>
+                                <div class="price mt-2">
+                                    ₹{{ number_format((float)($prod->sale_price ?? $totalPayable), 2) }}
+                                </div>
 
-                    <div class="col-lg-3 mt-3 mt-lg-0">
+                                @if($dataStatus !== 'cancelled')
+                                    <div class="order-progress mt-3">
+                                        <div class="step active">Ordered</div>
+                                        <div class="step {{ in_array($dataStatus, ['transit', 'delivered']) ? 'active' : '' }}">Packed</div>
+                                        <div class="step {{ in_array($dataStatus, ['transit', 'delivered']) ? 'active' : '' }}">Shipped</div>
+                                        <div class="step {{ $dataStatus === 'delivered' ? 'active' : '' }}">Delivered</div>
+                                    </div>
+                                @endif
 
-                        <div class="action-buttons">
+                            </div>
 
-                            <button class="btn btn-theme">
-                                Track Order
-                            </button>
+                            <div class="col-lg-3 mt-3 mt-lg-0">
 
-                            <button class="btn btn-danger-theme">
-                                Cancel Order
-                            </button>
+                                <div class="action-buttons">
+                                    @if($dataStatus === 'processing' || $dataStatus === 'transit')
+                                        <form action="{{ route('my-orders.cancel', $orderId) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger-theme w-100">
+                                                Cancel Order
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('my-orders.reorder', $orderId) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-theme w-100">
+                                                Reorder
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
 
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- Delivered Order -->
-            <div class="order-card" data-status="delivered">
-
-                <div class="order-top">
-                    <span class="status delivered">
-                        <i class="fa-solid fa-circle-check"></i> Delivered
-                    </span>
-
-                    <span class="order-id">
-                        Order ID : SPECK12346
-                    </span>
-                </div>
-
-                <div class="row align-items-center">
-
-                    <div class="col-lg-2 col-4">
-                        <div class="product-thumb">
-                            <img src="{{ asset('assets/img/bg/Eyeglasses2.png') }}" alt="">
-                        </div>
-                    </div>
-
-                    <div class="col-lg-7 col-8">
-
-                        <h6 class="brand mb-1">
-                            Fastrack
-                        </h6>
-
-                        <h5 class="product-title">
-                            Black Rectangle Eyeglasses
-                        </h5>
-
-                        <div class="order-meta">
-                            Delivered on 09 Apr 2025
-                        </div>
-
-                        <div class="order-note is-positive">
-                            <i class="fa-solid fa-box-open me-1"></i> Package handed over — enjoy your new pair
-                        </div>
-
-                        <div class="price">
-                            ₹999
-                        </div>
-
-                    </div>
-
-                    <div class="col-lg-3 mt-3 mt-lg-0">
-
-                        <div class="action-buttons">
-
-                            <button class="btn btn-theme">
-                                Rate Product
-                            </button>
-
-                            <button class="btn btn-outline-theme">
-                                Reorder
-                            </button>
+                            </div>
 
                         </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- Cancelled Order -->
-            <div class="order-card" data-status="cancelled">
-
-                <div class="order-top">
-                    <span class="status cancelled">
-                        <i class="fa-solid fa-circle-xmark"></i> Cancelled
-                    </span>
-
-                    <span class="order-id">
-                        Order ID : SPECK12347
-                    </span>
-                </div>
-
-                <div class="row align-items-center">
-
-                    <div class="col-lg-2 col-4">
-                        <div class="product-thumb">
-                            <img src="{{ asset('assets/img/bg/Eyeglasses3.png') }}" alt="">
+                    @empty
+                        <div class="row align-items-center">
+                            <div class="col-lg-2 col-4">
+                                <div class="product-thumb">
+                                    <img src="{{ asset('website/assets/img/bg/Eyeglasses1.png') }}" alt="Speckart Order">
+                                </div>
+                            </div>
+                            <div class="col-lg-7 col-8">
+                                <h6 class="brand mb-1">Speckarts</h6>
+                                <h5 class="product-title">Order #{{ $orderNo }}</h5>
+                                <div class="order-meta">Ordered on {{ $orderDate }}</div>
+                                <div class="price">₹{{ number_format($totalPayable, 2) }}</div>
+                            </div>
+                            <div class="col-lg-3 mt-3 mt-lg-0">
+                                <div class="action-buttons">
+                                    @if($dataStatus === 'processing' || $dataStatus === 'transit')
+                                        <form action="{{ route('my-orders.cancel', $orderId) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-danger-theme w-100">
+                                                Cancel Order
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('my-orders.reorder', $orderId) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-theme w-100">
+                                                Reorder
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="col-lg-7 col-8">
-
-                        <h6 class="brand mb-1">
-                            Fastrack
-                        </h6>
-
-                        <h5 class="product-title">
-                            Blue Transparent Eyeglasses
-                        </h5>
-
-                        <div class="order-meta">
-                            Cancelled on 06 Apr 2025
-                        </div>
-
-                        <div class="order-note is-muted">
-                            <i class="fa-solid fa-rotate-left me-1"></i> Refund of ₹699 issued to original payment method
-                        </div>
-
-                        <div class="price">
-                            ₹699
-                        </div>
-
-                    </div>
-
-                    <div class="col-lg-3 mt-3 mt-lg-0">
-
-                        <div class="action-buttons">
-                            <button class="btn btn-outline-theme">
-                                Reorder
-                            </button>
-                        </div>
-
-                    </div>
+                    @endforelse
 
                 </div>
+            @empty
+                <div class="empty-orders py-5" id="emptyOrdersState">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <h4>No orders here yet</h4>
+                    <p>Once you place an order, you'll be able to track its status and history right here.</p>
+                    <a href="{{ route('home') }}" class="btn btn-theme px-4 py-2 mt-2">Start Shopping</a>
+                </div>
+            @endforelse
 
-            </div>
-
-            {{-- <!--
-                Empty state — show this instead of the cards above when the
-                customer (or the active filter) has zero matching orders.
-                Example Blade usage:
-
-                @if ($orders->isEmpty())
-                    <div class="empty-orders"> ... </div>
-                @else
-                    ... order cards ...
-                @endif
-            -->
-            <div class="empty-orders d-none" id="emptyOrdersState">
+            <div class="empty-orders d-none py-5" id="emptyOrdersFilterState">
                 <i class="fa-solid fa-bag-shopping"></i>
-                <h4>No orders here yet</h4>
-                <p>Once you place an order, you'll be able to track its status and history right here.</p>
-                <a href="#" class="btn btn-theme">Start Shopping</a>
-            </div> --}}
+                <h4>No matching orders found</h4>
+                <p>There are no orders in this filter category.</p>
+            </div>
 
         </div>
     </section>
@@ -789,7 +754,7 @@
             var pillFilters = document.querySelectorAll('.order-filters button');
             var statCards = document.querySelectorAll('.order-stat-card');
             var orderCards = document.querySelectorAll('.order-card');
-            var emptyState = document.getElementById('emptyOrdersState');
+            var emptyFilterState = document.getElementById('emptyOrdersFilterState');
 
             function applyFilter(filter) {
                 var visibleCount = 0;
@@ -800,8 +765,8 @@
                     if (matches) visibleCount++;
                 });
 
-                if (emptyState) {
-                    emptyState.classList.toggle('d-none', visibleCount !== 0);
+                if (emptyFilterState && orderCards.length > 0) {
+                    emptyFilterState.classList.toggle('d-none', visibleCount !== 0);
                 }
 
                 pillFilters.forEach(function(btn) {
