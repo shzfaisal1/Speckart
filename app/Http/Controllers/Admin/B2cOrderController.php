@@ -22,6 +22,8 @@ class B2cOrderController extends Controller
      */
     public function index(Request $request)
     {
+        $this->syncFromLegacySales();
+
         $page_title = 'B2C Orders';
         $breadcrumbs = [
             ['name' => 'Dashboard', 'link' => route('index')],
@@ -473,5 +475,137 @@ class B2cOrderController extends Controller
         $store = Store::first();
 
         return view('admin.b2c_orders.lab_work_order', compact('order', 'store'));
+    }
+
+    /**
+     * Automatically sync any existing orders from tbl_sales into b2c_orders if missing.
+     */
+    protected function syncFromLegacySales()
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('tbl_sales') || !\Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
+                return;
+            }
+
+            $legacySales = DB::table('tbl_sales')
+                ->where(function($q) {
+                    $q->where('sales_type', 0)
+                      ->orWhere('order_no', 'LIKE', 'WEB%')
+                      ->orWhere('order_no', 'LIKE', 'B2C%');
+                })
+                ->where(function($q) {
+                    $q->where('is_deleted', 0)->orWhereNull('is_deleted');
+                })
+                ->get();
+
+            foreach ($legacySales as $sale) {
+                $orderNo = $sale->order_no ?? ('WEB' . $sale->sale_id);
+                $exists = B2cOrder::where('order_number', $orderNo)->exists();
+                if ($exists) {
+                    continue;
+                }
+
+                $products = DB::table('tbl_sales_product')->where('sale_id', $sale->sale_id ?? $sale->id)->get();
+                $hasRx = false;
+                foreach ($products as $p) {
+                    if (!empty($p->GL_EYE_RS_D) || !empty($p->GL_EYE_LS_D) || !empty($p->prescription_notes)) {
+                        $hasRx = true;
+                        break;
+                    }
+                }
+
+                $addressSnapshot = [
+                    'full_name'    => $sale->cust_name,
+                    'phone'        => $sale->contact_no,
+                    'email'        => $sale->email_id,
+                    'full_address' => $sale->cust_address,
+                    'pincode'      => $sale->pincode,
+                ];
+
+                $order = B2cOrder::create([
+                    'order_number'               => $orderNo,
+                    'user_id'                    => $sale->added_by ?? $sale->cust_id,
+                    'guest_name'                 => $sale->cust_name,
+                    'guest_email'                => $sale->email_id,
+                    'guest_phone'                => $sale->contact_no,
+                    'shipping_address_snapshot'  => $addressSnapshot,
+                    'subtotal'                   => (float)($sale->total_item_price ?? $sale->total_basic_amount ?? 0),
+                    'discount_amount'            => (float)($sale->total_discount ?? 0),
+                    'tax_amount'                 => (float)($sale->total_gst_amount ?? 0),
+                    'shipping_fee'               => 0,
+                    'grand_total'                => (float)($sale->total_payable ?? $sale->pay_amount ?? 0),
+                    'coupon_code'                => $sale->earncoupon ?? null,
+                    'coupon_discount'            => (float)($sale->coupon_amount ?? 0),
+                    'loyalty_points_used'        => (float)($sale->loyalty_point_amount ?? 0),
+                    'bogo_discount'              => (float)($sale->bogo_discount ?? 0),
+                    'order_status'               => 'pending',
+                    'rx_verification_status'     => $hasRx ? 'pending_review' : 'not_required',
+                    'is_rx_required'             => $hasRx,
+                    'payment_status'             => ($sale->pay_amount >= $sale->total_payable && $sale->total_payable > 0) ? 'paid' : 'pending',
+                    'delivery_method'            => 'standard',
+                    'created_at'                 => $sale->created_at ?? Carbon::now(),
+                    'updated_at'                 => $sale->updated_at ?? Carbon::now(),
+                ]);
+
+                foreach ($products as $prod) {
+                    $rx = null;
+                    if (!empty($prod->prescription_notes)) {
+                        $rx = json_decode($prod->prescription_notes, true);
+                    }
+
+                    B2cOrderItem::create([
+                        'order_id'              => $order->id,
+                        'product_id'            => $prod->product_id ?? null,
+                        'product_code'          => $prod->product_code ?? null,
+                        'product_name'          => $prod->product_deatils ?? 'Product',
+                        'product_type'          => $prod->product_type ?? 'frame',
+                        'frame_color'           => $prod->product_color ?? null,
+                        'frame_size'            => $prod->product_size ?? null,
+                        'qty'                   => (int)($prod->qty ?? 1),
+                        'base_price'            => (float)($prod->retail_price ?? $prod->base_price ?? 0),
+                        'sale_price'            => (float)($prod->sale_price ?? 0),
+                        'discount_amt'          => (float)($prod->discount_amt ?? $prod->product_discount ?? 0),
+                        'total_price'           => (float)(($prod->sale_price ?? 0) * ($prod->qty ?? 1)),
+                        'lens_package_id'       => $prod->package_id ?? null,
+                        'prescription_source'   => is_array($rx) ? ($rx['source'] ?? 'manual_entry') : 'manual_entry',
+                        'prescription_file_url' => is_array($rx) ? ($rx['file_url'] ?? null) : null,
+                        'GL_EYE_RS_D'           => $prod->GL_EYE_RS_D ?? (is_array($rx) ? ($rx['GL_EYE_RS_D'] ?? null) : null),
+                        'GL_EYE_RC_D'           => $prod->GL_EYE_RC_D ?? (is_array($rx) ? ($rx['GL_EYE_RC_D'] ?? null) : null),
+                        'GL_EYE_RA_D'           => $prod->GL_EYE_RA_D ?? (is_array($rx) ? ($rx['GL_EYE_RA_D'] ?? null) : null),
+                        'GL_EYE_RADD'           => $prod->GL_EYE_RADD ?? (is_array($rx) ? ($rx['GL_EYE_RADD'] ?? null) : null),
+                        'GL_EYE_LS_D'           => $prod->GL_EYE_LS_D ?? (is_array($rx) ? ($rx['GL_EYE_LS_D'] ?? null) : null),
+                        'GL_EYE_LC_D'           => $prod->GL_EYE_LC_D ?? (is_array($rx) ? ($rx['GL_EYE_LC_D'] ?? null) : null),
+                        'GL_EYE_LA_D'           => $prod->GL_EYE_LA_D ?? (is_array($rx) ? ($rx['GL_EYE_LA_D'] ?? null) : null),
+                        'GL_EYE_LADD'           => $prod->GL_EYE_LADD ?? (is_array($rx) ? ($rx['GL_EYE_LADD'] ?? null) : null),
+                        'GL_EYE_totalPD'        => $prod->GL_EYE_totalPD ?? (is_array($rx) ? ($rx['GL_EYE_totalPD'] ?? null) : null),
+                        'prescription_notes'    => $prod->prescription_notes ?? null,
+                        'item_status'           => 'pending',
+                        'created_at'            => $prod->created_at ?? $order->created_at,
+                        'updated_at'            => $prod->updated_at ?? $order->updated_at,
+                    ]);
+                }
+
+                B2cOrderPayment::create([
+                    'order_id'        => $order->id,
+                    'payment_gateway' => strtolower($sale->pay_method ?? 'COD'),
+                    'amount'          => (float)($sale->total_payable ?? $sale->pay_amount ?? 0),
+                    'payment_method'  => strtoupper($sale->pay_method ?? 'COD'),
+                    'status'          => ($sale->pay_amount >= $sale->total_payable && $sale->total_payable > 0) ? 'success' : 'pending',
+                    'paid_at'         => ($sale->pay_amount >= $sale->total_payable && $sale->total_payable > 0) ? ($sale->created_at ?? Carbon::now()) : null,
+                    'created_at'      => $sale->created_at ?? Carbon::now(),
+                    'updated_at'      => $sale->updated_at ?? Carbon::now(),
+                ]);
+
+                B2cOrderLog::create([
+                    'order_id'   => $order->id,
+                    'user_id'    => $sale->added_by ?? null,
+                    'action'     => 'order_placed',
+                    'notes'      => 'Order created via checkout.',
+                    'created_at' => $sale->created_at ?? Carbon::now(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('B2C Order Sync error: ' . $e->getMessage());
+        }
     }
 }
