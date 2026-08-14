@@ -529,6 +529,25 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
          Route::get('/search-products', 'searchProducts') ->name('search-products');
      });
 
+    // ── B2C ONLINE ORDERS MODULE ──
+    Route::controller(\App\Http\Controllers\Admin\B2cOrderController::class)
+     ->prefix('b2c-orders')
+     ->name('b2c-orders.')
+     ->group(function () {
+         Route::get('/',                          'index')              ->name('index');
+         Route::get('/{id}',                      'show')               ->name('show');
+         Route::post('/{id}/status',              'updateStatus')       ->name('update-status');
+         Route::post('/{id}/verify-prescription', 'verifyPrescription') ->name('verify-prescription');
+         Route::post('/{id}/lab-status',          'updateLabStatus')    ->name('update-lab-status');
+         Route::post('/{id}/tracking',            'updateTracking')     ->name('update-tracking');
+         Route::post('/{id}/note',                'addNote')            ->name('add-note');
+         Route::post('/{id}/cancel',              'cancelOrder')        ->name('cancel');
+         Route::post('/{id}/return',              'processReturn')      ->name('process-return');
+         Route::post('/bulk-action',              'bulkAction')         ->name('bulk-action');
+         Route::get('/{id}/invoice',              'invoice')            ->name('invoice');
+         Route::get('/{id}/lab-work-order',       'labWorkOrder')       ->name('lab-work-order');
+     });
+
 });
 
 
