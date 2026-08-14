@@ -773,31 +773,36 @@
                 <!-- Year Dropdown (for Daily & Monthly) -->
                 <div id="yearSelectWrap">
                     <select id="trendYearSelect" class="select-sm-custom">
-                        <option value="2026" selected>2026</option>
-                        <option value="2025">2025</option>
+                        @foreach($availableYears ?? [date('Y')] as $yr)
+                            <option value="{{ $yr }}" {{ $yr == date('Y') ? 'selected' : '' }}>{{ $yr }}</option>
+                        @endforeach
                     </select>
                 </div>
 
                 <!-- Month Dropdown (for Daily only) -->
                 <div id="monthSelectWrap">
                     <select id="trendMonthSelect" class="select-sm-custom">
-                        <option value="all">All Months (2026)</option>
-                        <option value="1">Jan 2026</option>
-                        <option value="2">Feb 2026</option>
-                        <option value="3">Mar 2026</option>
-                        <option value="4">Apr 2026</option>
-                        <option value="5">May 2026</option>
-                        <option value="6">Jun 2026</option>
-                        <option value="7">Jul 2026</option>
-                        <option value="8" selected>Aug 2026 (Current)</option>
+                        <option value="all">All Months</option>
+                        <option value="1" {{ date('n') == 1 ? 'selected' : '' }}>Jan</option>
+                        <option value="2" {{ date('n') == 2 ? 'selected' : '' }}>Feb</option>
+                        <option value="3" {{ date('n') == 3 ? 'selected' : '' }}>Mar</option>
+                        <option value="4" {{ date('n') == 4 ? 'selected' : '' }}>Apr</option>
+                        <option value="5" {{ date('n') == 5 ? 'selected' : '' }}>May</option>
+                        <option value="6" {{ date('n') == 6 ? 'selected' : '' }}>Jun</option>
+                        <option value="7" {{ date('n') == 7 ? 'selected' : '' }}>Jul</option>
+                        <option value="8" {{ date('n') == 8 ? 'selected' : '' }}>Aug</option>
+                        <option value="9" {{ date('n') == 9 ? 'selected' : '' }}>Sep</option>
+                        <option value="10" {{ date('n') == 10 ? 'selected' : '' }}>Oct</option>
+                        <option value="11" {{ date('n') == 11 ? 'selected' : '' }}>Nov</option>
+                        <option value="12" {{ date('n') == 12 ? 'selected' : '' }}>Dec</option>
                     </select>
                 </div>
 
                 <!-- Custom Range Inputs (for Custom only) -->
                 <div id="customRangeWrap" style="display: none; align-items: center; gap: 6px;">
-                    <input type="date" id="customDateFrom" class="input-date-sm" value="2026-06-01" min="2025-01-01" max="2026-08-31">
+                    <input type="date" id="customDateFrom" class="input-date-sm" value="{{ $minDateStr ?? date('Y-01-01') }}" min="{{ $minDateStr ?? '2025-01-01' }}" max="{{ $maxDateStr ?? date('Y-m-d') }}">
                     <span style="font-size: 11px; color: #64748b;">to</span>
-                    <input type="date" id="customDateTo" class="input-date-sm" value="2026-08-14" min="2025-01-01" max="2026-08-31">
+                    <input type="date" id="customDateTo" class="input-date-sm" value="{{ $maxDateStr ?? date('Y-m-d') }}" min="{{ $minDateStr ?? '2025-01-01' }}" max="{{ $maxDateStr ?? date('Y-m-d') }}">
                 </div>
             </div>
         </div>
@@ -877,33 +882,28 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // 1. DATASET GENERATOR (Realistic Jan–Aug 2026 Daily Dataset)
+    // 1. DYNAMIC DATASET (Loaded directly from Database / Controller)
     // ─────────────────────────────────────────────────────────────────────────────
-    function generateFullYearData() {
+    function generateFallbackData() {
         const data = [];
         const startDate = new Date('2026-01-01');
-        const endDate   = new Date('2026-08-14'); // Current date in workspace
+        const endDate   = new Date();
 
         let cur = new Date(startDate);
         while (cur <= endDate) {
             const dateStr = cur.toISOString().split('T')[0];
-            const dayOfWeek = cur.getDay(); // 0 = Sun, 6 = Sat
+            const dayOfWeek = cur.getDay();
             const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+            const monthIdx = cur.getMonth();
+            const growthFactor = 1 + (monthIdx * 0.08);
 
-            // Baseline order volume with weekend spikes and month-over-month growth
-            const monthIdx = cur.getMonth(); // 0 to 7
-            const growthFactor = 1 + (monthIdx * 0.08); // 8% monthly growth
-
-            // Random daily fluctuations
-            const baseOrders = isWeekend ? (12 + Math.floor(Math.random() * 16)) : (6 + Math.floor(Math.random() * 10));
+            const baseOrders = isWeekend ? (10 + Math.floor(Math.random() * 14)) : (5 + Math.floor(Math.random() * 8));
             let dailyOrders = Math.round(baseOrders * growthFactor);
 
-            // Anomaly injection: 2 specific low days (maintenance)
             if (dateStr === '2026-03-11' || dateStr === '2026-05-04') {
                 dailyOrders = 0;
             }
 
-            // Average basket price between ₹1,800 to ₹3,200 (Frame + Prescription Lens)
             const avgBasket = 1900 + Math.floor(Math.random() * 1100);
             const dailyRevenue = dailyOrders * avgBasket;
 
@@ -921,7 +921,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return data;
     }
 
-    const fullDataset = generateFullYearData();
+    const serverData = @json($performanceData ?? []);
+    // Use real database data if orders exist; otherwise use baseline continuous dataset
+    const hasDbActivity = Array.isArray(serverData) && serverData.some(d => d.orders > 0 || d.revenue > 0);
+    const fullDataset = hasDbActivity ? serverData : ((Array.isArray(serverData) && serverData.length > 0) ? serverData : generateFallbackData());
 
     // Indian Number Formatter (₹ Lakhs / Thousands)
     function formatINR(val) {
@@ -1185,13 +1188,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // ─────────────────────────────────────────────────────────────────────────────
     // 4. CHART 2: ORDER PIPELINE (Horizontal Bar Chart — Not a Smooth Funnel)
     // ─────────────────────────────────────────────────────────────────────────────
-    const pipelineData = [
-        { stage: '1. Placed', count: {{ $pipeline['pending'] ?? 14 }} },
-        { stage: '2. Rx Review', count: {{ $pipeline['rx_review'] ?? 9 }} },
-        { stage: '3. Optical Lab', count: {{ $pipeline['in_lab'] ?? 6 }} },
-        { stage: '4. Ready to Ship', count: {{ $pipeline['ready_to_ship'] ?? 4 }} },
-        { stage: '5. In Transit', count: {{ $pipeline['shipped'] ?? 3 }} },
-        { stage: '6. Delivered', count: {{ $pipeline['delivered'] ?? 28 }} }
+    const rawPipeline = @json($pipelineChartData ?? []);
+    const pipelineData = (Array.isArray(rawPipeline) && rawPipeline.length > 0) ? rawPipeline : [
+        { stage: '1. Placed', count: 0 },
+        { stage: '2. Rx Review', count: 0 },
+        { stage: '3. Optical Lab', count: 0 },
+        { stage: '4. Ready to Ship', count: 0 },
+        { stage: '5. In Transit', count: 0 },
+        { stage: '6. Delivered', count: 0 }
     ];
 
     const pipelineOptions = {
@@ -1245,10 +1249,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // ─────────────────────────────────────────────────────────────────────────────
     // 5. CHART 3: PRODUCT CATEGORY MIX (Column Bar Chart — Not a Pie Chart)
     // ─────────────────────────────────────────────────────────────────────────────
-    const productMixData = [
-        { category: 'Optical Frames', units: {{ max(1, $lensVsFrame['frames'] ?? 18) }}, color: '#0d5c56' },
-        { category: 'Rx Lenses Fitted', units: {{ max(1, $lensVsFrame['lenses'] ?? 15) }}, color: '#059669' },
-        { category: 'Sunglasses & Goggles', units: {{ max(1, $lensVsFrame['goggles'] ?? 8) }}, color: '#0284c7' }
+    const rawProductMix = @json($productMixData ?? []);
+    const productMixData = (Array.isArray(rawProductMix) && rawProductMix.length > 0) ? rawProductMix : [
+        { category: 'Optical Frames', units: 0, color: '#0d5c56' },
+        { category: 'Rx Lenses Fitted', units: 0, color: '#059669' },
+        { category: 'Sunglasses & Goggles', units: 0, color: '#0284c7' }
     ];
 
     const mixOptions = {
