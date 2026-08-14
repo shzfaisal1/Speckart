@@ -22,7 +22,11 @@ class B2cOrderController extends Controller
      */
     public function index(Request $request)
     {
-        $this->syncFromLegacySales();
+        // Sync legacy sales at most once per hour (not every page load)
+        if (!cache()->has('b2c_legacy_sync_done')) {
+            $this->syncFromLegacySales();
+            cache()->put('b2c_legacy_sync_done', true, now()->addHour());
+        }
 
         $page_title = 'B2C Orders';
         $breadcrumbs = [
@@ -49,6 +53,10 @@ class B2cOrderController extends Controller
                       ->where('rx_verification_status', 'approved');
                 })->count(),
             'payment_issues' => B2cOrder::whereIn('payment_status', ['failed', 'cod_pending'])->count(),
+            'ready_to_ship' => B2cOrder::where(function ($q) {
+                $q->where('lab_status', 'completed')
+                  ->orWhere('order_status', 'ready_to_ship');
+            })->whereNull('tracking_number')->count(),
         ];
 
         // ── 2. Build Query with Filters ───────────────────────────────────
