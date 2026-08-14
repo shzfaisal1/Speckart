@@ -135,6 +135,19 @@
             </ul>
         </li>
         @endif
+
+        <li class="slide">
+            <a class="side-menu__item" data-toggle="slide" href="#">
+                <img src="{{ asset('/assets/images/speckart-Icons/NDR.png') }}" class="avatar-xl mb-1">
+                <span class="side-menu__label">B2C Online Orders</span><i class="angle fa fa-angle-right"></i>
+            </a>
+            <ul class="slide-menu">
+                <li><a href="{{ route('admin.b2c-orders.index') }}" class="slide-item">All Orders</a></li>
+                <li><a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="slide-item">Pending Rx Verification</a></li>
+                <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="slide-item">In Lab / Processing</a></li>
+                <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'shipped']) }}" class="slide-item">Shipped Orders</a></li>
+            </ul>
+        </li>
         
         <li class="slide">
             <a class="side-menu__item" data-toggle="slide" href="#">
