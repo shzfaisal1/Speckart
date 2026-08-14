@@ -85,6 +85,48 @@ class B2cCustomerController extends Controller
         // Sort by newest registered first
         $customers = $query->latest('created_at')->paginate(20)->withQueryString();
 
+        // Attach Membership & Loyalty Points to each customer
+        foreach ($customers as $cust) {
+            $cust->loyalty_points = 0;
+            $cust->membership     = null;
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                $dbCust = DB::table('tbl_customer')
+                    ->where(function($q) use ($cust) {
+                        if (!empty($cust->phone)) $q->orWhere('contact_no', $cust->phone);
+                        if (!empty($cust->email)) $q->orWhere('email_id', $cust->email);
+                        $q->orWhere('customer_id', $cust->id);
+                    })
+                    ->first();
+
+                if ($dbCust) {
+                    $cust->loyalty_points = (int) ($dbCust->Loyalty_Points_Bal ?? 0);
+
+                    if (!empty($dbCust->membership_card_id) && !empty($dbCust->membership_expiry)) {
+                        $expiryDate = Carbon::parse($dbCust->membership_expiry);
+                        $isActive = $expiryDate->isFuture();
+                        $card = DB::table('tbl_membership_card')->where('card_id', $dbCust->membership_card_id)->first();
+
+                        $cust->membership = [
+                            'is_active'      => $isActive,
+                            'card_name'      => $card->card_name ?? 'VIP Member',
+                            'expiry'         => $expiryDate->format('d M Y'),
+                            'days_left'      => $isActive ? Carbon::now()->diffInDays($expiryDate) : 0,
+                            'enable_bogo'    => $card->enable_bogo ?? 1,
+                            'coupon_percent' => $card->coupon_percent ?? 0,
+                        ];
+                    }
+                }
+            }
+
+            // Fallback points calculation from orders if tbl_customer not initialized
+            if ($cust->loyalty_points === 0) {
+                $earned = B2cOrder::where('user_id', $cust->id)->sum('loyalty_points_earned') ?? 0;
+                $used   = B2cOrder::where('user_id', $cust->id)->sum('loyalty_points_used') ?? 0;
+                $cust->loyalty_points = max(0, (int)($earned - $used));
+            }
+        }
+
         return view('admin.b2c_customers.index', compact('customers', 'kpis', 'page_title', 'breadcrumbs'));
     }
 
@@ -112,6 +154,46 @@ class B2cCustomerController extends Controller
             ->orWhere('guest_phone', $customer->phone)
             ->latest('created_at')
             ->get();
+
+        // Resolve Membership & Loyalty
+        $customer->loyalty_points = 0;
+        $customer->membership     = null;
+        $customer->points_earned  = $orders->sum('loyalty_points_earned') ?? 0;
+        $customer->points_used    = $orders->sum('loyalty_points_used') ?? 0;
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+            $dbCust = DB::table('tbl_customer')
+                ->where(function($q) use ($customer) {
+                    if (!empty($customer->phone)) $q->orWhere('contact_no', $customer->phone);
+                    if (!empty($customer->email)) $q->orWhere('email_id', $customer->email);
+                    $q->orWhere('customer_id', $customer->id);
+                })
+                ->first();
+
+            if ($dbCust) {
+                $customer->loyalty_points = (int) ($dbCust->Loyalty_Points_Bal ?? 0);
+
+                if (!empty($dbCust->membership_card_id) && !empty($dbCust->membership_expiry)) {
+                    $expiryDate = Carbon::parse($dbCust->membership_expiry);
+                    $isActive   = $expiryDate->isFuture();
+                    $card       = DB::table('tbl_membership_card')->where('card_id', $dbCust->membership_card_id)->first();
+
+                    $customer->membership = [
+                        'is_active'      => $isActive,
+                        'card_name'      => $card->card_name ?? 'VIP Member',
+                        'price'          => $card->price ?? 0,
+                        'expiry'         => $expiryDate->format('d M Y'),
+                        'days_left'      => $isActive ? Carbon::now()->diffInDays($expiryDate) : 0,
+                        'enable_bogo'    => $card->enable_bogo ?? 1,
+                        'coupon_percent' => $card->coupon_percent ?? 0,
+                    ];
+                }
+            }
+        }
+
+        if ($customer->loyalty_points === 0) {
+            $customer->loyalty_points = max(0, (int)($customer->points_earned - $customer->points_used));
+        }
 
         return view('admin.b2c_customers.show', compact('customer', 'orders', 'page_title', 'breadcrumbs'));
     }

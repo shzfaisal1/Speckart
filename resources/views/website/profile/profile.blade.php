@@ -366,10 +366,53 @@
                                 }
                             @endphp
                             <h4>{{ $user->name ?: 'Customer' }}</h4>
-                            <p class="mb-2">{{ $user->mobile ?: ($user->email ?: '') }}</p>
+                            <p class="mb-2">{{ $user->phone ?? ($user->mobile ?? ($user->email ?? '')) }}</p>
                             <span class="badge px-3 py-2 fw-bold rounded-pill" style="background: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-size: 13px;">
                                 <i class="fas fa-coins me-1"></i> {{ number_format($profilePts) }} Loyalty Points
                             </span>
+
+                            @php
+                                $profileMembership = null;
+                                if ($user) {
+                                    $custMem = DB::table('tbl_customer')
+                                        ->where('customer_id', $user->id)
+                                        ->orWhere('contact_no', $user->contact_no ?? ($user->phone ?? ''))
+                                        ->orWhere('email_id', $user->email ?? '')
+                                        ->first();
+                                    if ($custMem && !empty($custMem->membership_card_id) && !empty($custMem->membership_expiry) && \Carbon\Carbon::parse($custMem->membership_expiry)->isFuture()) {
+                                        $dbCard = DB::table('tbl_membership_card')->where('card_id', $custMem->membership_card_id)->first();
+                                        if ($dbCard) {
+                                            $profileMembership = [
+                                                'name' => $dbCard->card_name,
+                                                'expiry' => \Carbon\Carbon::parse($custMem->membership_expiry)->format('d M Y')
+                                            ];
+                                        }
+                                    }
+                                }
+                                if (!$profileMembership && session()->has('active_membership')) {
+                                    $sessM = session()->get('active_membership');
+                                    if (\Carbon\Carbon::parse($sessM['expiry'])->isFuture()) {
+                                        $profileMembership = [
+                                            'name' => $sessM['card_name'] ?? 'Gold Member',
+                                            'expiry' => \Carbon\Carbon::parse($sessM['expiry'])->format('d M Y')
+                                        ];
+                                    }
+                                }
+                            @endphp
+
+                            @if($profileMembership)
+                                <div class="mt-2">
+                                    <span class="badge px-3 py-1 fw-bold rounded-pill" style="background: linear-gradient(135deg, #00B9B9, #07484A); color: #fff; border: 1px solid #bceae8; font-size: 11.5px;">
+                                        👑 {{ $profileMembership['name'] }} (Exp: {{ $profileMembership['expiry'] }})
+                                    </span>
+                                </div>
+                            @else
+                                <div class="mt-2">
+                                    <a href="{{ route('website.membership') }}" class="badge px-3 py-1 fw-bold rounded-pill text-decoration-none" style="background: rgba(255,255,255,0.15); color: #fff; font-size: 11px; border: 1px solid rgba(255,255,255,0.3);">
+                                        👑 Join VIP Club ➔
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>

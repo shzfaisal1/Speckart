@@ -307,6 +307,7 @@
                     <tr>
                         <th>Customer</th>
                         <th>Contact Details</th>
+                        <th>Membership & Loyalty</th>
                         <th>Registered Date</th>
                         <th>Orders & Spent</th>
                         <th>Last Activity</th>
@@ -341,6 +342,24 @@
                                 </div>
                                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
                                     <i class="fa fa-phone me-1" style="color: #64748b; font-size: 11px;"></i> {{ $customer->phone ?: 'N/A' }}
+                                </div>
+                            </td>
+
+                            <!-- Membership & Loyalty -->
+                            <td>
+                                @if(!empty($customer->membership) && !empty($customer->membership['is_active']))
+                                    <div style="display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #07484A, #00B9B9); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">
+                                        👑 {{ $customer->membership['card_name'] }}
+                                    </div>
+                                    <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">
+                                        Exp: {{ $customer->membership['expiry'] }}
+                                    </div>
+                                @else
+                                    <span style="font-size: 11.5px; color: #94a3b8;">Standard</span>
+                                @endif
+
+                                <div style="margin-top: 4px; font-size: 11.5px; font-weight: 600; color: #d97706; display: flex; align-items: center; gap: 4px;">
+                                    <i class="fa fa-coins"></i> {{ number_format($customer->loyalty_points) }} Pts
                                 </div>
                             </td>
 
