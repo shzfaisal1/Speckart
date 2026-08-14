@@ -235,8 +235,60 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Saved Addresses & Account Details -->
+        <!-- RIGHT COLUMN: Membership, Loyalty, Saved Addresses & Account Details -->
         <div class="col-lg-4">
+
+            <!-- MEMBERSHIP & LOYALTY CARD -->
+            <div class="section-card" style="border: 1px solid #c2ecea; background: #fbfdfd;">
+                <div class="section-title">
+                    <i class="fa fa-crown" style="color: #d97706;"></i> Membership & Rewards
+                </div>
+
+                <!-- Membership Block -->
+                @if(!empty($customer->membership) && !empty($customer->membership['is_active']))
+                    <div style="background: linear-gradient(135deg, #07484A 0%, #00B9B9 100%); color: #fff; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px;">👑 ACTIVE VIP</span>
+                            <span style="font-size: 11px; opacity: 0.9;">{{ $customer->membership['days_left'] }} Days Left</span>
+                        </div>
+                        <h5 style="font-weight: 700; margin-bottom: 2px; color: #ffffff;">{{ $customer->membership['card_name'] }}</h5>
+                        <div style="font-size: 11.5px; opacity: 0.85;">Valid until: <strong>{{ $customer->membership['expiry'] }}</strong></div>
+                        <div style="display: flex; gap: 8px; margin-top: 10px;">
+                            @if(!empty($customer->membership['enable_bogo']))
+                                <span style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px;">✓ Buy 1 Get 1 Free</span>
+                            @endif
+                            @if(!empty($customer->membership['coupon_percent']))
+                                <span style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px;">✓ {{ $customer->membership['coupon_percent'] }}% Extra Off</span>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; text-align: center;">
+                        <span style="font-size: 12px; color: #64748b;">Standard Customer (No active VIP membership)</span>
+                    </div>
+                @endif
+
+                <!-- Loyalty Points Balance Block -->
+                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 11px; font-weight: 700; color: #92400e; text-transform: uppercase;">Loyalty Points Balance</div>
+                            <div style="font-size: 24px; font-weight: 800; color: #b45309; margin-top: 2px;">
+                                {{ number_format($customer->loyalty_points) }} <span style="font-size: 13px; font-weight: 600;">Pts</span>
+                            </div>
+                        </div>
+                        <div style="width: 42px; height: 42px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fa fa-coins"></i>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid #fef3c7; font-size: 11px; color: #78350f;">
+                        <span>Lifetime Earned: <strong>{{ number_format($customer->points_earned ?? 0) }} Pts</strong></span>
+                        <span>Redeemed: <strong>{{ number_format($customer->points_used ?? 0) }} Pts</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAVED ADDRESSES -->
             <div class="section-card">
                 <div class="section-title">
                     <i class="fa fa-location-dot" style="color: #0d5c56;"></i> Saved Addresses
