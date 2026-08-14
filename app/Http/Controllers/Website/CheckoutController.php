@@ -111,7 +111,143 @@ class CheckoutController extends Controller
         $payAmount     = ($paymentMethod === 'cod') ? 0 : $grandTotal;
         $pendingAmount = ($paymentMethod === 'cod') ? $grandTotal : 0;
 
-        // 7. Create Sale record
+        // Check if any cart item has prescription
+        $hasAnyRx = false;
+        foreach ($cartData['items'] as $chkItem) {
+            if (!empty($chkItem['prescription_data'])) {
+                $hasAnyRx = true;
+                break;
+            }
+        }
+
+        // ── 7. Create B2C Order Record (Dedicated Online Orders) ────────────
+        try {
+            $b2cOrder = \App\Models\b2c\B2cOrder::create([
+                'order_number'               => $orderNo,
+                'user_id'                    => $user->id ?? null,
+                'guest_name'                 => $shipping['full_name'],
+                'guest_email'                => $shipping['email'] ?? null,
+                'guest_phone'                => $shipping['phone'],
+                'shipping_address_id'        => $shipping['address_id'] ?? null,
+                'shipping_address_snapshot'  => $shipping,
+                'subtotal'                   => $totalItemPrice,
+                'frame_total'                => $frameSubtotal,
+                'lens_total'                 => $lensSubtotal,
+                'discount_amount'            => $totalDiscount,
+                'tax_amount'                 => 0,
+                'shipping_fee'               => 0,
+                'grand_total'                => $grandTotal,
+                'coupon_code'                => $appliedCoupon['code'] ?? null,
+                'coupon_discount'            => $couponAmount,
+                'loyalty_points_used'        => $loyaltyAmount,
+                'loyalty_points_earned'      => (int)($cartData['order_reward_pts'] ?? 0),
+                'bogo_discount'              => $bogoDiscount,
+                'order_status'               => 'pending',
+                'rx_verification_status'     => $hasAnyRx ? 'pending_review' : 'not_required',
+                'is_rx_required'             => $hasAnyRx,
+                'payment_status'             => ($paymentMethod === 'cod') ? 'cod_pending' : 'paid',
+                'delivery_method'            => 'standard',
+                'device_type'                => 'web',
+                'customer_note'              => $request->input('customer_note'),
+            ]);
+
+            // Save B2C Order Items
+            foreach ($cartData['items'] as $item) {
+                if (!empty($item['is_membership'])) {
+                    \App\Models\b2c\B2cOrderItem::create([
+                        'order_id'       => $b2cOrder->id,
+                        'product_id'     => $item['frame_id'] ?? null,
+                        'product_code'   => 'MEMBERSHIP',
+                        'product_name'   => $item['frame_name'] ?? 'Membership Card',
+                        'product_type'   => 'other',
+                        'qty'            => 1,
+                        'base_price'     => (float)($item['frame_price'] ?? 0),
+                        'sale_price'     => (float)($item['frame_price'] ?? 0),
+                        'total_price'    => (float)($item['frame_price'] ?? 0),
+                        'item_status'    => 'pending',
+                    ]);
+                    continue;
+                }
+
+                $qty = (int)($item['quantity'] ?? 1);
+                $framePrice = (float)($item['frame_price'] ?? 0);
+                $lensPrice  = (float)($item['lens_price'] ?? 0);
+
+                $itemDiscount = 0;
+                if (!empty($item['is_bogo_free']))  $itemDiscount = $framePrice;
+                if (!empty($item['is_bogo_half']))  $itemDiscount = $framePrice * 0.5;
+                if (!empty($item['bogo_third_savings'])) $itemDiscount = (float)$item['bogo_third_savings'];
+                if (!empty($item['is_first_frame_free_applied'])) $itemDiscount = $framePrice;
+
+                $itemSalePrice = max(0, $framePrice - $itemDiscount) + $lensPrice;
+
+                // Parse prescription data
+                $rx = $item['prescription_data'] ?? null;
+                if (is_string($rx)) {
+                    $rx = json_decode($rx, true);
+                }
+
+                \App\Models\b2c\B2cOrderItem::create([
+                    'order_id'              => $b2cOrder->id,
+                    'product_id'            => $item['frame_id'] ?? null,
+                    'product_code'          => $item['frame_code'] ?? null,
+                    'product_name'          => $item['frame_name'] ?? 'Eyewear Frame',
+                    'product_type'          => $item['product_type'] ?? 'frame',
+                    'frame_color'           => $item['color'] ?? ($item['frame_color'] ?? null),
+                    'frame_size'            => $item['size'] ?? ($item['frame_size'] ?? null),
+                    'frame_sku'             => $item['frame_code'] ?? null,
+                    'qty'                   => $qty,
+                    'base_price'            => $framePrice + $lensPrice,
+                    'sale_price'            => $itemSalePrice,
+                    'discount_amt'          => $itemDiscount,
+                    'total_price'           => $itemSalePrice * $qty,
+                    'lens_package_id'       => $item['lens_package_id'] ?? null,
+                    'lens_package_price'    => $lensPrice,
+                    'lens_type'             => $item['lens_name'] ?? ($item['lens_type'] ?? null),
+                    'lens_coating'          => $item['lens_coating'] ?? null,
+                    'lens_index'            => $item['lens_index'] ?? null,
+                    'prescription_source'   => is_array($rx) ? ($rx['source'] ?? 'manual_entry') : 'manual_entry',
+                    'prescription_file_url' => is_array($rx) ? ($rx['file_url'] ?? null) : null,
+                    'GL_EYE_RS_D'           => is_array($rx) ? ($rx['GL_EYE_RS_D'] ?? ($rx['re_sph'] ?? null)) : null,
+                    'GL_EYE_RC_D'           => is_array($rx) ? ($rx['GL_EYE_RC_D'] ?? ($rx['re_cyl'] ?? null)) : null,
+                    'GL_EYE_RA_D'           => is_array($rx) ? ($rx['GL_EYE_RA_D'] ?? ($rx['re_axis'] ?? null)) : null,
+                    'GL_EYE_RADD'           => is_array($rx) ? ($rx['GL_EYE_RADD'] ?? ($rx['re_add'] ?? null)) : null,
+                    'GL_EYE_LS_D'           => is_array($rx) ? ($rx['GL_EYE_LS_D'] ?? ($rx['le_sph'] ?? null)) : null,
+                    'GL_EYE_LC_D'           => is_array($rx) ? ($rx['GL_EYE_LC_D'] ?? ($rx['le_cyl'] ?? null)) : null,
+                    'GL_EYE_LA_D'           => is_array($rx) ? ($rx['GL_EYE_LA_D'] ?? ($rx['le_axis'] ?? null)) : null,
+                    'GL_EYE_LADD'           => is_array($rx) ? ($rx['GL_EYE_LADD'] ?? ($rx['le_add'] ?? null)) : null,
+                    'GL_EYE_totalPD'        => is_array($rx) ? ($rx['GL_EYE_totalPD'] ?? ($rx['pd'] ?? null)) : null,
+                    'GL_EYE_RPD'            => is_array($rx) ? ($rx['GL_EYE_RPD'] ?? ($rx['re_pd'] ?? null)) : null,
+                    'GL_EYE_LPD'            => is_array($rx) ? ($rx['GL_EYE_LPD'] ?? ($rx['le_pd'] ?? null)) : null,
+                    'fitting_height'        => is_array($rx) ? ($rx['fitting_height'] ?? ($rx['fh'] ?? null)) : null,
+                    'prescription_notes'    => is_array($rx) ? json_encode($rx) : (is_string($rx) ? $rx : null),
+                    'item_status'           => 'pending',
+                ]);
+            }
+
+            // Save B2C Order Payment
+            \App\Models\b2c\B2cOrderPayment::create([
+                'order_id'        => $b2cOrder->id,
+                'payment_gateway' => $paymentMethod,
+                'amount'          => $grandTotal,
+                'payment_method'  => strtoupper($paymentMethod),
+                'status'          => ($paymentMethod === 'cod') ? 'pending' : 'success',
+                'paid_at'         => ($paymentMethod === 'cod') ? null : Carbon::now(),
+            ]);
+
+            // Save initial audit log
+            \App\Models\b2c\B2cOrderLog::create([
+                'order_id'   => $b2cOrder->id,
+                'user_id'    => $user->id ?? null,
+                'action'     => 'order_placed',
+                'notes'      => 'Order successfully placed by customer via web checkout.',
+                'created_at' => Carbon::now(),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating B2cOrder: ' . $e->getMessage());
+        }
+
+        // ── 8. Create Sale record (for In-Store POS & Backwards Compatibility) ──
         $saleData = [
             'sale_date'           => Carbon::now()->toDateString(),
             'order_no'            => $orderNo,
@@ -160,10 +296,9 @@ class CheckoutController extends Controller
         $sale = Sale::create($saleData);
         $saleId = $sale->sale_id ?? $sale->id;
 
-        // 8. Create SaleProduct records for each cart item
+        // Create SaleProduct records for each cart item
         foreach ($cartData['items'] as $key => $item) {
             if (!empty($item['is_membership'])) {
-                // Membership card item
                 SaleProduct::create([
                     'sale_id'          => $saleId,
                     'order_no'         => $orderNo,
@@ -183,7 +318,6 @@ class CheckoutController extends Controller
             $framePrice = (float)($item['frame_price'] ?? 0);
             $lensPrice  = (float)($item['lens_price'] ?? 0);
 
-            // Calculate item-level discount
             $itemDiscount = 0;
             if (!empty($item['is_bogo_free']))  $itemDiscount = $framePrice;
             if (!empty($item['is_bogo_half']))  $itemDiscount = $framePrice * 0.5;
@@ -192,7 +326,6 @@ class CheckoutController extends Controller
 
             $salePrice = max(0, $framePrice - $itemDiscount) + $lensPrice;
 
-            // Build prescription notes from prescription_data if available
             $prescriptionNotes = null;
             if (!empty($item['prescription_data'])) {
                 $rxData = is_string($item['prescription_data']) ? $item['prescription_data'] : json_encode($item['prescription_data']);
@@ -210,7 +343,7 @@ class CheckoutController extends Controller
                 'retail_price'       => $framePrice + $lensPrice,
                 'sale_price'         => $salePrice,
                 'discount_amt'       => $itemDiscount,
-                'store_id' => $storeDbId,
+                'store_id'           => $storeDbId,
                 'product_id'         => $item['frame_id'] ?? null,
                 'package_id'         => $item['lens_package_id'] ?? null,
                 'product_company'    => $item['brand'] ?? null,
@@ -219,7 +352,7 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // 9. Create SalePayment record
+        // Create SalePayment record
         SalePayment::create([
             'sale_id'     => $saleId,
             'order_no'    => $orderNo,
