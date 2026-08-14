@@ -548,6 +548,16 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
          Route::get('/{id}/lab-work-order',       'labWorkOrder')       ->name('lab-work-order');
      });
 
+    // ── B2C REGISTERED CUSTOMERS MODULE ──
+    Route::controller(\App\Http\Controllers\Admin\B2cCustomerController::class)
+     ->prefix('b2c-customers')
+     ->name('b2c-customers.')
+     ->group(function () {
+         Route::get('/',                     'index')        ->name('index');
+         Route::get('/{id}',                 'show')         ->name('show');
+         Route::post('/{id}/toggle-status',  'toggleStatus') ->name('toggle-status');
+     });
+
 });
 
 
