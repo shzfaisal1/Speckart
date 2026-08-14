@@ -243,11 +243,11 @@
         <!-- Header -->
         <div class="header-grid">
             <div>
-                <div class="company-logo">{{ $store->store_name ?? $store->name ?? env('APP_NAME', 'SPECKART') }}</div>
+                <div class="company-logo">{{ $store->store_name ?? $store->name ?? 'Aimbeat Technology Pvt Ltd' }}</div>
                 <div class="company-meta">
-                    {{ $store->store_address ?? $store->address ?? 'Premium Eyewear Store' }}<br>
+                    {{ $store->store_address ?? $store->address ?? 'Corporate Office' }}<br>
                     @if(!empty($store->gst_no)) GSTIN: <strong>{{ $store->gst_no }}</strong><br> @endif
-                    Phone: {{ $store->contact_no ?? '+91 9876543210' }} | Email: {{ $store->email_id ?? $store->email ?? 'support@speckart.com' }}
+                    Phone: {{ $store->contact_no ?? '+91 9876543210' }} | Email: {{ $store->email_id ?? $store->email ?? 'info@aimbeat.com' }}
                 </div>
             </div>
             <div class="invoice-title-block">
@@ -373,7 +373,7 @@
 
         <!-- Terms Footer -->
         <div class="footer-terms">
-            Thank you for shopping with {{ env('APP_NAME', 'Speckart') }}!<br>
+            Thank you for shopping with {{ $store->store_name ?? 'Aimbeat Technology Pvt Ltd' }}!<br>
             All custom prescription optical lenses are precision cut. 1 Year Warranty on frame manufacturing defects.<br>
             This is a computer-generated invoice and requires no physical signature.
         </div>
