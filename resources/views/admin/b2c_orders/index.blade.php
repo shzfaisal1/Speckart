@@ -296,9 +296,9 @@
                 <label class="form-label-custom">Prescription (Rx)</label>
                 <select name="rx_status" class="form-control-custom">
                     <option value="all">All Rx States</option>
-                    <option value="pending_review" {{ request('rx_status') == 'pending_review' ? 'selected' : '' }}>Pending Review ⚠️</option>
-                    <option value="approved" {{ request('rx_status') == 'approved' ? 'selected' : '' }}>Approved ✓</option>
-                    <option value="clarification_needed" {{ request('rx_status') == 'clarification_needed' ? 'selected' : '' }}>Clarification Needed 🔴</option>
+                    <option value="pending_review" {{ request('rx_status') == 'pending_review' ? 'selected' : '' }}>Pending Review</option>
+                    <option value="approved" {{ request('rx_status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                    <option value="clarification_needed" {{ request('rx_status') == 'clarification_needed' ? 'selected' : '' }}>Clarification Needed</option>
                     <option value="not_required" {{ request('rx_status') == 'not_required' ? 'selected' : '' }}>Not Required / Zero Power</option>
                 </select>
             </div>
@@ -369,7 +369,7 @@
                         <!-- Customer -->
                         <td>
                             <div class="customer-name">{{ $order->customer_name }}</div>
-                            <div class="customer-meta">📞 {{ $order->customer_phone ?? 'N/A' }}</div>
+                            <div class="customer-meta"><i class="fa fa-phone" style="margin-right: 3px;"></i> {{ $order->customer_phone ?? 'N/A' }}</div>
                         </td>
 
                         <!-- Products & Specs -->
@@ -382,9 +382,9 @@
                             </div>
                             <div style="font-size: 11.5px; color: #64748b;">
                                 @if($order->items->first() && $order->items->first()->lensPackage)
-                                👓 {{ $order->items->first()->lensPackage->name }}
+                                <i class="fa fa-eye" style="margin-right: 3px;"></i> {{ $order->items->first()->lensPackage->name }}
                                 @else
-                                👓 Single Vision / Standard
+                                <i class="fa fa-eye" style="margin-right: 3px;"></i> Single Vision / Standard
                                 @endif
                             </div>
                         </td>
@@ -454,10 +454,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 48px; color: #94a3b8;">
-                            <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
-                            <div style="font-weight: 600; font-size: 15px; color: #475569;">No B2C orders found</div>
-                            <div style="font-size: 12px;">Try adjusting your search criteria or filter options.</div>
+                        <td colspan="8" style="text-align: center; padding: 48px 24px; color: #64748b;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; color: #94a3b8; font-size: 20px;">
+                                <i class="fa fa-inbox"></i>
+                            </div>
+                            <div style="font-weight: 600; font-size: 14px; color: #334155; margin-bottom: 4px;">No B2C orders found</div>
+                            <div style="font-size: 12px; color: #94a3b8;">Try adjusting your search criteria or filter options.</div>
                         </td>
                     </tr>
                     @endforelse

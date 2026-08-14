@@ -537,7 +537,7 @@
                         </td>
                         <td>
                             <div style="font-weight: 600; color: #0f172a;">{{ $order->customer_name }}</div>
-                            <div style="font-size: 11px; color: #64748b;">📞 {{ $order->customer_phone ?? 'N/A' }}</div>
+                            <div style="font-size: 11px; color: #64748b;"><i class="fa fa-phone" style="margin-right: 3px;"></i> {{ $order->customer_phone ?? 'N/A' }}</div>
                         </td>
                         <td>
                             <div style="font-weight: 500; color: #1e293b;">
@@ -547,7 +547,7 @@
                                 @endif
                             </div>
                             <div style="font-size: 11px; color: #64748b;">
-                                👓 {{ $order->items->first()->lensPackage->name ?? $order->items->first()->lens_type ?? 'Single Vision Standard' }}
+                                <i class="fa fa-eye" style="margin-right: 3px;"></i> {{ $order->items->first()->lensPackage->name ?? $order->items->first()->lens_type ?? 'Single Vision Standard' }}
                             </div>
                         </td>
                         <td>
@@ -586,9 +586,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 36px; color: #94a3b8;">
-                            <div style="font-size: 28px; margin-bottom: 6px;">📦</div>
-                            <div style="font-weight: 600;">No online B2C orders recorded yet.</div>
+                        <td colspan="7" style="text-align: center; padding: 40px 20px; color: #64748b;">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px; color: #94a3b8; font-size: 18px;">
+                                <i class="fa fa-inbox"></i>
+                            </div>
+                            <div style="font-weight: 600; font-size: 14px; color: #334155; margin-bottom: 2px;">No online B2C orders recorded yet</div>
+                            <div style="font-size: 12px; color: #94a3b8;">New orders placed on the website will appear here in real time.</div>
                         </td>
                     </tr>
                     @endforelse
