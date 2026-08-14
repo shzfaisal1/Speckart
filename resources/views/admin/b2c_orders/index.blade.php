@@ -438,6 +438,13 @@
                         <td>
                             <div class="customer-name">{{ $order->customer_name }}</div>
                             <div class="customer-meta"><i class="fa fa-phone" style="margin-right: 3px;"></i> {{ $order->customer_phone ?? 'N/A' }}</div>
+                            @if(!empty($order->membership_type))
+                                <div style="margin-top: 3px;">
+                                    <span style="font-size: 10.5px; font-weight: 700; background: linear-gradient(135deg, #07484A, #00B9B9); color: #ffffff; padding: 2px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 3px;">
+                                        👑 {{ $order->membership_type }}
+                                    </span>
+                                </div>
+                            @endif
                         </td>
 
                         <!-- Products & Specs -->
