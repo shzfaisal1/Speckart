@@ -469,7 +469,7 @@
                         <select name="assigned_lab_id" class="form-control" style="font-size: 12.5px; height: 36px; border-radius: 6px;">
                             <option value="">-- Central Optical Lab --</option>
                             @foreach($stores as $st)
-                            <option value="{{ $st->id }}" {{ $order->assigned_lab_id == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
+                            <option value="{{ $st->id ?? $st->store_id }}" {{ $order->assigned_lab_id == ($st->id ?? $st->store_id) ? 'selected' : '' }}>{{ $st->store_name ?? $st->name ?? ('Store #' . ($st->id ?? $st->store_id)) }}</option>
                             @endforeach
                         </select>
                     </div>
