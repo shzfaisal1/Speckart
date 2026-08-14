@@ -64,15 +64,52 @@
     background: #ffffff;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    padding: 16px 20px;
+    padding: 18px 20px;
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.filter-form {
+.filter-grid-row1 {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
     gap: 12px;
+    margin-bottom: 12px;
+}
+.filter-grid-row2 {
+    display: flex;
     align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0;
+}
+.date-inputs-group {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.date-presets-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-preset {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+.btn-preset:hover {
+    background: #07484A;
+    color: #ffffff;
+    border-color: #07484A;
 }
 .form-label-custom {
     font-size: 11.5px;
@@ -271,67 +308,98 @@
 
     <!-- Multi-Filter & Search Bar -->
     <div class="filter-card">
-        <form method="GET" action="{{ route('admin.b2c-orders.index') }}" class="filter-form">
-            <div>
-                <label class="form-label-custom">Omni Search</label>
-                <input type="text" name="search" class="form-control-custom" placeholder="Search Order #, Name, Phone, Tracking..." value="{{ request('search') }}">
+        <form method="GET" action="{{ route('admin.b2c-orders.index') }}">
+            <!-- Row 1: Search & Categorical Filters -->
+            <div class="filter-grid-row1">
+                <div>
+                    <label class="form-label-custom"><i class="fa fa-search" style="margin-right: 4px; color: #07484A;"></i> Omni Search</label>
+                    <input type="text" name="search" class="form-control-custom" placeholder="Search Order #, Name, Phone, Tracking..." value="{{ request('search') }}">
+                </div>
+
+                <div>
+                    <label class="form-label-custom">Order Status</label>
+                    <select name="order_status" class="form-control-custom">
+                        <option value="all">All Statuses</option>
+                        <option value="pending" {{ request('order_status') == 'pending' ? 'selected' : '' }}>Placed</option>
+                        <option value="confirmed" {{ request('order_status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                        <option value="processing" {{ request('order_status') == 'processing' ? 'selected' : '' }}>In Lab / Processing</option>
+                        <option value="ready_to_ship" {{ request('order_status') == 'ready_to_ship' ? 'selected' : '' }}>Ready to Ship</option>
+                        <option value="shipped" {{ request('order_status') == 'shipped' ? 'selected' : '' }}>Shipped</option>
+                        <option value="delivered" {{ request('order_status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="cancelled" {{ request('order_status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <option value="returned" {{ request('order_status') == 'returned' ? 'selected' : '' }}>Returned / Remake</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label-custom">Prescription (Rx)</label>
+                    <select name="rx_status" class="form-control-custom">
+                        <option value="all">All Rx States</option>
+                        <option value="pending_review" {{ request('rx_status') == 'pending_review' ? 'selected' : '' }}>Pending Review</option>
+                        <option value="approved" {{ request('rx_status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="clarification_needed" {{ request('rx_status') == 'clarification_needed' ? 'selected' : '' }}>Clarification Needed</option>
+                        <option value="not_required" {{ request('rx_status') == 'not_required' ? 'selected' : '' }}>Not Required / Zero Power</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label-custom">Payment</label>
+                    <select name="payment_status" class="form-control-custom">
+                        <option value="all">All Payments</option>
+                        <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
+                        <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="cod_pending" {{ request('payment_status') == 'cod_pending' ? 'selected' : '' }}>COD Pending</option>
+                        <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                        <option value="refunded" {{ request('payment_status') == 'refunded' ? 'selected' : '' }}>Refunded</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label-custom">Delivery Mode</label>
+                    <select name="delivery_method" class="form-control-custom">
+                        <option value="all">All Modes</option>
+                        <option value="standard" {{ request('delivery_method') == 'standard' ? 'selected' : '' }}>Standard</option>
+                        <option value="express" {{ request('delivery_method') == 'express' ? 'selected' : '' }}>Express (24-48H)</option>
+                        <option value="store_pickup" {{ request('delivery_method') == 'store_pickup' ? 'selected' : '' }}>Store Pickup</option>
+                    </select>
+                </div>
             </div>
 
-            <div>
-                <label class="form-label-custom">Order Status</label>
-                <select name="order_status" class="form-control-custom">
-                    <option value="all">All Statuses</option>
-                    <option value="pending" {{ request('order_status') == 'pending' ? 'selected' : '' }}>Placed</option>
-                    <option value="confirmed" {{ request('order_status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                    <option value="processing" {{ request('order_status') == 'processing' ? 'selected' : '' }}>In Lab / Processing</option>
-                    <option value="ready_to_ship" {{ request('order_status') == 'ready_to_ship' ? 'selected' : '' }}>Ready to Ship</option>
-                    <option value="shipped" {{ request('order_status') == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                    <option value="delivered" {{ request('order_status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                    <option value="cancelled" {{ request('order_status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                    <option value="returned" {{ request('order_status') == 'returned' ? 'selected' : '' }}>Returned / Remake</option>
-                </select>
-            </div>
+            <!-- Row 2: Date Range Filter & Actions -->
+            <div class="filter-grid-row2">
+                <div class="date-inputs-group">
+                    <div>
+                        <label class="form-label-custom"><i class="fa fa-calendar" style="margin-right: 3px; color: #07484A;"></i> From Date</label>
+                        <input type="date" name="date_from" id="filter_date_from" class="form-control-custom" style="width: 160px;" value="{{ request('date_from') }}">
+                    </div>
 
-            <div>
-                <label class="form-label-custom">Prescription (Rx)</label>
-                <select name="rx_status" class="form-control-custom">
-                    <option value="all">All Rx States</option>
-                    <option value="pending_review" {{ request('rx_status') == 'pending_review' ? 'selected' : '' }}>Pending Review</option>
-                    <option value="approved" {{ request('rx_status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                    <option value="clarification_needed" {{ request('rx_status') == 'clarification_needed' ? 'selected' : '' }}>Clarification Needed</option>
-                    <option value="not_required" {{ request('rx_status') == 'not_required' ? 'selected' : '' }}>Not Required / Zero Power</option>
-                </select>
-            </div>
+                    <div>
+                        <label class="form-label-custom"><i class="fa fa-calendar" style="margin-right: 3px; color: #07484A;"></i> To Date</label>
+                        <input type="date" name="date_to" id="filter_date_to" class="form-control-custom" style="width: 160px;" value="{{ request('date_to') }}">
+                    </div>
 
-            <div>
-                <label class="form-label-custom">Payment</label>
-                <select name="payment_status" class="form-control-custom">
-                    <option value="all">All Payments</option>
-                    <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                    <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="cod_pending" {{ request('payment_status') == 'cod_pending' ? 'selected' : '' }}>COD Pending</option>
-                    <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Failed</option>
-                    <option value="refunded" {{ request('payment_status') == 'refunded' ? 'selected' : '' }}>Refunded</option>
-                </select>
-            </div>
+                    <div style="margin-bottom: 2px;">
+                        <label class="form-label-custom" style="visibility: hidden;">Presets</label>
+                        <div class="date-presets-group">
+                            <button type="button" class="btn-preset" onclick="setDatePreset('today')">Today</button>
+                            <button type="button" class="btn-preset" onclick="setDatePreset('yesterday')">Yesterday</button>
+                            <button type="button" class="btn-preset" onclick="setDatePreset('7days')">Last 7 Days</button>
+                            <button type="button" class="btn-preset" onclick="setDatePreset('month')">This Month</button>
+                            @if(request('date_from') || request('date_to'))
+                            <button type="button" class="btn-preset" style="color: #dc2626; border-color: #fca5a5;" onclick="clearDates()">Clear Dates ✕</button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
 
-            <div>
-                <label class="form-label-custom">Delivery Mode</label>
-                <select name="delivery_method" class="form-control-custom">
-                    <option value="all">All Modes</option>
-                    <option value="standard" {{ request('delivery_method') == 'standard' ? 'selected' : '' }}>Standard</option>
-                    <option value="express" {{ request('delivery_method') == 'express' ? 'selected' : '' }}>Express (24-48H)</option>
-                    <option value="store_pickup" {{ request('delivery_method') == 'store_pickup' ? 'selected' : '' }}>Store Pickup</option>
-                </select>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn" style="background: #07484A; color: #fff; border-radius: 8px; height: 38px; padding: 0 16px; font-weight: 600; font-size: 13px;">
-                    <i class="fa fa-filter mr-1"></i> Filter
-                </button>
-                <a href="{{ route('admin.b2c-orders.index') }}" class="btn btn-outline-secondary" style="border-radius: 8px; height: 38px; padding: 0 12px; font-size: 13px; display: flex; align-items: center;">
-                    Reset
-                </a>
+                <div class="d-flex gap-2" style="margin-bottom: 2px;">
+                    <button type="submit" class="btn" style="background: #07484A; color: #fff; border-radius: 8px; height: 38px; padding: 0 18px; font-weight: 600; font-size: 13px;">
+                        <i class="fa fa-filter mr-1"></i> Apply Filter
+                    </button>
+                    <a href="{{ route('admin.b2c-orders.index') }}" class="btn btn-outline-secondary" style="border-radius: 8px; height: 38px; padding: 0 14px; font-size: 13px; display: flex; align-items: center;">
+                        Reset All
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -479,4 +547,48 @@
         @endif
     </div>
 </div>
+
+@section('scripts')
+<script>
+function setDatePreset(type) {
+    const fromEl = document.getElementById('filter_date_from');
+    const toEl = document.getElementById('filter_date_to');
+    const now = new Date();
+    
+    function fmt(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    if (type === 'today') {
+        const todayStr = fmt(now);
+        fromEl.value = todayStr;
+        toEl.value = todayStr;
+    } else if (type === 'yesterday') {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        const yStr = fmt(y);
+        fromEl.value = yStr;
+        toEl.value = yStr;
+    } else if (type === '7days') {
+        const past = new Date(now);
+        past.setDate(past.getDate() - 6);
+        fromEl.value = fmt(past);
+        toEl.value = fmt(now);
+    } else if (type === 'month') {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        fromEl.value = fmt(start);
+        toEl.value = fmt(now);
+    }
+}
+
+function clearDates() {
+    document.getElementById('filter_date_from').value = '';
+    document.getElementById('filter_date_to').value = '';
+}
+</script>
+@endsection
+
 @endsection
