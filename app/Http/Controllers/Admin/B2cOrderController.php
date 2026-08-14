@@ -118,6 +118,25 @@ class B2cOrderController extends Controller
 
         $orders = $query->paginate(15)->withQueryString();
 
+        // Attach Membership Type to each order
+        foreach ($orders as $ord) {
+            $ord->membership_type = null;
+            if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                $c = DB::table('tbl_customer')
+                    ->where(function($q) use ($ord) {
+                        if ($ord->user_id) $q->where('customer_id', $ord->user_id);
+                        if ($ord->customer_phone) $q->orWhere('contact_no', $ord->customer_phone);
+                        if ($ord->customer_email) $q->orWhere('email_id', $ord->customer_email);
+                    })
+                    ->first();
+
+                if ($c && !empty($c->membership_card_id) && !empty($c->membership_expiry) && Carbon::parse($c->membership_expiry)->isFuture()) {
+                    $card = DB::table('tbl_membership_card')->where('card_id', $c->membership_card_id)->first();
+                    $ord->membership_type = $card->card_name ?? 'VIP Member';
+                }
+            }
+        }
+
         return view('admin.b2c_orders.index', compact('orders', 'kpis', 'page_title', 'breadcrumbs'));
     }
 
@@ -138,6 +157,22 @@ class B2cOrderController extends Controller
             'optometrist',
             'offer',
         ])->findOrFail($id);
+
+        $order->membership_type = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+            $c = DB::table('tbl_customer')
+                ->where(function($q) use ($order) {
+                    if ($order->user_id) $q->where('customer_id', $order->user_id);
+                    if ($order->customer_phone) $q->orWhere('contact_no', $order->customer_phone);
+                    if ($order->customer_email) $q->orWhere('email_id', $order->customer_email);
+                })
+                ->first();
+
+            if ($c && !empty($c->membership_card_id) && !empty($c->membership_expiry) && Carbon::parse($c->membership_expiry)->isFuture()) {
+                $card = DB::table('tbl_membership_card')->where('card_id', $c->membership_card_id)->first();
+                $order->membership_type = $card->card_name ?? 'VIP Member';
+            }
+        }
 
         $page_title = 'Order ' . $order->order_number;
         $breadcrumbs = [

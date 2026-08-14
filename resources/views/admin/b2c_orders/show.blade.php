@@ -444,10 +444,19 @@
                 <div class="card-section-title">
                     <span><i class="fa fa-user"></i> Customer Info</span>
                 </div>
-                <div style="font-size: 14px; font-weight: 700; color: #0f172a;">{{ $order->customer_name }}</div>
-                <div style="font-size: 12.5px; color: #475569; margin-top: 4px;">
-                    📞 <a href="tel:{{ $order->customer_phone }}" style="color: #07484A; font-weight: 600;">{{ $order->customer_phone ?? 'N/A' }}</a><br>
-                    ✉️ <a href="mailto:{{ $order->customer_email }}" style="color: #07484A;">{{ $order->customer_email ?? 'N/A' }}</a>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                    <div>
+                        <div style="font-size: 14px; font-weight: 700; color: #0f172a;">{{ $order->customer_name }}</div>
+                        <div style="font-size: 12.5px; color: #475569; margin-top: 4px;">
+                            📞 <a href="tel:{{ $order->customer_phone }}" style="color: #07484A; font-weight: 600;">{{ $order->customer_phone ?? 'N/A' }}</a><br>
+                            ✉️ <a href="mailto:{{ $order->customer_email }}" style="color: #07484A;">{{ $order->customer_email ?? 'N/A' }}</a>
+                        </div>
+                    </div>
+                    @if(!empty($order->membership_type))
+                        <span style="font-size: 11px; font-weight: 700; background: linear-gradient(135deg, #07484A, #00B9B9); color: #ffffff; padding: 4px 10px; border-radius: 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                            👑 {{ $order->membership_type }}
+                        </span>
+                    @endif
                 </div>
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
                     <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 4px;">Shipping Address</div>

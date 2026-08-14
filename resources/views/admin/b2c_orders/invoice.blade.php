@@ -268,6 +268,9 @@
                 <div class="party-details">
                     Phone: {{ $order->customer_phone ?? 'N/A' }}<br>
                     Email: {{ $order->customer_email ?? 'N/A' }}
+                    @if(!empty($order->membership_type))
+                        <br><span style="font-weight: 700; color: #0d5c56;">👑 Membership: {{ $order->membership_type }}</span>
+                    @endif
                 </div>
             </div>
             <div>
