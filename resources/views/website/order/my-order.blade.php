@@ -525,10 +525,10 @@
 
             @php
                 $totalCount      = $orders->count();
-                $processingCount = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['0', 'pending', 'processing']))->count();
-                $transitCount    = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['1', 'shipped', 'transit']))->count();
-                $deliveredCount  = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['2', 'delivered']))->count();
-                $cancelledCount  = $orders->filter(fn($o) => in_array((string)($o->sales_status ?? 0), ['3', 'cancelled']))->count();
+                $processingCount = $orders->filter(fn($o) => in_array(strtolower((string)($o->order_status ?? ($o->sales_status ?? 0))), ['0', 'pending', 'confirmed', 'processing', 'in_lab']))->count();
+                $transitCount    = $orders->filter(fn($o) => in_array(strtolower((string)($o->order_status ?? ($o->sales_status ?? 0))), ['1', 'ready_to_ship', 'shipped', 'transit', 'out_for_delivery']))->count();
+                $deliveredCount  = $orders->filter(fn($o) => in_array(strtolower((string)($o->order_status ?? ($o->sales_status ?? 0))), ['2', 'delivered', 'completed']))->count();
+                $cancelledCount  = $orders->filter(fn($o) => in_array(strtolower((string)($o->order_status ?? ($o->sales_status ?? 0))), ['3', 'cancelled', 'returned']))->count();
             @endphp
 
             <!-- Summary Cards (double as filters — click to filter by status) -->
@@ -575,30 +575,30 @@
 
             @forelse($orders as $order)
                 @php
-                    $statusStr = strtolower((string)($order->sales_status ?? 0));
-                    if (in_array($statusStr, ['1', 'shipped', 'transit'])) {
+                    $statusStr = strtolower((string)($order->order_status ?? ($order->sales_status ?? 0)));
+                    if (in_array($statusStr, ['1', 'shipped', 'transit', 'ready_to_ship', 'out_for_delivery'])) {
                         $dataStatus  = 'transit';
-                        $statusLabel = 'In Transit';
+                        $statusLabel = ($statusStr === 'ready_to_ship') ? 'Ready to Ship' : 'In Transit';
                         $statusClass = 'transit';
                         $statusIcon  = 'fa-truck-fast';
-                    } elseif (in_array($statusStr, ['2', 'delivered'])) {
+                    } elseif (in_array($statusStr, ['2', 'delivered', 'completed'])) {
                         $dataStatus  = 'delivered';
                         $statusLabel = 'Delivered';
                         $statusClass = 'delivered';
                         $statusIcon  = 'fa-circle-check';
-                    } elseif (in_array($statusStr, ['3', 'cancelled'])) {
+                    } elseif (in_array($statusStr, ['3', 'cancelled', 'returned'])) {
                         $dataStatus  = 'cancelled';
-                        $statusLabel = 'Cancelled';
+                        $statusLabel = ($statusStr === 'returned') ? 'Returned' : 'Cancelled';
                         $statusClass = 'cancelled';
                         $statusIcon  = 'fa-circle-xmark';
                     } else {
                         $dataStatus  = 'processing';
-                        $statusLabel = 'Processing';
+                        $statusLabel = ($statusStr === 'confirmed') ? 'Confirmed' : (($statusStr === 'pending') ? 'Order Placed' : 'Processing');
                         $statusClass = 'transit';
                         $statusIcon  = 'fa-clock';
                     }
 
-                    $orderId      = $order->sale_id ?? $order->id;
+                    $orderId      = $order->id ?? ($order->sale_id ?? 0);
                     $orderNo      = $order->order_no ?? ('SPECK' . $orderId);
                     $orderDate    = !empty($order->sale_date) ? \Carbon\Carbon::parse($order->sale_date)->format('d M Y') : (\Carbon\Carbon::parse($order->created_at)->format('d M Y'));
                     $totalPayable = (float)($order->total_payable ?? ($order->pay_amount ?? 0));
@@ -658,7 +658,7 @@
                                 @endif
 
                                 <div class="price mt-2">
-                                    ₹{{ number_format((float)($prod->sale_price ?? $totalPayable), 2) }}
+                                    ₹{{ number_format((float)($prod->item_price ?? $prod->sale_price ?? $totalPayable), 2) }}
                                 </div>
 
                                 @if($dataStatus !== 'cancelled')
