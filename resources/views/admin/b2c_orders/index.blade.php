@@ -257,6 +257,16 @@
             </div>
             <div class="kpi-icon danger"><i class="fa fa-exclamation-triangle"></i></div>
         </a>
+
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'ready_to_ship']) }}" class="kpi-card">
+            <div>
+                <div class="kpi-title">Ready to Ship</div>
+                <div class="kpi-value" style="color: {{ $kpis['ready_to_ship'] > 0 ? '#059669' : '#0f172a' }};">
+                    {{ $kpis['ready_to_ship'] }}
+                </div>
+            </div>
+            <div class="kpi-icon success"><i class="fa fa-truck"></i></div>
+        </a>
     </div>
 
     <!-- Multi-Filter & Search Bar -->
@@ -299,6 +309,7 @@
                     <option value="all">All Payments</option>
                     <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
                     <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="cod_pending" {{ request('payment_status') == 'cod_pending' ? 'selected' : '' }}>COD Pending</option>
                     <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Failed</option>
                     <option value="refunded" {{ request('payment_status') == 'refunded' ? 'selected' : '' }}>Refunded</option>
                 </select>

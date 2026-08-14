@@ -30,6 +30,11 @@ class CheckoutController extends Controller
     public function completeCheckout(Request $request)
     {
         // 1. Validate payment method
+        $request->validate([
+            'payment_method'  => 'required|string|in:cod,online,upi,card,netbanking',
+            'customer_note'   => 'nullable|string|max:500',
+        ]);
+
         $paymentMethod = $request->input('payment_method', 'cod');
 
         // 2. Get shipping address from session
@@ -120,8 +125,10 @@ class CheckoutController extends Controller
             }
         }
 
-        // ── 7. Create B2C Order Record (Dedicated Online Orders) ────────────
+        // ── 7. All DB operations wrapped in a transaction for data integrity ──
         try {
+        DB::beginTransaction();
+
             $b2cOrder = \App\Models\b2c\B2cOrder::create([
                 'order_number'               => $orderNo,
                 'user_id'                    => $user->id ?? null,
@@ -243,10 +250,6 @@ class CheckoutController extends Controller
                 'notes'      => 'Order successfully placed by customer via web checkout.',
                 'created_at' => Carbon::now(),
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error creating B2cOrder: ' . $e->getMessage());
-        }
-
         // ── 8. Create Sale record (for In-Store POS & Backwards Compatibility) ──
         $saleData = [
             'sale_date'           => Carbon::now()->toDateString(),
@@ -389,6 +392,14 @@ class CheckoutController extends Controller
             DB::table('tbl_customer')
                 ->where('customer_id', $custId)
                 ->decrement('Loyalty_Points_Bal', $pointsUsed);
+        }
+
+        DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Checkout failed for user ' . ($user->id ?? 'guest') . ': ' . $e->getMessage());
+            return redirect()->route('cart')->with('error', 'Something went wrong while placing your order. Please try again.');
         }
 
         // 12. Clear all checkout session data
