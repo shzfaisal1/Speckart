@@ -139,7 +139,7 @@ class B2cOrderController extends Controller
         ];
 
         // Available stores / lab centers
-        $stores = Store::select('id', 'name', 'city_id')->get();
+        $stores = Store::all();
 
         return view('admin.b2c_orders.show', compact('order', 'stores', 'page_title', 'breadcrumbs'));
     }

@@ -243,11 +243,11 @@
         <!-- Header -->
         <div class="header-grid">
             <div>
-                <div class="company-logo">{{ $store->name ?? env('APP_NAME', 'SPECKART') }}</div>
+                <div class="company-logo">{{ $store->store_name ?? $store->name ?? env('APP_NAME', 'SPECKART') }}</div>
                 <div class="company-meta">
-                    {{ $store->address ?? 'Premium Eyewear Store' }}<br>
+                    {{ $store->store_address ?? $store->address ?? 'Premium Eyewear Store' }}<br>
                     @if(!empty($store->gst_no)) GSTIN: <strong>{{ $store->gst_no }}</strong><br> @endif
-                    Phone: {{ $store->contact_no ?? '+91 9876543210' }} | Email: {{ $store->email ?? 'support@speckart.com' }}
+                    Phone: {{ $store->contact_no ?? '+91 9876543210' }} | Email: {{ $store->email_id ?? $store->email ?? 'support@speckart.com' }}
                 </div>
             </div>
             <div class="invoice-title-block">
