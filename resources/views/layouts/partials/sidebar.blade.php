@@ -146,6 +146,7 @@
                 <li><a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="slide-item">Pending Rx Verification</a></li>
                 <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="slide-item">In Lab / Processing</a></li>
                 <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'shipped']) }}" class="slide-item">Shipped Orders</a></li>
+                <li><a href="{{ route('admin.b2c-customers.index') }}" class="slide-item">Registered Customers</a></li>
             </ul>
         </li>
         
@@ -399,6 +400,7 @@
                 @endif
                 @if ($usr->can('Customer-List'))
                 <li><a href="{{route('admin.customer-list')}}" class="slide-item">Customer List</a></li>
+                <li><a href="{{route('admin.b2c-customers.index')}}" class="slide-item">Online B2C Customers</a></li>
                 @endif
                 @if ($usr->can('Customer-Birthday'))
                 <li><a href="{{route('admin.customer-birthday-list')}}" class="slide-item">Birthday List</a></li>

@@ -74,8 +74,26 @@ class WebLoginController extends Controller
                 'password'         => Hash::make($request->password),
                 'status'           => '1',
             ]);
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                $exists = \DB::table('tbl_customer')->where('contact_no', $request->phone)->orWhere('email_id', $request->email)->first();
+                if (!$exists) {
+                    \DB::table('tbl_customer')->insert([
+                        'cust_unique_id' => 'C' . rand(100000, 999999),
+                        'cust_type'      => 'Customer',
+                        'cust_name'      => $request->name,
+                        'contact_no'     => $request->phone,
+                        'email_id'       => $request->email,
+                        'cust_category'  => 'B2C Online',
+                        'store_id'       => 0,
+                        'added_by'       => $user->id,
+                        'created_at'     => \Carbon\Carbon::now(),
+                        'updated_at'     => \Carbon\Carbon::now(),
+                    ]);
+                }
+            }
         } catch (\Throwable $e) {
-            // Ignore if tbl_client structure differs
+            // Ignore if tbl_client / tbl_customer structure differs
         }
 
         $guestSessionId = session()->getId();
