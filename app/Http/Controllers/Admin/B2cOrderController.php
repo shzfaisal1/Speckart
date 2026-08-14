@@ -172,6 +172,9 @@ class B2cOrderController extends Controller
         }
         $order->save();
 
+        // Sync with legacy tbl_sales
+        $this->syncToLegacySale($order, $toStatus);
+
         // Record in Activity Log
         B2cOrderLog::create([
             'order_id'    => $order->id,
@@ -211,6 +214,9 @@ class B2cOrderController extends Controller
         }
 
         $order->save();
+
+        // Sync with legacy tbl_sales
+        $this->syncToLegacySale($order, $order->order_status);
 
         // Record in Activity Log
         $user = Auth::user();
@@ -266,6 +272,9 @@ class B2cOrderController extends Controller
 
         $order->save();
 
+        // Sync with legacy tbl_sales
+        $this->syncToLegacySale($order, $order->order_status);
+
         // Record in Activity Log
         B2cOrderLog::create([
             'order_id'    => $order->id,
@@ -311,6 +320,9 @@ class B2cOrderController extends Controller
         }
 
         $order->save();
+
+        // Sync with legacy tbl_sales
+        $this->syncToLegacySale($order, $order->order_status);
 
         // Record in Activity Log
         B2cOrderLog::create([
@@ -372,6 +384,9 @@ class B2cOrderController extends Controller
         $order->admin_note   = ($order->admin_note ? $order->admin_note . " | " : "") . "Cancelled: " . $request->input('cancellation_reason');
         $order->save();
 
+        // Sync with legacy tbl_sales
+        $this->syncToLegacySale($order, 'cancelled');
+
         B2cOrderLog::create([
             'order_id'    => $order->id,
             'user_id'     => Auth::id(),
@@ -419,6 +434,9 @@ class B2cOrderController extends Controller
         }
         $order->save();
 
+        // Sync with legacy tbl_sales
+        $this->syncToLegacySale($order, $order->order_status);
+
         B2cOrderLog::create([
             'order_id'    => $order->id,
             'user_id'     => Auth::id(),
@@ -448,9 +466,12 @@ class B2cOrderController extends Controller
 
         B2cOrder::whereIn('id', $ids)->update(['order_status' => $status]);
 
-        foreach ($ids as $orderId) {
+        $updatedOrders = B2cOrder::whereIn('id', $ids)->get();
+        foreach ($updatedOrders as $ord) {
+            $this->syncToLegacySale($ord, $status);
+
             B2cOrderLog::create([
-                'order_id'    => $orderId,
+                'order_id'    => $ord->id,
                 'user_id'     => Auth::id(),
                 'action'      => 'bulk_status_update',
                 'from_status' => null,
@@ -614,6 +635,52 @@ class B2cOrderController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('B2C Order Sync error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Keep legacy tbl_sales in sync with B2C Order status updates.
+     */
+    protected function syncToLegacySale(B2cOrder $order, ?string $orderStatus = null)
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('tbl_sales')) {
+                return;
+            }
+
+            $status = $orderStatus ?? $order->order_status;
+            $legacySalesStatus = 0;
+
+            if (in_array($status, ['delivered', 'completed'])) {
+                $legacySalesStatus = 2;
+            } elseif (in_array($status, ['shipped', 'ready_to_ship', 'processing'])) {
+                $legacySalesStatus = 1;
+            } elseif (in_array($status, ['cancelled', 'returned'])) {
+                $legacySalesStatus = 3;
+            } else {
+                $legacySalesStatus = 0;
+            }
+
+            $updateData = [
+                'sales_status' => $legacySalesStatus,
+                'updated_at'   => Carbon::now(),
+            ];
+
+            if ($status === 'delivered') {
+                $updateData['delivered_date'] = Carbon::now()->toDateString();
+            }
+
+            if (!empty($order->tracking_number)) {
+                $updateData['tracking_no'] = $order->tracking_number;
+            }
+
+            DB::table('tbl_sales')
+                ->where('order_no', $order->order_number)
+                ->orWhere('id', $order->id)
+                ->update($updateData);
+
+        } catch (\Exception $e) {
+            \Log::error('Error syncing status to legacy sales: ' . $e->getMessage());
         }
     }
 }
