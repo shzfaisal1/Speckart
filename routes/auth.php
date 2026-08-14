@@ -9,20 +9,17 @@ use Spatie\Permission\Models\Role;
 Route::get('/', function () {
     $subdomain = explode('.', request()->getHost())[0];
     
-    if ($subdomain === 'speckart') 
+    if ($subdomain === 'speckart' || request()->getHost() === 'localhost' || request()->getHost() === '127.0.0.1') 
     {
         if (auth()->check()) 
         {
-            $setting['page_title'] = 'Dashboard';
-            $setting['breadcrumbs'] = [
-                ['link' => url("/"), 'name' => 'Home'],
-                ['name' => 'Dashboard'],
-            ];
-            $user = auth()->user();
-            return view('layouts.index', $setting);
+            return app(\App\Http\Controllers\HomeController::class)->index();
         }
         return redirect()->route('login');
     } else {
+        if (auth()->check()) {
+            return app(\App\Http\Controllers\HomeController::class)->index();
+        }
         return view('frontend/index');
     }
 })->name('index');
