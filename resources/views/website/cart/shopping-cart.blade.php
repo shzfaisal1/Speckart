@@ -392,19 +392,21 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    justify-content: space-between;
-    min-width: 100px;
+    justify-content: flex-start;
+    min-width: 120px;
     flex-shrink: 0;
-    gap: 10px;
+    gap: 6px;
 }
 .sc-price-block {
     text-align: right;
+    margin-bottom: 2px;
 }
 .sc-price-old {
     font-size: 12px;
     color: var(--sc-text-muted);
     text-decoration: line-through;
     font-weight: 500;
+    line-height: 1.1;
 }
 .sc-price-now {
     font-size: 18px;
@@ -424,9 +426,10 @@
     border: 1px solid var(--sc-border);
     border-radius: 8px;
     overflow: hidden;
+    height: 30px;
 }
 .sc-qty button {
-    width: 30px;
+    width: 28px;
     height: 30px;
     border: none;
     background: transparent;
@@ -446,7 +449,7 @@
 .sc-qty .sc-qty-val {
     font-weight: 700;
     font-size: 13px;
-    min-width: 26px;
+    min-width: 24px;
     text-align: center;
     color: var(--sc-text);
 }
@@ -455,7 +458,9 @@
 .sc-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 8px;
+    margin-top: 2px;
 }
 .sc-btn-remove {
     width: 30px;
@@ -470,6 +475,7 @@
     cursor: pointer;
     transition: var(--sc-transition);
     font-size: 13px;
+    flex-shrink: 0;
 }
 .sc-btn-remove:hover {
     background: var(--sc-red);
@@ -1385,11 +1391,19 @@
                                     <div class="sc-item-details">
                                         @if(isset($item['is_membership']) && $item['is_membership'])
                                             {{-- Membership Item --}}
-                                            <span class="sc-brand" style="background:#fef3c7; color:#92400e;">
-                                                <i class="bi bi-award-fill" style="font-size:9px;"></i> GOLD VIP
-                                            </span>
-                                            <div class="sc-item-name">{{ $item['frame_name'] }}</div>
-                                            <p class="sc-membership-desc">
+                                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                                <div>
+                                                    <span class="sc-brand" style="background:#fef3c7; color:#92400e;">
+                                                        <i class="bi bi-award-fill" style="font-size:9px;"></i> GOLD VIP
+                                                    </span>
+                                                    <div class="sc-item-name">{{ $item['frame_name'] }}</div>
+                                                </div>
+                                                <div class="sc-price-block">
+                                                    <div class="sc-price-old">₹{{ number_format($item['membership_mrp'] ?? 6000, 0) }}</div>
+                                                    <div class="sc-price-now">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                </div>
+                                            </div>
+                                            <p class="sc-membership-desc mb-2">
                                                 Buy 1 Get 1 Free On Over 5000+ Items, Applicable Everywhere for 1 Full Year
                                             </p>
                                             <div class="sc-membership-actions">
@@ -1406,28 +1420,78 @@
                                             </div>
                                         @else
                                             {{-- Regular Eyewear --}}
-                                            <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
-                                                @if(!empty($item['brand']))
-                                                    <span class="sc-brand">{{ $item['brand'] }}</span>
-                                                @endif
-                                                @if(!empty($item['size']))
-                                                    <span class="sc-size-tag">Size: {{ $item['size'] }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="sc-item-name">{{ $item['frame_name'] }}</div>
+                                            {{-- Top Row: Brand & Name on Left, Price on Right --}}
+                                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                                <div>
+                                                    <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                                                        @if(!empty($item['brand']))
+                                                            <span class="sc-brand">{{ $item['brand'] }}</span>
+                                                        @endif
+                                                        @if(!empty($item['size']))
+                                                            <span class="sc-size-tag">Size: {{ $item['size'] }}</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="sc-item-name">{{ $item['frame_name'] }}</div>
+                                                </div>
 
-                                            {{-- Lens pill --}}
-                                            <div class="sc-lens-pill">
-                                                <span class="sc-lens-name">
-                                                    <i class="bi bi-layers-fill"></i>
-                                                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $item['lens_name'] }}</span>
-                                                </span>
-                                                <span class="sc-lens-price">
-                                                    {{ $item['lens_price'] > 0 ? '+₹' . number_format($item['lens_price'], 0) : 'Included' }}
-                                                </span>
+                                                <div class="sc-price-block flex-shrink-0">
+                                                    @if(isset($item['is_bogo_free']) && $item['is_bogo_free'])
+                                                        <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                        <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
+                                                    @elseif(isset($item['is_bogo_third_discount']) && $item['is_bogo_third_discount'])
+                                                        @php
+                                                            $pct = (float)($item['bogo_third_discount_percent'] ?? 60);
+                                                            $discountedFramePrice = $item['frame_price'] * (1 - ($pct / 100));
+                                                        @endphp
+                                                        <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                        <div class="sc-price-now blue">₹{{ number_format($discountedFramePrice + $item['lens_price'], 0) }}</div>
+                                                    @elseif(isset($item['is_bogo_half']) && $item['is_bogo_half'])
+                                                        <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                        <div class="sc-price-now green">₹{{ number_format(($item['frame_price'] * 0.5) + $item['lens_price'], 0) }}</div>
+                                                    @elseif(isset($item['is_first_frame_free_applied']) && $item['is_first_frame_free_applied'])
+                                                        <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                        <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
+                                                    @else
+                                                        <div class="sc-price-now">₹{{ number_format($item['frame_price'] + $item['lens_price'], 0) }}</div>
+                                                    @endif
+                                                </div>
                                             </div>
+
+                                            {{-- Mid Row: Lens Pill on Left, Actions (Qty Stepper & Remove Button) in ONE line on Right --}}
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+                                                <div class="sc-lens-pill my-0 flex-grow-1" style="margin-top:0 !important;">
+                                                    <span class="sc-lens-name">
+                                                        <i class="bi bi-layers-fill"></i>
+                                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $item['lens_name'] }}</span>
+                                                    </span>
+                                                    <span class="sc-lens-price">
+                                                        {{ $item['lens_price'] > 0 ? '+₹' . number_format($item['lens_price'], 0) : 'Included' }}
+                                                    </span>
+                                                </div>
+
+                                                <div class="sc-actions ms-auto flex-shrink-0">
+                                                    @if(isset($item['is_bogo_free']) && $item['is_bogo_free'])
+                                                        <span class="sc-free-qty-badge">
+                                                            <i class="bi bi-gift-fill"></i> Qty: 1
+                                                        </span>
+                                                        <button type="button" class="sc-btn-remove remove-cart-item" data-key="{{ $item['key'] }}" title="Remove">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </button>
+                                                    @else
+                                                        <div class="sc-qty">
+                                                            <button type="button" class="qty-minus" data-key="{{ $item['key'] }}">−</button>
+                                                            <span class="sc-qty-val item-qty">{{ $item['quantity'] }}</span>
+                                                            <button type="button" class="qty-plus" data-key="{{ $item['key'] }}">+</button>
+                                                        </div>
+                                                        <button type="button" class="sc-btn-remove remove-cart-item" data-key="{{ $item['key'] }}" title="Remove">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </div>
+
                                             @if(!empty($item['lens_details']))
-                                                <div class="sc-lens-detail">{{ Str::limit($item['lens_details'], 60) }}</div>
+                                                <div class="sc-lens-detail mt-1">{{ Str::limit($item['lens_details'], 60) }}</div>
                                             @endif
 
                                             {{-- Prescription --}}
@@ -1517,57 +1581,6 @@
                                         @endif
                                     </div>
 
-                                    {{-- Price + Actions --}}
-                                    <div class="sc-item-right">
-                                        <div class="sc-price-block">
-                                            @if(isset($item['is_membership']) && $item['is_membership'])
-                                                <div class="sc-price-old">₹{{ number_format($item['membership_mrp'] ?? 6000, 0) }}</div>
-                                                <div class="sc-price-now">₹{{ number_format($item['frame_price'], 0) }}</div>
-                                            @elseif(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
-                                                <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
-                                            @elseif(isset($item['is_bogo_third_discount']) && $item['is_bogo_third_discount'])
-                                                @php
-                                                    $pct = (float)($item['bogo_third_discount_percent'] ?? 60);
-                                                    $discountedFramePrice = $item['frame_price'] * (1 - ($pct / 100));
-                                                @endphp
-                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
-                                                <div class="sc-price-now blue">₹{{ number_format($discountedFramePrice + $item['lens_price'], 0) }}</div>
-                                            @elseif(isset($item['is_bogo_half']) && $item['is_bogo_half'])
-                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
-                                                <div class="sc-price-now green">₹{{ number_format(($item['frame_price'] * 0.5) + $item['lens_price'], 0) }}</div>
-                                            @elseif(isset($item['is_first_frame_free_applied']) && $item['is_first_frame_free_applied'])
-                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
-                                                <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
-                                            @else
-                                                <div class="sc-price-now">₹{{ number_format($item['frame_price'] + $item['lens_price'], 0) }}</div>
-                                            @endif
-                                        </div>
-
-                                        <div class="sc-actions">
-                                            @if(isset($item['is_membership']) && $item['is_membership'])
-                                                <span class="sc-membership-badge">
-                                                    <i class="bi bi-shield-check"></i> Active
-                                                </span>
-                                            @elseif(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                                <span class="sc-free-qty-badge">
-                                                    <i class="bi bi-gift-fill"></i> Qty: 1
-                                                </span>
-                                                <button type="button" class="sc-btn-remove remove-cart-item" data-key="{{ $item['key'] }}" title="Remove">
-                                                    <i class="bi bi-trash3-fill"></i>
-                                                </button>
-                                            @else
-                                                <div class="sc-qty">
-                                                    <button type="button" class="qty-minus" data-key="{{ $item['key'] }}">−</button>
-                                                    <span class="sc-qty-val item-qty">{{ $item['quantity'] }}</span>
-                                                    <button type="button" class="qty-plus" data-key="{{ $item['key'] }}">+</button>
-                                                </div>
-                                                <button type="button" class="sc-btn-remove remove-cart-item" data-key="{{ $item['key'] }}" title="Remove">
-                                                    <i class="bi bi-trash3-fill"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </div>
 
                                 </div>
                             </div>

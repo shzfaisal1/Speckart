@@ -248,7 +248,7 @@
     flex-direction: column;
 }
 .product-card:hover {
-    transform: translateY(-4px);
+    /* transform: translateY(-4px); */
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     border-color: #cbd5e1;
 }
