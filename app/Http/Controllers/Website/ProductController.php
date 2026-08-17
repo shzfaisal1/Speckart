@@ -198,6 +198,44 @@ class ProductController extends Controller
             }
         }
 
+        // Apply Gender Filter (Men / Women / Kids)
+        if ($request->filled('gender')) {
+            $genderVal = $request->input('gender');
+            $query->where(function($q) use ($genderVal) {
+                $q->where('Gender', 'LIKE', "%{$genderVal}%")
+                  ->orWhere('Gender', 'LIKE', '%Unisex%')
+                  ->orWhere('Gender', '')
+                  ->orWhereNull('Gender');
+            });
+        }
+
+        // Apply Tag Filter (New Arrivals, Best Seller, Trending)
+        if ($request->filled('tag')) {
+            $tagVal = $request->input('tag');
+            if ($tagVal === 'new-arrival') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($tagVal === 'best-seller') {
+                $query->where(function($q) {
+                    $q->where('promotion_tag', 'LIKE', '%Best%')
+                      ->orWhere('product_name', 'LIKE', '%Best%');
+                });
+            } elseif ($tagVal === 'trending') {
+                $query->where(function($q) {
+                    $q->where('promotion_tag', 'LIKE', '%Trend%')
+                      ->orWhere('product_name', 'LIKE', '%Trend%');
+                });
+            }
+        }
+
+        // Apply Collection Filter
+        if ($request->filled('collection')) {
+            $colVal = $request->input('collection');
+            $query->where(function($q) use ($colVal) {
+                $q->where('product_name', 'LIKE', "%{$colVal}%")
+                  ->orWhere('Company', 'LIKE', "%{$colVal}%");
+            });
+        }
+
         // Search Input
         if ($request->filled('search')) {
             $search = $request->input('search');
