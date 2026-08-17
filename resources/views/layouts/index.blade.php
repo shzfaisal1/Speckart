@@ -429,6 +429,8 @@
             <div class="dash-kpi-icon success"><i class="fa fa-inr"></i></div>
         </div>
 
+        {{-- Pending Rx Check KPI Card (Temporarily Hidden) --}}
+        {{--
         <a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="dash-kpi-card">
             <div>
                 <div class="dash-kpi-title">Pending Rx Check</div>
@@ -439,7 +441,10 @@
             </div>
             <div class="dash-kpi-icon warning"><i class="fa fa-eye"></i></div>
         </a>
+        --}}
 
+        {{-- In Optical Lab KPI Card (Temporarily Hidden) --}}
+        {{--
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="dash-kpi-card">
             <div>
                 <div class="dash-kpi-title">In Optical Lab</div>
@@ -448,6 +453,7 @@
             </div>
             <div class="dash-kpi-icon purple"><i class="fa fa-cogs"></i></div>
         </a>
+        --}}
 
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'ready_to_ship']) }}" class="dash-kpi-card">
             <div>
@@ -482,6 +488,8 @@
                 <div class="p-count">{{ $pipeline['pending'] ?? 0 }}</div>
                 <div class="p-label">1. Placed</div>
             </a>
+            {{-- Rx Review & Optical Lab Pipeline Steps (Temporarily Hidden) --}}
+            {{--
             <a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="pipeline-step">
                 <div class="p-count" style="color: {{ ($pipeline['rx_review'] ?? 0) > 0 ? '#d97706' : '#0f172a' }};">{{ $pipeline['rx_review'] ?? 0 }}</div>
                 <div class="p-label">2. Rx Review</div>
@@ -490,17 +498,18 @@
                 <div class="p-count">{{ $pipeline['in_lab'] ?? 0 }}</div>
                 <div class="p-label">3. Optical Lab</div>
             </a>
+            --}}
             <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'ready_to_ship']) }}" class="pipeline-step">
                 <div class="p-count" style="color: {{ ($pipeline['ready_to_ship'] ?? 0) > 0 ? '#059669' : '#0f172a' }};">{{ $pipeline['ready_to_ship'] ?? 0 }}</div>
-                <div class="p-label">4. Ready to Ship</div>
+                <div class="p-label">2. Ready to Ship</div>
             </a>
             <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'shipped']) }}" class="pipeline-step">
                 <div class="p-count">{{ $pipeline['shipped'] ?? 0 }}</div>
-                <div class="p-label">5. In Transit</div>
+                <div class="p-label">3. In Transit</div>
             </a>
             <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'delivered']) }}" class="pipeline-step">
                 <div class="p-count">{{ $pipeline['delivered'] ?? 0 }}</div>
-                <div class="p-label">6. Delivered</div>
+                <div class="p-label">4. Delivered</div>
             </a>
         </div>
     </div>
