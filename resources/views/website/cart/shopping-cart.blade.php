@@ -362,7 +362,228 @@
         border-radius: 50%;
         pointer-events: none;
     }
+    
+    
+    /*===============*/
+    
+    
+    /* ── Compact Right Sidebar Overrides ── */
+
+/* Tighter card spacing for sidebar */
+.sidebar-compact .cart-card,
+.sidebar-compact .gold-banner-state1 {
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    border-radius: 14px;
+}
+
+/* Collapsible Accordion Row (Coupon / Voucher) */
+.accordion-row {
+    background: #ffffff;
+    border: 1px solid var(--cart-border-color);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    box-shadow: var(--cart-card-shadow);
+    overflow: hidden;
+}
+.accordion-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+.accordion-row-header:hover {
+    background: #f8fafc;
+}
+.accordion-row-header .acc-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--cart-text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.accordion-row-header .acc-subtitle {
+    font-size: 11px;
+    color: var(--cart-text-muted);
+    margin-top: 2px;
+}
+.accordion-row-header .acc-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--cart-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--cart-text-muted);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.accordion-row-header:hover .acc-arrow {
+    border-color: var(--cart-primary);
+    color: var(--cart-primary);
+}
+.accordion-row-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 16px;
+}
+.accordion-row.open .accordion-row-body {
+    max-height: 500px;
+    padding: 0 16px 16px;
+}
+.accordion-row.open .acc-arrow {
+    transform: rotate(90deg);
+}
+
+/* Compact Loyalty Row */
+.loyalty-compact {
+    background: #ffffff;
+    border: 1px solid var(--cart-border-color);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--cart-card-shadow);
+}
+.loyalty-compact .loyalty-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.loyalty-compact .loyalty-pts-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cart-text-main);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.loyalty-compact .loyalty-pts-value {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--cart-primary);
+}
+.loyalty-compact .loyalty-earn {
+    font-size: 11px;
+    color: var(--cart-text-muted);
+    margin-top: 4px;
+}
+.loyalty-compact .loyalty-toggle-row {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+}
+.loyalty-compact .loyalty-toggle-row label {
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Compact Bill Summary */
+.bill-summary-compact {
+    padding: 16px !important;
+}
+.bill-summary-compact h5 {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+}
+.bill-summary-compact .bill-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 12.5px;
+}
+.bill-summary-compact .bill-line .bill-label {
+    color: var(--cart-text-muted);
+    font-weight: 500;
+}
+.bill-summary-compact .bill-line .bill-value {
+    font-weight: 600;
+    color: var(--cart-text-main);
+}
+.bill-summary-compact .bill-line .bill-value.text-success {
+    color: var(--cart-success) !important;
+}
+.bill-summary-compact .bill-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0 12px;
+}
+.bill-summary-compact .bill-total-row .total-label {
+    font-size: 14px;
+    font-weight: 700;
+}
+.bill-summary-compact .bill-total-row .total-label small {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--cart-text-muted);
+    margin-top: 1px;
+}
+.bill-summary-compact .bill-total-row .total-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cart-primary);
+}
+.bill-summary-compact .btn-cart-primary {
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+/* Trust badges compact */
+.trust-row-compact {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 10px;
+    color: var(--cart-text-muted);
+    text-align: center;
+}
+.trust-row-compact i {
+    font-size: 16px;
+    color: var(--cart-primary);
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* Compact Voucher Perk Banner */
+.voucher-perk-compact {
+    padding: 12px 14px !important;
+    margin-bottom: 12px !important;
+}
+.voucher-perk-compact .rounded-circle {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+}
+
+/* Compact earned cashback */
+.cashback-banner-compact {
+    padding: 8px 12px !important;
+    margin-top: 10px !important;
+    font-size: 11px !important;
+}
+
+/* Compact gold banner */
+.gold-banner-compact {
+    padding: 14px 16px !important;
+}
 </style>
+
 
 <!-- Breadcrumbs Section -->
 <section class="cart-breadcrumbs py-3">
@@ -681,76 +902,80 @@
 
                         <!-- Unified Promo Code & Gift Voucher Card -->
                         @php
-                            $appliedCoupon  = session('applied_coupon', null);
-                            $appliedVoucher = session('applied_voucher', null);
-                            $appliedCode    = $appliedCoupon['code'] ?? ($appliedVoucher['code'] ?? null);
+                            $appliedCoupon    = session('applied_coupon', null);
+                            $appliedVoucher   = session('applied_voucher', null);
+                            $appliedCode      = $appliedCoupon['code'] ?? ($appliedVoucher['code'] ?? null);
                             $availableCoupons = $cartData['available_coupons'] ?? [];
                             $savedVouchers    = $cartData['available_vouchers'] ?? [];
                         @endphp
-
-                        <div class="cart-card p-4 mb-4">
-                            <h5 class="fw-bold mb-1 text-dark d-flex align-items-center" style="font-size: 15px;">
-                                <i class="bi bi-ticket-perforated-fill me-2" style="color: var(--cart-primary);"></i>
-                                Have a Promo Code or Gift Voucher?
-                            </h5>
-                            <p class="text-muted mb-3" style="font-size: 11.5px;">
-                                Enter your discount coupon or gift voucher code below to get instant discount.
-                            </p>
-
-                            <div class="input-group coupon-input-group mb-2">
-                                <input type="text" id="coupon-code-input" class="form-control text-uppercase" placeholder="ENTER COUPON OR VOUCHER CODE" value="{{ $appliedCode ?? '' }}">
-                                <button id="apply-coupon-btn" class="btn btn-apply" type="button">APPLY</button>
+                
+                        <div class="accordion-row {{ $appliedCode ? 'open' : '' }}" id="coupon-accordion">
+                            <div class="accordion-row-header" onclick="toggleAccordion('coupon-accordion')">
+                                <div>
+                                    <div class="acc-title">
+                                        <i class="bi bi-ticket-perforated-fill" style="color: var(--cart-primary);"></i>
+                                        @if($appliedCode)
+                                            Code <strong>{{ $appliedCode }}</strong> Applied
+                                        @else
+                                            Apply Coupon or Gift Voucher
+                                        @endif
+                                    </div>
+                                    <div class="acc-subtitle">
+                                        @if($appliedCode)
+                                            Tap to change or remove
+                                        @else
+                                            Check available offers
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="acc-arrow"><i class="bi bi-chevron-right"></i></div>
                             </div>
-
-                            @if($appliedCode)
-                                <div class="alert alert-success py-2 px-3 small mb-0 d-flex justify-content-between align-items-center border-0 rounded-3 mt-2" style="background: var(--cart-success-light); color: var(--cart-success);">
-                                    <span><i class="bi bi-check-circle-fill me-1"></i> Code <strong>{{ $appliedCode }}</strong> applied successfully!</span>
-                                    <button type="button" id="remove-coupon-btn" class="btn btn-sm btn-link text-danger p-0 fw-bold text-decoration-none" style="font-size:12px;">Remove</button>
+                            <div class="accordion-row-body">
+                                <div class="input-group coupon-input-group mb-2">
+                                    <input type="text" id="coupon-code-input" class="form-control text-uppercase" placeholder="ENTER CODE" value="{{ $appliedCode ?? '' }}" style="padding: 10px 14px; font-size: 13px;">
+                                    <button id="apply-coupon-btn" class="btn btn-apply" type="button" style="padding: 10px 16px; font-size: 13px;">APPLY</button>
                                 </div>
-                            @endif
-
-                            {{-- ── Quick 1-Click Available Offers & Vouchers ── --}}
-                            @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
-                                <div class="mt-3 pt-3 border-top">
-                                    <div class="small fw-semibold text-muted mb-2 d-flex align-items-center" style="font-size: 12px;">
-                                        <i class="bi bi-stars me-1 text-warning"></i> Available Offers & Vouchers (Click to Apply):
+                
+                                @if($appliedCode)
+                                    <div class="d-flex justify-content-between align-items-center py-1 px-2 rounded-2 mb-2" style="background: var(--cart-success-light); font-size: 11.5px; color: var(--cart-success);">
+                                        <span><i class="bi bi-check-circle-fill me-1"></i> <strong>{{ $appliedCode }}</strong> applied!</span>
+                                        <button type="button" id="remove-coupon-btn" class="btn btn-sm btn-link text-danger p-0 fw-bold text-decoration-none" style="font-size:11px;">Remove</button>
                                     </div>
-                                    <div class="d-flex flex-column gap-2">
-                                        @foreach($savedVouchers as $v)
-                                            <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $v['code'] }}" style="background: #f3f0fd; border: 1.5px dashed #6b4bcf !important; transition: all 0.2s ease;">
-                                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <span class="fw-bold text-uppercase me-2" style="font-size: 13px; color: #4c28a8;">
-                                                        <i class="bi bi-gift-fill me-1"></i>{{ $v['code'] }}
-                                                    </span>
-                                                    <span class="badge text-white px-2 py-1" style="font-size: 10px; background: #6b4bcf;">₹{{ number_format($v['balance'], 2) }} VOUCHER</span>
-                                                </div>
-                                                <div class="text-secondary small" style="font-size: 11px; line-height: 1.3;">Click to apply your Gift Voucher cash discount.</div>
-                                            </button>
-                                        @endforeach
-
-                                        @foreach($availableCoupons as $ac)
-                                            <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $ac['code'] }}" style="background: #f8fafc; border: 1.5px dashed #cbd5e1 !important; transition: all 0.2s ease;">
-                                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <span class="fw-bold text-primary text-uppercase me-2" style="font-size: 13px;">
-                                                        <i class="bi bi-ticket-fill me-1"></i>{{ $ac['code'] }}
-                                                    </span>
-                                                    <span class="badge bg-primary text-white px-2 py-1" style="font-size: 10px;">{{ $ac['title'] }}</span>
-                                                </div>
-                                                @if(!empty($ac['description']))
-                                                    <div class="text-secondary small" style="font-size: 11px; line-height: 1.3;">{{ Str::limit($ac['description'], 50) }}</div>
-                                                @endif
-                                                @if(!empty($ac['min_cart_amount']) && $ac['min_cart_amount'] > 0)
-                                                    <div class="text-muted small mt-1" style="font-size: 10px;">Min Cart: ₹{{ number_format($ac['min_cart_amount']) }}</div>
-                                                @endif
-                                            </button>
-                                        @endforeach
+                                @endif
+                
+                                @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
+                                    <div class="pt-2 border-top mt-1">
+                                        <div class="small fw-semibold text-muted mb-2" style="font-size: 11px;">
+                                            <i class="bi bi-stars me-1 text-warning"></i> Available (tap to apply):
+                                        </div>
+                                        <div class="d-flex flex-column gap-2">
+                                            @foreach($savedVouchers as $v)
+                                                <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $v['code'] }}" style="background: #f3f0fd; border: 1.5px dashed #6b4bcf !important; font-size: 12px;">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="fw-bold text-uppercase" style="color: #4c28a8;">
+                                                            <i class="bi bi-gift-fill me-1"></i>{{ $v['code'] }}
+                                                        </span>
+                                                        <span class="badge text-white px-2 py-1" style="font-size: 9px; background: #6b4bcf;">₹{{ number_format($v['balance'], 2) }}</span>
+                                                    </div>
+                                                </button>
+                                            @endforeach
+                                            @foreach($availableCoupons as $ac)
+                                                <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $ac['code'] }}" style="background: #f8fafc; border: 1.5px dashed #cbd5e1 !important; font-size: 12px;">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="fw-bold text-primary text-uppercase">
+                                                            <i class="bi bi-ticket-fill me-1"></i>{{ $ac['code'] }}
+                                                        </span>
+                                                        <span class="badge bg-primary text-white px-2 py-1" style="font-size: 9px;">{{ $ac['title'] }}</span>
+                                                    </div>
+                                                </button>
+                                            @endforeach
+                                        </div>
                                     </div>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
-
-
-                        <!-- Loyalty Points Card -->
+                
+                        {{-- ── Loyalty Points (Compact Row) ── --}}
                         @php
                             $userBal       = (int)($cartData['available_loyalty_points'] ?? 0);
                             $orderReward   = (int)($cartData['order_reward_pts'] ?? 0);
@@ -769,96 +994,82 @@
                             </div>
 
                             @if($userBal > 0)
-                                <div class="pt-2 border-top">
-                                    <div class="form-check d-flex align-items-center mb-0">
-                                        <input class="form-check-input me-2" type="checkbox" id="toggle-loyalty-checkbox" {{ $useLoyalty ? 'checked' : '' }} style="cursor: pointer; width: 18px; height: 18px; accent-color: var(--cart-primary);">
-                                        <label class="form-check-label fw-bold text-dark" for="toggle-loyalty-checkbox" style="cursor: pointer; font-size: 13.5px;">
-                                            Use {{ number_format($useLoyalty && $ptsUsed > 0 ? $ptsUsed : $userBal) }} pts <span class="text-success">(−₹{{ number_format($loyaltyRupees, 2) }})</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="pt-2 border-top">
-                                    <span class="text-muted small d-inline-flex align-items-center" style="font-size: 12px;">
-                                        <i class="bi bi-info-circle me-1 text-secondary"></i> Nothing to redeem yet — this order gets you started
-                                    </span>
+                                <div class="loyalty-toggle-row">
+                                    <input class="form-check-input me-2" type="checkbox" id="toggle-loyalty-checkbox" {{ $useLoyalty ? 'checked' : '' }} style="cursor:pointer; width:16px; height:16px; accent-color: var(--cart-primary);">
+                                    <label for="toggle-loyalty-checkbox" style="font-size: 12.5px; font-weight: 600; cursor: pointer;">
+                                        Use {{ number_format($useLoyalty && $ptsUsed > 0 ? $ptsUsed : $userBal) }} pts <span class="text-success">(−₹{{ number_format($loyaltyRupees, 2) }})</span>
+                                    </label>
                                 </div>
                             @endif
                         </div>
-
-                        <!-- Bill Details Summary Card -->
-                        <div class="cart-card p-4 mb-4">
-                            <h5 class="fw-bold mb-3 text-dark pb-2 border-bottom">Bill Summary</h5>
-                            
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-secondary">Frame Subtotal</span>
-                                <span class="fw-semibold text-dark">₹{{ number_format($cartData['frame_subtotal'], 2) }}</span>
+                
+                        {{-- ── Bill Summary (Compact) ── --}}
+                        <div class="cart-card bill-summary-compact">
+                            <h5 class="fw-bold text-dark border-bottom">Bill Summary</h5>
+                
+                            <div class="bill-line">
+                                <span class="bill-label">Frame Subtotal</span>
+                                <span class="bill-value">₹{{ number_format($cartData['frame_subtotal'], 2) }}</span>
                             </div>
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-secondary">Lens Package Subtotal</span>
-                                <span class="fw-semibold text-success">+₹{{ number_format($cartData['lens_subtotal'], 2) }}</span>
+                            <div class="bill-line">
+                                <span class="bill-label">Lens Package</span>
+                                <span class="bill-value text-success">+₹{{ number_format($cartData['lens_subtotal'], 2) }}</span>
                             </div>
-
+                
                             @if($cartData['bogo_savings'] > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-success fw-semibold"><i class="bi bi-tag-fill me-1"></i> BOGO Free Pair Savings</span>
-                                    <span class="fw-bold text-success">-₹{{ number_format($cartData['bogo_savings'], 2) }}</span>
+                                <div class="bill-line">
+                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-tag-fill me-1"></i>BOGO Savings</span>
+                                    <span class="bill-value text-success">-₹{{ number_format($cartData['bogo_savings'], 2) }}</span>
                                 </div>
                             @endif
-
                             @if(isset($cartData['third_item_savings']) && $cartData['third_item_savings'] > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-primary fw-semibold"><i class="bi bi-percent me-1"></i> 3rd Pair ({{ (int)($cartData['bogo_extra_discount'] ?? 60) }}% OFF) Savings</span>
-                                    <span class="fw-bold text-primary">-₹{{ number_format($cartData['third_item_savings'], 2) }}</span>
+                                <div class="bill-line">
+                                    <span class="bill-label text-primary fw-semibold"><i class="bi bi-percent me-1"></i>3rd Pair Savings</span>
+                                    <span class="bill-value" style="color:#1d4ed8;">-₹{{ number_format($cartData['third_item_savings'], 2) }}</span>
                                 </div>
                             @endif
-
                             @if(isset($cartData['first_frame_free_save']) && $cartData['first_frame_free_save'] > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-success fw-semibold"><i class="bi bi-gift-fill me-1"></i> First Pair Free Discount</span>
-                                    <span class="fw-bold text-success">-₹{{ number_format($cartData['first_frame_free_save'], 2) }}</span>
+                                <div class="bill-line">
+                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-gift-fill me-1"></i>First Pair Free</span>
+                                    <span class="bill-value text-success">-₹{{ number_format($cartData['first_frame_free_save'], 2) }}</span>
                                 </div>
                             @endif
-
                             @if($cartData['coupon_discount'] > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-success fw-semibold"><i class="bi bi-percent me-1"></i> Coupon Discount</span>
-                                    <span class="fw-bold text-success">-₹{{ number_format($cartData['coupon_discount'], 2) }}</span>
+                                <div class="bill-line">
+                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-percent me-1"></i>Coupon</span>
+                                    <span class="bill-value text-success">-₹{{ number_format($cartData['coupon_discount'], 2) }}</span>
                                 </div>
                             @endif
-
                             @if(isset($cartData['voucher_discount']) && $cartData['voucher_discount'] > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-success fw-semibold"><i class="bi bi-gift-fill me-1"></i> Gift Voucher Applied</span>
-                                    <span class="fw-bold text-success">-₹{{ number_format($cartData['voucher_discount'], 2) }}</span>
+                                <div class="bill-line">
+                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-gift-fill me-1"></i>Voucher</span>
+                                    <span class="bill-value text-success">-₹{{ number_format($cartData['voucher_discount'], 2) }}</span>
                                 </div>
                             @endif
-
                             @if(isset($cartData['loyalty_discount']) && $cartData['loyalty_discount'] > 0)
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-warning fw-semibold" style="color: #d97706 !important;"><i class="bi bi-gem me-1"></i> Loyalty Points Discount</span>
-                                    <span class="fw-bold text-warning" style="color: #d97706 !important;">-₹{{ number_format($cartData['loyalty_discount'], 2) }}</span>
+                                <div class="bill-line">
+                                    <span class="bill-label fw-semibold" style="color:#d97706;"><i class="bi bi-gem me-1"></i>Loyalty Pts</span>
+                                    <span class="bill-value" style="color:#d97706;">-₹{{ number_format($cartData['loyalty_discount'], 2) }}</span>
                                 </div>
                             @endif
-
-                            <hr class="text-muted opacity-25 my-3">
-
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <span class="fw-bold fs-5 text-dark d-block">Total Amount</span>
-                                    <span class="text-muted small">Inclusive of all taxes</span>
+                
+                            <hr class="my-2 opacity-15">
+                
+                            <div class="bill-total-row">
+                                <div class="total-label">
+                                    Total Amount
+                                    <small>Inclusive of all taxes</small>
                                 </div>
-                                <span class="fw-extrabold fs-3" style="color: var(--cart-primary);">₹{{ number_format($cartData['grand_total'], 2) }}</span>
+                                <span class="total-value">₹{{ number_format($cartData['grand_total'], 2) }}</span>
                             </div>
-
+                
                             @if(auth()->check())
-                                <a href="{{ route('shipping-details') }}" class="btn btn-cart-primary w-100 py-3 d-flex align-items-center justify-content-center text-decoration-none">
+                                <a href="{{ route('shipping-details') }}" class="btn btn-cart-primary w-100 d-flex align-items-center justify-content-center text-decoration-none">
                                     <span>Proceed to Checkout</span>
                                     <i class="bi bi-arrow-right fs-5 ms-2"></i>
                                 </a>
                             @else
-                                <button type="button" id="btn-proceed-checkout-auth" class="btn btn-cart-primary w-100 py-3 d-flex align-items-center justify-content-center text-decoration-none border-0">
+                                <button type="button" id="btn-proceed-checkout-auth" class="btn btn-cart-primary w-100 d-flex align-items-center justify-content-center text-decoration-none border-0">
                                     <span>Proceed to Checkout</span>
                                     <i class="bi bi-arrow-right fs-5 ms-2"></i>
                                 </button>
@@ -881,105 +1092,82 @@
                                     });
                                 </script>
                             @endif
-
-                            <!-- Distinct Earned Loyalty Points Reward Banner below Proceed to Checkout -->
+                
+                            {{-- Cashback reward teaser --}}
                             @if(isset($cartData['pending_cashback']) && $cartData['pending_cashback'] > 0)
-                                <div class="p-3 rounded-3 mt-3 text-center" style="background:#ecfdf5; border: 1.5px dashed #10b981;">
-                                    <div class="fw-bold text-success small d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-gift-fill me-1"></i> 🎉 Order Reward: Earn {{ number_format($cartData['pending_cashback'], 0) }} Loyalty Points!
-                                    </div>
-                                    <div class="text-muted mt-1" style="font-size: 11px;">
-                                        Earn {{ (int)$cartData['cashback_percent'] }}% cashback ({{ number_format($cartData['pending_cashback'], 0) }} Pts) credited {{ $cartData['cashback_delay_days'] }} days post delivery ({{ $cartData['cashback_release_date'] }}).
+                                <div class="cashback-banner-compact rounded-2 text-center mt-2" style="background:#ecfdf5; border: 1px dashed #10b981; padding: 8px 10px;">
+                                    <div class="fw-bold text-success d-flex align-items-center justify-content-center" style="font-size: 11px;">
+                                        <i class="bi bi-gift-fill me-1"></i> 🎉 Earn {{ number_format($cartData['pending_cashback'], 0) }} pts · {{ (int)$cartData['cashback_percent'] }}% cashback
                                     </div>
                                 </div>
                             @endif
-
-                            <!-- Trust Badges -->
-                            <div class="mt-4 pt-3 border-top d-flex justify-content-around text-center text-secondary" style="font-size: 11px;">
-                                <div>
-                                    <i class="bi bi-shield-check fs-5 text-teal d-block mb-1" style="color: var(--cart-primary);"></i>
-                                    <span>Secure Checkout</span>
-                                </div>
-                                <div>
-                                    <i class="bi bi-truck fs-5 text-teal d-block mb-1" style="color: var(--cart-primary);"></i>
-                                    <span>Free Shipping</span>
-                                </div>
-                                <div>
-                                    <i class="bi bi-arrow-counterclockwise fs-5 text-teal d-block mb-1" style="color: var(--cart-primary);"></i>
-                                    <span>Easy Returns</span>
-                                </div>
+                
+                            {{-- Trust badges --}}
+                            <div class="trust-row-compact">
+                                <div><i class="bi bi-shield-check"></i><span>Secure</span></div>
+                                <div><i class="bi bi-truck"></i><span>Free Shipping</span></div>
+                                <div><i class="bi bi-arrow-counterclockwise"></i><span>Easy Returns</span></div>
                             </div>
                         </div>
-
-                        <!-- Data-Driven 3-State Gold Banner Box -->
+                
+                        {{-- ── Gold Banner (3-State, Compact) ── --}}
                         @php $bs = $cartData['banner_state'] ?? null; @endphp
                         @if($bs)
                             @if($bs['state'] == 1)
-                                <!-- State 1: Membership NOT in cart -->
-                                <div class="gold-banner-state1 p-4">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge px-3 py-1 text-white fw-bold d-inline-flex align-items-center" style="background-color: #d97706; border-radius: 20px; font-size: 11px;">
+                                <div class="gold-banner-state1 gold-banner-compact">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <span class="badge px-2 py-1 text-white fw-bold d-inline-flex align-items-center" style="background-color: #d97706; border-radius: 16px; font-size: 10px;">
                                             <i class="bi bi-award-fill me-1"></i> GOLD MEMBERSHIP
                                         </span>
                                     </div>
-                                    <div class="fw-bold text-dark mb-1" style="font-size: 15px; line-height: 1.4;">
+                                    <div class="fw-bold text-dark mb-0" style="font-size: 13.5px; line-height: 1.35;">
                                         {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
                                     </div>
-                                    <div class="small mb-3" style="font-size: 13.5px; color: #b45309; font-weight: 600;">
+                                    <div class="small mb-2" style="font-size: 12px; color: #b45309; font-weight: 600;">
                                         {{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px dashed #fde68a;">
-                                        <button type="button" id="btn-add-membership" data-card-id="1"
-                                            class="btn border-0 p-0 fw-bold text-decoration-none d-inline-flex align-items-center"
-                                            style="font-size: 14px; color: #b45309; background: transparent;">
+                                    <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px dashed #fde68a;">
+                                        <button type="button" id="btn-add-membership" data-card-id="1" class="btn border-0 p-0 fw-bold text-decoration-none d-inline-flex align-items-center" style="font-size: 13px; color: #b45309; background: transparent;">
                                             <span id="btn-add-membership-text">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }}</span>
                                             <span id="btn-add-membership-spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                                         </button>
-                                        <button type="button" id="btn-add-membership-arrow" data-card-id="1"
-                                            class="btn btn-sm rounded-circle border-0 d-flex align-items-center justify-content-center text-white"
-                                            style="width: 34px; height: 34px; background-color: #d97706; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);">
-                                            <i class="bi bi-arrow-right fs-6"></i>
+                                        <button type="button" id="btn-add-membership-arrow" data-card-id="1" class="btn btn-sm rounded-circle border-0 d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px; background-color: #d97706; box-shadow: 0 3px 8px rgba(217, 119, 6, 0.3);">
+                                            <i class="bi bi-arrow-right"></i>
                                         </button>
                                     </div>
                                 </div>
                             @elseif($bs['state'] == 2)
-                                <!-- State 2: Membership in cart, free item NOT yet chosen -->
-                                <div class="cart-card p-4" style="background-color: #fff9db; border: 1.5px solid #ffd8a8 !important;">
+                                <div class="cart-card gold-banner-compact" style="background-color: #fff9db; border: 1.5px solid #ffd8a8 !important;">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <h6 class="fw-bold text-dark mb-1 d-flex align-items-center" style="font-size: 15px;">
-                                                <i class="bi bi-award-fill text-warning me-2 fs-5"></i> {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
+                                            <h6 class="fw-bold text-dark mb-1 d-flex align-items-center" style="font-size: 13.5px;">
+                                                <i class="bi bi-award-fill text-warning me-2"></i> {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
                                             </h6>
-                                            <p class="text-secondary mb-3 small" style="line-height: 1.4;">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</p>
-                                            
-                                            <a href="{{ $bs['cta_url'] }}" class="fw-bold text-decoration-none d-inline-flex align-items-center" style="color: #e8590c; font-size: 14px;">
+                                            <p class="text-secondary mb-2" style="font-size: 12px; line-height: 1.35;">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</p>
+                                            <a href="{{ $bs['cta_url'] }}" class="fw-bold text-decoration-none d-inline-flex align-items-center" style="color: #e8590c; font-size: 13px;">
                                                 {{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }} <i class="bi bi-chevron-right ms-1"></i>
                                             </a>
                                         </div>
-                                        <span class="text-muted" style="cursor: pointer;" title="Membership Privileges Active">
-                                            <i class="bi bi-info-circle fs-5"></i>
-                                        </span>
+                                        <i class="bi bi-info-circle text-muted"></i>
                                     </div>
                                 </div>
                             @elseif($bs['state'] == 3)
-                                <!-- State 3: Free item + 3rd pair discount applied (Lenskart-style Gold Max Membership Benefit Box) -->
-                                <div class="cart-card p-4 mt-3" style="background-color: #fffbeb; border: 1.5px solid #fde68a !important; border-radius: 14px;">
+                                <div class="cart-card gold-banner-compact mt-0" style="background-color: #fffbeb; border: 1.5px solid #fde68a !important; border-radius: 14px;">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="pe-2">
-                                            <h6 class="fw-bold mb-1" style="font-size: 14.5px; color: #1c1917;">
+                                            <h6 class="fw-bold mb-1" style="font-size: 13px; color: #1c1917;">
                                                 {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
                                             </h6>
-                                            <p class="mb-0 small" style="font-size: 12.5px; color: #78350f; line-height: 1.45;">
+                                            <p class="mb-0" style="font-size: 11.5px; color: #78350f; line-height: 1.4;">
                                                 {{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}
                                             </p>
                                         </div>
-                                        <span class="text-muted flex-shrink-0" style="cursor: pointer;" title="Gold Max Membership Benefit Active">
-                                            <i class="bi bi-info-circle fs-5" style="color: #b45309;"></i>
-                                        </span>
+                                        <i class="bi bi-info-circle flex-shrink-0" style="color: #b45309;"></i>
                                     </div>
                                 </div>
                             @endif
                         @endif
+                
                     </div>
                 </div>
             </div>
