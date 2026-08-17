@@ -515,10 +515,19 @@ class CartService
 
         // Check authenticated user's membership (if logged in)
         $user = auth()->user() ?? null;
-        if ($user) {
+        $customerRecord = null;
+        if ($user && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
             $customer = DB::table('tbl_customer')
-                ->where('customer_id', $user->id)
+                ->where(function ($q) use ($user) {
+                    if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
+                    if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
+                    if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                    $q->orWhere('customer_id', $user->id);
+                    $q->orWhere('added_by', $user->id);
+                })
                 ->first();
+            $customerRecord = $customer;
+
             if ($customer && $customer->membership_card_id && $customer->membership_expiry && \Carbon\Carbon::parse($customer->membership_expiry)->isFuture()) {
                 $membershipBogoEnabled = true;
                 $dbCard = DB::table('tbl_membership_card')->where('card_id', $customer->membership_card_id)->first();
@@ -751,20 +760,20 @@ class CartService
         $availableLoyaltyPoints = 0;
         if (session()->has('test_loyalty_points')) {
             $availableLoyaltyPoints = (float) session()->get('test_loyalty_points');
-        } elseif ($user) {
-            $customerRecord = DB::table('tbl_customer')
-                ->where('customer_id', $user->id)
-                ->orWhere('contact_no', $user->contact_no ?? '')
-                ->orWhere('email_id', $user->email ?? ($user->email_id ?? ''))
-                ->first();
-            if ($customerRecord && !empty($customerRecord->Loyalty_Points_Bal)) {
+        } elseif ($customerRecord) {
+            if (isset($customerRecord->Loyalty_Points_Bal) && $customerRecord->Loyalty_Points_Bal !== null) {
                 $availableLoyaltyPoints = (float) $customerRecord->Loyalty_Points_Bal;
+            } elseif (isset($customerRecord->Loyalty_Points)) {
+                $availableLoyaltyPoints = max(0, (float) ($customerRecord->Loyalty_Points - ($customerRecord->Loyalty_Points_Redeem ?? 0)));
             }
-        }
-
-        // Test Mode: Only grant test points fallback in local development environment
-        if ($availableLoyaltyPoints <= 0 && app()->environment('local') && !session()->has('no_test_points')) {
-            $availableLoyaltyPoints = 500.0;
+        } elseif ($user) {
+            if (isset($user->loyalty_points) && (float)$user->loyalty_points > 0) {
+                $availableLoyaltyPoints = (float) $user->loyalty_points;
+            } elseif (\Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
+                $earned = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_earned');
+                $used   = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_used');
+                $availableLoyaltyPoints = max(0, $earned - $used);
+            }
         }
 
         // Admin Redemption Cap % on Order Total (tbl_loyalty id=2 -> order_use_loyalty)
