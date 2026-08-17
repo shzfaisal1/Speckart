@@ -35,19 +35,25 @@ class HomeController extends Controller
         $today        = Carbon::today();
         $startOfMonth = Carbon::now()->startOfMonth();
 
-        // 1. Executive KPIs
+        // 1. Executive KPIs (6 Core Business & Operations Metrics)
+        $returnsCount = B2cOrder::where('order_status', 'returned')->count();
+        if (Schema::hasTable('b2c_order_returns')) {
+            $returnsCount = max($returnsCount, DB::table('b2c_order_returns')->count());
+        }
+
         $kpis = [
-            'orders_today'       => B2cOrder::whereDate('created_at', $today)->count(),
-            'revenue_today'      => (float) B2cOrder::whereDate('created_at', $today)->where('payment_status', 'paid')->sum('grand_total'),
-            'orders_this_month'  => B2cOrder::where('created_at', '>=', $startOfMonth)->count(),
-            'revenue_this_month' => (float) B2cOrder::where('created_at', '>=', $startOfMonth)->where('payment_status', 'paid')->sum('grand_total'),
-            'pending_rx'         => B2cOrder::where('rx_verification_status', 'pending_review')->count(),
-            'in_lab'             => B2cOrder::whereIn('lab_status', ['assigned', 'cutting', 'fitting'])->count(),
-            'ready_to_ship'      => B2cOrder::where(function ($q) {
-                $q->where('lab_status', 'completed')
-                  ->orWhere('order_status', 'ready_to_ship');
-            })->whereNull('tracking_number')->count(),
-            'payment_issues'     => B2cOrder::whereIn('payment_status', ['failed', 'cod_pending'])->count(),
+            'orders_today'         => B2cOrder::whereDate('created_at', $today)->count(),
+            'revenue_today'        => (float) B2cOrder::whereDate('created_at', $today)->where('payment_status', 'paid')->sum('grand_total'),
+            'orders_this_month'    => B2cOrder::where('created_at', '>=', $startOfMonth)->count(),
+            'revenue_this_month'   => (float) B2cOrder::where('created_at', '>=', $startOfMonth)->where('payment_status', 'paid')->sum('grand_total'),
+            'pending_orders'       => B2cOrder::where('order_status', 'pending')->count(),
+            'ready_to_ship'        => B2cOrder::where('order_status', 'ready_to_ship')->count(),
+            'cancelled_orders'     => B2cOrder::where('order_status', 'cancelled')->count(),
+            'cancelled_this_month' => B2cOrder::where('order_status', 'cancelled')->where('created_at', '>=', $startOfMonth)->count(),
+            'returns_count'        => $returnsCount,
+            'payment_issues'       => B2cOrder::whereIn('payment_status', ['failed', 'cod_pending'])->count(),
+            'pending_rx'           => B2cOrder::where('rx_verification_status', 'pending_review')->count(),
+            'in_lab'               => B2cOrder::whereIn('lab_status', ['assigned', 'cutting', 'fitting'])->count(),
         ];
 
         // 2. Order Funnel / Pipeline Breakdown
