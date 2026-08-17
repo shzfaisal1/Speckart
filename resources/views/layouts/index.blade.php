@@ -172,15 +172,15 @@
 /* KPI Summary Cards */
 .dash-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
     margin-bottom: 24px;
 }
 .dash-kpi-card {
     background: #ffffff;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    padding: 16px 20px;
+    padding: 14px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -411,53 +411,42 @@
 
     <!-- 1. Executive Operational KPI Summary Cards -->
     <div class="dash-kpi-grid">
+        {{-- Card 1: Orders Today --}}
         <a href="{{ route('admin.b2c-orders.index') }}" class="dash-kpi-card">
             <div>
-                <div class="dash-kpi-title">Today's Orders</div>
+                <div class="dash-kpi-title">Orders Today</div>
                 <div class="dash-kpi-val">{{ $kpis['orders_today'] ?? 0 }}</div>
                 <div class="dash-kpi-sub">Month: {{ $kpis['orders_this_month'] ?? 0 }} total</div>
             </div>
             <div class="dash-kpi-icon primary"><i class="fa fa-shopping-cart"></i></div>
         </a>
 
+        {{-- Card 2: Revenue Today --}}
         <div class="dash-kpi-card">
             <div>
-                <div class="dash-kpi-title">Today's Revenue</div>
+                <div class="dash-kpi-title">Revenue Today</div>
                 <div class="dash-kpi-val">₹{{ number_format($kpis['revenue_today'] ?? 0, 0) }}</div>
                 <div class="dash-kpi-sub">Month: ₹{{ number_format($kpis['revenue_this_month'] ?? 0, 0) }}</div>
             </div>
             <div class="dash-kpi-icon success"><i class="fa fa-inr"></i></div>
         </div>
 
-        {{-- Pending Rx Check KPI Card (Temporarily Hidden) --}}
-        {{--
-        <a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="dash-kpi-card">
+        {{-- Card 3: Pending Orders --}}
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'pending']) }}" class="dash-kpi-card">
             <div>
-                <div class="dash-kpi-title">Pending Rx Check</div>
-                <div class="dash-kpi-val" style="color: {{ ($kpis['pending_rx'] ?? 0) > 0 ? '#d97706' : '#0f172a' }};">
-                    {{ $kpis['pending_rx'] ?? 0 }}
+                <div class="dash-kpi-title">Pending Orders</div>
+                <div class="dash-kpi-val" style="color: {{ ($kpis['pending_orders'] ?? 0) > 0 ? '#d97706' : '#0f172a' }};">
+                    {{ $kpis['pending_orders'] ?? 0 }}
                 </div>
-                <div class="dash-kpi-sub">Optometrist Review</div>
+                <div class="dash-kpi-sub">Awaiting Processing</div>
             </div>
-            <div class="dash-kpi-icon warning"><i class="fa fa-eye"></i></div>
+            <div class="dash-kpi-icon warning"><i class="fa fa-clock-o"></i></div>
         </a>
-        --}}
 
-        {{-- In Optical Lab KPI Card (Temporarily Hidden) --}}
-        {{--
-        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="dash-kpi-card">
-            <div>
-                <div class="dash-kpi-title">In Optical Lab</div>
-                <div class="dash-kpi-val">{{ $kpis['in_lab'] ?? 0 }}</div>
-                <div class="dash-kpi-sub">Lens Edging & Fitting</div>
-            </div>
-            <div class="dash-kpi-icon purple"><i class="fa fa-cogs"></i></div>
-        </a>
-        --}}
-
+        {{-- Card 4: Ready To Ship --}}
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'ready_to_ship']) }}" class="dash-kpi-card">
             <div>
-                <div class="dash-kpi-title">Ready to Ship</div>
+                <div class="dash-kpi-title">Ready To Ship</div>
                 <div class="dash-kpi-val" style="color: {{ ($kpis['ready_to_ship'] ?? 0) > 0 ? '#059669' : '#0f172a' }};">
                     {{ $kpis['ready_to_ship'] ?? 0 }}
                 </div>
@@ -466,15 +455,28 @@
             <div class="dash-kpi-icon teal"><i class="fa fa-truck"></i></div>
         </a>
 
-        <a href="{{ route('admin.b2c-orders.index', ['payment_status' => 'cod_pending']) }}" class="dash-kpi-card">
+        {{-- Card 5: Cancelled Orders --}}
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'cancelled']) }}" class="dash-kpi-card">
             <div>
-                <div class="dash-kpi-title">Payment / COD</div>
-                <div class="dash-kpi-val" style="color: {{ ($kpis['payment_issues'] ?? 0) > 0 ? '#dc2626' : '#0f172a' }};">
-                    {{ $kpis['payment_issues'] ?? 0 }}
+                <div class="dash-kpi-title">Cancelled Orders</div>
+                <div class="dash-kpi-val" style="color: {{ ($kpis['cancelled_orders'] ?? 0) > 0 ? '#dc2626' : '#0f172a' }};">
+                    {{ $kpis['cancelled_orders'] ?? 0 }}
                 </div>
-                <div class="dash-kpi-sub">Pending Settlement</div>
+                <div class="dash-kpi-sub">Month: {{ $kpis['cancelled_this_month'] ?? 0 }} total</div>
             </div>
-            <div class="dash-kpi-icon danger"><i class="fa fa-exclamation-triangle"></i></div>
+            <div class="dash-kpi-icon danger"><i class="fa fa-times-circle"></i></div>
+        </a>
+
+        {{-- Card 6: Returns / RTO --}}
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'returned']) }}" class="dash-kpi-card">
+            <div>
+                <div class="dash-kpi-title">Returns / RTO</div>
+                <div class="dash-kpi-val" style="color: {{ ($kpis['returns_count'] ?? 0) > 0 ? '#9333ea' : '#0f172a' }};">
+                    {{ $kpis['returns_count'] ?? 0 }}
+                </div>
+                <div class="dash-kpi-sub">Reverse Logistics</div>
+            </div>
+            <div class="dash-kpi-icon purple"><i class="fa fa-undo"></i></div>
         </a>
     </div>
 
