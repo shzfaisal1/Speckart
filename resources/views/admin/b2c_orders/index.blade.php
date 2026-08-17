@@ -79,9 +79,14 @@
 }
 .filter-grid-row1 {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+@media (max-width: 768px) {
+    .filter-grid-row1 {
+        grid-template-columns: 1fr;
+    }
 }
 .filter-grid-row2 {
     display: flex;
@@ -369,8 +374,8 @@
     <!-- Multi-Filter & Search Bar -->
     <div class="filter-card">
         <form method="GET" action="{{ route('admin.b2c-orders.index') }}">
-            <!-- Row 1: Search & Categorical Filters -->
-            <div class="filter-grid-row1" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+            <!-- Row 1: Search & Categorical Filters (Proportional 2:1:1 Grid) -->
+            <div class="filter-grid-row1">
                 <div>
                     <label class="form-label-custom"><i class="fa fa-search" style="margin-right: 4px; color: #07484A;"></i> Omni Search</label>
                     <input type="text" name="search" class="form-control-custom" placeholder="Search Order #, Name, Phone, Tracking..." value="{{ request('search') }}">
@@ -414,16 +419,6 @@
                         <option value="cod_pending" {{ request('payment_status') == 'cod_pending' ? 'selected' : '' }}>COD Pending</option>
                         <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Failed</option>
                         <option value="refunded" {{ request('payment_status') == 'refunded' ? 'selected' : '' }}>Refunded</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="form-label-custom">Delivery Mode</label>
-                    <select name="delivery_method" class="form-control-custom">
-                        <option value="all">All Modes</option>
-                        <option value="standard" {{ request('delivery_method') == 'standard' ? 'selected' : '' }}>Standard</option>
-                        <option value="express" {{ request('delivery_method') == 'express' ? 'selected' : '' }}>Express (24-48H)</option>
-                        <option value="store_pickup" {{ request('delivery_method') == 'store_pickup' ? 'selected' : '' }}>Store Pickup</option>
                     </select>
                 </div>
             </div>
