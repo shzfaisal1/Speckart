@@ -225,13 +225,14 @@ class B2cOrderController extends Controller
     }
 
     /**
-     * Verify prescription (Approve / Flag Clarification / Reject).
+     * Verify prescription (Approve / Flag Clarification / Reject & update power matrix).
      */
     public function verifyPrescription(Request $request, $id)
     {
         $request->validate([
             'rx_status'         => 'required|in:approved,clarification_needed,rejected,pending_review',
             'optometrist_notes' => 'nullable|string|max:1000',
+            'items'             => 'nullable|array',
         ]);
 
         $order = B2cOrder::findOrFail($id);
@@ -243,7 +244,51 @@ class B2cOrderController extends Controller
         $order->verified_at            = Carbon::now();
         $order->optometrist_notes      = $request->input('optometrist_notes');
 
-        // If approved and order was in rx_verification, advance to processing
+        // Save item prescription power matrix (supports items array or item_id + items_power)
+        if ($request->has('item_id') && $request->has('items_power')) {
+            $itemId = $request->input('item_id');
+            $powers = $request->input('items_power');
+            $item = B2cOrderItem::where('order_id', $order->id)->where('id', $itemId)->first();
+            if (!$item) {
+                $item = B2cOrderItem::where('order_id', $order->id)->first();
+            }
+            if ($item && is_array($powers)) {
+                $item->update([
+                    'GL_EYE_RS_D'    => (isset($powers['GL_EYE_RS_D']) && $powers['GL_EYE_RS_D'] !== '') ? $powers['GL_EYE_RS_D'] : $item->GL_EYE_RS_D,
+                    'GL_EYE_RC_D'    => (isset($powers['GL_EYE_RC_D']) && $powers['GL_EYE_RC_D'] !== '') ? $powers['GL_EYE_RC_D'] : $item->GL_EYE_RC_D,
+                    'GL_EYE_RA_D'    => (isset($powers['GL_EYE_RA_D']) && $powers['GL_EYE_RA_D'] !== '') ? $powers['GL_EYE_RA_D'] : $item->GL_EYE_RA_D,
+                    'GL_EYE_RADD'    => (isset($powers['GL_EYE_RADD']) && $powers['GL_EYE_RADD'] !== '') ? $powers['GL_EYE_RADD'] : $item->GL_EYE_RADD,
+                    'GL_EYE_RPD'     => (isset($powers['GL_EYE_RPD']) && $powers['GL_EYE_RPD'] !== '') ? $powers['GL_EYE_RPD'] : $item->GL_EYE_RPD,
+                    'GL_EYE_LS_D'    => (isset($powers['GL_EYE_LS_D']) && $powers['GL_EYE_LS_D'] !== '') ? $powers['GL_EYE_LS_D'] : $item->GL_EYE_LS_D,
+                    'GL_EYE_LC_D'    => (isset($powers['GL_EYE_LC_D']) && $powers['GL_EYE_LC_D'] !== '') ? $powers['GL_EYE_LC_D'] : $item->GL_EYE_LC_D,
+                    'GL_EYE_LA_D'    => (isset($powers['GL_EYE_LA_D']) && $powers['GL_EYE_LA_D'] !== '') ? $powers['GL_EYE_LA_D'] : $item->GL_EYE_LA_D,
+                    'GL_EYE_LADD'    => (isset($powers['GL_EYE_LADD']) && $powers['GL_EYE_LADD'] !== '') ? $powers['GL_EYE_LADD'] : $item->GL_EYE_LADD,
+                    'GL_EYE_LPD'     => (isset($powers['GL_EYE_LPD']) && $powers['GL_EYE_LPD'] !== '') ? $powers['GL_EYE_LPD'] : $item->GL_EYE_LPD,
+                    'GL_EYE_totalPD' => (isset($powers['GL_EYE_totalPD']) && $powers['GL_EYE_totalPD'] !== '') ? $powers['GL_EYE_totalPD'] : $item->GL_EYE_totalPD,
+                ]);
+            }
+        } elseif ($request->has('items') && is_array($request->input('items'))) {
+            foreach ($request->input('items') as $itemId => $powers) {
+                $item = B2cOrderItem::where('order_id', $order->id)->where('id', $itemId)->first();
+                if ($item) {
+                    $item->update([
+                        'GL_EYE_RS_D'    => (isset($powers['GL_EYE_RS_D']) && $powers['GL_EYE_RS_D'] !== '') ? $powers['GL_EYE_RS_D'] : $item->GL_EYE_RS_D,
+                        'GL_EYE_RC_D'    => (isset($powers['GL_EYE_RC_D']) && $powers['GL_EYE_RC_D'] !== '') ? $powers['GL_EYE_RC_D'] : $item->GL_EYE_RC_D,
+                        'GL_EYE_RA_D'    => (isset($powers['GL_EYE_RA_D']) && $powers['GL_EYE_RA_D'] !== '') ? $powers['GL_EYE_RA_D'] : $item->GL_EYE_RA_D,
+                        'GL_EYE_RADD'    => (isset($powers['GL_EYE_RADD']) && $powers['GL_EYE_RADD'] !== '') ? $powers['GL_EYE_RADD'] : $item->GL_EYE_RADD,
+                        'GL_EYE_RPD'     => (isset($powers['GL_EYE_RPD']) && $powers['GL_EYE_RPD'] !== '') ? $powers['GL_EYE_RPD'] : $item->GL_EYE_RPD,
+                        'GL_EYE_LS_D'    => (isset($powers['GL_EYE_LS_D']) && $powers['GL_EYE_LS_D'] !== '') ? $powers['GL_EYE_LS_D'] : $item->GL_EYE_LS_D,
+                        'GL_EYE_LC_D'    => (isset($powers['GL_EYE_LC_D']) && $powers['GL_EYE_LC_D'] !== '') ? $powers['GL_EYE_LC_D'] : $item->GL_EYE_LC_D,
+                        'GL_EYE_LA_D'    => (isset($powers['GL_EYE_LA_D']) && $powers['GL_EYE_LA_D'] !== '') ? $powers['GL_EYE_LA_D'] : $item->GL_EYE_LA_D,
+                        'GL_EYE_LADD'    => (isset($powers['GL_EYE_LADD']) && $powers['GL_EYE_LADD'] !== '') ? $powers['GL_EYE_LADD'] : $item->GL_EYE_LADD,
+                        'GL_EYE_LPD'     => (isset($powers['GL_EYE_LPD']) && $powers['GL_EYE_LPD'] !== '') ? $powers['GL_EYE_LPD'] : $item->GL_EYE_LPD,
+                        'GL_EYE_totalPD' => (isset($powers['GL_EYE_totalPD']) && $powers['GL_EYE_totalPD'] !== '') ? $powers['GL_EYE_totalPD'] : $item->GL_EYE_totalPD,
+                    ]);
+                }
+            }
+        }
+
+        // If approved and order was in pending/confirmed, advance to processing
         if ($newRxStatus === 'approved' && in_array($order->order_status, ['pending', 'confirmed'])) {
             $order->order_status = 'processing';
         }
@@ -262,11 +307,11 @@ class B2cOrderController extends Controller
             'action'      => 'prescription_verified',
             'from_status' => $fromRxStatus,
             'to_status'   => $newRxStatus,
-            'notes'       => "Prescription marked as '{$newRxStatus}' by {$userName}. Note: " . ($request->input('optometrist_notes') ?? 'None'),
+            'notes'       => "Prescription saved & verified as '{$newRxStatus}' by {$userName}. Note: " . ($request->input('optometrist_notes') ?? 'None'),
             'created_at'  => Carbon::now(),
         ]);
 
-        return redirect()->back()->with('success', "Prescription verification status updated to " . ucfirst(str_replace('_', ' ', $newRxStatus)));
+        return redirect()->back()->with('success', "Prescription power saved & synced with Optical Lab Job Sheet!");
     }
 
     /**

@@ -1,0 +1,213 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\b2c\B2cOrder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class B2cCustomerController extends Controller
+{
+    /**
+     * Display a listing of registered B2C online customers.
+     */
+    public function index(Request $request)
+    {
+        $page_title  = 'Registered B2C Customers';
+        $breadcrumbs = [
+            ['link' => route('index'), 'name' => 'Home'],
+            ['name' => 'B2C Customers'],
+        ];
+
+        // Base query for registered online users or users with B2C orders
+        $query = User::where(function ($q) {
+            $q->where('user_type', 'B2C')
+              ->orWhereHas('b2cOrders');
+        })->withCount('b2cOrders')
+          ->withSum('b2cOrders as total_spent', 'grand_total')
+          ->with(['b2cOrders' => function ($q) {
+              $q->latest('created_at')->limit(1);
+          }, 'addresses']);
+
+        // Omni Search (Name, Email, Phone, Staff ID)
+        if ($request->filled('search')) {
+            $term = trim($request->input('search'));
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('email', 'like', "%{$term}%")
+                  ->orWhere('phone', 'like', "%{$term}%")
+                  ->orWhere('staff_id', 'like', "%{$term}%");
+            });
+        }
+
+        // Filter by Order Activity (with orders / no orders)
+        if ($request->filled('order_activity')) {
+            $activity = $request->input('order_activity');
+            if ($activity === 'has_orders') {
+                $query->has('b2cOrders');
+            } elseif ($activity === 'no_orders') {
+                $query->doesntHave('b2cOrders');
+            }
+        }
+
+        // Filter by Status (Active / Inactive)
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            $query->where('status', $status);
+        }
+
+        // Filter by Registration Date Range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+
+        // KPI Counts
+        $kpis = [
+            'total_customers' => User::where(function ($q) {
+                $q->where('user_type', 'B2C')->orWhereHas('b2cOrders');
+            })->count(),
+            'active_customers' => User::where(function ($q) {
+                $q->where('user_type', 'B2C')->orWhereHas('b2cOrders');
+            })->where('status', 1)->count(),
+            'customers_with_orders' => User::where(function ($q) {
+                $q->where('user_type', 'B2C')->orWhereHas('b2cOrders');
+            })->has('b2cOrders')->count(),
+            'total_online_orders' => B2cOrder::count(),
+            'total_online_revenue' => B2cOrder::sum('grand_total') ?? 0,
+        ];
+
+        // Sort by newest registered first
+        $customers = $query->latest('created_at')->paginate(20)->withQueryString();
+
+        // Attach Membership & Loyalty Points to each customer
+        foreach ($customers as $cust) {
+            $cust->loyalty_points = 0;
+            $cust->membership     = null;
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                $dbCust = DB::table('tbl_customer')
+                    ->where(function($q) use ($cust) {
+                        if (!empty($cust->phone)) $q->orWhere('contact_no', $cust->phone);
+                        if (!empty($cust->email)) $q->orWhere('email_id', $cust->email);
+                        $q->orWhere('customer_id', $cust->id);
+                    })
+                    ->first();
+
+                if ($dbCust) {
+                    $cust->loyalty_points = (int) ($dbCust->Loyalty_Points_Bal ?? 0);
+
+                    if (!empty($dbCust->membership_card_id) && !empty($dbCust->membership_expiry)) {
+                        $expiryDate = Carbon::parse($dbCust->membership_expiry);
+                        $isActive = $expiryDate->isFuture();
+                        $card = DB::table('tbl_membership_card')->where('card_id', $dbCust->membership_card_id)->first();
+
+                        $cust->membership = [
+                            'is_active'      => $isActive,
+                            'card_name'      => $card->card_name ?? 'VIP Member',
+                            'expiry'         => $expiryDate->format('d M Y'),
+                            'days_left'      => $isActive ? Carbon::now()->diffInDays($expiryDate) : 0,
+                            'enable_bogo'    => $card->enable_bogo ?? 1,
+                            'coupon_percent' => $card->coupon_percent ?? 0,
+                        ];
+                    }
+                }
+            }
+
+            // Fallback points calculation from orders if tbl_customer not initialized
+            if ($cust->loyalty_points === 0) {
+                $earned = B2cOrder::where('user_id', $cust->id)->sum('loyalty_points_earned') ?? 0;
+                $used   = B2cOrder::where('user_id', $cust->id)->sum('loyalty_points_used') ?? 0;
+                $cust->loyalty_points = max(0, (int)($earned - $used));
+            }
+        }
+
+        return view('admin.b2c_customers.index', compact('customers', 'kpis', 'page_title', 'breadcrumbs'));
+    }
+
+    /**
+     * Display 360° details of a registered B2C customer.
+     */
+    public function show($id)
+    {
+        $customer = User::with(['b2cOrders.items', 'addresses'])
+            ->withCount('b2cOrders')
+            ->withSum('b2cOrders as total_spent', 'grand_total')
+            ->findOrFail($id);
+
+        $page_title  = 'Customer 360°: ' . $customer->name;
+        $breadcrumbs = [
+            ['link' => route('index'), 'name' => 'Home'],
+            ['link' => route('admin.b2c-customers.index'), 'name' => 'B2C Customers'],
+            ['name' => $customer->name],
+        ];
+
+        // Fetch customer's order history
+        $orders = B2cOrder::with(['items', 'payments'])
+            ->where('user_id', $customer->id)
+            ->orWhere('guest_email', $customer->email)
+            ->orWhere('guest_phone', $customer->phone)
+            ->latest('created_at')
+            ->get();
+
+        // Resolve Membership & Loyalty
+        $customer->loyalty_points = 0;
+        $customer->membership     = null;
+        $customer->points_earned  = $orders->sum('loyalty_points_earned') ?? 0;
+        $customer->points_used    = $orders->sum('loyalty_points_used') ?? 0;
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+            $dbCust = DB::table('tbl_customer')
+                ->where(function($q) use ($customer) {
+                    if (!empty($customer->phone)) $q->orWhere('contact_no', $customer->phone);
+                    if (!empty($customer->email)) $q->orWhere('email_id', $customer->email);
+                    $q->orWhere('customer_id', $customer->id);
+                })
+                ->first();
+
+            if ($dbCust) {
+                $customer->loyalty_points = (int) ($dbCust->Loyalty_Points_Bal ?? 0);
+
+                if (!empty($dbCust->membership_card_id) && !empty($dbCust->membership_expiry)) {
+                    $expiryDate = Carbon::parse($dbCust->membership_expiry);
+                    $isActive   = $expiryDate->isFuture();
+                    $card       = DB::table('tbl_membership_card')->where('card_id', $dbCust->membership_card_id)->first();
+
+                    $customer->membership = [
+                        'is_active'      => $isActive,
+                        'card_name'      => $card->card_name ?? 'VIP Member',
+                        'price'          => $card->price ?? 0,
+                        'expiry'         => $expiryDate->format('d M Y'),
+                        'days_left'      => $isActive ? Carbon::now()->diffInDays($expiryDate) : 0,
+                        'enable_bogo'    => $card->enable_bogo ?? 1,
+                        'coupon_percent' => $card->coupon_percent ?? 0,
+                    ];
+                }
+            }
+        }
+
+        if ($customer->loyalty_points === 0) {
+            $customer->loyalty_points = max(0, (int)($customer->points_earned - $customer->points_used));
+        }
+
+        return view('admin.b2c_customers.show', compact('customer', 'orders', 'page_title', 'breadcrumbs'));
+    }
+
+    /**
+     * Toggle active/inactive status of a customer account.
+     */
+    public function toggleStatus(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $user->status = ($user->status == 1) ? 0 : 1;
+        $user->save();
+
+        $state = ($user->status == 1) ? 'activated' : 'deactivated';
+        return redirect()->back()->with('success', "Customer account has been {$state}.");
+    }
+}

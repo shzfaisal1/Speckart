@@ -214,6 +214,43 @@
 .badge-order-cancelled   { background: #fef2f2; color: #dc2626; }
 .badge-order-returned    { background: #fff1f2; color: #e11d48; }
 
+.status-select-badge {
+    display: inline-block !important;
+    padding: 4px 28px 4px 12px !important;
+    border-radius: 20px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 10px 10px !important;
+    line-height: 1.5 !important;
+    height: 28px !important;
+}
+.status-select-badge option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+}
+.status-select-pending      { background-color: #e0f2fe !important; color: #0284c7 !important; border-color: #bae6fd !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%230284c7'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-confirmed    { background-color: #e0e7ff !important; color: #4338ca !important; border-color: #c7d2fe !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234338ca'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-processing   { background-color: #f3e8ff !important; color: #9333ea !important; border-color: #e9d5ff !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%239333ea'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-ready_to_ship{ background-color: #dcfce7 !important; color: #15803d !important; border-color: #bbf7d0 !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2315803d'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-shipped     { background-color: #ede9fe !important; color: #6366f1 !important; border-color: #ddd6fe !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236366f1'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-delivered   { background-color: #ecfdf5 !important; color: #059669 !important; border-color: #a7f3d0 !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23059669'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-cancelled   { background-color: #fef2f2 !important; color: #dc2626 !important; border-color: #fecaca !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23dc2626'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+.status-select-returned    { background-color: #fff1f2 !important; color: #e11d48 !important; border-color: #fecdd3 !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23e11d48'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important; }
+
 .badge-pay-paid   { background: #ecfdf5; color: #059669; font-weight: 600; }
 .badge-pay-pending{ background: #fffbeb; color: #d97706; font-weight: 600; }
 .badge-pay-failed { background: #fef2f2; color: #dc2626; font-weight: 600; }
@@ -267,6 +304,8 @@
             <div class="kpi-icon success"><i class="fa fa-inr"></i></div>
         </div>
 
+        {{-- Pending Rx Check KPI Card (Temporarily Hidden) --}}
+        {{--
         <a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="kpi-card">
             <div>
                 <div class="kpi-title">Pending Rx Check</div>
@@ -276,7 +315,10 @@
             </div>
             <div class="kpi-icon warning"><i class="fa fa-eye"></i></div>
         </a>
+        --}}
 
+        {{-- In Lab Cutting KPI Card (Temporarily Hidden) --}}
+        {{--
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="kpi-card">
             <div>
                 <div class="kpi-title">In Lab Cutting</div>
@@ -284,6 +326,7 @@
             </div>
             <div class="kpi-icon purple"><i class="fa fa-cogs"></i></div>
         </a>
+        --}}
 
         <a href="{{ route('admin.b2c-orders.index', ['payment_status' => 'failed']) }}" class="kpi-card">
             <div>
@@ -310,7 +353,7 @@
     <div class="filter-card">
         <form method="GET" action="{{ route('admin.b2c-orders.index') }}">
             <!-- Row 1: Search & Categorical Filters -->
-            <div class="filter-grid-row1">
+            <div class="filter-grid-row1" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
                 <div>
                     <label class="form-label-custom"><i class="fa fa-search" style="margin-right: 4px; color: #07484A;"></i> Omni Search</label>
                     <input type="text" name="search" class="form-control-custom" placeholder="Search Order #, Name, Phone, Tracking..." value="{{ request('search') }}">
@@ -331,6 +374,8 @@
                     </select>
                 </div>
 
+                {{-- Prescription (Rx) Filter Dropdown (Temporarily Hidden) --}}
+                {{--
                 <div>
                     <label class="form-label-custom">Prescription (Rx)</label>
                     <select name="rx_status" class="form-control-custom">
@@ -341,6 +386,7 @@
                         <option value="not_required" {{ request('rx_status') == 'not_required' ? 'selected' : '' }}>Not Required / Zero Power</option>
                     </select>
                 </div>
+                --}}
 
                 <div>
                     <label class="form-label-custom">Payment</label>
@@ -416,7 +462,6 @@
                         <th>Prescription</th>
                         <th>Order Total</th>
                         <th>Status</th>
-                        <th>Delivery & Courier</th>
                         <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
@@ -466,14 +511,23 @@
 
                         <!-- Prescription Badge -->
                         <td>
+                            @php $firstItem = $order->items->first(); @endphp
                             @if($order->rx_verification_status === 'approved')
-                                <span class="badge-status badge-rx-approved"><i class="fa fa-check-circle"></i> Verified</span>
+                                <button type="button" class="btn p-0 border-0 bg-transparent text-start" onclick="openRxWorkbenchModal('{{ $order->id }}', '{{ $order->order_number }}', '{{ $order->rx_verification_status }}', '{{ addslashes($order->optometrist_notes ?? '') }}', '{{ addslashes(json_encode($firstItem)) }}')" title="Click to view photo & edit prescription power">
+                                    <span class="badge-status badge-rx-approved" style="cursor: pointer;"><i class="fa fa-check-circle"></i> Verified <i class="fa fa-pencil" style="font-size: 10px; margin-left: 2px;"></i></span>
+                                </button>
                             @elseif($order->rx_verification_status === 'pending_review')
-                                <span class="badge-status badge-rx-pending"><i class="fa fa-clock-o"></i> Review Req</span>
+                                <button type="button" class="btn p-0 border-0 bg-transparent text-start" onclick="openRxWorkbenchModal('{{ $order->id }}', '{{ $order->order_number }}', '{{ $order->rx_verification_status }}', '{{ addslashes($order->optometrist_notes ?? '') }}', '{{ addslashes(json_encode($firstItem)) }}')" title="Click to view photo & edit prescription power">
+                                    <span class="badge-status badge-rx-pending" style="cursor: pointer;"><i class="fa fa-clock-o"></i> Review Req <i class="fa fa-pencil" style="font-size: 10px; margin-left: 2px;"></i></span>
+                                </button>
                             @elseif($order->rx_verification_status === 'clarification_needed')
-                                <span class="badge-status badge-rx-clarification"><i class="fa fa-phone"></i> Call Cust</span>
+                                <button type="button" class="btn p-0 border-0 bg-transparent text-start" onclick="openRxWorkbenchModal('{{ $order->id }}', '{{ $order->order_number }}', '{{ $order->rx_verification_status }}', '{{ addslashes($order->optometrist_notes ?? '') }}', '{{ addslashes(json_encode($firstItem)) }}')" title="Click to view photo & edit prescription power">
+                                    <span class="badge-status badge-rx-clarification" style="cursor: pointer;"><i class="fa fa-phone"></i> Call Cust <i class="fa fa-pencil" style="font-size: 10px; margin-left: 2px;"></i></span>
+                                </button>
                             @else
-                                <span class="badge-status badge-rx-none">Zero / No Rx</span>
+                                <button type="button" class="btn p-0 border-0 bg-transparent text-start" onclick="openRxWorkbenchModal('{{ $order->id }}', '{{ $order->order_number }}', '{{ $order->rx_verification_status }}', '{{ addslashes($order->optometrist_notes ?? '') }}', '{{ addslashes(json_encode($firstItem)) }}')" title="Click to view photo & edit prescription power">
+                                    <span class="badge-status badge-rx-none" style="cursor: pointer;">Zero / No Rx <i class="fa fa-pencil" style="font-size: 10px; margin-left: 2px;"></i></span>
+                                </button>
                             @endif
                         </td>
 
@@ -485,51 +539,41 @@
                             </span>
                         </td>
 
-                        <!-- Order Status -->
+                        <!-- Order Status (Interactive Dropdown) -->
                         <td>
-                            @php
-                                $statusClass = 'badge-order-placed';
-                                if($order->order_status == 'processing') $statusClass = 'badge-order-processing';
-                                elseif($order->order_status == 'shipped') $statusClass = 'badge-order-shipped';
-                                elseif($order->order_status == 'delivered') $statusClass = 'badge-order-delivered';
-                                elseif($order->order_status == 'cancelled') $statusClass = 'badge-order-cancelled';
-                                elseif($order->order_status == 'returned') $statusClass = 'badge-order-returned';
-                            @endphp
-                            <span class="badge-status {{ $statusClass }}">
-                                {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}
-                            </span>
-                        </td>
-
-                        <!-- Delivery & Courier -->
-                        <td>
-                            <div style="font-size: 12px; font-weight: 500; color: #334155;">
-                                {{ ucfirst($order->delivery_method ?? 'Standard') }}
-                            </div>
-                            @if(!empty($order->tracking_number))
-                            <div style="font-size: 11px; color: #0284c7; font-family: 'JetBrains Mono', monospace;">
-                                {{ $order->courier_partner ?? 'Courier' }}: {{ $order->tracking_number }}
-                            </div>
-                            @endif
+                            <form method="POST" action="{{ route('admin.b2c-orders.update-status', $order->id) }}" style="margin: 0;">
+                                @csrf
+                                <select name="order_status" onchange="this.form.submit()" class="status-select-badge status-select-{{ $order->order_status }}" title="Click to change order status">
+                                    <option value="pending" {{ $order->order_status == 'pending' ? 'selected' : '' }}>Placed</option>
+                                    <option value="confirmed" {{ $order->order_status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                    <option value="processing" {{ $order->order_status == 'processing' ? 'selected' : '' }}>In Lab</option>
+                                    <option value="ready_to_ship" {{ $order->order_status == 'ready_to_ship' ? 'selected' : '' }}>Ready to Ship</option>
+                                    <option value="shipped" {{ $order->order_status == 'shipped' ? 'selected' : '' }}>Shipped</option>
+                                    <option value="delivered" {{ $order->order_status == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                    <option value="cancelled" {{ $order->order_status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    <option value="returned" {{ $order->order_status == 'returned' ? 'selected' : '' }}>Returned</option>
+                                </select>
+                            </form>
                         </td>
 
                         <!-- Actions -->
                         <td style="text-align: right;">
                             <div class="d-inline-flex gap-1">
-                                <a href="{{ route('admin.b2c-orders.show', $order->id) }}" class="btn-action-icon" title="View Order 360°">
+                                <a href="{{ route('admin.b2c-orders.show', $order->id) }}" class="btn-action-icon" title="View Order 360° Profile">
                                     <i class="fa fa-eye"></i>
                                 </a>
-                                <a href="{{ route('admin.b2c-orders.invoice', $order->id) }}" target="_blank" class="btn-action-icon" title="Print Tax Invoice">
+                                <a href="{{ route('admin.b2c-orders.invoice', $order->id) }}" target="_blank" class="btn-action-icon" title="Print Customer Tax Invoice">
                                     <i class="fa fa-file-text-o"></i>
                                 </a>
                                 <a href="{{ route('admin.b2c-orders.lab-work-order', $order->id) }}" target="_blank" class="btn-action-icon" title="Print Optical Lab Job Sheet">
-                                    <i class="fa fa-wrench"></i>
+                                    <i class="fa fa-glasses" style="color: #07484A;"></i>
                                 </a>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 48px 24px; color: #64748b;">
+                        <td colspan="7" style="text-align: center; padding: 48px 24px; color: #64748b;">
                             <div style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; color: #94a3b8; font-size: 20px;">
                                 <i class="fa fa-inbox"></i>
                             </div>
@@ -555,8 +599,193 @@
     </div>
 </div>
 
+<!-- Side-by-Side Prescription Workbench Modal -->
+<div class="modal fade" id="rxWorkbenchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: #07484A; color: #ffffff; padding: 14px 20px;">
+                <h5 class="modal-title" style="font-weight: 700; font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa fa-eye"></i> Eye Prescription Workbench — <span id="rxModalOrderNum">WEB69897</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="rxWorkbenchForm" method="POST" action="">
+                @csrf
+                <div class="modal-body" style="padding: 20px; background: #f8fafc;">
+                    <div class="row g-3">
+                        <!-- LEFT COLUMN: Uploaded Photo Viewer (50%) -->
+                        <div class="col-md-6" style="border-right: 1px solid #e2e8f0; padding-right: 20px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong style="font-size: 13px; color: #0f172a;"><i class="fa fa-picture-o" style="color: #07484A;"></i> Customer Uploaded Doctor Photo</strong>
+                                <a id="rxDownloadLink" href="#" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size: 11px; padding: 2px 8px; border-radius: 4px;">
+                                    <i class="fa fa-download"></i> Download Image
+                                </a>
+                            </div>
+                            <div style="background: #0f172a; border-radius: 8px; min-height: 360px; max-height: 420px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;" id="rxImageContainer">
+                                <img id="rxModalImage" src="" alt="Doctor Prescription Photo" style="max-width: 100%; max-height: 400px; object-fit: contain; transition: transform 0.2s ease;">
+                                <div id="rxNoImageFallback" style="display: none; color: #94a3b8; text-align: center; padding: 40px 20px;">
+                                    <i class="fa fa-file-text-o" style="font-size: 48px; margin-bottom: 12px; display: block; color: #64748b;"></i>
+                                    <strong style="font-size: 14px; color: #e2e8f0; display: block;">No Prescription Photo Uploaded</strong>
+                                    <span style="font-size: 12px;">Customer selected manual power entry or phone verification.</span>
+                                </div>
+                            </div>
+                            <!-- Image Zoom & Rotate Controls -->
+                            <div class="d-flex justify-content-center gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-light border" onclick="zoomRxImage(1.2)" title="Zoom In"><i class="fa fa-search-plus"></i> Zoom In</button>
+                                <button type="button" class="btn btn-sm btn-light border" onclick="zoomRxImage(0.8)" title="Zoom Out"><i class="fa fa-search-minus"></i> Zoom Out</button>
+                                <button type="button" class="btn btn-sm btn-light border" onclick="rotateRxImage()" title="Rotate 90°"><i class="fa fa-repeat"></i> Rotate</button>
+                                <button type="button" class="btn btn-sm btn-light border" onclick="resetRxImage()" title="Reset"><i class="fa fa-refresh"></i> Reset</button>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Power Matrix Input Form (50%) -->
+                        <div class="col-md-6" style="padding-left: 20px;">
+                            <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 10px;">
+                                <i class="fa fa-pencil-square-o" style="color: #07484A;"></i> Enter / Edit Eye Power Matrix
+                            </strong>
+                            <input type="hidden" name="item_id" id="rxModalItemId" value="">
+                            
+                            <!-- Matrix Table -->
+                            <div class="table-responsive mb-3" style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                                <table class="table table-bordered mb-0" style="font-size: 12px; text-align: center; vertical-align: middle;">
+                                    <thead style="background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 700;">
+                                        <tr>
+                                            <th>EYE</th>
+                                            <th>SPH</th>
+                                            <th>CYL</th>
+                                            <th>AXIS (°)</th>
+                                            <th>ADD</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="font-weight: 700; background: #f8fafc; color: #0284c7;">OD (RIGHT)</td>
+                                            <td><input type="text" name="items_power[GL_EYE_RS_D]" id="rx_GL_EYE_RS_D" class="form-control form-control-sm text-center" placeholder="+0.00"></td>
+                                            <td><input type="text" name="items_power[GL_EYE_RC_D]" id="rx_GL_EYE_RC_D" class="form-control form-control-sm text-center" placeholder="-0.00"></td>
+                                            <td><input type="text" name="items_power[GL_EYE_RA_D]" id="rx_GL_EYE_RA_D" class="form-control form-control-sm text-center" placeholder="180"></td>
+                                            <td><input type="text" name="items_power[GL_EYE_RADD]" id="rx_GL_EYE_RADD" class="form-control form-control-sm text-center" placeholder="+2.00"></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: 700; background: #f8fafc; color: #0284c7;">OS (LEFT)</td>
+                                            <td><input type="text" name="items_power[GL_EYE_LS_D]" id="rx_GL_EYE_LS_D" class="form-control form-control-sm text-center" placeholder="+0.00"></td>
+                                            <td><input type="text" name="items_power[GL_EYE_LC_D]" id="rx_GL_EYE_LC_D" class="form-control form-control-sm text-center" placeholder="-0.00"></td>
+                                            <td><input type="text" name="items_power[GL_EYE_LA_D]" id="rx_GL_EYE_LA_D" class="form-control form-control-sm text-center" placeholder="180"></td>
+                                            <td><input type="text" name="items_power[GL_EYE_LADD]" id="rx_GL_EYE_LADD" class="form-control form-control-sm text-center" placeholder="+2.00"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- PD Input -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label style="font-size: 11px; font-weight: 700; color: #475569;">TOTAL BINOCULAR PD (mm)</label>
+                                    <input type="text" name="items_power[GL_EYE_totalPD]" id="rx_GL_EYE_totalPD" class="form-control form-control-sm" placeholder="e.g. 63">
+                                </div>
+                                <div class="col-6">
+                                    <label style="font-size: 11px; font-weight: 700; color: #475569;">VERIFICATION STATUS *</label>
+                                    <select name="rx_status" id="rxModalStatus" class="form-control form-control-sm" required style="font-weight: 600;">
+                                        <option value="approved">✓ Approve (Ready for Lab Job Sheet)</option>
+                                        <option value="clarification_needed">🔴 Flag Clarification (Call Customer)</option>
+                                        <option value="rejected">❌ Reject Prescription</option>
+                                        <option value="pending_review">⏳ Pending Review</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Remarks -->
+                            <div class="mb-3">
+                                <label style="font-size: 11px; font-weight: 700; color: #475569;">OPTOMETRIST / STAFF REMARKS</label>
+                                <textarea name="optometrist_notes" id="rxModalNotes" class="form-control form-control-sm" rows="3" placeholder="Enter notes or confirmation with customer over phone..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #ffffff; border-top: 1px solid #e2e8f0; padding: 12px 20px;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm" style="background: #07484A; color: #ffffff; font-weight: 700; padding: 6px 20px; border-radius: 6px;">
+                        <i class="fa fa-check"></i> Save Power & Sync Lab Job Sheet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section('scripts')
 <script>
+let currentScale = 1;
+let currentRotation = 0;
+
+function openRxWorkbenchModal(orderId, orderNum, rxStatus, notes, itemJsonStr) {
+    const form = document.getElementById('rxWorkbenchForm');
+    form.action = "{{ url('admin/b2c-orders') }}/" + orderId + "/verify-prescription";
+    document.getElementById('rxModalOrderNum').innerText = orderNum;
+    document.getElementById('rxModalStatus').value = rxStatus || 'approved';
+    document.getElementById('rxModalNotes').value = notes || '';
+    
+    resetRxImage();
+    
+    try {
+        const item = typeof itemJsonStr === 'object' ? itemJsonStr : JSON.parse(itemJsonStr);
+        document.getElementById('rxModalItemId').value = item.id || '';
+        
+        const imgEl = document.getElementById('rxModalImage');
+        const fallbackEl = document.getElementById('rxNoImageFallback');
+        const downloadEl = document.getElementById('rxDownloadLink');
+        
+        if (item.prescription_file_url && item.prescription_file_url.trim() !== '') {
+            const imgUrl = item.prescription_file_url.startsWith('http') ? item.prescription_file_url : ("{{ asset('') }}" + item.prescription_file_url.replace(/^\//, ''));
+            imgEl.src = imgUrl;
+            imgEl.style.display = 'block';
+            fallbackEl.style.display = 'none';
+            downloadEl.href = imgUrl;
+            downloadEl.style.display = 'inline-block';
+        } else {
+            imgEl.style.display = 'none';
+            fallbackEl.style.display = 'block';
+            downloadEl.style.display = 'none';
+        }
+        
+        document.getElementById('rx_GL_EYE_RS_D').value = item.GL_EYE_RS_D !== null ? item.GL_EYE_RS_D : '';
+        document.getElementById('rx_GL_EYE_RC_D').value = item.GL_EYE_RC_D !== null ? item.GL_EYE_RC_D : '';
+        document.getElementById('rx_GL_EYE_RA_D').value = item.GL_EYE_RA_D || '';
+        document.getElementById('rx_GL_EYE_RADD').value = item.GL_EYE_RADD !== null ? item.GL_EYE_RADD : '';
+        
+        document.getElementById('rx_GL_EYE_LS_D').value = item.GL_EYE_LS_D !== null ? item.GL_EYE_LS_D : '';
+        document.getElementById('rx_GL_EYE_LC_D').value = item.GL_EYE_LC_D !== null ? item.GL_EYE_LC_D : '';
+        document.getElementById('rx_GL_EYE_LA_D').value = item.GL_EYE_LA_D || '';
+        document.getElementById('rx_GL_EYE_LADD').value = item.GL_EYE_LADD !== null ? item.GL_EYE_LADD : '';
+        
+        document.getElementById('rx_GL_EYE_totalPD').value = item.GL_EYE_totalPD || '';
+    } catch(e) {
+        console.error('Error parsing item rx data', e);
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('rxWorkbenchModal'));
+    modal.show();
+}
+
+function zoomRxImage(factor) {
+    currentScale *= factor;
+    applyRxTransform();
+}
+function rotateRxImage() {
+    currentRotation = (currentRotation + 90) % 360;
+    applyRxTransform();
+}
+function resetRxImage() {
+    currentScale = 1;
+    currentRotation = 0;
+    applyRxTransform();
+}
+function applyRxTransform() {
+    const imgEl = document.getElementById('rxModalImage');
+    if (imgEl) {
+        imgEl.style.transform = `scale(${currentScale}) rotate(${currentRotation}deg)`;
+    }
+}
+
 function setDatePreset(type) {
     const fromEl = document.getElementById('filter_date_from');
     const toEl = document.getElementById('filter_date_to');

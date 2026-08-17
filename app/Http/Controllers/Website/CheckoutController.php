@@ -386,12 +386,39 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // 11. Deduct Loyalty Points if used
+        // 11. Deduct Loyalty Points if used & log passbook history
         if ($loyaltyAmount > 0 && $custId) {
             $pointsUsed = (float)($cartData['points_used'] ?? 0);
-            DB::table('tbl_customer')
-                ->where('customer_id', $custId)
-                ->decrement('Loyalty_Points_Bal', $pointsUsed);
+            $customerRecord = DB::table('tbl_customer')->where('customer_id', $custId)->first();
+            if ($customerRecord) {
+                $openingPoints = (float)($customerRecord->Loyalty_Points_Bal ?? 0);
+                $closingPoints = max(0, $openingPoints - $pointsUsed);
+
+                DB::table('tbl_loyaltyrogram_histroy')->insert([
+                    'customer_id'    => $custId,
+                    'opening_points' => $openingPoints,
+                    'redeem'         => $pointsUsed,
+                    'bal_point'      => $closingPoints,
+                    'description'    => 'Redeemed on Order ' . $orderNo,
+                    'add_remove'     => 2, // 2 = Remove/Spent
+                    'store_id'       => $storeDbId,
+                    'added_by'       => $addedBy,
+                    'created_at'     => Carbon::now(),
+                    'updated_at'     => Carbon::now(),
+                ]);
+
+                DB::table('tbl_customer')
+                    ->where('customer_id', $custId)
+                    ->update([
+                        'Loyalty_Points_Redeem' => ($customerRecord->Loyalty_Points_Redeem ?? 0) + $pointsUsed,
+                        'Loyalty_Points_Bal'    => $closingPoints,
+                        'updated_at'            => Carbon::now(),
+                    ]);
+            } else {
+                DB::table('tbl_customer')
+                    ->where('customer_id', $custId)
+                    ->decrement('Loyalty_Points_Bal', $pointsUsed);
+            }
         }
 
         DB::commit();

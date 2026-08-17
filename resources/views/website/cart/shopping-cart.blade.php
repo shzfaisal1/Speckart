@@ -730,30 +730,55 @@
                         @endif
 
 
-                        <!-- Coupon Code Card -->
+                        <!-- Unified Promo Code & Gift Voucher Card -->
+                        @php
+                            $appliedCoupon  = session('applied_coupon', null);
+                            $appliedVoucher = session('applied_voucher', null);
+                            $appliedCode    = $appliedCoupon['code'] ?? ($appliedVoucher['code'] ?? null);
+                            $availableCoupons = $cartData['available_coupons'] ?? [];
+                            $savedVouchers    = $cartData['available_vouchers'] ?? [];
+                        @endphp
+
                         <div class="cart-card p-4 mb-4">
-                            <h5 class="fw-bold mb-3 text-dark d-flex align-items-center">
-                                <i class="bi bi-ticket-perforated-fill me-2" style="color: var(--cart-primary);"></i> Apply Coupon Code
+                            <h5 class="fw-bold mb-1 text-dark d-flex align-items-center" style="font-size: 15px;">
+                                <i class="bi bi-ticket-perforated-fill me-2" style="color: var(--cart-primary);"></i>
+                                Have a Promo Code or Gift Voucher?
                             </h5>
+                            <p class="text-muted mb-3" style="font-size: 11.5px;">
+                                Enter your discount coupon or gift voucher code below to get instant discount.
+                            </p>
+
                             <div class="input-group coupon-input-group mb-2">
-                                <input type="text" id="coupon-code-input" class="form-control text-uppercase" placeholder="ENTER COUPON CODE" value="{{ session('applied_coupon.code', '') }}">
+                                <input type="text" id="coupon-code-input" class="form-control text-uppercase" placeholder="ENTER COUPON OR VOUCHER CODE" value="{{ $appliedCode ?? '' }}">
                                 <button id="apply-coupon-btn" class="btn btn-apply" type="button">APPLY</button>
                             </div>
 
-                            @if(session()->has('applied_coupon'))
-                                <div class="alert alert-success py-2 px-3 small mb-0 d-flex justify-content-between align-items-center border-0 rounded-3" style="background: var(--cart-success-light); color: var(--cart-success);">
-                                    <span><i class="bi bi-check-circle-fill me-1"></i> Coupon <strong>{{ session('applied_coupon.code') }}</strong> applied!</span>
+                            @if($appliedCode)
+                                <div class="alert alert-success py-2 px-3 small mb-0 d-flex justify-content-between align-items-center border-0 rounded-3 mt-2" style="background: var(--cart-success-light); color: var(--cart-success);">
+                                    <span><i class="bi bi-check-circle-fill me-1"></i> Code <strong>{{ $appliedCode }}</strong> applied successfully!</span>
                                     <button type="button" id="remove-coupon-btn" class="btn btn-sm btn-link text-danger p-0 fw-bold text-decoration-none" style="font-size:12px;">Remove</button>
                                 </div>
                             @endif
 
-                            @php $availableCoupons = $cartData['available_coupons'] ?? []; @endphp
-                            @if(!empty($availableCoupons) && !session()->has('applied_coupon'))
-                                <div class="mt-3 pt-2 border-top">
-                                    <div class="small fw-semibold text-muted mb-2 d-flex align-items-center">
-                                        <i class="bi bi-stars me-1 text-warning"></i> Available Offers & Coupons:
+                            {{-- ── Quick 1-Click Available Offers & Vouchers ── --}}
+                            @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
+                                <div class="mt-3 pt-3 border-top">
+                                    <div class="small fw-semibold text-muted mb-2 d-flex align-items-center" style="font-size: 12px;">
+                                        <i class="bi bi-stars me-1 text-warning"></i> Available Offers & Vouchers (Click to Apply):
                                     </div>
                                     <div class="d-flex flex-column gap-2">
+                                        @foreach($savedVouchers as $v)
+                                            <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $v['code'] }}" style="background: #f3f0fd; border: 1.5px dashed #6b4bcf !important; transition: all 0.2s ease;">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-bold text-uppercase me-2" style="font-size: 13px; color: #4c28a8;">
+                                                        <i class="bi bi-gift-fill me-1"></i>{{ $v['code'] }}
+                                                    </span>
+                                                    <span class="badge text-white px-2 py-1" style="font-size: 10px; background: #6b4bcf;">₹{{ number_format($v['balance'], 2) }} VOUCHER</span>
+                                                </div>
+                                                <div class="text-secondary small" style="font-size: 11px; line-height: 1.3;">Click to apply your Gift Voucher cash discount.</div>
+                                            </button>
+                                        @endforeach
+
                                         @foreach($availableCoupons as $ac)
                                             <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $ac['code'] }}" style="background: #f8fafc; border: 1.5px dashed #cbd5e1 !important; transition: all 0.2s ease;">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
@@ -772,94 +797,6 @@
                                         @endforeach
                                     </div>
                                 </div>
-                            @endif
-                        </div>
-
-                        <!-- Gift Voucher Card -->
-                        @php
-                            $appliedVoucher = $cartData['applied_voucher'] ?? null;
-                            $savedVouchers  = $cartData['available_vouchers'] ?? [];
-                            // Separate: auto-linked (no code) vs manual-code vouchers
-                            $autoVouchers   = array_filter($savedVouchers, fn($v) => empty($v['code']) || ($v['is_auto'] ?? false));
-                            $manualVouchers = array_filter($savedVouchers, fn($v) => !empty($v['code']) && !($v['is_auto'] ?? false));
-                        @endphp
-
-                        <div class="cart-card p-4 mb-4">
-
-                            {{-- ── Applied Voucher Success State ── --}}
-                            @if($appliedVoucher)
-                                <h5 class="fw-bold mb-3 text-dark d-flex align-items-center">
-                                    <i class="bi bi-gift-fill me-2" style="color:#6b4bcf;"></i> Gift Voucher
-                                </h5>
-                                <div class="alert py-2 px-3 small mb-0 d-flex justify-content-between align-items-center border-0 rounded-3"
-                                     style="background:#eee9fd; color:#4c28a8;">
-                                    <span>
-                                        <i class="bi bi-check-circle-fill me-1"></i>
-                                        Voucher <strong>{{ $appliedVoucher['code'] }}</strong> applied
-                                        — <strong>₹{{ number_format($appliedVoucher['amount_applied'], 2) }} off</strong>
-                                        @if(($appliedVoucher['remaining_balance'] ?? 0) > 0)
-                                            <br><span class="text-muted" style="font-size:11px;">₹{{ number_format($appliedVoucher['remaining_balance'], 2) }} balance saved for your next order</span>
-                                        @endif
-                                    </span>
-                                    <button type="button" id="remove-voucher-btn"
-                                            class="btn btn-sm btn-link text-danger p-0 fw-bold text-decoration-none"
-                                            style="font-size:12px;">Remove</button>
-                                </div>
-
-                            @else
-                                {{-- ── Saved / Auto-linked Vouchers (1-click apply) ── --}}
-                                @if(!empty($savedVouchers))
-                                    <div class="mb-3">
-                                        <div class="small fw-semibold mb-2 d-flex align-items-center" style="color:#4c28a8;">
-                                            <i class="bi bi-wallet2 me-1"></i> Your Gift Vouchers
-                                        </div>
-                                        <div class="d-flex flex-column gap-2">
-                                            @foreach($savedVouchers as $v)
-                                                <button type="button"
-                                                        class="btn w-100 text-start apply-quick-voucher"
-                                                        data-code="{{ $v['code'] }}"
-                                                        style="background:#f3f0fd;border:1.5px solid #c8b7f0;border-radius:10px;padding:10px 14px;transition:all .2s;">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="fw-bold" style="font-size:13px;color:#4c28a8;">
-                                                            <i class="bi bi-ticket-fill me-1"></i>{{ $v['code'] }}
-                                                        </span>
-                                                        <span class="fw-bold" style="font-size:13px;color:#6b4bcf;">
-                                                            ₹{{ number_format($v['balance'], 2) }}
-                                                            <span class="badge ms-1" style="background:#6b4bcf;color:#fff;font-size:9px;border-radius:4px;">APPLY</span>
-                                                        </span>
-                                                    </div>
-                                                    @if(!empty($v['expires_at']))
-                                                        <div class="text-muted mt-1" style="font-size:10px;">
-                                                            <i class="bi bi-clock me-1"></i>Expires {{ $v['expires_at'] }}
-                                                        </div>
-                                                    @endif
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    <div class="border-top pt-3 mt-1" style="border-color:#e3dbf7 !important;">
-                                @endif
-
-                                {{-- ── Manual Code Entry (purchased / gifted vouchers) ── --}}
-                                <h5 class="fw-bold mb-1 text-dark d-flex align-items-center" style="font-size:14px;">
-                                    <i class="bi bi-gift-fill me-2" style="color:var(--cart-primary);"></i>
-                                    Have a Voucher Code?
-                                </h5>
-                                <p class="text-muted mb-2" style="font-size:11.5px;">
-                                    Enter a purchased or gifted voucher code below.
-                                </p>
-                                <div class="input-group voucher-input-group mb-0">
-                                    <input type="text" id="voucher-code-input"
-                                           class="form-control text-uppercase"
-                                           placeholder="e.g. GV-8X92KP"
-                                           value="">
-                                    <button id="apply-voucher-btn" class="btn btn-apply" type="button">APPLY</button>
-                                </div>
-
-                                @if(!empty($savedVouchers))
-                                    </div>{{-- close border-top wrapper --}}
-                                @endif
-
                             @endif
                         </div>
 

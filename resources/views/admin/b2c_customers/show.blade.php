@@ -285,6 +285,11 @@
                         <span>Lifetime Earned: <strong>{{ number_format($customer->points_earned ?? 0) }} Pts</strong></span>
                         <span>Redeemed: <strong>{{ number_format($customer->points_used ?? 0) }} Pts</strong></span>
                     </div>
+                    <div style="margin-top: 10px; text-align: center;">
+                        <a href="{{ route('admin.loyaltyrogram.view', base64_encode($customer->id)) }}" class="btn btn-xs w-100" style="background: #d97706; color: #fff; border-radius: 6px; font-weight: 600; font-size: 11.5px; padding: 5px 0;">
+                            <i class="fa fa-receipt me-1"></i> View Points Passbook Statement
+                        </a>
+                    </div>
                 </div>
             </div>
 

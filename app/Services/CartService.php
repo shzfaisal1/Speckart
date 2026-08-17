@@ -762,8 +762,8 @@ class CartService
             }
         }
 
-        // Test Mode: If no DB balance found, grant 500 test points so redemption checkbox can be tested
-        if ($availableLoyaltyPoints <= 0 && !session()->has('no_test_points')) {
+        // Test Mode: Only grant test points fallback in local development environment
+        if ($availableLoyaltyPoints <= 0 && app()->environment('local') && !session()->has('no_test_points')) {
             $availableLoyaltyPoints = 500.0;
         }
 

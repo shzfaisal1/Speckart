@@ -419,6 +419,9 @@
                                     <a href="{{ route('admin.b2c-customers.show', $customer->id) }}" class="btn-action-icon" title="View 360° Profile">
                                         <i class="fa fa-eye"></i>
                                     </a>
+                                    <a href="{{ route('admin.loyaltyrogram.view', base64_encode($customer->id)) }}" class="btn-action-icon" title="View Loyalty Passbook Statement">
+                                        <i class="fa fa-coins" style="color: #d97706;"></i>
+                                    </a>
                                     <a href="{{ route('admin.b2c-orders.index', ['search' => $customer->phone ?: $customer->email]) }}" class="btn-action-icon" title="View Orders">
                                         <i class="fa fa-shopping-cart"></i>
                                     </a>

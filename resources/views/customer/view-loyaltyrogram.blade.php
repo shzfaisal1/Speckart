@@ -20,15 +20,32 @@ input.loading {
      $usr = Auth::guard()->user();
  @endphp
  
-  @php $customer =  DB::table("tbl_customer")->where('customer_id',$customer_id)->first();   @endphp
+@php 
+    $customer = DB::table("tbl_customer")->where('customer_id', $customer_id)->first();
+    if (!$customer) {
+        $userObj = DB::table("users")->where('id', $customer_id)->first();
+        if ($userObj) {
+            $customer = (object) [
+                'customer_id'    => $userObj->id,
+                'cust_unique_id' => $userObj->staff_id ?: ('CUST' . $userObj->id),
+                'cust_name'      => $userObj->name ?: 'Customer',
+                'contact_no'     => $userObj->phone ?: 'N/A',
+                'email_id'       => $userObj->email ?: 'N/A',
+            ];
+        }
+    }
+    $custName     = $customer->cust_name ?? 'Customer';
+    $custUniqueId = $customer->cust_unique_id ?? ('CUST' . $customer_id);
+    $custMobile   = $customer->contact_no ?? 'N/A';
+@endphp
 <section class="domestic-orders mt-0">
     <div class="container-fluid">
         <div class="card">
             <div class="row">
                 <div class="col-lg-12">
                     <div class="domestic-orders-header">
-                        <h3>Loyalty Point Statement - > <span class="badge badge-success">Customer Name : {{$customer->cust_name}}
-                        / Customer ID : {{$customer->cust_unique_id}} / Customer Mobile : {{$customer->contact_no}}</span></h3>
+                        <h3>Loyalty Point Statement - > <span class="badge badge-success">Customer Name : {{ $custName }}
+                        / Customer ID : {{ $custUniqueId }} / Customer Mobile : {{ $custMobile }}</span></h3>
                     </div>
                 </div>
             </div>
