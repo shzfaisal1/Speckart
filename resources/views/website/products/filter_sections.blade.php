@@ -23,21 +23,24 @@
 
 {{-- FRAME TYPE --}}
 @if(in_array('frame_type', $allowedFilters))
+@php
+    $reqFrameTypes = array_filter(array_map('trim', explode(',', request('frame_type', ''))));
+@endphp
 <div class="filter-section">
     <button class="filter-section-btn open" data-target="sec-frametype">
         Frame Type <i class="bi bi-chevron-down chevron"></i>
     </button>
     <div class="filter-section-body open" id="sec-frametype">
         <div class="icon-filter-grid">
-            <div class="icon-filter-item" data-filter="frame_type" data-value="Full Rim">
+            <div class="icon-filter-item {{ in_array('Full Rim', $reqFrameTypes) ? 'active-filter' : '' }}" data-filter="frame_type" data-value="Full Rim">
                 <img src="{{ asset('assets/img/icon/full-rim.png') }}" alt="Full Rim" onerror="this.style.display='none'">
                 Full Rim
             </div>
-            <div class="icon-filter-item" data-filter="frame_type" data-value="Half Rim">
+            <div class="icon-filter-item {{ in_array('Half Rim', $reqFrameTypes) ? 'active-filter' : '' }}" data-filter="frame_type" data-value="Half Rim">
                 <img src="{{ asset('assets/img/icon/half-rim.png') }}" alt="Half Rim" onerror="this.style.display='none'">
                 Half Rim
             </div>
-            <div class="icon-filter-item" data-filter="frame_type" data-value="Rimless">
+            <div class="icon-filter-item {{ in_array('Rimless', $reqFrameTypes) ? 'active-filter' : '' }}" data-filter="frame_type" data-value="Rimless">
                 <img src="{{ asset('assets/img/icon/rimless.png') }}" alt="Rimless" onerror="this.style.display='none'">
                 Rimless
             </div>
@@ -51,6 +54,7 @@
 @php
     $allShapeIcons = ['Round'=>'round.png','Rectangle'=>'rectangle.png','Aviator'=>'aviator.png','Cat Eye'=>'cateye.png','Square'=>'square.png','Wayfarer'=>'wayfarer.png','Oval'=>'oval.png','Hexagonal'=>'hexagonal.png'];
     $shapesToShow = !empty($filterData['shapes']) ? $filterData['shapes'] : array_keys($allShapeIcons);
+    $reqShapes = array_filter(array_map('trim', explode(',', request('shape', ''))));
 @endphp
 <div class="filter-section">
     <button class="filter-section-btn open" data-target="sec-shape">
@@ -59,8 +63,11 @@
     <div class="filter-section-body open" id="sec-shape">
         <div class="icon-filter-grid">
             @foreach($shapesToShow as $shapeVal)
-            @php $icon = $allShapeIcons[$shapeVal] ?? 'round.png'; @endphp
-            <div class="icon-filter-item" data-filter="shape" data-value="{{ $shapeVal }}">
+            @php 
+                $icon = $allShapeIcons[$shapeVal] ?? 'round.png'; 
+                $isShapeActive = in_array(strtolower($shapeVal), array_map('strtolower', $reqShapes));
+            @endphp
+            <div class="icon-filter-item {{ $isShapeActive ? 'active-filter' : '' }}" data-filter="shape" data-value="{{ $shapeVal }}">
                 <img src="{{ asset('assets/img/icon/' . $icon) }}" alt="{{ $shapeVal }}" onerror="this.style.display='none'">
                 {{ $shapeVal }}
             </div>
@@ -72,6 +79,9 @@
 
 {{-- GENDER --}}
 @if(in_array('gender', $allowedFilters))
+@php
+    $reqGenders = array_filter(array_map('trim', explode(',', request('gender', ''))));
+@endphp
 <div class="filter-section">
     <button class="filter-section-btn open" data-target="sec-gender">
         Gender <i class="bi bi-chevron-down chevron"></i>
@@ -79,8 +89,11 @@
     <div class="filter-section-body open" id="sec-gender">
         <div class="gender-grid">
             @foreach($filterData['genders'] as $genderVal)
-            @php $gIcon = ['Men'=>'bi-person','Women'=>'bi-person-dress','Unisex'=>'bi-people','Kids'=>'bi-person-hearts'][$genderVal] ?? 'bi-person'; @endphp
-            <div class="gender-pill" data-filter="gender" data-value="{{ $genderVal }}">
+            @php 
+                $gIcon = ['Men'=>'bi-person','Women'=>'bi-person-dress','Unisex'=>'bi-people','Kids'=>'bi-person-hearts'][$genderVal] ?? 'bi-person'; 
+                $isGenderActive = in_array(strtolower($genderVal), array_map('strtolower', $reqGenders));
+            @endphp
+            <div class="gender-pill {{ $isGenderActive ? 'active-filter' : '' }}" data-filter="gender" data-value="{{ $genderVal }}">
                 <i class="bi {{ $gIcon }}"></i> {{ $genderVal }}
             </div>
             @endforeach
