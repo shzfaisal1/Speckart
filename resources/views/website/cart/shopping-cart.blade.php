@@ -1,6 +1,7 @@
 @extends('website.layout.master')
 @section('content')
 
+
 <!-- Google Fonts Import (Plus Jakarta Sans) & Bootstrap Icons -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -897,42 +898,9 @@
 
                 <!-- Right Column: Coupon, Summary & Gold Banner -->
                 <div class="col-lg-5 col-xl-4">
-                    <div class="sidebar-compact sticky-summary">
-                
-                        <!--{{-- ── Gift Voucher Perk Banner (Compact) ── --}}-->
-                        <!--@if(!empty($cartData['gift_voucher_perk']))-->
-                            @php
-                               $perk         = $cartData['gift_voucher_perk'];
-                             $perkIsManual = ($perk['delivery_type'] ?? 'auto') === 'manual';
-                               $perkIsAuto   = !$perkIsManual;
-                            @endphp
-                        <!--    <div class="cart-card voucher-perk-compact rounded-4 shadow-sm" style="background: linear-gradient(135deg, #f3f0fd, #e9e3fb); border: 1.5px solid #6b4bcf !important;">-->
-                        <!--        <div class="d-flex align-items-center gap-2">-->
-                        <!--            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: #6b4bcf; color: #fff; font-size: 16px;">-->
-                        <!--                <i class="bi bi-gift-fill"></i>-->
-                        <!--            </div>-->
-                        <!--            <div class="flex-grow-1">-->
-                        <!--                <div class="fw-bold" style="font-size: 12.5px; color: #4c28a8;">{{ $perk['name'] }}</div>-->
-                        <!--                <div class="text-muted" style="font-size: 11px; line-height: 1.4;">-->
-                        <!--                    @if($perkIsAuto)-->
-                        <!--                        Earn <strong>₹{{ number_format($perk['voucher_value']) }}</strong> voucher on next order-->
-                        <!--                    @else-->
-                        <!--                        @if(!empty($perk['description']))-->
-                        <!--                            {{ Str::limit($perk['description'], 60) }}-->
-                        <!--                        @else-->
-                        <!--                            Apply <strong>{{ $perk['coupon_code'] }}</strong> for ₹{{ number_format($perk['voucher_value']) }} off-->
-                        <!--                        @endif-->
-                        <!--                    @endif-->
-                        <!--                </div>-->
-                        <!--            </div>-->
-                        <!--            @if($perkIsManual && !empty($perk['coupon_code']))-->
-                        <!--                <button type="button" class="btn btn-sm apply-quick-voucher fw-bold px-2 py-1 flex-shrink-0" data-code="{{ $perk['coupon_code'] }}" style="background:#6b4bcf;color:#fff;font-size:10px;border-radius:6px;">Apply</button>-->
-                        <!--            @endif-->
-                        <!--        </div>-->
-                        <!--    </div>-->
-                        <!--@endif-->
-                
-                        {{-- ── Coupon / Voucher Accordion Row ── --}}
+
+
+                        <!-- Unified Promo Code & Gift Voucher Card -->
                         @php
                             $appliedCoupon    = session('applied_coupon', null);
                             $appliedVoucher   = session('applied_voucher', null);
@@ -1017,16 +985,14 @@
                             $pointVal      = (float)($cartData['point_value'] ?? 1.0);
                             $loyaltyRupees = $useLoyalty ? ($cartData['loyalty_discount'] ?? 0) : ($userBal * $pointVal);
                         @endphp
-                        <div class="loyalty-compact">
-                            <div class="loyalty-top">
-                                <span class="loyalty-pts-label">
-                                    <i class="bi bi-stars" style="color: var(--cart-primary); font-size: 16px;"></i> Loyalty Points
-                                </span>
-                                <span class="loyalty-pts-value">{{ number_format($userBal) }} pts</span>
+                        <div class="cart-card p-4 mb-4" style="background: #ffffff; border: 1px solid var(--cart-border-color); border-radius: 16px;">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 14.5px;">
+                                    <i class="bi bi-stars me-2" style="color: var(--cart-primary); font-size: 18px;"></i> Your Loyalty Points:
+                                </div>
+                                <span class="fw-extrabold fs-5" style="color: var(--cart-primary);">{{ number_format($userBal) }} pts</span>
                             </div>
-                            <!--<div class="loyalty-earn">-->
-                            <!--    <i class="bi bi-gift-fill me-1 text-success"></i> Earn <strong>{{ number_format($orderReward) }} pts</strong> after delivery · by {{ $deliveryDate }}-->
-                            <!--</div>-->
+
                             @if($userBal > 0)
                                 <div class="loyalty-toggle-row">
                                     <input class="form-check-input me-2" type="checkbox" id="toggle-loyalty-checkbox" {{ $useLoyalty ? 'checked' : '' }} style="cursor:pointer; width:16px; height:16px; accent-color: var(--cart-primary);">
