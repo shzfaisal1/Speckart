@@ -348,21 +348,35 @@
                                 </div>
                             </div>
                             @php
-                                $profilePts = 0;
-                                if (session()->has('test_loyalty_points')) {
-                                    $profilePts = (int) session()->get('test_loyalty_points');
-                                } elseif ($user) {
-                                    $custRec = DB::table('tbl_customer')
-                                        ->where('customer_id', $user->id)
-                                        ->orWhere('contact_no', $user->contact_no ?? ($user->mobile ?? ''))
-                                        ->orWhere('email_id', $user->email ?? '')
-                                        ->first();
-                                    if ($custRec && !empty($custRec->Loyalty_Points_Bal)) {
-                                        $profilePts = (int) $custRec->Loyalty_Points_Bal;
+                                $profilePts = $loyaltyPoints ?? 0;
+                                if (!isset($loyaltyPoints) || $profilePts === 0) {
+                                    if (session()->has('test_loyalty_points')) {
+                                        $profilePts = (int) session()->get('test_loyalty_points');
+                                    } elseif ($user) {
+                                        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                                            $custRec = DB::table('tbl_customer')
+                                                ->where(function ($q) use ($user) {
+                                                    if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
+                                                    if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
+                                                    if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                                                    $q->orWhere('customer_id', $user->id);
+                                                    $q->orWhere('added_by', $user->id);
+                                                })
+                                                ->first();
+                                            if ($custRec) {
+                                                if (isset($custRec->Loyalty_Points_Bal) && $custRec->Loyalty_Points_Bal !== null) {
+                                                    $profilePts = (int) $custRec->Loyalty_Points_Bal;
+                                                } elseif (isset($custRec->Loyalty_Points)) {
+                                                    $profilePts = max(0, (int) ($custRec->Loyalty_Points - ($custRec->Loyalty_Points_Redeem ?? 0)));
+                                                }
+                                            }
+                                        }
+                                        if ($profilePts === 0 && \Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
+                                            $earned = (int) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_earned');
+                                            $used   = (int) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_used');
+                                            $profilePts = max(0, $earned - $used);
+                                        }
                                     }
-                                }
-                                if ($profilePts <= 0 && !session()->has('no_test_points')) {
-                                    $profilePts = 500;
                                 }
                             @endphp
                             <h4>{{ $user->name ?: 'Customer' }}</h4>
@@ -372,30 +386,36 @@
                             </span>
 
                             @php
-                                $profileMembership = null;
-                                if ($user) {
-                                    $custMem = DB::table('tbl_customer')
-                                        ->where('customer_id', $user->id)
-                                        ->orWhere('contact_no', $user->contact_no ?? ($user->phone ?? ''))
-                                        ->orWhere('email_id', $user->email ?? '')
-                                        ->first();
-                                    if ($custMem && !empty($custMem->membership_card_id) && !empty($custMem->membership_expiry) && \Carbon\Carbon::parse($custMem->membership_expiry)->isFuture()) {
-                                        $dbCard = DB::table('tbl_membership_card')->where('card_id', $custMem->membership_card_id)->first();
-                                        if ($dbCard) {
-                                            $profileMembership = [
-                                                'name' => $dbCard->card_name,
-                                                'expiry' => \Carbon\Carbon::parse($custMem->membership_expiry)->format('d M Y')
-                                            ];
+                                if (!isset($profileMembership) || empty($profileMembership)) {
+                                    $profileMembership = null;
+                                    if ($user && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                                        $custMem = DB::table('tbl_customer')
+                                            ->where(function ($q) use ($user) {
+                                                if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
+                                                if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
+                                                if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                                                $q->orWhere('customer_id', $user->id);
+                                                $q->orWhere('added_by', $user->id);
+                                            })
+                                            ->first();
+                                        if ($custMem && !empty($custMem->membership_card_id) && !empty($custMem->membership_expiry) && \Carbon\Carbon::parse($custMem->membership_expiry)->isFuture()) {
+                                            $dbCard = DB::table('tbl_membership_card')->where('card_id', $custMem->membership_card_id)->first();
+                                            if ($dbCard) {
+                                                $profileMembership = [
+                                                    'name' => $dbCard->card_name,
+                                                    'expiry' => \Carbon\Carbon::parse($custMem->membership_expiry)->format('d M Y')
+                                                ];
+                                            }
                                         }
                                     }
-                                }
-                                if (!$profileMembership && session()->has('active_membership')) {
-                                    $sessM = session()->get('active_membership');
-                                    if (\Carbon\Carbon::parse($sessM['expiry'])->isFuture()) {
-                                        $profileMembership = [
-                                            'name' => $sessM['card_name'] ?? 'Gold Member',
-                                            'expiry' => \Carbon\Carbon::parse($sessM['expiry'])->format('d M Y')
-                                        ];
+                                    if (!$profileMembership && session()->has('active_membership')) {
+                                        $sessM = session()->get('active_membership');
+                                        if (\Carbon\Carbon::parse($sessM['expiry'])->isFuture()) {
+                                            $profileMembership = [
+                                                'name' => $sessM['card_name'] ?? 'Gold Member',
+                                                'expiry' => \Carbon\Carbon::parse($sessM['expiry'])->format('d M Y')
+                                            ];
+                                        }
                                     }
                                 }
                             @endphp
