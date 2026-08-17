@@ -1093,7 +1093,14 @@
                                 </script>
                             @endif
                 
-
+                            {{-- Cashback reward teaser --}}
+                            @if(isset($cartData['pending_cashback']) && $cartData['pending_cashback'] > 0)
+                                <div class="cashback-banner-compact rounded-2 text-center mt-2" style="background:#ecfdf5; border: 1px dashed #10b981; padding: 8px 10px;">
+                                    <div class="fw-bold text-success d-flex align-items-center justify-content-center" style="font-size: 11px;">
+                                        <i class="bi bi-gift-fill me-1"></i> 🎉 Earn {{ number_format($cartData['pending_cashback'], 0) }} pts · {{ (int)$cartData['cashback_percent'] }}% cashback
+                                    </div>
+                                </div>
+                            @endif
                 
                             {{-- Trust badges --}}
                             <div class="trust-row-compact">

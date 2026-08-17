@@ -209,6 +209,11 @@ class B2cOrderController extends Controller
         // Sync with legacy tbl_sales
         $this->syncToLegacySale($order, $toStatus);
 
+        // Auto-credit earned loyalty points if delivered
+        if (in_array($toStatus, ['delivered', 'completed']) && $fromStatus !== $toStatus) {
+            $this->creditLoyaltyPointsOnDelivery($order);
+        }
+
         // Record in Activity Log
         B2cOrderLog::create([
             'order_id'    => $order->id,
@@ -760,6 +765,96 @@ class B2cOrderController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error syncing status to legacy sales: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Credit earned loyalty points to customer ledger once order is delivered.
+     */
+    protected function creditLoyaltyPointsOnDelivery(B2cOrder $order)
+    {
+        try {
+            $pointsToCredit = (int) ($order->loyalty_points_earned ?? 0);
+            if ($pointsToCredit <= 0) {
+                return;
+            }
+
+            if (!\Illuminate\Support\Facades\Schema::hasTable('tbl_loyaltyrogram_histroy')) {
+                return;
+            }
+
+            // Check if already credited for this order to prevent duplicate points
+            $alreadyCredited = DB::table('tbl_loyaltyrogram_histroy')
+                ->where('description', 'LIKE', '%' . $order->order_number . '%')
+                ->where('add_remove', 1) // 1 = Added / Earned
+                ->exists();
+
+            if ($alreadyCredited) {
+                return;
+            }
+
+            // Find customer record
+            $customer = null;
+            if ($order->user_id && \Illuminate\Support\Facades\Schema::hasTable('users')) {
+                $user = DB::table('users')->where('id', $order->user_id)->first();
+                if ($user && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                    $customer = DB::table('tbl_customer')
+                        ->where(function ($q) use ($user, $order) {
+                            if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
+                            if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                            if (!empty($order->guest_phone)) $q->orWhere('contact_no', $order->guest_phone);
+                            if (!empty($order->guest_email)) $q->orWhere('email_id', $order->guest_email);
+                            $q->orWhere('customer_id', $user->id);
+                        })
+                        ->orderByDesc('customer_id')
+                        ->first();
+                }
+            }
+
+            if (!$customer && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer') && (!empty($order->guest_phone) || !empty($order->guest_email))) {
+                $customer = DB::table('tbl_customer')
+                    ->where(function ($q) use ($order) {
+                        if (!empty($order->guest_phone)) $q->orWhere('contact_no', $order->guest_phone);
+                        if (!empty($order->guest_email)) $q->orWhere('email_id', $order->guest_email);
+                    })
+                    ->orderByDesc('customer_id')
+                    ->first();
+            }
+
+            if ($customer) {
+                $openingBal = (float) ($customer->Loyalty_Points_Bal ?? 0);
+                $closingBal = $openingBal + $pointsToCredit;
+
+                // Log in Loyalty Passbook History
+                DB::table('tbl_loyaltyrogram_histroy')->insert([
+                    'customer_id'    => $customer->customer_id,
+                    'opening_points' => $openingBal,
+                    'redeem'         => $pointsToCredit,
+                    'bal_point'      => $closingBal,
+                    'description'    => 'Earned on Delivery of Order ' . $order->order_number,
+                    'add_remove'     => 1, // 1 = Added/Earned
+                    'store_id'       => $order->store_id ?? 1,
+                    'added_by'       => Auth::id() ?? 1,
+                    'created_at'     => Carbon::now(),
+                    'updated_at'     => Carbon::now(),
+                ]);
+
+                // Update Customer Balance in tbl_customer
+                DB::table('tbl_customer')
+                    ->where('customer_id', $customer->customer_id)
+                    ->update([
+                        'Loyalty_Points'     => ($customer->Loyalty_Points ?? 0) + $pointsToCredit,
+                        'Loyalty_Points_Bal' => $closingBal,
+                        'updated_at'         => Carbon::now(),
+                    ]);
+
+                // Also update users table if loyalty_points column exists
+                if ($order->user_id && \Illuminate\Support\Facades\Schema::hasTable('users') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'loyalty_points')) {
+                    DB::table('users')->where('id', $order->user_id)->increment('loyalty_points', $pointsToCredit);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error crediting loyalty points on delivery: ' . $e->getMessage());
         }
     }
 }
