@@ -60,11 +60,32 @@ class CartController extends Controller
         $result = $this->cartService->addToCart($frameId, $lensPackageId, $quantity, $prescriptionData);
 
         if ($result['status']) {
+            // Automatically remove item from wishlist if user is authenticated
+            if (Auth::check()) {
+                \App\Models\Wishlist::where('user_id', Auth::id())
+                    ->where(function($q) use ($frameId) {
+                        $q->where('product_id', $frameId);
+                        $product = \App\Models\product\Product::where('product_id', $frameId)
+                            ->orWhere('id', $frameId)
+                            ->first();
+                        if ($product) {
+                            $q->orWhere('product_id', $product->product_id)
+                              ->orWhere('product_id', $product->id);
+                        }
+                    })
+                    ->delete();
+            }
+
+            $wishlistCount = Auth::check() 
+                ? \App\Models\Wishlist::where('user_id', Auth::id())->count() 
+                : 0;
+
             return response()->json([
-                'status'     => 'success',
-                'message'    => $result['message'],
-                'cart_count' => $result['cart_count'],
-                'redirect'   => route('cart')
+                'status'         => 'success',
+                'message'        => $result['message'],
+                'cart_count'     => $result['cart_count'],
+                'wishlist_count' => $wishlistCount,
+                'redirect'       => route('cart')
             ]);
         }
 
