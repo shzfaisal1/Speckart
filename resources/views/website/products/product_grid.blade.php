@@ -7,12 +7,11 @@
                         <i
                             class="bi {{ in_array($product->product_id ?: $product->id, $wishlistProductIds ?? []) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
                     </div>
-                    <a href="{{ $product->detail_url }}" class="text-decoration-none">
+                    <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
                         <div class="product-image">
                             <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }}" class="img-default">
-                            <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }} Hover" class="img-hover">
                         </div>
-                        <div class="product-info py-0">
+                        <div class="product-info">
                         <h6 class="brand-name">{{ $product->Company ?: 'Speckart' }}</h6>
                         <p class="product-title">{{ $product->product_name ?: $product->product_code }}</p>
 

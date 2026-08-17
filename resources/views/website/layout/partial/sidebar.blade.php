@@ -110,56 +110,6 @@
             text-decoration: none;
         }
         /* ===== End Loyalty Points Styles ===== */
-
-        /* ===== Category Navigation Bar Separated Options ===== */
-        /* .header nav {
-            background: #ffffff !important;
-            border-bottom: 1px solid #e5e7eb !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03) !important;
-        }
-        .header nav .wrapper {
-            height: auto !important;
-            line-height: normal !important;
-            padding: 8px 0 !important;
-        }
-        .header .nav-links {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 10px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            flex-wrap: wrap !important;
-        }
-        .header .nav-links > li {
-            list-style: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        .header .nav-links > li > a.desktop-item,
-        .header .nav-links > li > a {
-            display: inline-flex !important;
-            align-items: center !important;
-            padding: 6px 16px !important;
-            font-size: 12.5px !important;
-            font-weight: 600 !important;
-            color: #07484a !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.4px !important;
-            text-decoration: none !important;
-            border-radius: 20px !important;
-            background: #f1f5f9 !important;
-            border: 1px solid #cbd5e1 !important;
-            transition: all 0.2s ease-in-out !important;
-            white-space: nowrap !important;
-        }
-        .header .nav-links > li > a.desktop-item:hover,
-        .header .nav-links > li > a:hover {
-            background: #07484a !important;
-            color: #ffffff !important;
-            border-color: #07484a !important;
-            box-shadow: 0 2px 8px rgba(7, 72, 74, 0.25) !important;
-        } */
     </style>
     <!-- navbar -->
     @include('website.layout.partial.login-modal')

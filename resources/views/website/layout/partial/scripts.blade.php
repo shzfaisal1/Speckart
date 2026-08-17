@@ -453,6 +453,9 @@
 
     // ── AJAX Toggle Call ──────────────────────────────
     function doWishlistToggle(productId, buttonEl) {
+        if (buttonEl && $(buttonEl).data('busy')) return;
+        if (buttonEl) $(buttonEl).data('busy', true);
+
         $.ajax({
             url: '{{ route("wishlist.toggle") }}',
             method: 'POST',
@@ -461,17 +464,20 @@
                 product_id: productId,
             },
             success: function (response) {
-                if (response.status === 'added') {
+                if (buttonEl) $(buttonEl).data('busy', false);
+
+                var isAdded = (response.status === 'added' || (response.status === 'success' && response.action === 'added'));
+                var isRemoved = (response.status === 'removed' || (response.status === 'success' && response.action === 'removed'));
+
+                if (isAdded) {
                     if (buttonEl) {
-                        $(buttonEl).addClass('wishlist-active').find('i').removeClass('bi-heart').addClass('bi-heart-fill');
-                        $(buttonEl).css('color', '#e74c3c');
+                        $(buttonEl).addClass('wishlist-active').find('i').removeClass('bi-heart').addClass('bi-heart-fill text-danger');
                     }
                     updateWishlistBadge(response.count);
                     if (typeof toastr !== 'undefined') toastr.success(response.message || 'Added to wishlist!');
-                } else if (response.status === 'removed') {
+                } else if (isRemoved) {
                     if (buttonEl) {
-                        $(buttonEl).removeClass('wishlist-active').find('i').removeClass('bi-heart-fill').addClass('bi-heart');
-                        $(buttonEl).css('color', '');
+                        $(buttonEl).removeClass('wishlist-active').find('i').removeClass('bi-heart-fill text-danger').addClass('bi-heart');
                     }
                     updateWishlistBadge(response.count);
                     if (typeof toastr !== 'undefined') toastr.warning(response.message || 'Removed from wishlist.');
@@ -485,6 +491,7 @@
                 }
             },
             error: function (xhr) {
+                if (buttonEl) $(buttonEl).data('busy', false);
                 if (xhr.status === 401) {
                     sessionStorage.setItem('speckart_pending_wishlist', productId);
                     var modalEl = document.getElementById('speckartLoginModal');
