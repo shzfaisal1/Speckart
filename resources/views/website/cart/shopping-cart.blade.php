@@ -1,6 +1,7 @@
 @extends('website.layout.master')
 @section('content')
 
+
 <!-- Google Fonts Import (Plus Jakarta Sans) & Bootstrap Icons -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
