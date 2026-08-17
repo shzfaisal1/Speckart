@@ -127,7 +127,95 @@
 @if(in_array('color', $allowedFilters))
 @php
     $colorsList = !empty($filterData['colors']) ? $filterData['colors'] : ['Black','Brown','Blue','Gold','Silver','Grey'];
-    $colorHexMap = ['Black'=>'#1a1a1a','Brown'=>'#8B4513','Blue'=>'#2563EB','Gold'=>'#F59E0B','Silver'=>'#9CA3AF','Red'=>'#EF4444','Green'=>'#16A34A','Yellow'=>'#EAB308','Pink'=>'#EC4899','Grey'=>'#6B7280','White'=>'#FFFFFF','Purple'=>'#7C3AED','Orange'=>'#F97316'];
+    
+    $colorPaletteMap = [
+        'Black'       => '#000000',
+        'Charcoal'    => '#2D3748',
+        'Grey'        => '#718096',
+        'Silver'      => '#CBD5E1',
+        'White'       => '#FFFFFF',
+        'Maroon'      => '#7F1D1D',
+        'Red'         => '#DC2626',
+        'Rose'        => '#D06F6C',
+        'Pink'        => '#EC4899',
+        'Purple'      => '#7C3AED',
+        'Navy Blue'   => '#1E3A8A',
+        'Blue'        => '#2563EB',
+        'Cyan'        => '#06B6D4',
+        'Teal'        => '#0D9488',
+        'Turquoise'   => '#21E3C6',
+        'Green'       => '#16A34A',
+        'Olive'       => '#84CC16',
+        'Lime'        => '#C3D369',
+        'Gold'        => '#F59E0B',
+        'Yellow'      => '#EAB308',
+        'Orange'      => '#EA580C',
+        'Brown'       => '#78350F',
+        'Tortoise'    => '#D97706',
+    ];
+
+    $hexToRgb = function($hex) {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) == 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        }
+        return [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2))
+        ];
+    };
+
+    $getClosestColorName = function($hex) use ($colorPaletteMap, $hexToRgb) {
+        $hex = trim($hex);
+        if (!preg_match('/^#?[0-9a-fA-F]{3,6}$/', $hex)) {
+            return ucfirst($hex);
+        }
+        $rgb = $hexToRgb($hex);
+        $minDist = PHP_FLOAT_MAX;
+        $bestName = 'Custom';
+        foreach ($colorPaletteMap as $name => $paletteHex) {
+            $paletteRgb = $hexToRgb($paletteHex);
+            $dist = sqrt(
+                0.30 * pow($rgb[0] - $paletteRgb[0], 2) +
+                0.59 * pow($rgb[1] - $paletteRgb[1], 2) +
+                0.11 * pow($rgb[2] - $paletteRgb[2], 2)
+            );
+            if ($dist < $minDist) {
+                $minDist = $dist;
+                $bestName = $name;
+            }
+        }
+        return $bestName;
+    };
+
+    $resolveFriendlyColor = function($rawColor) use ($getClosestColorName) {
+        $rawColor = trim($rawColor);
+        if (empty($rawColor)) return 'Standard';
+        if (strpos($rawColor, '/') !== false) {
+            $parts = array_map('trim', explode('/', $rawColor));
+            $name1 = $getClosestColorName($parts[0]);
+            $name2 = isset($parts[1]) ? $getClosestColorName($parts[1]) : '';
+            return ($name1 === $name2) ? $name1 : ($name1 . ' & ' . $name2);
+        }
+        return $getClosestColorName($rawColor);
+    };
+
+    $resolveSwatchBackground = function($rawColor) use ($colorPaletteMap) {
+        $rawColor = trim($rawColor);
+        if (strpos($rawColor, '/') !== false) {
+            $parts = array_map('trim', explode('/', $rawColor));
+            $c1 = $parts[0] ?? '#333';
+            $c2 = $parts[1] ?? '#888';
+            if (!str_starts_with($c1, '#')) $c1 = $colorPaletteMap[ucfirst($c1)] ?? '#333';
+            if (!str_starts_with($c2, '#')) $c2 = $colorPaletteMap[ucfirst($c2)] ?? '#888';
+            return "linear-gradient(135deg, {$c1} 50%, {$c2} 50%)";
+        }
+        if (str_starts_with($rawColor, '#')) {
+            return $rawColor;
+        }
+        return $colorPaletteMap[ucfirst($rawColor)] ?? '#CBD5E1';
+    };
 @endphp
 <div class="filter-section">
     <button class="filter-section-btn" data-target="sec-color">
@@ -135,11 +223,14 @@
     </button>
     <div class="filter-section-body" id="sec-color">
         @foreach($colorsList as $idx => $colorVal)
-        @php $hex = $colorHexMap[$colorVal] ?? '#CCCCCC'; @endphp
+        @php 
+            $friendlyLabel = $resolveFriendlyColor($colorVal);
+            $swatchStyle   = $resolveSwatchBackground($colorVal);
+        @endphp
         <label class="filter-checkbox-item">
             <input type="checkbox" class="filter-checkbox" data-filter="color" data-value="{{ $colorVal }}">
-            <span class="color-dot" style="background:{{ $hex }};"></span>
-            {{ $colorVal }}
+            <span class="color-dot" style="background: {{ $swatchStyle }}; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #cbd5e1; display: inline-block; flex-shrink: 0; box-shadow: inset 0 0 2px rgba(0,0,0,0.2);"></span>
+            <span class="color-text">{{ $friendlyLabel }}</span>
         </label>
         @endforeach
     </div>
