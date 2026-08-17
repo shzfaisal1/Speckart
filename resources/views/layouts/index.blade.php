@@ -478,7 +478,8 @@
         </a>
     </div>
 
-    <!-- 2. Order Lifecycle Funnel / Pipeline Flow -->
+    {{-- 2. Order Lifecycle Funnel / Pipeline Flow (Temporarily Hidden for simplified non-technical view) --}}
+    {{--
     <div class="pipeline-card">
         <div class="pipeline-title">
             <i class="fa fa-sliders" style="color: #07484A;"></i> Live Order Pipeline & Fulfilment Workflow
@@ -488,17 +489,6 @@
                 <div class="p-count">{{ $pipeline['pending'] ?? 0 }}</div>
                 <div class="p-label">1. Placed</div>
             </a>
-            {{-- Rx Review & Optical Lab Pipeline Steps (Temporarily Hidden) --}}
-            {{--
-            <a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="pipeline-step">
-                <div class="p-count" style="color: {{ ($pipeline['rx_review'] ?? 0) > 0 ? '#d97706' : '#0f172a' }};">{{ $pipeline['rx_review'] ?? 0 }}</div>
-                <div class="p-label">2. Rx Review</div>
-            </a>
-            <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="pipeline-step">
-                <div class="p-count">{{ $pipeline['in_lab'] ?? 0 }}</div>
-                <div class="p-label">3. Optical Lab</div>
-            </a>
-            --}}
             <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'ready_to_ship']) }}" class="pipeline-step">
                 <div class="p-count" style="color: {{ ($pipeline['ready_to_ship'] ?? 0) > 0 ? '#059669' : '#0f172a' }};">{{ $pipeline['ready_to_ship'] ?? 0 }}</div>
                 <div class="p-label">2. Ready to Ship</div>
@@ -513,6 +503,7 @@
             </a>
         </div>
     </div>
+    --}}
 
     <!-- 3. Live Orders Command Center -->
     <div class="command-card">
