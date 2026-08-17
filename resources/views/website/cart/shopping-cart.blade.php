@@ -1,743 +1,1436 @@
 @extends('website.layout.master')
 @section('content')
 
+{{-- ═══════════════════════════════════════════════════
+     SPECKART — Premium Shopping Cart UI
+     Lenskart-Inspired · Compact · Responsive
+═══════════════════════════════════════════════════ --}}
 
-<!-- Google Fonts Import (Plus Jakarta Sans) & Bootstrap Icons -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<!-- Custom Production CSS for Cart UI -->
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-    :root {
-        --cart-primary: #00b9b9;
-        --cart-primary-dark: #008b8b;
-        --cart-primary-light: #e6f8f8;
-        --cart-success: #10b981;
-        --cart-success-light: #ecfdf5;
-        --cart-warning: #d97706;
-        --cart-warning-light: #fffbeb;
-        --cart-text-main: #0f172a;
-        --cart-text-muted: #64748b;
-        --cart-border-color: #e2e8f0;
-        --cart-card-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-        --cart-card-shadow-hover: 0 20px 35px -5px rgba(0, 185, 185, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
-    }
-
-    /* Force modern Plus Jakarta Sans typography across entire cart view */
-    .cart-breadcrumbs,
-    .shopping-cart-page,
-    .shopping-cart-page *,
-    .cart-breadcrumbs * {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-    }
-
-    body {
-        background-color: #f8fafc;
-        color: var(--cart-text-main);
-    }
-
-    /* Breadcrumbs */
-    .cart-breadcrumbs {
-        background: #ffffff;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .cart-breadcrumbs a {
-        color: var(--cart-text-muted);
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 14px;
-        transition: color 0.2s ease;
-    }
-    .cart-breadcrumbs a:hover {
-        color: var(--cart-primary);
-    }
-    .cart-breadcrumbs .breadcrumb-item.active {
-        color: var(--cart-text-main);
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    /* Modern Card Architecture */
-    .cart-card {
-        background: #ffffff;
-        border: 1px solid var(--cart-border-color);
-        border-radius: 16px;
-        box-shadow: var(--cart-card-shadow);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    /* Cart Item Row */
-    .cart-item-card {
-        background: #ffffff;
-        border: 1px solid var(--cart-border-color);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 16px;
-        position: relative;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .cart-item-card:hover {
-        box-shadow: var(--cart-card-shadow-hover);
-        border-color: #cbd5e1;
-    }
-
-    /* FREE Ribbon Badge */
-    .free-ribbon-badge {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 85px;
-        height: 85px;
-        overflow: hidden;
-        z-index: 2;
-        pointer-events: none;
-    }
-    .free-ribbon-badge span {
-        transform: rotate(-45deg);
-        position: absolute;
-        top: 16px;
-        left: -26px;
-        width: 115px;
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: #ffffff;
-        text-align: center;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 1px;
-        padding: 4px 0;
-        box-shadow: 0 3px 6px rgba(16, 185, 129, 0.3);
-    }
-
-    /* Product Image Container */
-    .cart-img-wrapper {
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 110px;
-        border: 1px solid #f1f5f9;
-        transition: background-color 0.2s ease;
-    }
-    .cart-img-wrapper img {
-        max-height: 85px;
-        width: auto;
-        object-fit: contain;
-        transition: transform 0.3s ease;
-    }
-    .cart-item-card:hover .cart-img-wrapper img {
-        transform: scale(1.04);
-    }
-
-    /* Brand Tag & Title */
-    .brand-badge {
-        background: #f1f5f9;
-        color: #475569;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        display: inline-block;
-    }
-    .item-title {
-        color: var(--cart-text-main);
-        font-size: 16px;
-        font-weight: 700;
-        line-height: 1.3;
-        letter-spacing: -0.2px;
-    }
-
-    /* Lens Details Card */
-    .lens-package-box {
-        background: linear-gradient(135deg, #f0fdfa 0%, #e6f8f8 100%);
-        border: 1px dashed var(--cart-primary);
-        border-radius: 12px;
-        padding: 10px 14px;
-        margin-top: 10px;
-    }
-
-    /* Prescription Power Box */
-    .rx-box {
-        background: #ffffff;
-        border: 1px solid #e0f2f1;
-        border-radius: 12px;
-        margin-top: 12px;
-        overflow: hidden;
-    }
-    .rx-box-header {
-        background: #f4fbfb;
-        padding: 10px 14px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .rx-table {
-        margin: 0;
-        font-size: 12px;
-        width: 100%;
-    }
-    .rx-table th {
-        background: #e6f8f8;
-        color: var(--cart-text-main);
-        font-weight: 700;
-        text-align: center;
-        padding: 6px 8px;
-        border: none;
-    }
-    .rx-table td {
-        padding: 6px 8px;
-        text-align: center;
-        border-top: 1px solid #f1f5f9;
-    }
-
-    /* Quantity Stepper Control */
-    .qty-stepper {
-        display: inline-flex;
-        align-items: center;
-        background: #f1f5f9;
-        border-radius: 30px;
-        padding: 3px 6px;
-        border: 1px solid #e2e8f0;
-    }
-    .qty-stepper button {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: none;
-        background: #ffffff;
-        color: var(--cart-text-main);
-        font-weight: 700;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    .qty-stepper button:hover {
-        background: var(--cart-primary);
-        color: #ffffff;
-    }
-    .qty-stepper .item-qty {
-        font-weight: 700;
-        font-size: 14px;
-        min-width: 28px;
-        text-align: center;
-        color: var(--cart-text-main);
-    }
-
-    /* Delete Button */
-    .btn-remove-item {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 1px solid #fee2e2;
-        background: #fff5f5;
-        color: #ef4444;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    .btn-remove-item:hover {
-        background: #ef4444;
-        color: #ffffff;
-        border-color: #ef4444;
-        transform: scale(1.05);
-    }
-
-    /* Sticky Summary Column */
-    .sticky-summary {
-        position: sticky;
-        top: 24px;
-    }
-
-    /* Primary CTA Button */
-    .btn-cart-primary {
-        background: linear-gradient(135deg, var(--cart-primary) 0%, var(--cart-primary-dark) 100%);
-        color: #ffffff;
-        font-weight: 700;
-        border: none;
-        border-radius: 12px;
-        padding: 14px 24px;
-        box-shadow: 0 8px 20px -4px rgba(0, 185, 185, 0.4);
-        transition: all 0.25s ease;
-    }
-    .btn-cart-primary:hover {
-        background: linear-gradient(135deg, #02c7c7 0%, #007777 100%);
-        color: #ffffff;
-        box-shadow: 0 12px 25px -4px rgba(0, 185, 185, 0.5);
-        transform: translateY(-2px);
-    }
-
-    /* Coupon Input */
-    .coupon-input-group .form-control {
-        border-radius: 10px 0 0 10px;
-        border: 1px solid var(--cart-border-color);
-        padding: 12px 16px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .coupon-input-group .form-control:focus {
-        border-color: var(--cart-primary);
-        box-shadow: 0 0 0 3px rgba(0, 185, 185, 0.15);
-    }
-    .coupon-input-group .btn-apply {
-        border-radius: 0 10px 10px 0;
-        background: var(--cart-primary);
-        color: #ffffff;
-        font-weight: 700;
-        padding: 12px 20px;
-        border: none;
-        transition: background 0.2s ease;
-    }
-    .coupon-input-group .btn-apply:hover {
-        background: var(--cart-primary-dark);
-    }
-
-    /* Gift Voucher Card */
-    .voucher-input-group .form-control {
-        border-radius: 10px 0 0 10px;
-        border: 1px solid var(--cart-border-color);
-        padding: 12px 16px;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-    .voucher-input-group .form-control:focus {
-        border-color: var(--cart-primary);
-        box-shadow: 0 0 0 3px rgba(0, 185, 185, 0.15);
-    }
-    .voucher-input-group .btn-apply {
-        border-radius: 0 10px 10px 0;
-        background: var(--cart-primary);
-        color: #ffffff;
-        font-weight: 700;
-        padding: 12px 20px;
-        border: none;
-        transition: background 0.2s ease;
-    }
-    .voucher-input-group .btn-apply:hover {
-        background: var(--cart-primary-dark);
-    }
-    .saved-voucher-chip {
-        background: #f8fafc;
-        border: 1.5px dashed #cbd5e1;
-        border-radius: 10px;
-        padding: 10px 12px;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    .saved-voucher-chip:hover {
-        border-color: var(--cart-primary);
-        background: var(--cart-primary-light);
-    }
-
-    /* Gold Membership Banner */
-    .gold-banner-state1 {
-        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #ffffff 100%);
-        border: 1.5px solid #f59e0b !important;
-        border-radius: 16px;
-        position: relative;
-        overflow: hidden;
-    }
-    .gold-banner-state1::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 150px;
-        height: 150px;
-        background: rgba(245, 158, 11, 0.08);
-        border-radius: 50%;
-        pointer-events: none;
-    }
-    
-    
-    /*===============*/
-    
-    
-    /* ── Compact Right Sidebar Overrides ── */
-
-/* Tighter card spacing for sidebar */
-.sidebar-compact .cart-card,
-.sidebar-compact .gold-banner-state1 {
-    padding: 16px !important;
-    margin-bottom: 12px !important;
-    border-radius: 14px;
+/* ══════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════ */
+:root {
+    --sc-primary: #329a9a;
+    --sc-primary-dark: #277878;
+    --sc-primary-soft: #eef8f8;
+    --sc-green: #16a34a;
+    --sc-green-soft: #f0fdf4;
+    --sc-amber: #d97706;
+    --sc-amber-soft: #fffbeb;
+    --sc-red: #dc2626;
+    --sc-red-soft: #fef2f2;
+    --sc-blue: #2563eb;
+    --sc-blue-soft: #eff6ff;
+    --sc-purple: #7c3aed;
+    --sc-purple-soft: #f5f3ff;
+    --sc-text: #111827;
+    --sc-text-secondary: #6b7280;
+    --sc-text-muted: #9ca3af;
+    --sc-border: #e5e7eb;
+    --sc-bg: #f3f4f6;
+    --sc-card: #ffffff;
+    --sc-radius: 12px;
+    --sc-radius-sm: 8px;
+    --sc-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --sc-shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --sc-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Collapsible Accordion Row (Coupon / Voucher) */
-.accordion-row {
+.sc-page, .sc-page *,
+.sc-progress-bar, .sc-progress-bar * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    box-sizing: border-box;
+}
+
+.sc-page {
+    background: var(--sc-bg);
+    min-height: 60vh;
+    padding-bottom: 32px;
+}
+
+/* ══════════════════════════════════════
+   BREADCRUMBS
+══════════════════════════════════════ */
+.sc-breadcrumb-wrap {
     background: #ffffff;
-    border: 1px solid var(--cart-border-color);
-    border-radius: 14px;
+    border-bottom: 1px solid var(--sc-border);
+    padding: 12px 0;
+}
+.sc-breadcrumb {
+    margin-bottom: 0;
+    font-size: 13px;
+    font-weight: 500;
+}
+.sc-breadcrumb a {
+    color: var(--sc-text-secondary);
+    text-decoration: none;
+    transition: var(--sc-transition);
+}
+.sc-breadcrumb a:hover {
+    color: var(--sc-primary);
+}
+.sc-breadcrumb .breadcrumb-item.active {
+    color: var(--sc-text);
+    font-weight: 600;
+}
+
+/* ══════════════════════════════════════
+   HEADER STRIP
+══════════════════════════════════════ */
+.sc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.sc-header-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--sc-text);
+    letter-spacing: -0.4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sc-header-count {
+    background: var(--sc-bg);
+    color: var(--sc-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--sc-border);
+}
+.sc-bogo-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.3px;
+}
+.sc-bogo-warning {
+    background: var(--sc-amber-soft);
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: var(--sc-radius-sm);
     margin-bottom: 12px;
-    box-shadow: var(--cart-card-shadow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ══════════════════════════════════════
+   CART ITEM ROW
+══════════════════════════════════════ */
+.sc-item {
+    background: var(--sc-card);
+    border: 1px solid var(--sc-border);
+    border-radius: var(--sc-radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: var(--sc-transition);
+}
+.sc-item:hover {
+    border-color: #d1d5db;
+    box-shadow: var(--sc-shadow);
+}
+.sc-item:last-child {
+    margin-bottom: 0;
+}
+.sc-item-inner {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+/* Free ribbon */
+.sc-free-ribbon {
+    position: absolute;
+    top: 0; left: 0;
+    width: 72px; height: 72px;
+    overflow: hidden;
+    z-index: 2;
+    pointer-events: none;
+}
+.sc-free-ribbon span {
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 13px; left: -20px;
+    width: 100px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #fff;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    padding: 3px 0;
+    box-shadow: 0 2px 6px rgba(22,163,74,0.35);
+}
+
+/* Image */
+.sc-item-img {
+    width: 90px;
+    height: 80px;
+    border-radius: var(--sc-radius-sm);
+    background: #f9fafb;
+    border: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    transition: var(--sc-transition);
+}
+.sc-item-img img {
+    max-width: 78px;
+    max-height: 65px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+.sc-item:hover .sc-item-img img {
+    transform: scale(1.06);
+}
+.sc-item-img.membership-img {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border-color: #fde68a;
+}
+
+/* Details */
+.sc-item-details {
+    flex: 1;
+    min-width: 0;
+}
+.sc-brand {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--sc-text-secondary);
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+.sc-item-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sc-text);
+    line-height: 1.3;
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
+}
+.sc-size-tag {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--sc-text-secondary);
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+}
+
+/* Lens pill */
+.sc-lens-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--sc-primary-soft);
+    border: 1px solid #d5eded;
+    border-radius: var(--sc-radius-sm);
+    padding: 6px 10px;
+    margin-top: 6px;
+    font-size: 12px;
+    gap: 8px;
+}
+.sc-lens-pill .sc-lens-name {
+    font-weight: 600;
+    color: var(--sc-text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+.sc-lens-pill .sc-lens-name i {
+    color: var(--sc-primary);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.sc-lens-pill .sc-lens-price {
+    font-weight: 700;
+    color: var(--sc-green);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.sc-lens-detail {
+    font-size: 11px;
+    color: var(--sc-text-muted);
+    margin-top: 2px;
+    padding-left: 10px;
+    line-height: 1.3;
+}
+
+/* Rx box */
+.sc-rx-box {
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: var(--sc-radius-sm);
+    margin-top: 8px;
     overflow: hidden;
 }
-.accordion-row-header {
+.sc-rx-header {
+    padding: 7px 10px;
+    cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-    user-select: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sc-text);
+    transition: background 0.15s;
 }
-.accordion-row-header:hover {
-    background: #f8fafc;
+.sc-rx-header:hover {
+    background: #f3f4f6;
 }
-.accordion-row-header .acc-title {
-    font-size: 13.5px;
+.sc-rx-header i {
+    color: var(--sc-primary);
+    font-size: 14px;
+}
+.sc-rx-header .sc-rx-toggle {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sc-primary);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.sc-rx-table {
+    width: 100%;
+    font-size: 11px;
+    margin: 0;
+    border-collapse: collapse;
+}
+.sc-rx-table th {
+    background: var(--sc-primary-soft);
+    color: var(--sc-text);
     font-weight: 700;
-    color: var(--cart-text-main);
+    text-align: center;
+    padding: 5px 6px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.sc-rx-table td {
+    padding: 5px 6px;
+    text-align: center;
+    border-top: 1px solid #f3f4f6;
+    font-weight: 500;
+    color: var(--sc-text-secondary);
+}
+.sc-rx-table td:first-child {
+    font-weight: 600;
+    color: var(--sc-text);
+}
+.sc-rx-upload {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+.sc-rx-upload i {
+    font-size: 18px;
+    color: var(--sc-blue);
+}
+
+/* Promo tags */
+.sc-promo-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-top: 6px;
+}
+.sc-promo-tag.green {
+    background: var(--sc-green-soft);
+    color: var(--sc-green);
+    border: 1px solid #bbf7d0;
+}
+.sc-promo-tag.blue {
+    background: var(--sc-blue-soft);
+    color: var(--sc-blue);
+    border: 1px solid #bfdbfe;
+}
+.sc-promo-tag.amber {
+    background: var(--sc-amber-soft);
+    color: var(--sc-amber);
+    border: 1px solid #fde68a;
+}
+
+/* Price + Actions */
+.sc-item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    min-width: 100px;
+    flex-shrink: 0;
+    gap: 10px;
+}
+.sc-price-block {
+    text-align: right;
+}
+.sc-price-old {
+    font-size: 12px;
+    color: var(--sc-text-muted);
+    text-decoration: line-through;
+    font-weight: 500;
+}
+.sc-price-now {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--sc-text);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+}
+.sc-price-now.green { color: var(--sc-green); }
+.sc-price-now.blue { color: var(--sc-blue); }
+
+/* Qty stepper */
+.sc-qty {
+    display: inline-flex;
+    align-items: center;
+    background: #f3f4f6;
+    border: 1px solid var(--sc-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.sc-qty button {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: var(--sc-text);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--sc-transition);
+}
+.sc-qty button:hover {
+    background: var(--sc-primary);
+    color: #fff;
+}
+.sc-qty .sc-qty-val {
+    font-weight: 700;
+    font-size: 13px;
+    min-width: 26px;
+    text-align: center;
+    color: var(--sc-text);
+}
+
+/* Action buttons */
+.sc-actions {
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.accordion-row-header .acc-subtitle {
-    font-size: 11px;
-    color: var(--cart-text-muted);
-    margin-top: 2px;
+.sc-btn-remove {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    background: var(--sc-red-soft);
+    color: var(--sc-red);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--sc-transition);
+    font-size: 13px;
 }
-.accordion-row-header .acc-arrow {
-    width: 32px;
-    height: 32px;
+.sc-btn-remove:hover {
+    background: var(--sc-red);
+    color: #fff;
+    border-color: var(--sc-red);
+    transform: scale(1.05);
+}
+.sc-membership-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sc-green);
+    background: var(--sc-green-soft);
+    border: 1px solid #bbf7d0;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.sc-free-qty-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sc-green);
+    background: var(--sc-green-soft);
+    border: 1px solid #bbf7d0;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Membership item extras */
+.sc-membership-desc {
+    font-size: 12px;
+    color: var(--sc-text-secondary);
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+.sc-membership-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+}
+.sc-membership-actions a,
+.sc-membership-actions button {
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.sc-membership-actions .sc-remove-link { color: var(--sc-red); }
+.sc-membership-actions .sc-view-link { color: var(--sc-primary); }
+.sc-membership-actions .sc-divider {
+    color: #d1d5db;
+    font-size: 10px;
+}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+.sc-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+/* Voucher perk */
+.sc-voucher-perk {
+    background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+    border: 1.5px solid var(--sc-purple);
+    border-radius: var(--sc-radius);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sc-voucher-perk-icon {
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    border: 1px solid var(--cart-border-color);
+    background: var(--sc-purple);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    color: var(--cart-text-muted);
-    transition: all 0.2s ease;
+    font-size: 15px;
     flex-shrink: 0;
 }
-.accordion-row-header:hover .acc-arrow {
-    border-color: var(--cart-primary);
-    color: var(--cart-primary);
+.sc-voucher-perk-info {
+    flex: 1;
+    min-width: 0;
 }
-.accordion-row-body {
+.sc-voucher-perk-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #5b21b6;
+}
+.sc-voucher-perk-desc {
+    font-size: 11px;
+    color: var(--sc-text-secondary);
+    line-height: 1.35;
+}
+.sc-voucher-perk .sc-btn-apply-quick {
+    background: var(--sc-purple);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: var(--sc-transition);
+}
+.sc-voucher-perk .sc-btn-apply-quick:hover {
+    background: #6d28d9;
+}
+
+/* Sidebar card */
+.sc-sidebar-card {
+    background: var(--sc-card);
+    border: 1px solid var(--sc-border);
+    border-radius: var(--sc-radius);
+    box-shadow: var(--sc-shadow);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.sc-sidebar-section {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+.sc-sidebar-section:last-child {
+    border-bottom: none;
+}
+
+/* Coupon section */
+.sc-coupon-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: background 0.15s;
+    user-select: none;
+}
+.sc-coupon-header:hover {
+    background: #fafafa;
+}
+.sc-coupon-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sc-text);
+}
+.sc-coupon-title i {
+    color: var(--sc-primary);
+    font-size: 16px;
+}
+.sc-coupon-subtitle {
+    font-size: 11px;
+    color: var(--sc-text-muted);
+    margin-top: 1px;
+}
+.sc-coupon-arrow {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--sc-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--sc-text-muted);
+    transition: var(--sc-transition);
+    flex-shrink: 0;
+}
+.sc-coupon-header:hover .sc-coupon-arrow {
+    border-color: var(--sc-primary);
+    color: var(--sc-primary);
+}
+.sc-coupon-body {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease, padding 0.3s ease;
     padding: 0 16px;
 }
-.accordion-row.open .accordion-row-body {
-    max-height: 500px;
-    padding: 0 16px 16px;
+.sc-coupon-section.open .sc-coupon-body {
+    max-height: 600px;
+    padding: 0 16px 14px;
 }
-.accordion-row.open .acc-arrow {
+.sc-coupon-section.open .sc-coupon-arrow {
     transform: rotate(90deg);
 }
 
-/* Compact Loyalty Row */
-.loyalty-compact {
-    background: #ffffff;
-    border: 1px solid var(--cart-border-color);
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    box-shadow: var(--cart-card-shadow);
-}
-.loyalty-compact .loyalty-top {
+.sc-input-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 0;
+    margin-bottom: 8px;
 }
-.loyalty-compact .loyalty-pts-label {
+.sc-input-row input {
+    flex: 1;
+    border: 1px solid var(--sc-border);
+    border-right: none;
+    border-radius: var(--sc-radius-sm) 0 0 var(--sc-radius-sm);
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    outline: none;
+    transition: border-color 0.2s;
+    color: var(--sc-text);
+    letter-spacing: 0.5px;
+}
+.sc-input-row input:focus {
+    border-color: var(--sc-primary);
+    box-shadow: inset 0 0 0 1px var(--sc-primary);
+}
+.sc-input-row input::placeholder {
+    color: var(--sc-text-muted);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.sc-input-row .sc-btn-apply {
+    background: var(--sc-primary);
+    color: #fff;
+    border: none;
+    border-radius: 0 var(--sc-radius-sm) var(--sc-radius-sm) 0;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.sc-input-row .sc-btn-apply:hover {
+    background: var(--sc-primary-dark);
+}
+.sc-applied-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--sc-green-soft);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--sc-green);
+    font-weight: 600;
+}
+.sc-applied-chip .sc-btn-remove-coupon {
+    background: none;
+    border: none;
+    color: var(--sc-red);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+}
+.sc-available-list {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 8px;
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.sc-available-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--sc-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.sc-available-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f9fafb;
+    border: 1.5px dashed #d1d5db;
+    border-radius: var(--sc-radius-sm);
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: var(--sc-transition);
+    font-size: 12px;
+    width: 100%;
+    text-align: left;
+}
+.sc-available-chip:hover {
+    border-color: var(--sc-primary);
+    background: var(--sc-primary-soft);
+}
+.sc-available-chip.voucher {
+    background: #faf5ff;
+    border-color: #c4b5fd;
+}
+.sc-available-chip.voucher:hover {
+    background: var(--sc-purple-soft);
+    border-color: var(--sc-purple);
+}
+.sc-available-chip .sc-chip-code {
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.sc-available-chip .sc-chip-tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+/* Loyalty section */
+.sc-loyalty {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+.sc-loyalty-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sc-loyalty-label {
     font-size: 13px;
     font-weight: 700;
-    color: var(--cart-text-main);
+    color: var(--sc-text);
     display: flex;
     align-items: center;
     gap: 6px;
 }
-.loyalty-compact .loyalty-pts-value {
+.sc-loyalty-label i {
+    color: var(--sc-primary);
+    font-size: 16px;
+}
+.sc-loyalty-pts {
     font-size: 14px;
     font-weight: 800;
-    color: var(--cart-primary);
+    color: var(--sc-primary);
 }
-.loyalty-compact .loyalty-earn {
+.sc-loyalty-earn {
     font-size: 11px;
-    color: var(--cart-text-muted);
+    color: var(--sc-text-muted);
     margin-top: 4px;
-}
-.loyalty-compact .loyalty-toggle-row {
     display: flex;
     align-items: center;
+    gap: 4px;
+}
+.sc-loyalty-earn i {
+    color: var(--sc-green);
+    font-size: 12px;
+}
+.sc-loyalty-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid #f3f4f6;
 }
-.loyalty-compact .loyalty-toggle-row label {
-    font-size: 12.5px;
+.sc-loyalty-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--sc-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.sc-loyalty-toggle label {
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+    color: var(--sc-text);
 }
-
-/* Compact Bill Summary */
-.bill-summary-compact {
-    padding: 16px !important;
-}
-.bill-summary-compact h5 {
-    font-size: 14px !important;
-    margin-bottom: 10px !important;
-    padding-bottom: 8px !important;
-}
-.bill-summary-compact .bill-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 0;
-    font-size: 12.5px;
-}
-.bill-summary-compact .bill-line .bill-label {
-    color: var(--cart-text-muted);
-    font-weight: 500;
-}
-.bill-summary-compact .bill-line .bill-value {
-    font-weight: 600;
-    color: var(--cart-text-main);
-}
-.bill-summary-compact .bill-line .bill-value.text-success {
-    color: var(--cart-success) !important;
-}
-.bill-summary-compact .bill-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0 12px;
-}
-.bill-summary-compact .bill-total-row .total-label {
-    font-size: 14px;
+.sc-loyalty-toggle .sc-loyalty-discount {
+    color: var(--sc-green);
     font-weight: 700;
 }
-.bill-summary-compact .bill-total-row .total-label small {
+
+/* Bill summary */
+.sc-bill {
+    padding: 14px 16px;
+}
+.sc-bill-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--sc-text);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f3f4f6;
+    letter-spacing: -0.2px;
+}
+.sc-bill-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 12px;
+}
+.sc-bill-label {
+    color: var(--sc-text-secondary);
+    font-weight: 500;
+}
+.sc-bill-value {
+    font-weight: 600;
+    color: var(--sc-text);
+}
+.sc-bill-value.green { color: var(--sc-green); }
+.sc-bill-value.amber { color: var(--sc-amber); }
+.sc-bill-label.green { color: var(--sc-green); font-weight: 600; }
+.sc-bill-label.blue { color: var(--sc-blue); font-weight: 600; }
+.sc-bill-label.amber { color: var(--sc-amber); font-weight: 600; }
+.sc-bill-divider {
+    height: 1px;
+    background: var(--sc-border);
+    margin: 8px 0;
+}
+.sc-bill-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0 4px;
+}
+.sc-bill-total-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sc-text);
+}
+.sc-bill-total-label small {
     display: block;
-    font-size: 10.5px;
+    font-size: 10px;
     font-weight: 400;
-    color: var(--cart-text-muted);
+    color: var(--sc-text-muted);
     margin-top: 1px;
 }
-.bill-summary-compact .bill-total-row .total-value {
+.sc-bill-total-value {
     font-size: 22px;
     font-weight: 800;
-    color: var(--cart-primary);
-}
-.bill-summary-compact .btn-cart-primary {
-    padding: 12px 20px;
-    font-size: 14px;
-    border-radius: 10px;
+    color: var(--sc-primary);
+    letter-spacing: -0.5px;
 }
 
-/* Trust badges compact */
-.trust-row-compact {
+/* Checkout CTA */
+.sc-btn-checkout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    background: linear-gradient(135deg, var(--sc-primary), var(--sc-primary-dark));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--sc-transition);
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(50,154,154,0.3);
+    gap: 8px;
+    letter-spacing: 0.2px;
+}
+.sc-btn-checkout:hover {
+    background: linear-gradient(135deg, #2db0b0, #1f6d6d);
+    box-shadow: 0 6px 20px rgba(50,154,154,0.4);
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+/* Cashback banner */
+.sc-cashback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--sc-green-soft);
+    border: 1px dashed #86efac;
+    border-radius: var(--sc-radius-sm);
+    padding: 7px 10px;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sc-green);
+}
+
+/* Trust badges */
+.sc-trust {
     display: flex;
     justify-content: space-around;
-    padding-top: 10px;
+    padding: 10px 0 0;
     margin-top: 10px;
-    border-top: 1px solid #f1f5f9;
-    font-size: 10px;
-    color: var(--cart-text-muted);
-    text-align: center;
+    border-top: 1px solid #f3f4f6;
 }
-.trust-row-compact i {
-    font-size: 16px;
-    color: var(--cart-primary);
+.sc-trust-item {
+    text-align: center;
+    font-size: 10px;
+    color: var(--sc-text-muted);
+    font-weight: 500;
+}
+.sc-trust-item i {
     display: block;
+    font-size: 16px;
+    color: var(--sc-primary);
     margin-bottom: 2px;
 }
 
-/* Compact Voucher Perk Banner */
-.voucher-perk-compact {
-    padding: 12px 14px !important;
-    margin-bottom: 12px !important;
+/* ══════════════════════════════════════
+   GOLD MEMBERSHIP BANNER
+══════════════════════════════════════ */
+.sc-gold-banner {
+    border-radius: var(--sc-radius);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
 }
-.voucher-perk-compact .rounded-circle {
-    width: 36px !important;
-    height: 36px !important;
-    font-size: 16px !important;
+.sc-gold-banner.state1 {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7, #ffffff);
+    border: 1.5px solid #f59e0b;
+}
+.sc-gold-banner.state1::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 120px;
+    height: 120px;
+    background: rgba(245,158,11,0.08);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.sc-gold-banner.state2 {
+    background: #fff9db;
+    border: 1.5px solid #ffd8a8;
+}
+.sc-gold-banner.state3 {
+    background: var(--sc-amber-soft);
+    border: 1.5px solid #fde68a;
+}
+.sc-gold-tag {
+    background: var(--sc-amber);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.sc-gold-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sc-text);
+    line-height: 1.35;
+    margin-bottom: 2px;
+}
+.sc-gold-subtitle {
+    font-size: 11.5px;
+    color: #92400e;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-bottom: 10px;
+}
+.sc-gold-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px dashed #fde68a;
+}
+.sc-gold-btn {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: #b45309;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: var(--sc-transition);
+}
+.sc-gold-btn:hover {
+    color: #92400e;
+}
+.sc-gold-arrow {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--sc-amber);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(217,119,6,0.25);
+    transition: var(--sc-transition);
+}
+.sc-gold-arrow:hover {
+    background: #b45309;
+    transform: scale(1.06);
 }
 
-/* Compact earned cashback */
-.cashback-banner-compact {
-    padding: 8px 12px !important;
-    margin-top: 10px !important;
-    font-size: 11px !important;
+/* ══════════════════════════════════════
+   EMPTY CART
+══════════════════════════════════════ */
+.sc-empty {
+    background: var(--sc-card);
+    border: 1px solid var(--sc-border);
+    border-radius: var(--sc-radius);
+    padding: 48px 24px;
+    text-align: center;
+    max-width: 480px;
+    margin: 40px auto;
+    box-shadow: var(--sc-shadow);
+}
+.sc-empty-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--sc-primary-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.sc-empty-icon i {
+    font-size: 32px;
+    color: var(--sc-primary);
+}
+.sc-empty h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--sc-text);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+}
+.sc-empty p {
+    font-size: 14px;
+    color: var(--sc-text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+.sc-btn-explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--sc-primary), var(--sc-primary-dark));
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(50,154,154,0.3);
+    transition: var(--sc-transition);
+}
+.sc-btn-explore:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(50,154,154,0.4);
+    color: #fff;
 }
 
-/* Compact gold banner */
-.gold-banner-compact {
-    padding: 14px 16px !important;
+/* ══════════════════════════════════════
+   MOBILE BOTTOM BAR
+══════════════════════════════════════ */
+.sc-mobile-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--sc-card);
+    border-top: 1px solid var(--sc-border);
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+    padding: 12px 16px;
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
+.sc-mobile-bar-price {
+    flex-shrink: 0;
+}
+.sc-mobile-bar-price .sc-total-label {
+    font-size: 11px;
+    color: var(--sc-text-muted);
+    font-weight: 500;
+}
+.sc-mobile-bar-price .sc-total-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--sc-primary);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+.sc-mobile-bar .sc-btn-checkout {
+    flex: 1;
+    max-width: 220px;
+    padding: 12px 16px;
+    font-size: 13px;
+}
+
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
+@media (max-width: 991px) {
+    .sc-sidebar {
+        position: static;
+    }
+    .sc-header-title {
+        font-size: 18px;
+    }
+    .sc-page {
+        padding-bottom: 80px;
+    }
+    .sc-mobile-bar {
+        display: flex;
+    }
+    .sc-desktop-checkout {
+        display: none;
+    }
+}
+
+@media (max-width: 575px) {
+    .sc-page {
+        padding-bottom: 80px;
+    }
+    .sc-item {
+        padding: 12px;
+    }
+    .sc-item-inner {
+        flex-wrap: wrap;
+    }
+    .sc-item-img {
+        width: 72px;
+        height: 66px;
+    }
+    .sc-item-img img {
+        max-width: 62px;
+        max-height: 52px;
+    }
+    .sc-item-right {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-width: 0;
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid #f3f4f6;
+    }
+    .sc-price-block {
+        text-align: left;
+    }
+    .sc-price-now {
+        font-size: 16px;
+    }
+    .sc-header-title {
+        font-size: 16px;
+    }
+    .sc-bill-total-value {
+        font-size: 20px;
+    }
+    .sc-steps {
+        gap: 0;
+    }
+    .sc-step-line {
+        width: 28px;
+        margin: 0 6px;
+    }
+    .sc-step {
+        font-size: 11px;
+    }
+    .sc-step-num {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+    }
+    .sc-empty {
+        padding: 32px 16px;
+        margin: 20px 12px;
+    }
+}
+
+/* Animation — fade items in */
+@keyframes scFadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.sc-item {
+    animation: scFadeUp 0.35s ease both;
+}
+.sc-item:nth-child(2) { animation-delay: 0.06s; }
+.sc-item:nth-child(3) { animation-delay: 0.12s; }
+.sc-item:nth-child(4) { animation-delay: 0.18s; }
+.sc-item:nth-child(5) { animation-delay: 0.24s; }
 </style>
 
 
-<!-- Breadcrumbs Section -->
-<section class="cart-breadcrumbs py-3">
+{{-- ═══ BREADCRUMBS SECTION ═══ --}}
+<div class="sc-breadcrumb-wrap">
     <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="bi bi-house-door me-1"></i>Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('products') }}">Products</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb sc-breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="bi bi-house-door me-1"></i>Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('products') }}">Products</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+            </ol>
+        </nav>
     </div>
-</section>
+</div>
 
-<!-- Main Shopping Cart Section -->
-<section class="shopping-cart-page py-5">
+
+{{-- ═══ MAIN CART SECTION ═══ --}}
+<section class="sc-page py-4">
     <div class="container">
         @if(empty($cartData['items']) || count($cartData['items']) == 0)
-            <!-- Empty Cart State -->
-            <div class="cart-card p-5 text-center my-4 mx-auto" style="max-width: 600px;">
-                <div class="mb-4">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; background: #e6f8f8;">
-                        <i class="bi bi-cart-x fs-1" style="color: var(--cart-primary);"></i>
-                    </div>
+
+            {{-- ═══ EMPTY CART ═══ --}}
+            <div class="sc-empty">
+                <div class="sc-empty-icon">
+                    <i class="bi bi-cart-x"></i>
                 </div>
-                <h3 class="fw-bold mb-2" style="color: var(--cart-text-main);">Your Cart is Currently Empty</h3>
-                <p class="text-secondary mb-4" style="font-size: 15px;">Looks like you haven't added any prescription glasses or sunglasses yet.</p>
-                <a href="{{ route('products') }}" class="btn btn-cart-primary text-white text-decoration-none px-4 py-3 d-inline-flex align-items-center justify-content-center">
-                    <i class="bi bi-bag-plus me-2 fs-5"></i> Explore Eyewear Catalog
+                <h3>Your Cart is Empty</h3>
+                <p>Looks like you haven't added any prescription glasses or sunglasses yet.</p>
+                <a href="{{ route('products') }}" class="sc-btn-explore">
+                    <i class="bi bi-bag-plus"></i> Explore Eyewear
                 </a>
             </div>
-        @else
-            <!-- Active Cart Layout -->
-            <div class="row g-4">
-                <!-- Left Column: Cart Items -->
-                <div class="col-lg-7 col-xl-8">
-                    <!-- Header Card -->
-                    <div class="cart-card p-4 mb-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h4 class="mb-1 fw-bold" style="color: var(--cart-text-main);">
-                                    Shopping Cart <span class="badge bg-light text-dark border ms-2 rounded-pill fw-semibold" style="font-size: 13px; padding: 6px 12px;">{{ $cartData['item_count'] }} {{ Str::plural('item', $cartData['item_count']) }}</span>
-                                </h4>
-                                <span class="text-secondary small">Review your frames, lens packages, and powers</span>
-                            </div>
-                            @if($cartData['is_bogo_active'])
-                                <span class="badge px-3 py-2 rounded-pill fw-semibold shadow-xs d-inline-flex align-items-center" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; font-size: 12px;">
-                                    <i class="bi bi-award-fill me-1"></i> BOGO Promo Active
-                                </span>
-                            @endif
-                        </div>
 
-                        @if(!empty($cartData['bogo_fallback_message']))
-                            <div class="alert alert-warning py-2 px-3 small mt-3 mb-0 border-0 rounded-3 d-flex align-items-center shadow-xs" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a !important;">
-                                <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i> {{ Str::replace(['⚠️', '👑', '★'], '', $cartData['bogo_fallback_message']) }}
-                            </div>
+        @else
+
+            <div class="row g-3 g-lg-4">
+
+                {{-- ═══════════════════════════════════
+                     LEFT COLUMN — CART ITEMS
+                ═══════════════════════════════════ --}}
+                <div class="col-lg-8">
+
+                    {{-- Header --}}
+                    <div class="sc-header">
+                        <div class="sc-header-title">
+                            Shopping Cart
+                            <span class="sc-header-count">{{ $cartData['item_count'] }} {{ Str::plural('item', $cartData['item_count']) }}</span>
+                        </div>
+                        @if($cartData['is_bogo_active'])
+                            <span class="sc-bogo-badge">
+                                <i class="bi bi-award-fill"></i> BOGO Active
+                            </span>
                         @endif
                     </div>
 
-                    <!-- Items List -->
-                    <div class="cart-items-wrapper">
+                    @if(!empty($cartData['bogo_fallback_message']))
+                        <div class="sc-bogo-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            {{ Str::replace(['⚠️', '👑', '★'], '', $cartData['bogo_fallback_message']) }}
+                        </div>
+                    @endif
+
+                    {{-- Items --}}
+                    <div class="sc-items-list">
                         @foreach($cartData['items'] as $item)
-                            <div class="cart-item-card data-key-item" data-key="{{ $item['key'] }}">
+                            <div class="sc-item data-key-item" data-key="{{ $item['key'] }}">
+
+                                {{-- FREE Ribbon --}}
                                 @if(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                    <!-- Green FREE Ribbon Badge -->
-                                    <div class="free-ribbon-badge">
-                                        <span>FREE</span>
-                                    </div>
+                                    <div class="sc-free-ribbon"><span>FREE</span></div>
                                 @endif
 
-                                <div class="row align-items-start g-3">
-                                    <!-- Image Column -->
-                                    <div class="col-sm-4 col-md-3">
+                                <div class="sc-item-inner">
+
+                                    {{-- Image --}}
+                                    <div class="sc-item-img {{ (isset($item['is_membership']) && $item['is_membership']) ? 'membership-img' : '' }}">
                                         @if(isset($item['is_membership']) && $item['is_membership'])
-                                            <div class="cart-img-wrapper" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a;">
-                                                @if(!empty($item['frame_image']) && (Str::startsWith($item['frame_image'], 'http') || Str::startsWith($item['frame_image'], '/')))
-                                                    <img src="{{ $item['frame_image'] }}" alt="{{ $item['frame_name'] }}" class="img-fluid" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                                                    <div class="d-none align-items-center justify-content-center w-100 h-100">
-                                                        <i class="bi bi-award-fill text-warning fs-1"></i>
-                                                    </div>
-                                                @else
-                                                    <div class="d-flex align-items-center justify-content-center w-100 h-100">
-                                                        <i class="bi bi-award-fill text-warning fs-1"></i>
-                                                    </div>
-                                                @endif
-                                            </div>
+                                            @if(!empty($item['frame_image']) && (Str::startsWith($item['frame_image'], 'http') || Str::startsWith($item['frame_image'], '/')))
+                                                <img src="{{ $item['frame_image'] }}" alt="{{ $item['frame_name'] }}" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
+                                                <div class="d-none d-flex align-items-center justify-content-center w-100 h-100">
+                                                    <i class="bi bi-award-fill text-warning" style="font-size:28px;"></i>
+                                                </div>
+                                            @else
+                                                <i class="bi bi-award-fill text-warning" style="font-size:28px;"></i>
+                                            @endif
                                         @else
-                                            <div class="cart-img-wrapper">
-                                                <img src="{{ $item['frame_image'] }}" alt="{{ $item['frame_name'] }}" class="img-fluid">
-                                            </div>
+                                            <img src="{{ $item['frame_image'] }}" alt="{{ $item['frame_name'] }}">
                                         @endif
                                     </div>
 
-                                    <!-- Content Column -->
-                                    <div class="col-sm-8 col-md-6">
+                                    {{-- Details --}}
+                                    <div class="sc-item-details">
                                         @if(isset($item['is_membership']) && $item['is_membership'])
-                                            <!-- Membership Item View -->
-                                            <div class="mb-1">
-                                                <span class="badge bg-warning text-dark font-weight-bold px-2 py-1 mb-1 d-inline-flex align-items-center" style="font-size: 10px; border-radius: 4px;">
-                                                    <i class="bi bi-award-fill me-1"></i> GOLD VIP
-                                                </span>
-                                                <h5 class="item-title mb-1">{{ $item['frame_name'] }}</h5>
-                                            </div>
-                                            <p class="text-secondary small mb-2" style="font-size: 13px; line-height: 1.4;">
+                                            {{-- Membership Item --}}
+                                            <span class="sc-brand" style="background:#fef3c7; color:#92400e;">
+                                                <i class="bi bi-award-fill" style="font-size:9px;"></i> GOLD VIP
+                                            </span>
+                                            <div class="sc-item-name">{{ $item['frame_name'] }}</div>
+                                            <p class="sc-membership-desc">
                                                 Buy 1 Get 1 Free On Over 5000+ Items, Applicable Everywhere for 1 Full Year
                                             </p>
-                                            
-                                            <div class="d-flex align-items-center gap-3 mt-2">
+                                            <div class="sc-membership-actions">
                                                 <form action="{{ route('cart.remove_membership') }}" method="POST" class="d-inline m-0 p-0">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-link p-0 text-decoration-none border-0 fw-semibold text-danger d-inline-flex align-items-center" style="font-size: 13px;">
-                                                        <i class="bi bi-trash3 me-1"></i>Remove
+                                                    <button type="submit" class="sc-remove-link">
+                                                        <i class="bi bi-trash3"></i> Remove
                                                     </button>
                                                 </form>
-                                                <span class="text-muted opacity-50">|</span>
-                                                <a href="{{ route('website.membership') }}" class="fw-semibold text-decoration-none d-inline-flex align-items-center" style="font-size: 13px; color: var(--cart-primary);">
-                                                    View Benefits <i class="bi bi-arrow-right ms-1"></i>
+                                                <span class="sc-divider">|</span>
+                                                <a href="{{ route('website.membership') }}" class="sc-view-link">
+                                                    View Benefits <i class="bi bi-arrow-right"></i>
                                                 </a>
                                             </div>
                                         @else
-                                            <!-- Regular Eyewear Item View -->
-                                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                            {{-- Regular Eyewear --}}
+                                            <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
                                                 @if(!empty($item['brand']))
-                                                    <span class="brand-badge">{{ $item['brand'] }}</span>
+                                                    <span class="sc-brand">{{ $item['brand'] }}</span>
                                                 @endif
                                                 @if(!empty($item['size']))
-                                                    <span class="badge bg-light text-secondary border fw-normal" style="font-size: 11px;">Size: {{ $item['size'] }}</span>
+                                                    <span class="sc-size-tag">Size: {{ $item['size'] }}</span>
                                                 @endif
                                             </div>
+                                            <div class="sc-item-name">{{ $item['frame_name'] }}</div>
 
-                                            <h5 class="item-title mb-1">{{ $item['frame_name'] }}</h5>
-
-                                            <!-- Lens Package Info Card -->
-                                            <div class="lens-package-box">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <span class="small fw-bold text-dark d-flex align-items-center">
-                                                        <i class="bi bi-layers-fill me-1 text-teal" style="color: var(--cart-primary);"></i> Lens: {{ $item['lens_name'] }}
-                                                    </span>
-                                                    <span class="small fw-bold" style="color: var(--cart-success);">
-                                                        {{ $item['lens_price'] > 0 ? '+₹' . number_format($item['lens_price'], 2) : 'Included (₹0)' }}
-                                                    </span>
-                                                </div>
-                                                @if(!empty($item['lens_details']))
-                                                    <div class="small text-secondary mt-1" style="font-size: 11px; line-height: 1.3;">
-                                                        {{ Str::limit($item['lens_details'], 70) }}
-                                                    </div>
-                                                @endif
+                                            {{-- Lens pill --}}
+                                            <div class="sc-lens-pill">
+                                                <span class="sc-lens-name">
+                                                    <i class="bi bi-layers-fill"></i>
+                                                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $item['lens_name'] }}</span>
+                                                </span>
+                                                <span class="sc-lens-price">
+                                                    {{ $item['lens_price'] > 0 ? '+₹' . number_format($item['lens_price'], 0) : 'Included' }}
+                                                </span>
                                             </div>
+                                            @if(!empty($item['lens_details']))
+                                                <div class="sc-lens-detail">{{ Str::limit($item['lens_details'], 60) }}</div>
+                                            @endif
 
-                                            <!-- Prescription Power Accordion Box -->
+                                            {{-- Prescription --}}
                                             @php
                                                 $rx = null;
                                                 if (!empty($item['prescription_data'])) {
@@ -750,432 +1443,452 @@
                                             @endphp
 
                                             @if(!empty($rx))
-                                                <div class="rx-box">
-                                                    <div class="rx-box-header" data-bs-toggle="collapse" data-bs-target="#rx-details-{{ $loop->index }}" aria-expanded="true">
-                                                        <span class="small fw-bold text-dark d-flex align-items-center">
-                                                            <i class="bi bi-eye-fill me-2" style="color: var(--cart-primary);"></i>
-                                                            Prescription Details
-                                                        </span>
-                                                        <span class="small fw-semibold d-flex align-items-center" style="color: var(--cart-primary); font-size: 12px;">
-                                                            View Power Matrix <i class="bi bi-chevron-down ms-1"></i>
-                                                        </span>
+                                                <div class="sc-rx-box">
+                                                    <div class="sc-rx-header" data-bs-toggle="collapse" data-bs-target="#sc-rx-{{ $loop->index }}" aria-expanded="true">
+                                                        <span><i class="bi bi-eye-fill me-1"></i> Prescription</span>
+                                                        <span class="sc-rx-toggle">View <i class="bi bi-chevron-down"></i></span>
                                                     </div>
-
-                                                    <div class="collapse show" id="rx-details-{{ $loop->index }}">
-                                                        <div class="p-2 bg-white">
-                                                            @if(isset($rx['type']) && $rx['type'] === 'upload')
-                                                                <div class="d-flex align-items-center p-2 rounded border" style="background: #f8fafc;">
-                                                                    <i class="bi bi-file-earmark-medical-fill fs-4 text-primary me-2"></i>
-                                                                    <div class="small">
-                                                                        <div class="fw-semibold text-dark">Uploaded Doctor Prescription</div>
-                                                                        @if(!empty($rx['file']))
-                                                                            <a href="{{ asset($rx['file']) }}" target="_blank" class="text-primary text-decoration-underline small">
-                                                                                <i class="bi bi-box-arrow-up-right me-1"></i>View Uploaded File
-                                                                            </a>
-                                                                        @endif
-                                                                    </div>
+                                                    <div class="collapse show" id="sc-rx-{{ $loop->index }}">
+                                                        @if(isset($rx['type']) && $rx['type'] === 'upload')
+                                                            <div class="sc-rx-upload">
+                                                                <i class="bi bi-file-earmark-medical-fill"></i>
+                                                                <div>
+                                                                    <div class="fw-semibold" style="font-size:12px; color:var(--sc-text);">Uploaded Prescription</div>
+                                                                    @if(!empty($rx['file']))
+                                                                        <a href="{{ asset($rx['file']) }}" target="_blank" style="font-size:11px; color:var(--sc-blue);">
+                                                                            <i class="bi bi-box-arrow-up-right"></i> View File
+                                                                        </a>
+                                                                    @endif
                                                                 </div>
-                                                            @else
-                                                                <div class="table-responsive">
-                                                                    <table class="table rx-table align-middle">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>EYE</th>
-                                                                                <th>SPH</th>
-                                                                                <th>CYL</th>
-                                                                                <th>AXIS</th>
-                                                                                <th>ADD</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td class="fw-bold text-secondary">R (Right)</td>
-                                                                                <td class="fw-bold text-dark">{{ !empty($rx['right_eye_sph']) ? $rx['right_eye_sph'] : '-' }}</td>
-                                                                                <td class="text-muted">{{ !empty($rx['right_eye_cyl']) ? $rx['right_eye_cyl'] : '-' }}</td>
-                                                                                <td class="text-muted">{{ !empty($rx['right_eye_axis']) && $rx['right_eye_axis'] != '0' ? $rx['right_eye_axis'] : '-' }}</td>
-                                                                                <td class="text-muted">{{ !empty($rx['right_eye_ap']) ? $rx['right_eye_ap'] : '-' }}</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="fw-bold text-secondary">L (Left)</td>
-                                                                                <td class="fw-bold text-dark">{{ !empty($rx['left_eye_sph']) ? $rx['left_eye_sph'] : '-' }}</td>
-                                                                                <td class="text-muted">{{ !empty($rx['left_eye_cyl']) ? $rx['left_eye_cyl'] : '-' }}</td>
-                                                                                <td class="text-muted">{{ !empty($rx['left_eye_axis']) && $rx['left_eye_axis'] != '0' ? $rx['left_eye_axis'] : '-' }}</td>
-                                                                                <td class="text-muted">{{ !empty($rx['left_eye_ap']) ? $rx['left_eye_ap'] : '-' }}</td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            @endif
-                                                        </div>
+                                                            </div>
+                                                        @else
+                                                            <div style="padding: 4px;">
+                                                                <table class="sc-rx-table">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>EYE</th>
+                                                                            <th>SPH</th>
+                                                                            <th>CYL</th>
+                                                                            <th>AXIS</th>
+                                                                            <th>ADD</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td>R</td>
+                                                                            <td>{{ !empty($rx['right_eye_sph']) ? $rx['right_eye_sph'] : '-' }}</td>
+                                                                            <td>{{ !empty($rx['right_eye_cyl']) ? $rx['right_eye_cyl'] : '-' }}</td>
+                                                                            <td>{{ !empty($rx['right_eye_axis']) && $rx['right_eye_axis'] != '0' ? $rx['right_eye_axis'] : '-' }}</td>
+                                                                            <td>{{ !empty($rx['right_eye_ap']) ? $rx['right_eye_ap'] : '-' }}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td>L</td>
+                                                                            <td>{{ !empty($rx['left_eye_sph']) ? $rx['left_eye_sph'] : '-' }}</td>
+                                                                            <td>{{ !empty($rx['left_eye_cyl']) ? $rx['left_eye_cyl'] : '-' }}</td>
+                                                                            <td>{{ !empty($rx['left_eye_axis']) && $rx['left_eye_axis'] != '0' ? $rx['left_eye_axis'] : '-' }}</td>
+                                                                            <td>{{ !empty($rx['left_eye_ap']) ? $rx['left_eye_ap'] : '-' }}</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             @endif
 
-                                            <!-- Promo Badges -->
+                                            {{-- Promo badges --}}
                                             @if(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                                <div class="mt-2 text-success small fw-bold d-inline-flex align-items-center" style="font-size: 12px; background: #ecfdf5; padding: 6px 12px; border-radius: 8px; border: 1px solid #a7f3d0;">
-                                                    <i class="bi bi-check-circle-fill me-1"></i> Free with Gold Membership!
+                                                <div class="sc-promo-tag green">
+                                                    <i class="bi bi-check-circle-fill"></i> Free with Gold Membership!
                                                 </div>
                                             @elseif(isset($item['is_bogo_third_discount']) && $item['is_bogo_third_discount'])
-                                                <div class="mt-2 text-primary small fw-bold d-inline-flex align-items-center" style="font-size: 12px; background: #eff6ff; padding: 6px 12px; border-radius: 8px; border: 1px solid #bfdbfe; color: #1d4ed8;">
-                                                    <i class="bi bi-percent me-1"></i> {{ (int)($item['bogo_third_discount_percent'] ?? 60) }}% OFF on 3rd Pair (Gold Bonus)
+                                                <div class="sc-promo-tag blue">
+                                                    <i class="bi bi-percent"></i> {{ (int)($item['bogo_third_discount_percent'] ?? 60) }}% OFF on 3rd Pair
                                                 </div>
                                             @elseif(isset($item['is_bogo_half']) && $item['is_bogo_half'])
-                                                <div class="mt-2">
-                                                    <span class="badge bg-warning text-dark px-2 py-1 fw-semibold d-inline-flex align-items-center">
-                                                        <i class="bi bi-percent me-1"></i> Frame 50% OFF (BOGO Fallback)
-                                                    </span>
+                                                <div class="sc-promo-tag amber">
+                                                    <i class="bi bi-percent"></i> Frame 50% OFF (BOGO)
                                                 </div>
                                             @elseif(isset($item['is_first_frame_free_applied']) && $item['is_first_frame_free_applied'])
-                                                <div class="mt-2">
-                                                    <span class="badge bg-success text-white px-2 py-1 fw-semibold d-inline-flex align-items-center">
-                                                        <i class="bi bi-gift-fill me-1"></i> Frame Free (First Pair Free Promo)
-                                                    </span>
+                                                <div class="sc-promo-tag green">
+                                                    <i class="bi bi-gift-fill"></i> Frame Free (First Pair Promo)
                                                 </div>
                                             @endif
                                         @endif
                                     </div>
 
-                                    <!-- Price & Actions Column -->
-                                    <div class="col-md-3 text-md-end d-flex flex-column justify-content-between align-items-md-end h-100">
-                                        <!-- Price Breakdown -->
-                                        <div class="mb-3">
+                                    {{-- Price + Actions --}}
+                                    <div class="sc-item-right">
+                                        <div class="sc-price-block">
                                             @if(isset($item['is_membership']) && $item['is_membership'])
-                                                <div class="text-decoration-line-through text-muted small">₹{{ number_format($item['membership_mrp'] ?? 6000, 0) }}</div>
-                                                <div class="fw-bold fs-4 text-dark">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                <div class="sc-price-old">₹{{ number_format($item['membership_mrp'] ?? 6000, 0) }}</div>
+                                                <div class="sc-price-now">₹{{ number_format($item['frame_price'], 0) }}</div>
                                             @elseif(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                                <div class="text-decoration-line-through text-muted small">₹{{ number_format($item['frame_price'], 2) }}</div>
-                                                <div class="fw-bold fs-4 text-success">₹{{ number_format($item['lens_price'], 2) }}</div>
+                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
                                             @elseif(isset($item['is_bogo_third_discount']) && $item['is_bogo_third_discount'])
-                                                @php 
+                                                @php
                                                     $pct = (float)($item['bogo_third_discount_percent'] ?? 60);
                                                     $discountedFramePrice = $item['frame_price'] * (1 - ($pct / 100));
                                                 @endphp
-                                                <div class="text-decoration-line-through text-muted small">₹{{ number_format($item['frame_price'], 2) }}</div>
-                                                <div class="fw-bold fs-4 text-primary">₹{{ number_format($discountedFramePrice + $item['lens_price'], 2) }}</div>
+                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                <div class="sc-price-now blue">₹{{ number_format($discountedFramePrice + $item['lens_price'], 0) }}</div>
                                             @elseif(isset($item['is_bogo_half']) && $item['is_bogo_half'])
-                                                <div class="text-decoration-line-through text-muted small">₹{{ number_format($item['frame_price'], 2) }}</div>
-                                                <div class="fw-bold fs-4 text-success">₹{{ number_format(($item['frame_price'] * 0.5) + $item['lens_price'], 2) }}</div>
+                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                <div class="sc-price-now green">₹{{ number_format(($item['frame_price'] * 0.5) + $item['lens_price'], 0) }}</div>
                                             @elseif(isset($item['is_first_frame_free_applied']) && $item['is_first_frame_free_applied'])
-                                                <div class="text-decoration-line-through text-muted small">₹{{ number_format($item['frame_price'], 2) }}</div>
-                                                <div class="fw-bold fs-4 text-success">₹{{ number_format($item['lens_price'], 2) }}</div>
+                                                <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
+                                                <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
                                             @else
-                                                <div class="fw-bold fs-4 text-dark">₹{{ number_format($item['frame_price'] + $item['lens_price'], 2) }}</div>
+                                                <div class="sc-price-now">₹{{ number_format($item['frame_price'] + $item['lens_price'], 0) }}</div>
                                             @endif
                                         </div>
 
-                                        <!-- Quantity / Actions -->
-                                        <div class="d-flex align-items-center justify-content-md-end gap-2">
+                                        <div class="sc-actions">
                                             @if(isset($item['is_membership']) && $item['is_membership'])
-                                                <span class="badge bg-light text-success border px-3 py-2 fw-semibold rounded-pill d-inline-flex align-items-center">
-                                                    <i class="bi bi-shield-check me-1"></i> Active Perk
+                                                <span class="sc-membership-badge">
+                                                    <i class="bi bi-shield-check"></i> Active
                                                 </span>
                                             @elseif(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                                <span class="badge bg-light text-success border border-success px-3 py-2 fw-bold rounded-pill d-inline-flex align-items-center" style="font-size:12px;">
-                                                    <i class="bi bi-gift-fill me-1"></i> Qty: 1 (Free Pair)
+                                                <span class="sc-free-qty-badge">
+                                                    <i class="bi bi-gift-fill"></i> Qty: 1
                                                 </span>
-                                                <button type="button" class="btn-remove-item remove-cart-item ms-1" data-key="{{ $item['key'] }}" title="Remove item">
+                                                <button type="button" class="sc-btn-remove remove-cart-item" data-key="{{ $item['key'] }}" title="Remove">
                                                     <i class="bi bi-trash3-fill"></i>
                                                 </button>
                                             @else
-                                                <div class="qty-stepper">
-                                                    <button type="button" class="qty-minus" data-key="{{ $item['key'] }}" title="Decrease">-</button>
-                                                    <span class="item-qty">{{ $item['quantity'] }}</span>
-                                                    <button type="button" class="qty-plus" data-key="{{ $item['key'] }}" title="Increase">+</button>
+                                                <div class="sc-qty">
+                                                    <button type="button" class="qty-minus" data-key="{{ $item['key'] }}">−</button>
+                                                    <span class="sc-qty-val item-qty">{{ $item['quantity'] }}</span>
+                                                    <button type="button" class="qty-plus" data-key="{{ $item['key'] }}">+</button>
                                                 </div>
-
-                                                <button type="button" class="btn-remove-item remove-cart-item" data-key="{{ $item['key'] }}" title="Remove item">
+                                                <button type="button" class="sc-btn-remove remove-cart-item" data-key="{{ $item['key'] }}" title="Remove">
                                                     <i class="bi bi-trash3-fill"></i>
                                                 </button>
                                             @endif
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Right Column: Coupon, Summary & Gold Banner -->
-                <div class="col-lg-5 col-xl-4">
 
+                {{-- ═══════════════════════════════════
+                     RIGHT COLUMN — SIDEBAR
+                ═══════════════════════════════════ --}}
+                <div class="col-lg-4">
+                    <div class="sc-sidebar">
 
-                        <!-- Unified Promo Code & Gift Voucher Card -->
-                        @php
-                            $appliedCoupon    = session('applied_coupon', null);
-                            $appliedVoucher   = session('applied_voucher', null);
-                            $appliedCode      = $appliedCoupon['code'] ?? ($appliedVoucher['code'] ?? null);
-                            $availableCoupons = $cartData['available_coupons'] ?? [];
-                            $savedVouchers    = $cartData['available_vouchers'] ?? [];
-                        @endphp
-                
-                        <div class="accordion-row {{ $appliedCode ? 'open' : '' }}" id="coupon-accordion">
-                            <div class="accordion-row-header" onclick="toggleAccordion('coupon-accordion')">
-                                <div>
-                                    <div class="acc-title">
-                                        <i class="bi bi-ticket-perforated-fill" style="color: var(--cart-primary);"></i>
-                                        @if($appliedCode)
-                                            Code <strong>{{ $appliedCode }}</strong> Applied
+                        {{-- @if(!empty($cartData['gift_voucher_perk']))
+                            @php
+                                $perk         = $cartData['gift_voucher_perk'];
+                                $perkIsManual = ($perk['delivery_type'] ?? 'auto') === 'manual';
+                                $perkIsAuto   = !$perkIsManual;
+                            @endphp
+                            <div class="sc-voucher-perk">
+                                <div class="sc-voucher-perk-icon"><i class="bi bi-gift-fill"></i></div>
+                                <div class="sc-voucher-perk-info">
+                                    <div class="sc-voucher-perk-title">{{ $perk['name'] }}</div>
+                                    <div class="sc-voucher-perk-desc">
+                                        @if($perkIsAuto)
+                                            Earn <strong>₹{{ number_format($perk['voucher_value']) }}</strong> voucher on next order
                                         @else
-                                            Apply Coupon or Gift Voucher
-                                        @endif
-                                    </div>
-                                    <div class="acc-subtitle">
-                                        @if($appliedCode)
-                                            Tap to change or remove
-                                        @else
-                                            Check available offers
+                                            @if(!empty($perk['description']))
+                                                {{ Str::limit($perk['description'], 55) }}
+                                            @else
+                                                Apply <strong>{{ $perk['coupon_code'] }}</strong> for ₹{{ number_format($perk['voucher_value']) }} off
+                                            @endif
                                         @endif
                                     </div>
                                 </div>
-                                <div class="acc-arrow"><i class="bi bi-chevron-right"></i></div>
-                            </div>
-                            <div class="accordion-row-body">
-                                <div class="input-group coupon-input-group mb-2">
-                                    <input type="text" id="coupon-code-input" class="form-control text-uppercase" placeholder="ENTER CODE" value="{{ $appliedCode ?? '' }}" style="padding: 10px 14px; font-size: 13px;">
-                                    <button id="apply-coupon-btn" class="btn btn-apply" type="button" style="padding: 10px 16px; font-size: 13px;">APPLY</button>
-                                </div>
-                
-                                @if($appliedCode)
-                                    <div class="d-flex justify-content-between align-items-center py-1 px-2 rounded-2 mb-2" style="background: var(--cart-success-light); font-size: 11.5px; color: var(--cart-success);">
-                                        <span><i class="bi bi-check-circle-fill me-1"></i> <strong>{{ $appliedCode }}</strong> applied!</span>
-                                        <button type="button" id="remove-coupon-btn" class="btn btn-sm btn-link text-danger p-0 fw-bold text-decoration-none" style="font-size:11px;">Remove</button>
-                                    </div>
+                                @if($perkIsManual && !empty($perk['coupon_code']))
+                                    <button type="button" class="sc-btn-apply-quick apply-quick-voucher" data-code="{{ $perk['coupon_code'] }}">Apply</button>
                                 @endif
-                
-                                @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
-                                    <div class="pt-2 border-top mt-1">
-                                        <div class="small fw-semibold text-muted mb-2" style="font-size: 11px;">
-                                            <i class="bi bi-stars me-1 text-warning"></i> Available (tap to apply):
+                            </div>
+                        @endif --}}
+
+                        {{-- Main Sidebar Card --}}
+                        <div class="sc-sidebar-card">
+
+                            {{-- Coupon / Voucher Section --}}
+                            @php
+                                $appliedCoupon    = session('applied_coupon', null);
+                                $appliedVoucher   = session('applied_voucher', null);
+                                $appliedCode      = $appliedCoupon['code'] ?? ($appliedVoucher['code'] ?? null);
+                                $availableCoupons = $cartData['available_coupons'] ?? [];
+                                $savedVouchers    = $cartData['available_vouchers'] ?? [];
+                            @endphp
+
+                            <div class="sc-coupon-section {{ $appliedCode ? 'open' : '' }}" id="sc-coupon-section">
+                                <div class="sc-coupon-header" onclick="document.getElementById('sc-coupon-section').classList.toggle('open')">
+                                    <div>
+                                        <div class="sc-coupon-title">
+                                            <i class="bi bi-ticket-perforated-fill"></i>
+                                            @if($appliedCode)
+                                                <strong>{{ $appliedCode }}</strong> Applied
+                                            @else
+                                                Apply Coupon / Voucher
+                                            @endif
                                         </div>
-                                        <div class="d-flex flex-column gap-2">
+                                        <div class="sc-coupon-subtitle">
+                                            {{ $appliedCode ? 'Tap to change or remove' : 'Check available offers' }}
+                                        </div>
+                                    </div>
+                                    <div class="sc-coupon-arrow"><i class="bi bi-chevron-right"></i></div>
+                                </div>
+                                <div class="sc-coupon-body">
+                                    <div class="sc-input-row">
+                                        <input type="text" id="coupon-code-input" placeholder="Enter coupon code" value="{{ $appliedCode ?? '' }}">
+                                        <button id="apply-coupon-btn" class="sc-btn-apply" type="button">APPLY</button>
+                                    </div>
+
+                                    @if($appliedCode)
+                                        <div class="sc-applied-chip">
+                                            <span><i class="bi bi-check-circle-fill me-1"></i> <strong>{{ $appliedCode }}</strong> applied!</span>
+                                            <button type="button" id="remove-coupon-btn" class="sc-btn-remove-coupon">Remove</button>
+                                        </div>
+                                    @endif
+
+                                    @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
+                                        <div class="sc-available-list">
+                                            <div class="sc-available-label">
+                                                <i class="bi bi-stars text-warning"></i> Available offers
+                                            </div>
                                             @foreach($savedVouchers as $v)
-                                                <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $v['code'] }}" style="background: #f3f0fd; border: 1.5px dashed #6b4bcf !important; font-size: 12px;">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="fw-bold text-uppercase" style="color: #4c28a8;">
-                                                            <i class="bi bi-gift-fill me-1"></i>{{ $v['code'] }}
-                                                        </span>
-                                                        <span class="badge text-white px-2 py-1" style="font-size: 9px; background: #6b4bcf;">₹{{ number_format($v['balance'], 2) }}</span>
-                                                    </div>
+                                                <button type="button" class="sc-available-chip voucher apply-quick-coupon" data-code="{{ $v['code'] }}">
+                                                    <span class="sc-chip-code" style="color:#5b21b6;">
+                                                        <i class="bi bi-gift-fill"></i> {{ $v['code'] }}
+                                                    </span>
+                                                    <span class="sc-chip-tag" style="background:var(--sc-purple);">₹{{ number_format($v['balance'], 0) }}</span>
                                                 </button>
                                             @endforeach
                                             @foreach($availableCoupons as $ac)
-                                                <button type="button" class="btn border p-2 text-start apply-quick-coupon w-100 rounded-3" data-code="{{ $ac['code'] }}" style="background: #f8fafc; border: 1.5px dashed #cbd5e1 !important; font-size: 12px;">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="fw-bold text-primary text-uppercase">
-                                                            <i class="bi bi-ticket-fill me-1"></i>{{ $ac['code'] }}
-                                                        </span>
-                                                        <span class="badge bg-primary text-white px-2 py-1" style="font-size: 9px;">{{ $ac['title'] }}</span>
-                                                    </div>
+                                                <button type="button" class="sc-available-chip apply-quick-coupon" data-code="{{ $ac['code'] }}">
+                                                    <span class="sc-chip-code" style="color:var(--sc-primary);">
+                                                        <i class="bi bi-ticket-fill"></i> {{ $ac['code'] }}
+                                                    </span>
+                                                    <span class="sc-chip-tag" style="background:var(--sc-primary);">{{ $ac['title'] }}</span>
                                                 </button>
                                             @endforeach
                                         </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Loyalty Points --}}
+                            @php
+                                $userBal       = (int)($cartData['available_loyalty_points'] ?? 0);
+                                $orderReward   = (int)($cartData['order_reward_pts'] ?? 0);
+                                $deliveryDate  = $cartData['cashback_release_date'] ?? '';
+                                $useLoyalty    = !empty($cartData['use_loyalty_points']);
+                                $ptsUsed       = (int)($cartData['points_used'] ?? 0);
+                                $pointVal      = (float)($cartData['point_value'] ?? 1.0);
+                                $loyaltyRupees = $useLoyalty ? ($cartData['loyalty_discount'] ?? 0) : ($userBal * $pointVal);
+                            @endphp
+                            <div class="sc-loyalty">
+                                <div class="sc-loyalty-top">
+                                    <span class="sc-loyalty-label">
+                                        <i class="bi bi-stars"></i> Loyalty Points
+                                    </span>
+                                    <span class="sc-loyalty-pts">{{ number_format($userBal) }} pts</span>
+                                </div>
+                                <div class="sc-loyalty-earn">
+                                    <i class="bi bi-gift-fill"></i>
+                                    Earn <strong class="mx-1">{{ number_format($orderReward) }} pts</strong> after delivery · by {{ $deliveryDate }}
+                                </div>
+                                @if($userBal > 0)
+                                    <div class="sc-loyalty-toggle">
+                                        <input type="checkbox" id="toggle-loyalty-checkbox" {{ $useLoyalty ? 'checked' : '' }}>
+                                        <label for="toggle-loyalty-checkbox">
+                                            Use {{ number_format($useLoyalty && $ptsUsed > 0 ? $ptsUsed : $userBal) }} pts
+                                            <span class="sc-loyalty-discount">(−₹{{ number_format($loyaltyRupees, 2) }})</span>
+                                        </label>
                                     </div>
                                 @endif
                             </div>
-                        </div>
-                
-                        {{-- ── Loyalty Points (Compact Row) ── --}}
-                        @php
-                            $userBal       = (int)($cartData['available_loyalty_points'] ?? 0);
-                            $orderReward   = (int)($cartData['order_reward_pts'] ?? 0);
-                            $deliveryDate  = $cartData['cashback_release_date'] ?? '';
-                            $useLoyalty    = !empty($cartData['use_loyalty_points']);
-                            $ptsUsed       = (int)($cartData['points_used'] ?? 0);
-                            $pointVal      = (float)($cartData['point_value'] ?? 1.0);
-                            $loyaltyRupees = $useLoyalty ? ($cartData['loyalty_discount'] ?? 0) : ($userBal * $pointVal);
-                        @endphp
-                        <div class="cart-card p-4 mb-4" style="background: #ffffff; border: 1px solid var(--cart-border-color); border-radius: 16px;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 14.5px;">
-                                    <i class="bi bi-stars me-2" style="color: var(--cart-primary); font-size: 18px;"></i> Your Loyalty Points:
-                                </div>
-                                <span class="fw-extrabold fs-5" style="color: var(--cart-primary);">{{ number_format($userBal) }} pts</span>
-                            </div>
 
-                            @if($userBal > 0)
-                                <div class="loyalty-toggle-row">
-                                    <input class="form-check-input me-2" type="checkbox" id="toggle-loyalty-checkbox" {{ $useLoyalty ? 'checked' : '' }} style="cursor:pointer; width:16px; height:16px; accent-color: var(--cart-primary);">
-                                    <label for="toggle-loyalty-checkbox" style="font-size: 12.5px; font-weight: 600; cursor: pointer;">
-                                        Use {{ number_format($useLoyalty && $ptsUsed > 0 ? $ptsUsed : $userBal) }} pts <span class="text-success">(−₹{{ number_format($loyaltyRupees, 2) }})</span>
-                                    </label>
+                            {{-- Bill Summary --}}
+                            <div class="sc-bill">
+                                <div class="sc-bill-title">Bill Summary</div>
+
+                                <div class="sc-bill-line">
+                                    <span class="sc-bill-label">Frame Subtotal</span>
+                                    <span class="sc-bill-value">₹{{ number_format($cartData['frame_subtotal'], 2) }}</span>
                                 </div>
-                            @endif
-                        </div>
-                
-                        {{-- ── Bill Summary (Compact) ── --}}
-                        <div class="cart-card bill-summary-compact">
-                            <h5 class="fw-bold text-dark border-bottom">Bill Summary</h5>
-                
-                            <div class="bill-line">
-                                <span class="bill-label">Frame Subtotal</span>
-                                <span class="bill-value">₹{{ number_format($cartData['frame_subtotal'], 2) }}</span>
-                            </div>
-                            <div class="bill-line">
-                                <span class="bill-label">Lens Package</span>
-                                <span class="bill-value text-success">+₹{{ number_format($cartData['lens_subtotal'], 2) }}</span>
-                            </div>
-                
-                            @if($cartData['bogo_savings'] > 0)
-                                <div class="bill-line">
-                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-tag-fill me-1"></i>BOGO Savings</span>
-                                    <span class="bill-value text-success">-₹{{ number_format($cartData['bogo_savings'], 2) }}</span>
+                                <div class="sc-bill-line">
+                                    <span class="sc-bill-label">Lens Package</span>
+                                    <span class="sc-bill-value green">+₹{{ number_format($cartData['lens_subtotal'], 2) }}</span>
                                 </div>
-                            @endif
-                            @if(isset($cartData['third_item_savings']) && $cartData['third_item_savings'] > 0)
-                                <div class="bill-line">
-                                    <span class="bill-label text-primary fw-semibold"><i class="bi bi-percent me-1"></i>3rd Pair Savings</span>
-                                    <span class="bill-value" style="color:#1d4ed8;">-₹{{ number_format($cartData['third_item_savings'], 2) }}</span>
+
+                                @if($cartData['bogo_savings'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label green"><i class="bi bi-tag-fill me-1"></i>BOGO Savings</span>
+                                        <span class="sc-bill-value green">-₹{{ number_format($cartData['bogo_savings'], 2) }}</span>
+                                    </div>
+                                @endif
+                                @if(isset($cartData['third_item_savings']) && $cartData['third_item_savings'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label blue"><i class="bi bi-percent me-1"></i>3rd Pair Savings</span>
+                                        <span class="sc-bill-value" style="color:var(--sc-blue);">-₹{{ number_format($cartData['third_item_savings'], 2) }}</span>
+                                    </div>
+                                @endif
+                                @if(isset($cartData['first_frame_free_save']) && $cartData['first_frame_free_save'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label green"><i class="bi bi-gift-fill me-1"></i>First Pair Free</span>
+                                        <span class="sc-bill-value green">-₹{{ number_format($cartData['first_frame_free_save'], 2) }}</span>
+                                    </div>
+                                @endif
+                                @if($cartData['coupon_discount'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label green"><i class="bi bi-percent me-1"></i>Coupon</span>
+                                        <span class="sc-bill-value green">-₹{{ number_format($cartData['coupon_discount'], 2) }}</span>
+                                    </div>
+                                @endif
+                                @if(isset($cartData['voucher_discount']) && $cartData['voucher_discount'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label green"><i class="bi bi-gift-fill me-1"></i>Voucher</span>
+                                        <span class="sc-bill-value green">-₹{{ number_format($cartData['voucher_discount'], 2) }}</span>
+                                    </div>
+                                @endif
+                                @if(isset($cartData['loyalty_discount']) && $cartData['loyalty_discount'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label amber"><i class="bi bi-gem me-1"></i>Loyalty Pts</span>
+                                        <span class="sc-bill-value amber">-₹{{ number_format($cartData['loyalty_discount'], 2) }}</span>
+                                    </div>
+                                @endif
+
+                                <div class="sc-bill-divider"></div>
+
+                                <div class="sc-bill-total">
+                                    <div class="sc-bill-total-label">
+                                        Total Amount
+                                        <small>Inclusive of all taxes</small>
+                                    </div>
+                                    <span class="sc-bill-total-value">₹{{ number_format($cartData['grand_total'], 2) }}</span>
                                 </div>
-                            @endif
-                            @if(isset($cartData['first_frame_free_save']) && $cartData['first_frame_free_save'] > 0)
-                                <div class="bill-line">
-                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-gift-fill me-1"></i>First Pair Free</span>
-                                    <span class="bill-value text-success">-₹{{ number_format($cartData['first_frame_free_save'], 2) }}</span>
-                                </div>
-                            @endif
-                            @if($cartData['coupon_discount'] > 0)
-                                <div class="bill-line">
-                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-percent me-1"></i>Coupon</span>
-                                    <span class="bill-value text-success">-₹{{ number_format($cartData['coupon_discount'], 2) }}</span>
-                                </div>
-                            @endif
-                            @if(isset($cartData['voucher_discount']) && $cartData['voucher_discount'] > 0)
-                                <div class="bill-line">
-                                    <span class="bill-label text-success fw-semibold"><i class="bi bi-gift-fill me-1"></i>Voucher</span>
-                                    <span class="bill-value text-success">-₹{{ number_format($cartData['voucher_discount'], 2) }}</span>
-                                </div>
-                            @endif
-                            @if(isset($cartData['loyalty_discount']) && $cartData['loyalty_discount'] > 0)
-                                <div class="bill-line">
-                                    <span class="bill-label fw-semibold" style="color:#d97706;"><i class="bi bi-gem me-1"></i>Loyalty Pts</span>
-                                    <span class="bill-value" style="color:#d97706;">-₹{{ number_format($cartData['loyalty_discount'], 2) }}</span>
-                                </div>
-                            @endif
-                
-                            <hr class="my-2 opacity-15">
-                
-                            <div class="bill-total-row">
-                                <div class="total-label">
-                                    Total Amount
-                                    <small>Inclusive of all taxes</small>
-                                </div>
-                                <span class="total-value">₹{{ number_format($cartData['grand_total'], 2) }}</span>
-                            </div>
-                
-                            @if(auth()->check())
-                                <a href="{{ route('shipping-details') }}" class="btn btn-cart-primary w-100 d-flex align-items-center justify-content-center text-decoration-none">
-                                    <span>Proceed to Checkout</span>
-                                    <i class="bi bi-arrow-right fs-5 ms-2"></i>
-                                </a>
-                            @else
-                                <button type="button" id="btn-proceed-checkout-auth" class="btn btn-cart-primary w-100 d-flex align-items-center justify-content-center text-decoration-none border-0">
-                                    <span>Proceed to Checkout</span>
-                                    <i class="bi bi-arrow-right fs-5 ms-2"></i>
-                                </button>
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        var checkoutBtn = document.getElementById('btn-proceed-checkout-auth');
-                                        if (checkoutBtn) {
-                                            checkoutBtn.addEventListener('click', function(e) {
-                                                e.preventDefault();
-                                                sessionStorage.setItem('speckart_pending_checkout', '1');
-                                                var modalEl = document.getElementById('speckartLoginModal');
-                                                if (modalEl) {
-                                                    var modal = new bootstrap.Modal(modalEl);
-                                                    modal.show();
-                                                } else {
-                                                    window.location.href = '{{ route("shipping-details") }}';
+
+                                {{-- Desktop Checkout Button --}}
+                                <div class="sc-desktop-checkout">
+                                    @if(auth()->check())
+                                        <a href="{{ route('shipping-details') }}" class="sc-btn-checkout">
+                                            <span>Proceed to Checkout</span>
+                                            <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    @else
+                                        <button type="button" id="btn-proceed-checkout-auth" class="sc-btn-checkout">
+                                            <span>Proceed to Checkout</span>
+                                            <i class="bi bi-arrow-right"></i>
+                                        </button>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                var checkoutBtn = document.getElementById('btn-proceed-checkout-auth');
+                                                if (checkoutBtn) {
+                                                    checkoutBtn.addEventListener('click', function(e) {
+                                                        e.preventDefault();
+                                                        sessionStorage.setItem('speckart_pending_checkout', '1');
+                                                        var modalEl = document.getElementById('speckartLoginModal');
+                                                        if (modalEl) {
+                                                            var modal = new bootstrap.Modal(modalEl);
+                                                            modal.show();
+                                                        } else {
+                                                            window.location.href = '{{ route("shipping-details") }}';
+                                                        }
+                                                    });
                                                 }
                                             });
-                                        }
-                                    });
-                                </script>
-                            @endif
-                
-                            {{-- Cashback reward teaser --}}
-                            @if(isset($cartData['pending_cashback']) && $cartData['pending_cashback'] > 0)
-                                <div class="cashback-banner-compact rounded-2 text-center mt-2" style="background:#ecfdf5; border: 1px dashed #10b981; padding: 8px 10px;">
-                                    <div class="fw-bold text-success d-flex align-items-center justify-content-center" style="font-size: 11px;">
-                                        <i class="bi bi-gift-fill me-1"></i> 🎉 Earn {{ number_format($cartData['pending_cashback'], 0) }} pts · {{ (int)$cartData['cashback_percent'] }}% cashback
-                                    </div>
+                                        </script>
+                                    @endif
                                 </div>
-                            @endif
-                
-                            {{-- Trust badges --}}
-                            <div class="trust-row-compact">
-                                <div><i class="bi bi-shield-check"></i><span>Secure</span></div>
-                                <div><i class="bi bi-truck"></i><span>Free Shipping</span></div>
-                                <div><i class="bi bi-arrow-counterclockwise"></i><span>Easy Returns</span></div>
+
+                                {{-- Cashback Teaser --}}
+                                @if(isset($cartData['pending_cashback']) && $cartData['pending_cashback'] > 0)
+                                    <div class="sc-cashback">
+                                        <i class="bi bi-gift-fill"></i>
+                                        🎉 Earn {{ number_format($cartData['pending_cashback'], 0) }} pts · {{ (int)$cartData['cashback_percent'] }}% cashback
+                                    </div>
+                                @endif
+
+                                {{-- Trust Badges --}}
+                                <div class="sc-trust">
+                                    <div class="sc-trust-item"><i class="bi bi-shield-check"></i><span>Secure</span></div>
+                                    <div class="sc-trust-item"><i class="bi bi-truck"></i><span>Free Shipping</span></div>
+                                    <div class="sc-trust-item"><i class="bi bi-arrow-counterclockwise"></i><span>Easy Returns</span></div>
+                                </div>
                             </div>
                         </div>
-                
-                        {{-- ── Gold Banner (3-State, Compact) ── --}}
+
+                        {{-- Gold Banner --}}
                         @php $bs = $cartData['banner_state'] ?? null; @endphp
                         @if($bs)
                             @if($bs['state'] == 1)
-                                <div class="gold-banner-state1 gold-banner-compact">
-                                    <div class="d-flex align-items-center mb-1">
-                                        <span class="badge px-2 py-1 text-white fw-bold d-inline-flex align-items-center" style="background-color: #d97706; border-radius: 16px; font-size: 10px;">
-                                            <i class="bi bi-award-fill me-1"></i> GOLD MEMBERSHIP
-                                        </span>
-                                    </div>
-                                    <div class="fw-bold text-dark mb-0" style="font-size: 13.5px; line-height: 1.35;">
-                                        {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
-                                    </div>
-                                    <div class="small mb-2" style="font-size: 12px; color: #b45309; font-weight: 600;">
-                                        {{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px dashed #fde68a;">
-                                        <button type="button" id="btn-add-membership" data-card-id="1" class="btn border-0 p-0 fw-bold text-decoration-none d-inline-flex align-items-center" style="font-size: 13px; color: #b45309; background: transparent;">
+                                <div class="sc-gold-banner state1">
+                                    <div class="sc-gold-tag"><i class="bi bi-award-fill"></i> GOLD MEMBERSHIP</div>
+                                    <div class="sc-gold-title">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}</div>
+                                    <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
+                                    <div class="sc-gold-cta">
+                                        <button type="button" id="btn-add-membership" data-card-id="1" class="sc-gold-btn">
                                             <span id="btn-add-membership-text">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }}</span>
-                                            <span id="btn-add-membership-spinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                                            <span id="btn-add-membership-spinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
                                         </button>
-                                        <button type="button" id="btn-add-membership-arrow" data-card-id="1" class="btn btn-sm rounded-circle border-0 d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px; background-color: #d97706; box-shadow: 0 3px 8px rgba(217, 119, 6, 0.3);">
+                                        <button type="button" id="btn-add-membership-arrow" data-card-id="1" class="sc-gold-arrow">
                                             <i class="bi bi-arrow-right"></i>
                                         </button>
                                     </div>
                                 </div>
                             @elseif($bs['state'] == 2)
-                                <div class="cart-card gold-banner-compact" style="background-color: #fff9db; border: 1.5px solid #ffd8a8 !important;">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-1 d-flex align-items-center" style="font-size: 13.5px;">
-                                                <i class="bi bi-award-fill text-warning me-2"></i> {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
-                                            </h6>
-                                            <p class="text-secondary mb-2" style="font-size: 12px; line-height: 1.35;">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</p>
-                                            <a href="{{ $bs['cta_url'] }}" class="fw-bold text-decoration-none d-inline-flex align-items-center" style="color: #e8590c; font-size: 13px;">
-                                                {{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }} <i class="bi bi-chevron-right ms-1"></i>
-                                            </a>
-                                        </div>
-                                        <i class="bi bi-info-circle text-muted"></i>
+                                <div class="sc-gold-banner state2">
+                                    <div class="sc-gold-title" style="display:flex;align-items:center;gap:6px;">
+                                        <i class="bi bi-award-fill text-warning"></i>
+                                        {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
                                     </div>
+                                    <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
+                                    <a href="{{ $bs['cta_url'] }}" class="sc-gold-btn" style="text-decoration:none; color:#e8590c;">
+                                        {{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }} <i class="bi bi-chevron-right"></i>
+                                    </a>
                                 </div>
                             @elseif($bs['state'] == 3)
-                                <div class="cart-card gold-banner-compact mt-0" style="background-color: #fffbeb; border: 1.5px solid #fde68a !important; border-radius: 14px;">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="pe-2">
-                                            <h6 class="fw-bold mb-1" style="font-size: 13px; color: #1c1917;">
-                                                {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
-                                            </h6>
-                                            <p class="mb-0" style="font-size: 11.5px; color: #78350f; line-height: 1.4;">
-                                                {{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}
-                                            </p>
-                                        </div>
-                                        <i class="bi bi-info-circle flex-shrink-0" style="color: #b45309;"></i>
-                                    </div>
+                                <div class="sc-gold-banner state3">
+                                    <div class="sc-gold-title">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}</div>
+                                    <div class="sc-gold-subtitle" style="margin-bottom:0;">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
                                 </div>
                             @endif
                         @endif
-                
+
                     </div>
                 </div>
+
             </div>
+
+            {{-- ═══ MOBILE BOTTOM BAR ═══ --}}
+            <div class="sc-mobile-bar">
+                <div class="sc-mobile-bar-price">
+                    <div class="sc-total-label">Total</div>
+                    <div class="sc-total-value">₹{{ number_format($cartData['grand_total'], 2) }}</div>
+                </div>
+                @if(auth()->check())
+                    <a href="{{ route('shipping-details') }}" class="sc-btn-checkout">
+                        Checkout <i class="bi bi-arrow-right"></i>
+                    </a>
+                @else
+                    <button type="button" class="sc-btn-checkout" onclick="
+                        sessionStorage.setItem('speckart_pending_checkout', '1');
+                        var m = document.getElementById('speckartLoginModal');
+                        if(m) { new bootstrap.Modal(m).show(); } else { window.location.href='{{ route('shipping-details') }}'; }
+                    ">
+                        Checkout <i class="bi bi-arrow-right"></i>
+                    </button>
+                @endif
+            </div>
+
         @endif
     </div>
 </section>
 
-<!-- Cart AJAX Scripts -->
+
+{{-- ═══ CART AJAX SCRIPTS ═══ --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
