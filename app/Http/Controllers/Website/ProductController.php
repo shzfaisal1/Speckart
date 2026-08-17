@@ -112,46 +112,71 @@ class ProductController extends Controller
         }
 
         // Apply product type filters (Frame/Goggles)
+        // Apply product type filters (Frame/Goggles/Contact Lens)
         if ($request->filled('type')) {
-            $query->where('product_type', $request->input('type'));
+            $types = array_filter(array_map('trim', explode(',', $request->input('type'))));
+            $query->whereIn('product_type', $types);
         }
 
-        // Apply Frame Type Filter
+        // Apply Frame Type Filter (Full Rim / Half Rim / Rimless)
         if ($request->filled('frame_type')) {
-            $query->where('Type', $request->input('frame_type'));
+            $frameTypes = array_filter(array_map('trim', explode(',', $request->input('frame_type'))));
+            $query->where(function($q) use ($frameTypes) {
+                foreach ($frameTypes as $ft) {
+                    $q->orWhere('Type', 'LIKE', '%' . $ft . '%');
+                }
+            });
         }
 
-        // Apply Frame Shape Filter
+        // Apply Frame Shape Filter (Round, Rectangle, Aviator, Cat Eye, Square, Wayfarer, Oval, Hexagonal)
         if ($request->filled('shape')) {
-            $query->where('Shape', $request->input('shape'));
+            $shapes = array_filter(array_map('trim', explode(',', $request->input('shape'))));
+            $query->where(function($q) use ($shapes) {
+                foreach ($shapes as $sh) {
+                    $q->orWhere('Shape', 'LIKE', '%' . $sh . '%');
+                }
+            });
         }
 
         // Apply Color Filter
         if ($request->filled('color')) {
-            $query->where('Color', $request->input('color'));
+            $colors = array_filter(array_map('trim', explode(',', $request->input('color'))));
+            $query->where(function($q) use ($colors) {
+                foreach ($colors as $cl) {
+                    $q->orWhere('Color', 'LIKE', '%' . $cl . '%');
+                }
+            });
         }
 
         // Apply Brand/Company Filter
         if ($request->filled('brand')) {
-            $query->where('Company', $request->input('brand'));
+            $brands = array_filter(array_map('trim', explode(',', $request->input('brand'))));
+            $query->whereIn('Company', $brands);
         }
 
         // Apply Modality Filter (Contact Lenses Disposability)
         if ($request->filled('modality')) {
-            $query->where('Modality', $request->input('modality'));
+            $modalities = array_filter(array_map('trim', explode(',', $request->input('modality'))));
+            $query->whereIn('Modality', $modalities);
         }
 
-        // Apply Frame Size Filter
+        // Apply Frame Size Filter (Small, Medium, Large)
         if ($request->filled('size')) {
-            $query->where('Size', $request->input('size'));
+            $sizes = array_filter(array_map('trim', explode(',', $request->input('size'))));
+            $query->where(function($q) use ($sizes) {
+                foreach ($sizes as $sz) {
+                    $q->orWhere('Size', 'LIKE', '%' . $sz . '%');
+                }
+            });
         }
 
         // Apply Material Filter
         if ($request->filled('material')) {
-            $query->where('Material', $request->input('material'));
+            $materials = array_filter(array_map('trim', explode(',', $request->input('material'))));
+            $query->whereIn('Material', $materials);
         }
 
-        // Apply Age Filter (stored as JSON, use LIKE)
+        // Apply Age Filter (stored as JSON/string, use LIKE)
         if ($request->filled('age')) {
             $ageVal = $request->input('age');
             $query->where(function($q) use ($ageVal) {
@@ -161,7 +186,7 @@ class ProductController extends Controller
             });
         }
 
-        // Apply Occasion Filter (stored as JSON, use LIKE)
+        // Apply Occasion Filter (stored as JSON/string, use LIKE)
         if ($request->filled('occasion')) {
             $occVal = $request->input('occasion');
             $query->where(function($q) use ($occVal) {
@@ -171,7 +196,7 @@ class ProductController extends Controller
             });
         }
 
-        // Apply Face Shape Filter (stored as JSON, use LIKE)
+        // Apply Face Shape Filter
         if ($request->filled('face_shape')) {
             $faceVal = $request->input('face_shape');
             $query->where(function($q) use ($faceVal) {
@@ -183,29 +208,57 @@ class ProductController extends Controller
 
         // Apply Sunglass Colour Filter
         if ($request->filled('sunglass_colour')) {
-            $query->where('sunglass_colour', $request->input('sunglass_colour'));
+            $sgColors = array_filter(array_map('trim', explode(',', $request->input('sunglass_colour'))));
+            $query->whereIn('sunglass_colour', $sgColors);
         }
 
         // Apply Price Range Filter
         if ($request->filled('price_range')) {
-            $priceRange = $request->input('price_range');
-            if ($priceRange == 'under_1000') {
-                $query->where('Retail_Price', '<', 1000);
-            } else if ($priceRange == 'under_2000') {
-                $query->where('Retail_Price', '<', 2000);
-            } else if ($priceRange == 'under_5000') {
-                $query->where('Retail_Price', '<', 5000);
-            }
+            $priceRanges = array_filter(array_map('trim', explode(',', $request->input('price_range'))));
+            $query->where(function($q) use ($priceRanges) {
+                foreach ($priceRanges as $pr) {
+                    if ($pr == 'under_1000') {
+                        $q->orWhere('Retail_Price', '<', 1000);
+                    } else if ($pr == 'under_2000') {
+                        $q->orWhere('Retail_Price', '<', 2000);
+                    } else if ($pr == 'under_5000') {
+                        $q->orWhere('Retail_Price', '<', 5000);
+                    }
+                }
+            });
         }
 
-        // Apply Gender Filter (Men / Women / Kids)
+        // Apply Gender Filter (Men / Women / Kids / Unisex)
         if ($request->filled('gender')) {
-            $genderVal = $request->input('gender');
-            $query->where(function($q) use ($genderVal) {
-                $q->where('Gender', 'LIKE', "%{$genderVal}%")
-                  ->orWhere('Gender', 'LIKE', '%Unisex%')
-                  ->orWhere('Gender', '')
-                  ->orWhereNull('Gender');
+            $genders = array_filter(array_map('trim', explode(',', $request->input('gender'))));
+            $query->where(function($q) use ($genders) {
+                foreach ($genders as $g) {
+                    $gLower = strtolower($g);
+                    if ($gLower === 'men') {
+                        // Match 'Men', 'Unisex', or comma-separated lists without matching 'Women'
+                        $q->orWhere(function($subQ) {
+                            $subQ->where('Gender', 'Men')
+                                 ->orWhere('Gender', 'LIKE', '%Unisex%')
+                                 ->orWhere('Gender', 'LIKE', 'Men,%')
+                                 ->orWhere('Gender', 'LIKE', '%,Men%')
+                                 ->orWhere('Gender', 'LIKE', '%,Men')
+                                 ->orWhere('Gender', '')
+                                 ->orWhereNull('Gender');
+                        });
+                    } elseif ($gLower === 'women') {
+                        $q->orWhere(function($subQ) {
+                            $subQ->where('Gender', 'LIKE', '%Women%')
+                                 ->orWhere('Gender', 'LIKE', '%Unisex%')
+                                 ->orWhere('Gender', '')
+                                 ->orWhereNull('Gender');
+                        });
+                    } else {
+                        $q->orWhere('Gender', 'LIKE', "%{$g}%")
+                          ->orWhere('Gender', 'LIKE', '%Unisex%')
+                          ->orWhere('Gender', '')
+                          ->orWhereNull('Gender');
+                    }
+                }
             });
         }
 
