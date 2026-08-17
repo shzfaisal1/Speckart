@@ -676,58 +676,6 @@
 
                 <!-- Right Column: Coupon, Summary & Gold Banner -->
                 <div class="col-lg-5 col-xl-4">
-                        <!-- Dynamic Gift Voucher Perk Banner -->
-                        @if(!empty($cartData['gift_voucher_perk']))
-                            @php
-                                $perk         = $cartData['gift_voucher_perk'];
-                                $perkIsManual = ($perk['delivery_type'] ?? 'auto') === 'manual';
-                                $perkIsAuto   = !$perkIsManual;
-                            @endphp
-                            <div class="cart-card p-3 mb-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #f3f0fd, #e9e3fb); border: 1.5px solid #6b4bcf !important;">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: #6b4bcf; color: #fff; font-size: 20px;">
-                                        <i class="bi bi-gift-fill"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold" style="font-size: 13.5px; color: #4c28a8;">
-                                            {{ $perk['name'] }}
-                                        </div>
-                                        <div class="small text-muted mt-1" style="font-size: 12px; line-height: 1.5;">
-                                            @if($perkIsAuto)
-                                                {{-- Auto-linked: teaser only, no code needed --}}
-                                                Complete this order to unlock a <strong>₹{{ number_format($perk['voucher_value']) }} Gift Voucher</strong> on your next order
-                                                <span class="text-muted">(valid {{ $perk['validity_days'] }} days after issue)</span>.
-                                            @else
-                                                {{-- Manual: they have a code, can apply now --}}
-                                                @if(!empty($perk['description']))
-                                                    {{ $perk['description'] }}
-                                                @else
-                                                    Apply code <strong>{{ $perk['coupon_code'] }}</strong> to get
-                                                    <strong>₹{{ number_format($perk['voucher_value']) }} off</strong> on this order.
-                                                @endif
-                                            @endif
-                                        </div>
-                                    </div>
-                                    {{-- Only manual-type perks show an Apply button on the teaser --}}
-                                    @if($perkIsManual && !empty($perk['coupon_code']))
-                                        <button type="button"
-                                                class="btn btn-sm apply-quick-voucher fw-bold px-3 py-1 flex-shrink-0"
-                                                data-code="{{ $perk['coupon_code'] }}"
-                                                style="background:#6b4bcf;color:#fff;font-size:11px;border-radius:6px;white-space:nowrap;">
-                                            Apply
-                                        </button>
-                                    @endif
-                                </div>
-                                @if($perkIsAuto)
-                                    <div class="mt-2 pt-2 border-top" style="border-color:#c8b7f0 !important;">
-                                        <span style="font-size:11px; color:#6b4bcf;">
-                                            <i class="bi bi-info-circle me-1"></i>
-                                            Voucher will be <strong>auto-credited</strong> to your account — no code needed.
-                                        </span>
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
 
 
                         <!-- Unified Promo Code & Gift Voucher Card -->

@@ -11,15 +11,15 @@
 }
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
     margin-bottom: 24px;
 }
 .kpi-card {
     background: #ffffff;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    padding: 16px 20px;
+    padding: 14px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -29,20 +29,26 @@
 }
 .kpi-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
 }
 .kpi-title {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11.5px;
+    font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 .kpi-value {
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
     margin-top: 4px;
+    line-height: 1.2;
+}
+.kpi-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
 }
 .kpi-icon {
     width: 44px;
@@ -51,11 +57,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 .kpi-icon.primary { background: #e0f2fe; color: #0284c7; }
 .kpi-icon.success { background: #ecfdf5; color: #059669; }
 .kpi-icon.warning { background: #fffbeb; color: #d97706; }
+.kpi-icon.teal    { background: #ccfbf1; color: #0d9488; }
 .kpi-icon.purple  { background: #f3e8ff; color: #9333ea; }
 .kpi-icon.danger  { background: #fef2f2; color: #dc2626; }
 
@@ -286,66 +294,74 @@
         </div>
     </div>
 
-    <!-- KPI Summary Grid -->
+    <!-- KPI Summary Grid (6 Unified Core Metrics) -->
     <div class="kpi-grid">
+        {{-- Card 1: Orders Today --}}
         <a href="{{ route('admin.b2c-orders.index') }}" class="kpi-card">
             <div>
                 <div class="kpi-title">Orders Today</div>
-                <div class="kpi-value">{{ $kpis['orders_today'] }}</div>
+                <div class="kpi-value">{{ $kpis['orders_today'] ?? 0 }}</div>
+                <div class="kpi-sub">Month: {{ $kpis['orders_this_month'] ?? 0 }} total</div>
             </div>
             <div class="kpi-icon primary"><i class="fa fa-shopping-cart"></i></div>
         </a>
 
+        {{-- Card 2: Revenue Today --}}
         <div class="kpi-card">
             <div>
-                <div class="kpi-title">Today's Revenue</div>
-                <div class="kpi-value">₹{{ number_format($kpis['revenue_today'], 0) }}</div>
+                <div class="kpi-title">Revenue Today</div>
+                <div class="kpi-value">₹{{ number_format($kpis['revenue_today'] ?? 0, 0) }}</div>
+                <div class="kpi-sub">Month: ₹{{ number_format($kpis['revenue_this_month'] ?? 0, 0) }}</div>
             </div>
             <div class="kpi-icon success"><i class="fa fa-inr"></i></div>
         </div>
 
-        {{-- Pending Rx Check KPI Card (Temporarily Hidden) --}}
-        {{--
-        <a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="kpi-card">
+        {{-- Card 3: Pending Orders --}}
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'pending']) }}" class="kpi-card">
             <div>
-                <div class="kpi-title">Pending Rx Check</div>
-                <div class="kpi-value" style="color: {{ $kpis['pending_rx'] > 0 ? '#d97706' : '#0f172a' }};">
-                    {{ $kpis['pending_rx'] }}
+                <div class="kpi-title">Pending Orders</div>
+                <div class="kpi-value" style="color: {{ ($kpis['pending_orders'] ?? 0) > 0 ? '#d97706' : '#0f172a' }};">
+                    {{ $kpis['pending_orders'] ?? 0 }}
                 </div>
+                <div class="kpi-sub">Awaiting Processing</div>
             </div>
-            <div class="kpi-icon warning"><i class="fa fa-eye"></i></div>
-        </a>
-        --}}
-
-        {{-- In Lab Cutting KPI Card (Temporarily Hidden) --}}
-        {{--
-        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="kpi-card">
-            <div>
-                <div class="kpi-title">In Lab Cutting</div>
-                <div class="kpi-value">{{ $kpis['in_lab'] }}</div>
-            </div>
-            <div class="kpi-icon purple"><i class="fa fa-cogs"></i></div>
-        </a>
-        --}}
-
-        <a href="{{ route('admin.b2c-orders.index', ['payment_status' => 'failed']) }}" class="kpi-card">
-            <div>
-                <div class="kpi-title">Payment Issues</div>
-                <div class="kpi-value" style="color: {{ $kpis['payment_issues'] > 0 ? '#dc2626' : '#0f172a' }};">
-                    {{ $kpis['payment_issues'] }}
-                </div>
-            </div>
-            <div class="kpi-icon danger"><i class="fa fa-exclamation-triangle"></i></div>
+            <div class="kpi-icon warning"><i class="fa fa-clock-o"></i></div>
         </a>
 
+        {{-- Card 4: Ready To Ship --}}
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'ready_to_ship']) }}" class="kpi-card">
             <div>
-                <div class="kpi-title">Ready to Ship</div>
-                <div class="kpi-value" style="color: {{ $kpis['ready_to_ship'] > 0 ? '#059669' : '#0f172a' }};">
-                    {{ $kpis['ready_to_ship'] }}
+                <div class="kpi-title">Ready To Ship</div>
+                <div class="kpi-value" style="color: {{ ($kpis['ready_to_ship'] ?? 0) > 0 ? '#059669' : '#0f172a' }};">
+                    {{ $kpis['ready_to_ship'] ?? 0 }}
                 </div>
+                <div class="kpi-sub">Awaiting Courier AWB</div>
             </div>
-            <div class="kpi-icon success"><i class="fa fa-truck"></i></div>
+            <div class="kpi-icon teal"><i class="fa fa-truck"></i></div>
+        </a>
+
+        {{-- Card 5: Cancelled Orders --}}
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'cancelled']) }}" class="kpi-card">
+            <div>
+                <div class="kpi-title">Cancelled Orders</div>
+                <div class="kpi-value" style="color: {{ ($kpis['cancelled_orders'] ?? 0) > 0 ? '#dc2626' : '#0f172a' }};">
+                    {{ $kpis['cancelled_orders'] ?? 0 }}
+                </div>
+                <div class="kpi-sub">Month: {{ $kpis['cancelled_this_month'] ?? 0 }} total</div>
+            </div>
+            <div class="kpi-icon danger"><i class="fa fa-times-circle"></i></div>
+        </a>
+
+        {{-- Card 6: Returns / RTO --}}
+        <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'returned']) }}" class="kpi-card">
+            <div>
+                <div class="kpi-title">Returns / RTO</div>
+                <div class="kpi-value" style="color: {{ ($kpis['returns_count'] ?? 0) > 0 ? '#9333ea' : '#0f172a' }};">
+                    {{ $kpis['returns_count'] ?? 0 }}
+                </div>
+                <div class="kpi-sub">Reverse Logistics</div>
+            </div>
+            <div class="kpi-icon purple"><i class="fa fa-undo"></i></div>
         </a>
     </div>
 
