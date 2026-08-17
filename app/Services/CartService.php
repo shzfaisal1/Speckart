@@ -513,24 +513,29 @@ class CartService
             }
         }
 
-        // Check authenticated user's membership (if logged in)
+        // Check authenticated user's membership & customer profile (if logged in)
         $user = auth()->user() ?? null;
         $customerRecord = null;
         if ($user && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
-            $customer = DB::table('tbl_customer')
+            $customerQuery = DB::table('tbl_customer')
                 ->where(function ($q) use ($user) {
                     if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
                     if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
+                    if (!empty($user->contact_no)) $q->orWhere('contact_no', $user->contact_no);
                     if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                    if (!empty($user->name)) $q->orWhere('cust_name', 'LIKE', '%' . $user->name . '%');
                     $q->orWhere('customer_id', $user->id);
                     $q->orWhere('added_by', $user->id);
-                })
-                ->first();
-            $customerRecord = $customer;
+                });
 
-            if ($customer && $customer->membership_card_id && $customer->membership_expiry && \Carbon\Carbon::parse($customer->membership_expiry)->isFuture()) {
+            $customerRecord = (clone $customerQuery)
+                ->orderByDesc('Loyalty_Points_Bal')
+                ->orderByDesc('customer_id')
+                ->first();
+
+            if ($customerRecord && $customerRecord->membership_card_id && $customerRecord->membership_expiry && \Carbon\Carbon::parse($customerRecord->membership_expiry)->isFuture()) {
                 $membershipBogoEnabled = true;
-                $dbCard = DB::table('tbl_membership_card')->where('card_id', $customer->membership_card_id)->first();
+                $dbCard = DB::table('tbl_membership_card')->where('card_id', $customerRecord->membership_card_id)->first();
                 if ($dbCard) {
                     $membershipCard = $dbCard;
                     if (!empty($dbCard->coupon_percent)) {
@@ -761,15 +766,32 @@ class CartService
         if (session()->has('test_loyalty_points')) {
             $availableLoyaltyPoints = (float) session()->get('test_loyalty_points');
         } elseif ($customerRecord) {
-            if (isset($customerRecord->Loyalty_Points_Bal) && $customerRecord->Loyalty_Points_Bal !== null) {
+            if (isset($customerRecord->Loyalty_Points_Bal) && (float)$customerRecord->Loyalty_Points_Bal > 0) {
                 $availableLoyaltyPoints = (float) $customerRecord->Loyalty_Points_Bal;
-            } elseif (isset($customerRecord->Loyalty_Points)) {
+            } elseif (isset($customerRecord->Loyalty_Points) && (float)$customerRecord->Loyalty_Points > 0) {
                 $availableLoyaltyPoints = max(0, (float) ($customerRecord->Loyalty_Points - ($customerRecord->Loyalty_Points_Redeem ?? 0)));
             }
-        } elseif ($user) {
+        }
+
+        if ($availableLoyaltyPoints == 0 && $user) {
             if (isset($user->loyalty_points) && (float)$user->loyalty_points > 0) {
                 $availableLoyaltyPoints = (float) $user->loyalty_points;
-            } elseif (\Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
+            } elseif (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                // Secondary check across all matching contact/email/name entries in tbl_customer
+                $custPts = DB::table('tbl_customer')
+                    ->where(function($q) use ($user) {
+                        if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
+                        if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
+                        if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                        if (!empty($user->name)) $q->orWhere('cust_name', 'LIKE', '%' . $user->name . '%');
+                    })
+                    ->max('Loyalty_Points_Bal');
+                if ($custPts && (float)$custPts > 0) {
+                    $availableLoyaltyPoints = (float)$custPts;
+                }
+            }
+
+            if ($availableLoyaltyPoints == 0 && \Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
                 $earned = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_earned');
                 $used   = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_used');
                 $availableLoyaltyPoints = max(0, $earned - $used);
