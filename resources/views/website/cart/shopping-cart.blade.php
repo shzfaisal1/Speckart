@@ -812,15 +812,11 @@
                             $loyaltyRupees = $useLoyalty ? ($cartData['loyalty_discount'] ?? 0) : ($userBal * $pointVal);
                         @endphp
                         <div class="cart-card p-4 mb-4" style="background: #ffffff; border: 1px solid var(--cart-border-color); border-radius: 16px;">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
                                 <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 14.5px;">
                                     <i class="bi bi-stars me-2" style="color: var(--cart-primary); font-size: 18px;"></i> Your Loyalty Points:
                                 </div>
                                 <span class="fw-extrabold fs-5" style="color: var(--cart-primary);">{{ number_format($userBal) }} pts</span>
-                            </div>
-
-                            <div class="small text-muted mb-3 d-flex align-items-center" style="font-size: 12px; line-height: 1.4;">
-                                <i class="bi bi-gift-fill me-1 text-success"></i> Earn <strong>{{ number_format($orderReward) }} pts</strong> after delivery · credited by {{ $deliveryDate }}
                             </div>
 
                             @if($userBal > 0)
