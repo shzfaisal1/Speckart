@@ -339,12 +339,13 @@
             });
 
             // ──────────────────────────────────────────────
-            // Add to Cart from Wishlist page
+            // Add to Cart from Wishlist page (Auto-remove from wishlist)
             // ──────────────────────────────────────────────
             $(document).on('click', '.btn-add-to-cart', function() {
                 var $btn = $(this);
                 var productId = $btn.data('product-id');
                 var productName = $btn.data('product-name');
+                var $col = $btn.closest('.wishlist-item-col');
                 var originalHtml = $btn.html();
 
                 $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-1"></i> Adding...');
@@ -363,10 +364,22 @@
                             if (response.cart_count !== undefined) {
                                 updateCartBadges(response.cart_count);
                             }
-                            $btn.html('<i class="bi bi-check-circle me-1"></i> Added!');
+                            if (response.wishlist_count !== undefined) {
+                                updateWishlistBadges(response.wishlist_count);
+                            }
+
+                            // Smoothly fade & remove the item card from the Wishlist view
+                            $col.addClass('removing');
                             setTimeout(function() {
-                                $btn.prop('disabled', false).html(originalHtml);
-                            }, 1800);
+                                $col.remove();
+
+                                var remaining = $('.wishlist-item-col').length;
+                                $('#wishlist-title-count').text(remaining + ' Items');
+
+                                if (remaining === 0) {
+                                    $('#wishlist-empty-state').removeClass('d-none');
+                                }
+                            }, 350);
                         } else {
                             toastr.error(response.message || 'Could not add to cart.');
                             $btn.prop('disabled', false).html(originalHtml);
