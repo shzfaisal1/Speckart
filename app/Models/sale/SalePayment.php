@@ -37,6 +37,11 @@ class SalePayment extends Model
         return $this->belongsTo(Sale::class, 'sale_id', 'sale_id');
     }
 
+    public function getIdAttribute()
+    {
+        return $this->payment_id;
+    }
+
     public function getAmountAttribute(): float
     {
         return (float) ($this->pay_amount ?: ($this->total_price ?: 0));
