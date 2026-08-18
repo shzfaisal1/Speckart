@@ -138,6 +138,7 @@ class HomeController extends Controller
         }
         $minDateStr = $startDate->toDateString();
         $maxDateStr = $endDate->toDateString();
+        $stores     = Store::all();
 
         return view('layouts.index', compact(
             'page_title',
