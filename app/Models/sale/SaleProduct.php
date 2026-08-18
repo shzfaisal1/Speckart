@@ -66,4 +66,26 @@ class SaleProduct extends Model
     {
         return $this->belongsTo(\App\Models\LensPackage::class, 'package_id');
     }
+
+    // ── Compatibility Accessors ──────────────────────────────────────────
+
+    public function getProductNameAttribute(): string
+    {
+        return $this->product_deatils ?: 'Eyewear Product';
+    }
+
+    public function getPriceAttribute(): float
+    {
+        return (float) ($this->sale_price ?: ($this->retail_price ?: 0));
+    }
+
+    public function getLineTotalAttribute(): float
+    {
+        return (float) (($this->sale_price ?: ($this->retail_price ?: 0)) * ($this->qty ?: 1));
+    }
+
+    public function getLensNameAttribute(): string
+    {
+        return $this->lens_type ?: ($this->lensPackage->package_name ?? ($this->lensPackage->name ?? 'Standard Lenses'));
+    }
 }

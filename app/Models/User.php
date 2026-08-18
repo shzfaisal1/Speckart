@@ -104,9 +104,14 @@ class User extends Authenticatable
         return asset('assets/img/bg/profile.png');
     }
 
+    public function sales()
+    {
+        return $this->hasMany(\App\Models\sale\Sale::class, 'user_id');
+    }
+
     public function b2cOrders()
     {
-        return $this->hasMany(\App\Models\b2c\B2cOrder::class, 'user_id');
+        return $this->hasMany(\App\Models\sale\Sale::class, 'user_id')->where('sales_type', 0);
     }
 
     public function addresses()
