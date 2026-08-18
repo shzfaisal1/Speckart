@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         $uri = request()->path();     // get the URI path like 'quickdaak/...'
         $subdomain = explode('.',  request()->getHost())[0];
         Route::middleware('web')->group(base_path('routes/auth.php'));
-        $isLocal = ($host === '127.0.0.1' || $host === 'localhost' || $host === '::1' || app()->environment('local'));
+        $isLocal = ($host === '127.0.0.1' || $host === 'localhost');
         if ($subdomain === 'franchise' || $subdomain === 'speckart' || $isLocal) {
             $vendorRoute = Route::middleware('web');
             $adminRoute = Route::middleware('web');
