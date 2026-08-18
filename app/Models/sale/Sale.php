@@ -129,9 +129,14 @@ class Sale extends Model
 
     // ── Accessors ────────────────────────────────────────────────────────
 
+    public function getIdAttribute()
+    {
+        return $this->sale_id;
+    }
+
     public function getCustomerNameAttribute(): string
     {
-        return $this->cust_name ?? $this->guest_name ?? 'Valued Customer';
+        return $this->cust_name ?? ($this->guest_name ?? 'Valued Customer');
     }
 
     public function getCustomerPhoneAttribute(): ?string
@@ -146,11 +151,31 @@ class Sale extends Model
 
     public function getOrderNumberAttribute(): string
     {
-        return $this->order_no ?? '';
+        return $this->order_no ?? ('ORD-' . $this->sale_id);
     }
 
     public function getGrandTotalAttribute()
     {
-        return $this->total_payable;
+        return (float) ($this->total_payable ?: 0);
+    }
+
+    public function getDiscountAmountAttribute()
+    {
+        return (float) ($this->total_discount ?: 0);
+    }
+
+    public function getTaxAmountAttribute()
+    {
+        return (float) ($this->total_gst_amount ?: 0);
+    }
+
+    public function getLoyaltyPointsEarnedAttribute()
+    {
+        return (int) ($this->earnedPoints ?: 0);
+    }
+
+    public function getLoyaltyPointsUsedAttribute()
+    {
+        return (float) ($this->loyalty_point_amount ?: 0);
     }
 }
