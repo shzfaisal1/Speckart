@@ -132,10 +132,14 @@ class HomeController extends Controller
             $cursor->addDay();
         }
 
-        // Stores list for quick filter
-        $stores = Store::all();
+        $availableYears = Sale::selectRaw('DISTINCT YEAR(created_at) as yr')->pluck('yr')->filter()->toArray();
+        if (empty($availableYears)) {
+            $availableYears = [(int) date('Y')];
+        }
+        $minDateStr = $startDate->toDateString();
+        $maxDateStr = $endDate->toDateString();
 
-        return view('admin.home.index', compact(
+        return view('layouts.index', compact(
             'page_title',
             'breadcrumbs',
             'kpis',
@@ -144,6 +148,9 @@ class HomeController extends Controller
             'recentOrders',
             'productMixData',
             'performanceData',
+            'availableYears',
+            'minDateStr',
+            'maxDateStr',
             'stores'
         ));
     }
