@@ -23,7 +23,7 @@ input.loading {
                         <h3>Brand / Company Master</h3>
                         <input type="text" class="form-control input" placeholder="Search By,Company Name" id="search"
                                 name="search" style="width:320px">
-                        <a href="#" class=" btn" data-toggle="modal" data-target="#brandModal">
+                        <a href="javascript:void(0)" class="btn" onclick="openCreateModal()">
                             <span><i class="fa fa-plus" title="" data-original-title="fa fa-plus"></i></span>
                             Add New Brand / Company
                         </a>
@@ -48,12 +48,13 @@ input.loading {
                     <table class="table datatables-basic w-100">
                         <thead>
                             <tr>
-                                <th class="wd-15p">Sr.No</th>
-                                <th class="wd-15p">Company / Brand Name</th>
+                                <th class="wd-10p">Sr.No</th>
+                                <th class="wd-15p">Logo / Image</th>
+                                <th class="wd-20p">Company / Brand Name</th>
                                 <!--<th class="wd-15p">Product</th>-->
                                 <!--<th class="wd-15p">By One Get One</th>-->
                                 <!--<th class="wd-15p">Store</th>-->
-                                <th class="wd-10p">Created At</th>
+                                <th class="wd-15p">Created At</th>
                                 <th class="wd-10p">Action</th>
                             </tr>
                         </thead>
@@ -75,7 +76,7 @@ input.loading {
                 </button>
             </div>
             <div class="modal-body">
-                <form id="brandForm" method="POST"  enctype="multipart/form-data">
+                <form id="brandForm" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="uid" id="uid">
 
@@ -83,61 +84,38 @@ input.loading {
                         <div class="multisteps-form__content1">
                             <div class="row">
                                 <div class="col-md-12">
-                                    <div class="alert alert-danger">
-                                        <ul>
-                                            <li>Fields marked with * are mandatory.</li>
-                                        </ul>
+                                    <div class="alert alert-danger p-2 mb-2" style="font-size: 12px;">
+                                        <span>Fields marked with <span class="text-danger">*</span> are mandatory.</span>
                                     </div>
                                 </div>
                             </div>
-                            <!--<div class="row">-->
-                            <!--    <div class="col-md-12">-->
-                            <!--          <label>Products <span class="text-danger">*</span></label>-->
-                            <!--          <select class="form-control select1 product-type" name="product_type" id="product_type">-->
-                            <!--            <option value="">Select Product Type</option>-->
-                            <!--            <option value="Frame">Frame</option>-->
-                            <!--            <option value="Glass">Glass</option>-->
-                            <!--            <option value="Goggles">Goggles</option>-->
-                            <!--            <option value="Lens">Contact Lens</option>-->
-                            <!--            <option value="Solution">Solution</option>-->
-                            <!--            <option value="Other">Other</option>-->
-                            <!--          </select>-->
-                            <!--        </div>-->
-                            <!--        <span class="error badge text-danger" id="product_typeError"></span>-->
-                            <!--</div>-->
-                            <br>
                             
                             <div class="row">    
                                 <div class="col-12">
-                                    <label for="">Brand  / Company Name <span class="text-danger">*</span></label>
-                                    <input class="form-control"  placeholder="Enter Brand / Company Name" id="brand_name" name="brand_name">
+                                    <label for="brand_name">Brand / Company Name <span class="text-danger">*</span></label>
+                                    <input class="form-control" placeholder="Enter Brand / Company Name" id="brand_name" name="brand_name">
                                     <span class="error badge text-danger" id="brand_nameError"></span>
-
                                 </div>
-                                
                             </div>
-                            <!--<div class="row">    -->
-                            <!--    <div class="col-12">-->
-                            <!--        <label for="">By One Get One</label>-->
-                            <!--        <div class="d-flex">-->
-                            <!--            <div class="form-check form-check-inline">-->
-                            <!--              <input class="form-check-input" type="radio" name="by_one_get_one" id="inlineRadio1" value="1" checked>-->
-                            <!--              <label class="form-check-label" for="inlineRadio1">Yes</label>-->
-                            <!--            </div>-->
-                            <!--            <div class="form-check form-check-inline">-->
-                            <!--              <input class="form-check-input" type="radio" name="by_one_get_one" id="inlineRadio2" value="0">-->
-                            <!--              <label class="form-check-label" for="inlineRadio2">No</label>-->
-                            <!--            </div>-->
-                            <!--        </div>-->
-                            <!--        <span class="error badge text-danger" id="by_one_get_oneError"></span>-->
 
-                            <!--    </div>-->
-                                
-                            <!--</div>-->
+                            <div class="row mt-3">    
+                                <div class="col-12">
+                                    <label for="brand_image">Brand Logo / Image</label>
+                                    <input type="file" class="form-control" id="brand_image" name="image" accept="image/*" onchange="previewBrandImage(this)">
+                                    <small class="text-muted d-block" style="font-size: 11px;">Allowed: JPG, PNG, WEBP, SVG (Max: 2MB)</small>
+                                    
+                                    <div id="brandImagePreviewContainer" class="mt-2" style="display: none;">
+                                        <div class="position-relative d-inline-block">
+                                            <img id="brandImagePreview" src="" alt="Brand Logo Preview" style="max-height: 70px; max-width: 130px; object-fit: contain; border: 1px solid #e2e8f0; padding: 4px; border-radius: 6px; background: #f8f9fa;">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute" style="top: -6px; right: -6px; border-radius: 50%; padding: 2px 6px; font-size: 10px; line-height: 1;" onclick="removeBrandImagePreview()" title="Remove Image">&times;</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                        <div class="button-row d-flex mt-4">
-                            <button class="btn btn-gradient js-btn-next" type="submit" title="Next">Submit
+                            <button class="btn btn-gradient js-btn-next" type="submit" title="Submit">Submit
                             </button>
                         </div>
                     </div>
@@ -157,11 +135,31 @@ $(document).ready(function() {
       width:'100%',
     });
 });
+
+function previewBrandImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('#brandImagePreview').attr('src', e.target.result);
+            $('#brandImagePreviewContainer').show();
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeBrandImagePreview() {
+    $('#brand_image').val('');
+    $('#brandImagePreview').attr('src', '');
+    $('#brandImagePreviewContainer').hide();
+}
 </script>
 <script>
 function openCreateModal()
 {
-    document.getElementById('modalTitle').innerText = 'Brand / Company';
+    document.getElementById('modalTitle').innerText = 'Add Brand / Company';
+    document.getElementById('uid').value = '';
+    document.getElementById('brand_name').value = '';
+    removeBrandImagePreview();
     $('#brandModal').modal('show');
 }
 
@@ -170,18 +168,16 @@ function openEditModal(brand) {
     var brand = JSON.parse(decodeURIComponent(brand));
 
     document.getElementById('modalTitle').innerText = 'Edit Brand / Company';
-
     document.getElementById('brand_name').value = brand.brand_name || '';
-
     document.getElementById('uid').value = brand.brand_id || '';
 
-    // check only if field exists
-    let byOneGetOne = document.querySelector(
-        `input[name="by_one_get_one"][value="${brand.byonegetone}"]`
-    );
-
-    if(byOneGetOne){
-        byOneGetOne.checked = true;
+    $('#brand_image').val('');
+    if (brand.image) {
+        var imgUrl = "{{ asset('') }}" + brand.image;
+        $('#brandImagePreview').attr('src', imgUrl);
+        $('#brandImagePreviewContainer').show();
+    } else {
+        removeBrandImagePreview();
     }
 
     $('#brandModal').modal('show');
@@ -193,30 +189,16 @@ $("#brandForm").submit(function(e)
     e.preventDefault(); 
     
     let isValid = true;
-    let class_name = '';
+    let brand_name = document.getElementById("brand_name").value.trim();
 
     document.querySelectorAll(".error").forEach(el => el.textContent = "");
     document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
 
-    // let brand_name = document.getElementById("brand_name" + class_name).value.trim();
-    // let product_type = document.getElementById("product_type" + class_name).value.trim();
-
-
-    // if (brand_name == '') {
-    //     document.getElementById("brand_nameError" + class_name).textContent = "Company name required.";
-    //     document.getElementById("brand_name" + class_name).classList.add("is-invalid");
-    //     isValid = false;
-    // }
-
-    
-    // if (product_type == '') {
-    //     document.getElementById("product_typeError" + class_name).textContent = "Select Product.";
-    //     document.getElementById("product_type" + class_name).classList.add("is-invalid");
-    //     isValid = false;
-    // }
-
-
-    
+    if (brand_name === '') {
+        document.getElementById("brand_nameError").textContent = "Brand / Company name is required.";
+        document.getElementById("brand_name").classList.add("is-invalid");
+        isValid = false;
+    }
 
     if (!isValid) {
         return;
@@ -233,30 +215,35 @@ $("#brandForm").submit(function(e)
         processData: false,
         contentType: false,
         success: function(response) {
-        if (response) {
-            $.toaster({
-                priority: 'success',
-                title: response.success,
-                message: ''
-            });
-            location.reload();
-        } else {
-            document.querySelectorAll(".error").forEach(el => el.textContent = "");
-            document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
-
+            if (response && response.success) {
+                $('#brandModal').modal('hide');
+                $.toaster({
+                    priority: 'success',
+                    title: response.success,
+                    message: ''
+                });
+                dataListView.draw();
+            } else {
+                document.querySelectorAll(".error").forEach(el => el.textContent = "");
+                document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            if (jqXHR.status === 422) {
+                let errors = jqXHR.responseJSON.errors;
+                if (errors.brand_name) {
+                    $('#brand_nameError').text(errors.brand_name[0]);
+                    $('#brand_name').addClass('is-invalid');
+                }
+                if (errors.image) {
+                    alert(errors.image[0]);
+                }
+            } else {
+                alert('Something went wrong. Please try again.');
+            }
         }
-    }
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-
-    console.log("Status Code:", jqXHR.status);
-    console.log("Response:", jqXHR.responseText);
-    console.log("Error:", errorThrown);
-
+    });
 });
-});
-
-/***********************************************************/
-        
 
 </script>
 
@@ -289,27 +276,14 @@ let dataListView = $('.datatables-basic')
                 "data": "sr_no",
                 orderable: false,
             },
-
+            {
+                "data": "brand_image",
+                orderable: false,
+            },
             {
                 "data": "brand_name",
                 orderable: false,
             },
-            
-            // {
-            //     "data": "product_type",
-            //     orderable: false,
-            // },
-            // {
-            //     "data": "by_one_get_one",
-            //     orderable: false,
-            // },
-            
-            // {
-            //     "data": "store_name",
-            //     orderable: false,
-            // },
-
-
             {
                 "data": "created_at",
                 orderable: false,
@@ -318,11 +292,8 @@ let dataListView = $('.datatables-basic')
                 "data": "action",
                 orderable: false,
                 searchable: false
-            },
-
-            
+            }
         ],
-
         searchDelay: 1500,
         columnDefs: [{
                 // For Responsive

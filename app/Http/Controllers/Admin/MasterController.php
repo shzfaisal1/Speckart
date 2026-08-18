@@ -65,14 +65,14 @@ class MasterController extends Controller
         foreach ($templates as $template) {
             $created_by = User::find($template->added_by);
             
-            if($template->store_id == '0')
+            if($template->store_id == '0' || $template->store_id == null)
             {
-                $store_name = $created_by->user_type;
+                $store_name = $created_by ? ($created_by->user_type ?? 'Admin') : 'Admin';
             }
             else
             {
-                $store_name = Store::find($template->store_id);
-                $store_name = $store_name->store_id;
+                $store = Store::find($template->store_id);
+                $store_name = $store ? $store->store_id : '—';
             }
             
             if($template->by_one_get_one == '0')
@@ -83,16 +83,25 @@ class MasterController extends Controller
             {
                 $by_one_get_one = '<span class="badge badge-success">Yes</span>';
             }
+
+            if (!empty($template->image) && file_exists(public_path($template->image))) {
+                $brand_img = '<a href="' . asset($template->image) . '" target="_blank" title="Click to view full image"><img src="' . asset($template->image) . '" width="45" height="45" style="object-fit:contain; border-radius:6px; background:#f8f9fa; border:1px solid #e2e8f0; padding:2px;" alt="' . htmlspecialchars($template->brand_name, ENT_QUOTES) . '"></a>';
+            } elseif (!empty($template->image)) {
+                $brand_img = '<img src="' . asset($template->image) . '" width="45" height="45" style="object-fit:contain; border-radius:6px; background:#f8f9fa; border:1px solid #e2e8f0; padding:2px;" alt="' . htmlspecialchars($template->brand_name, ENT_QUOTES) . '">';
+            } else {
+                $brand_img = '<span class="badge badge-light text-muted" style="border:1px dashed #cbd5e1; padding:6px 8px;"><i class="fa fa-image me-1"></i> No Image</span>';
+            }
             
-    
-            $nestedData['sr_no']        = $i++;
-            $nestedData['brand_name']   = $template->brand_name;
-            $nestedData['product_type'] = $template->product_type;
-            $nestedData['created_at']   = date('d M, Y h:i A', strtotime($template->created_at))
+            $nestedData['sr_no']          = $i++;
+            $nestedData['brand_image']    = $brand_img;
+            $nestedData['image']          = $template->image;
+            $nestedData['brand_name']     = $template->brand_name;
+            $nestedData['product_type']   = $template->product_type;
+            $nestedData['created_at']     = date('d M, Y h:i A', strtotime($template->created_at))
                                          . '<BR> (' . ($created_by->name ?? '') . ')';
-            $nestedData['brand_id']     = $template->brand_id;
-            $nestedData['store_name']   = $store_name;
-            $nestedData['by_one_get_one']   = $by_one_get_one;
+            $nestedData['brand_id']       = $template->brand_id;
+            $nestedData['store_name']     = $store_name;
+            $nestedData['by_one_get_one'] = $by_one_get_one;
             $nestedData['byonegetone']   = $template->by_one_get_one;
     
             $data[] = $nestedData;
@@ -112,8 +121,9 @@ class MasterController extends Controller
         $user = auth()->user();
         
         $validator = Validator::make($request->all(), [
-            'brand_name'      => 'required|string',
-            'product_type'    => 'nullabe',
+            'brand_name'      => 'required|string|max:150',
+            'product_type'    => 'nullable|string',
+            'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
         ]);
     
         if ($validator->fails()) 
@@ -123,33 +133,60 @@ class MasterController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = 'brand_' . time() . '_' . Str::random(6) . '.' . $image->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/brands');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $image->move($destinationPath, $imageName);
+            $imagePath = 'uploads/brands/' . $imageName;
+        }
         
-        if($request->uid == '')
+        if (empty($request->uid))
         {
-            $brandId = DB::table('tbl_brand')->insertGetId([
-                'brand_name'   => $request->brand_name,
+            $insertData = [
+                'brand_name'     => $request->brand_name,
                 'product_type'   => $request->product_type,
-                'by_one_get_one'   => $request->by_one_get_one,
-                'added_by'     => $user->id,
-                'store_id'     => $user->store_id,
-            ]);
+                'by_one_get_one' => $request->by_one_get_one ?? 1,
+                'image'          => $imagePath,
+                'added_by'       => $user->id,
+                'store_id'       => $user->store_id ?? 1,
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ];
+
+            $brandId = DB::table('tbl_brand')->insertGetId($insertData);
             
             return response()->json(['success' => 'Brand created successfully.']);
         }
         else
         {
-            DB::table('tbl_brand')
-            ->where('brand_id', $request->uid)
-            ->update([
-                'brand_name'   => $request->brand_name,
+            $updateData = [
+                'brand_name'     => $request->brand_name,
                 'product_type'   => $request->product_type,
-                'by_one_get_one'   => $request->by_one_get_one,
-                'updated_at'   => now(),
-            ]);
+                'by_one_get_one' => $request->by_one_get_one,
+                'updated_at'     => now(),
+            ];
+
+            if ($imagePath) {
+                // Delete old image if exists
+                $oldBrand = DB::table('tbl_brand')->where('brand_id', $request->uid)->first();
+                if ($oldBrand && !empty($oldBrand->image) && file_exists(public_path($oldBrand->image))) {
+                    @unlink(public_path($oldBrand->image));
+                }
+                $updateData['image'] = $imagePath;
+            }
+
+            DB::table('tbl_brand')
+                ->where('brand_id', $request->uid)
+                ->update($updateData);
         
-          return response()->json(['success' => 'Brand update successfully.']);
+            return response()->json(['success' => 'Brand updated successfully.']);
         }
-        
     }
     
     
