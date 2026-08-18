@@ -11,6 +11,10 @@ class Sale extends Model
 
     protected $table = 'tbl_sales';
 
+    protected $primaryKey = 'sale_id';
+
+    public $incrementing = true;
+
     protected $fillable = [
         // ── Original POS fields ──────────────────────────────────────────
         'sale_id', 'sale_date', 'order_no', 'contact_no', 'cust_name', 'email_id',
