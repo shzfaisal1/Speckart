@@ -791,9 +791,9 @@ class CartService
                 }
             }
 
-            if ($availableLoyaltyPoints == 0 && \Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
-                $earned = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_earned');
-                $used   = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_used');
+            if ($availableLoyaltyPoints == 0 && \Illuminate\Support\Facades\Schema::hasTable('tbl_sales')) {
+                $earned = (float) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('earnedPoints');
+                $used   = (float) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('loyalty_point_amount');
                 $availableLoyaltyPoints = max(0, $earned - $used);
             }
         }

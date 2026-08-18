@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\b2c\B2cOrder;
+use App\Models\sale\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -23,23 +23,32 @@ class B2cCustomerController extends Controller
         ];
 
         // Base query for registered online users or users with B2C orders
-        $query = User::where(function ($q) {
-            $q->where('user_type', 'B2C')
-              ->orWhereHas('b2cOrders');
-        })->withCount('b2cOrders')
-          ->withSum('b2cOrders as total_spent', 'grand_total')
-          ->with(['b2cOrders' => function ($q) {
-              $q->latest('created_at')->limit(1);
-          }, 'addresses']);
+        $query = User::select('users.*')->where(function ($q) {
+            $q->where('users.user_type', 'B2C')
+              ->orWhereIn('users.id', function ($sub) {
+                  $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+              });
+        })
+        ->with('addresses')
+        ->addSelect([
+            'b2c_orders_count' => DB::table('tbl_sales')
+                ->whereColumn('user_id', 'users.id')
+                ->where('sales_type', 0)
+                ->selectRaw('count(*)'),
+            'total_spent' => DB::table('tbl_sales')
+                ->whereColumn('user_id', 'users.id')
+                ->where('sales_type', 0)
+                ->selectRaw('sum(total_payable)'),
+        ]);
 
         // Omni Search (Name, Email, Phone, Staff ID)
         if ($request->filled('search')) {
             $term = trim($request->input('search'));
             $query->where(function ($q) use ($term) {
-                $q->where('name', 'like', "%{$term}%")
-                  ->orWhere('email', 'like', "%{$term}%")
-                  ->orWhere('phone', 'like', "%{$term}%")
-                  ->orWhere('staff_id', 'like', "%{$term}%");
+                $q->where('users.name', 'like', "%{$term}%")
+                  ->orWhere('users.email', 'like', "%{$term}%")
+                  ->orWhere('users.phone', 'like', "%{$term}%")
+                  ->orWhere('users.staff_id', 'like', "%{$term}%");
             });
         }
 
@@ -47,43 +56,55 @@ class B2cCustomerController extends Controller
         if ($request->filled('order_activity')) {
             $activity = $request->input('order_activity');
             if ($activity === 'has_orders') {
-                $query->has('b2cOrders');
+                $query->whereIn('users.id', function($sub) {
+                    $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+                });
             } elseif ($activity === 'no_orders') {
-                $query->doesntHave('b2cOrders');
+                $query->whereNotIn('users.id', function($sub) {
+                    $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+                });
             }
         }
 
         // Filter by Status (Active / Inactive)
         if ($request->filled('status')) {
             $status = $request->input('status');
-            $query->where('status', $status);
+            $query->where('users.status', $status);
         }
 
         // Filter by Registration Date Range
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->input('date_from'));
+            $query->whereDate('users.created_at', '>=', $request->input('date_from'));
         }
         if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->input('date_to'));
+            $query->whereDate('users.created_at', '<=', $request->input('date_to'));
         }
 
         // KPI Counts
         $kpis = [
             'total_customers' => User::where(function ($q) {
-                $q->where('user_type', 'B2C')->orWhereHas('b2cOrders');
+                $q->where('user_type', 'B2C')->orWhereIn('id', function($sub) {
+                    $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+                });
             })->count(),
             'active_customers' => User::where(function ($q) {
-                $q->where('user_type', 'B2C')->orWhereHas('b2cOrders');
+                $q->where('user_type', 'B2C')->orWhereIn('id', function($sub) {
+                    $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+                });
             })->where('status', 1)->count(),
             'customers_with_orders' => User::where(function ($q) {
-                $q->where('user_type', 'B2C')->orWhereHas('b2cOrders');
-            })->has('b2cOrders')->count(),
-            'total_online_orders' => B2cOrder::count(),
-            'total_online_revenue' => B2cOrder::sum('grand_total') ?? 0,
+                $q->where('user_type', 'B2C')->orWhereIn('id', function($sub) {
+                    $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+                });
+            })->whereIn('id', function($sub) {
+                $sub->select('user_id')->from('tbl_sales')->where('sales_type', 0)->whereNotNull('user_id');
+            })->count(),
+            'total_online_orders' => Sale::b2c()->count(),
+            'total_online_revenue' => Sale::b2c()->sum('total_payable') ?? 0,
         ];
 
         // Sort by newest registered first
-        $customers = $query->latest('created_at')->paginate(20)->withQueryString();
+        $customers = $query->latest('users.created_at')->paginate(20)->withQueryString();
 
         // Attach Membership & Loyalty Points to each customer
         foreach ($customers as $cust) {
@@ -121,10 +142,14 @@ class B2cCustomerController extends Controller
 
             // Fallback points calculation from orders if tbl_customer not initialized
             if ($cust->loyalty_points === 0) {
-                $earned = B2cOrder::where('user_id', $cust->id)->sum('loyalty_points_earned') ?? 0;
-                $used   = B2cOrder::where('user_id', $cust->id)->sum('loyalty_points_used') ?? 0;
+                $earned = Sale::b2c()->where('user_id', $cust->id)->sum('earnedPoints') ?? 0;
+                $used   = Sale::b2c()->where('user_id', $cust->id)->sum('loyalty_point_amount') ?? 0;
                 $cust->loyalty_points = max(0, (int)($earned - $used));
             }
+            
+            // Get latest order for frontend compatibility
+            $cust->latest_order = Sale::b2c()->where('user_id', $cust->id)->latest('created_at')->first();
+            $cust->b2cOrders = $cust->latest_order ? collect([$cust->latest_order]) : collect([]);
         }
 
         return view('admin.b2c_customers.index', compact('customers', 'kpis', 'page_title', 'breadcrumbs'));
@@ -135,10 +160,10 @@ class B2cCustomerController extends Controller
      */
     public function show($id)
     {
-        $customer = User::with(['b2cOrders.items', 'addresses'])
-            ->withCount('b2cOrders')
-            ->withSum('b2cOrders as total_spent', 'grand_total')
-            ->findOrFail($id);
+        $customer = User::with(['addresses'])->findOrFail($id);
+        
+        $customer->b2c_orders_count = DB::table('tbl_sales')->where('user_id', $customer->id)->where('sales_type', 0)->count();
+        $customer->total_spent = DB::table('tbl_sales')->where('user_id', $customer->id)->where('sales_type', 0)->sum('total_payable');
 
         $page_title  = 'Customer 360°: ' . $customer->name;
         $breadcrumbs = [
@@ -148,18 +173,19 @@ class B2cCustomerController extends Controller
         ];
 
         // Fetch customer's order history
-        $orders = B2cOrder::with(['items', 'payments'])
-            ->where('user_id', $customer->id)
-            ->orWhere('guest_email', $customer->email)
-            ->orWhere('guest_phone', $customer->phone)
+        $orders = Sale::b2c()->with(['products', 'payments'])
+            ->where('cust_id', $customer->id)
+            ->orWhere('contact_no', $customer->phone)
+            ->orWhere('email_id', $customer->email)
+            ->orWhere('user_id', $customer->id)
             ->latest('created_at')
             ->get();
 
         // Resolve Membership & Loyalty
         $customer->loyalty_points = 0;
         $customer->membership     = null;
-        $customer->points_earned  = $orders->sum('loyalty_points_earned') ?? 0;
-        $customer->points_used    = $orders->sum('loyalty_points_used') ?? 0;
+        $customer->points_earned  = $orders->sum('earnedPoints') ?? 0;
+        $customer->points_used    = $orders->sum('loyalty_point_amount') ?? 0;
 
         if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
             $dbCust = DB::table('tbl_customer')

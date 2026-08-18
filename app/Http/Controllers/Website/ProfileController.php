@@ -54,10 +54,10 @@ class ProfileController extends Controller
             $loyaltyPoints = (int) $user->loyalty_points;
         }
 
-        // Fallback: check earned minus used from b2c_orders
-        if ($loyaltyPoints === 0 && Schema::hasTable('b2c_orders')) {
-            $earned = (int) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_earned');
-            $used   = (int) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_used');
+        // Fallback: check earned minus used from tbl_sales
+        if ($loyaltyPoints === 0 && Schema::hasTable('tbl_sales')) {
+            $earned = (int) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('earnedPoints');
+            $used   = (int) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('loyalty_point_amount');
             $loyaltyPoints = max(0, $earned - $used);
         }
 
