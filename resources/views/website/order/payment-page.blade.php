@@ -481,6 +481,7 @@
         const radios = document.querySelectorAll('input[name="payment_method"]');
         const form   = document.getElementById('checkoutPaymentForm');
         const btn    = document.getElementById('btnPlaceOrder');
+        const codConfirm = document.getElementById('codConfirm');
 
         function syncSelectedState(){
             radios.forEach((r) => {
@@ -489,8 +490,27 @@
         }
 
         radios.forEach((r) => {
-            r.addEventListener('change', syncSelectedState);
+            r.addEventListener('change', function(){
+                syncSelectedState();
+                if (typeof toastr !== 'undefined') {
+                    if (this.value === 'online') {
+                        toastr.info('Selected: Pay Online (Instant & Secure)', 'Payment Method');
+                    } else if (this.value === 'cod') {
+                        toastr.info('Selected: Cash on Delivery. Please check the agreement box below.', 'Payment Method');
+                    }
+                }
+            });
         });
+
+        if (codConfirm) {
+            codConfirm.addEventListener('change', function(){
+                if (this.checked) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('Cash on Delivery confirmed for ₹{{ number_format($grandTotal, 0) }}', 'COD Agreed');
+                    }
+                }
+            });
+        }
 
         syncSelectedState();
 
@@ -500,13 +520,21 @@
                 const method = selectedRadio ? selectedRadio.value : 'online';
 
                 if (method === 'cod') {
-                    const codConfirm = document.getElementById('codConfirm');
                     if (codConfirm && !codConfirm.checked) {
                         e.preventDefault();
-                        alert('Please check the confirmation box to place Cash on Delivery order.');
+                        if (typeof toastr !== 'undefined') {
+                            toastr.warning('Please check the confirmation box to place Cash on Delivery order.', 'Confirmation Required');
+                        } else {
+                            alert('Please check the confirmation box to place Cash on Delivery order.');
+                        }
                         codConfirm.focus();
                         return false;
                     }
+                }
+
+                // Show processing toast
+                if (typeof toastr !== 'undefined') {
+                    toastr.info('Placing your order... Please do not refresh the page.', 'Processing Order');
                 }
 
                 // Prevent multiple clicks
