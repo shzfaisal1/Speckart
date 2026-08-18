@@ -1728,6 +1728,46 @@
                                 @endif
                             </div>
 
+                            {{-- Gold Membership Upsell / Status Card (Prominent Lenskart Position) --}}
+                            @php $bs = $cartData['banner_state'] ?? null; @endphp
+                            @if($bs)
+                                @if($bs['state'] == 1)
+                                    <div class="sc-gold-banner state1 mb-3">
+                                        <div class="sc-gold-tag"><i class="bi bi-award-fill"></i> GOLD MEMBERSHIP</div>
+                                        <div class="sc-gold-title">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}</div>
+                                        <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
+                                        <div class="sc-gold-cta">
+                                            <button type="button" id="btn-add-membership" data-card-id="1" class="sc-gold-btn">
+                                                <span id="btn-add-membership-text">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }}</span>
+                                                <span id="btn-add-membership-spinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+                                            </button>
+                                            <button type="button" id="btn-add-membership-arrow" data-card-id="1" class="sc-gold-arrow">
+                                                <i class="bi bi-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @elseif($bs['state'] == 2)
+                                    <div class="sc-gold-banner state2 mb-3">
+                                        <div class="sc-gold-title" style="display:flex;align-items:center;gap:6px;">
+                                            <i class="bi bi-award-fill text-warning"></i>
+                                            {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
+                                        </div>
+                                        <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
+                                        <a href="{{ $bs['cta_url'] }}" class="sc-gold-btn" style="text-decoration:none; color:#e8590c;">
+                                            {{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }} <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </div>
+                                @elseif($bs['state'] == 3)
+                                    <div class="sc-gold-banner state3 mb-3">
+                                        <div class="sc-gold-title" style="display:flex;align-items:center;gap:6px;">
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                            {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
+                                        </div>
+                                        <div class="sc-gold-subtitle" style="margin-bottom:0;">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
+                                    </div>
+                                @endif
+                            @endif
+
                             {{-- Bill Summary --}}
                             <div class="sc-bill">
                                 <div class="sc-bill-title">Bill Summary</div>
@@ -1837,43 +1877,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        {{-- Gold Banner --}}
-                        @php $bs = $cartData['banner_state'] ?? null; @endphp
-                        @if($bs)
-                            @if($bs['state'] == 1)
-                                <div class="sc-gold-banner state1">
-                                    <div class="sc-gold-tag"><i class="bi bi-award-fill"></i> GOLD MEMBERSHIP</div>
-                                    <div class="sc-gold-title">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}</div>
-                                    <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
-                                    <div class="sc-gold-cta">
-                                        <button type="button" id="btn-add-membership" data-card-id="1" class="sc-gold-btn">
-                                            <span id="btn-add-membership-text">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }}</span>
-                                            <span id="btn-add-membership-spinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
-                                        </button>
-                                        <button type="button" id="btn-add-membership-arrow" data-card-id="1" class="sc-gold-arrow">
-                                            <i class="bi bi-arrow-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            @elseif($bs['state'] == 2)
-                                <div class="sc-gold-banner state2">
-                                    <div class="sc-gold-title" style="display:flex;align-items:center;gap:6px;">
-                                        <i class="bi bi-award-fill text-warning"></i>
-                                        {{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}
-                                    </div>
-                                    <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
-                                    <a href="{{ $bs['cta_url'] }}" class="sc-gold-btn" style="text-decoration:none; color:#e8590c;">
-                                        {{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }} <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </div>
-                            @elseif($bs['state'] == 3)
-                                <div class="sc-gold-banner state3">
-                                    <div class="sc-gold-title">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}</div>
-                                    <div class="sc-gold-subtitle" style="margin-bottom:0;">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
-                                </div>
-                            @endif
-                        @endif
 
                     </div>
                 </div>
