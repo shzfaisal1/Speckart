@@ -160,17 +160,7 @@ class CheckoutController extends Controller
                 'cust_id'             => $custId,
                 'added_by'            => $addedBy,
                 'earnedPoints'        => (int)($cartData['order_reward_pts'] ?? 0),
-                'user_id'             => $user->id ?? null,
-                'order_status'        => 'pending',
-                'payment_status'      => ($paymentMethod === 'cod') ? 'cod_pending' : 'paid',
-                'rx_verification_status' => $hasAnyRx ? 'pending_review' : 'not_required',
-                'is_rx_required'      => $hasAnyRx,
-                'delivery_method'     => 'standard',
-                'device_type'         => 'web',
-                'customer_note'       => $request->input('customer_note'),
-                'frame_total'         => $frameSubtotal,
-                'lens_total'          => $lensSubtotal,
-                'shipping_address_snapshot' => json_encode($shipping),
+                'deletordercomment'   => $request->input('customer_note'),
                 'created_at'          => Carbon::now(),
                 'updated_at'          => Carbon::now(),
             ];
@@ -203,7 +193,6 @@ class CheckoutController extends Controller
                         'sale_price'       => (float)($item['frame_price'] ?? 0),
                         'store_id'         => $storeDbId,
                         'product_id'       => $item['frame_id'] ?? null,
-                        'item_status'      => 'pending',
                     ]);
                     continue;
                 }
@@ -244,13 +233,10 @@ class CheckoutController extends Controller
                     'product_company'    => $item['brand'] ?? null,
                     'product_size'       => $item['size'] ?? null,
                     'prescription_notes' => $prescriptionNotes,
-                    'prescription_source'=> is_array($rx) ? ($rx['source'] ?? 'manual_entry') : 'manual_entry',
-                    'prescription_file_url' => is_array($rx) ? ($rx['file_url'] ?? null) : null,
-                    'lens_type'          => $item['lens_name'] ?? ($item['lens_type'] ?? null),
-                    'lens_coating'       => $item['lens_coating'] ?? null,
-                    'lens_index'         => $item['lens_index'] ?? null,
-                    'lens_package_price' => $lensPrice,
-                    'frame_sku'          => $item['frame_code'] ?? null,
+                    'product_typesss'    => $item['lens_name'] ?? ($item['lens_type'] ?? null),
+                    'product_coating'    => $item['lens_coating'] ?? null,
+                    'product_index'      => $item['lens_index'] ?? null,
+                    'frame_fh'           => is_array($rx) ? ($rx['fitting_height'] ?? ($rx['fh'] ?? null)) : null,
                     'GL_EYE_RS_D'        => is_array($rx) ? ($rx['GL_EYE_RS_D'] ?? ($rx['re_sph'] ?? null)) : null,
                     'GL_EYE_RC_D'        => is_array($rx) ? ($rx['GL_EYE_RC_D'] ?? ($rx['re_cyl'] ?? null)) : null,
                     'GL_EYE_RA_D'        => is_array($rx) ? ($rx['GL_EYE_RA_D'] ?? ($rx['re_axis'] ?? null)) : null,
@@ -260,28 +246,22 @@ class CheckoutController extends Controller
                     'GL_EYE_LA_D'        => is_array($rx) ? ($rx['GL_EYE_LA_D'] ?? ($rx['le_axis'] ?? null)) : null,
                     'GL_EYE_LADD'        => is_array($rx) ? ($rx['GL_EYE_LADD'] ?? ($rx['le_add'] ?? null)) : null,
                     'GL_EYE_totalPD'     => is_array($rx) ? ($rx['GL_EYE_totalPD'] ?? ($rx['pd'] ?? null)) : null,
-                    'GL_EYE_RPD'         => is_array($rx) ? ($rx['GL_EYE_RPD'] ?? ($rx['re_pd'] ?? null)) : null,
-                    'GL_EYE_LPD'         => is_array($rx) ? ($rx['GL_EYE_LPD'] ?? ($rx['le_pd'] ?? null)) : null,
-                    'fitting_height'     => is_array($rx) ? ($rx['fitting_height'] ?? ($rx['fh'] ?? null)) : null,
-                    'item_status'        => 'pending',
                 ]);
             }
 
             // Create SalePayment record
             SalePayment::create([
-                'sale_id'         => $saleId,
-                'order_no'        => $orderNo,
-                'total_price'     => $grandTotal,
-                'pay_amount'      => $payAmount,
-                'bal_amount'      => $pendingAmount,
-                'pay_method'      => strtoupper($paymentMethod),
-                'pay_type'        => 0, // 0 = Initial Sale Payment
-                'pay_date'        => Carbon::now()->toDateString(),
-                'store_id'        => $storeDbId,
-                'added_by'        => $addedBy,
-                'payment_gateway' => $paymentMethod,
-                'gateway_status'  => ($paymentMethod === 'cod') ? 'pending' : 'success',
-                'paid_at'         => ($paymentMethod === 'cod') ? null : Carbon::now(),
+                'sale_id'     => $saleId,
+                'order_no'    => $orderNo,
+                'total_price' => $grandTotal,
+                'pay_amount'  => $payAmount,
+                'bal_amount'  => $pendingAmount,
+                'pay_method'  => strtoupper($paymentMethod),
+                'pay_type'    => 0, // 0 = Initial Sale Payment
+                'pay_date'    => Carbon::now()->toDateString(),
+                'store_id'    => $storeDbId,
+                'added_by'    => $addedBy,
+                'sales_type'  => 0,
             ]);
 
             // 10. Activate Membership if purchased

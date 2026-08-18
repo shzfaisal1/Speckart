@@ -617,22 +617,9 @@
                             </li>
                         </ul>
 
-                        @php
-                            $inCart = (session()->has('cart_membership') && session('cart_membership.card_id') == $card->card_id);
-                        @endphp
-                        @if($inCart)
-                            <a href="{{ route('cart') }}" class="vip-btn-plan" style="background:#10b981; color:#fff; text-align:center; text-decoration:none;">
-                                <i class="bi bi-check-circle-fill me-1"></i> Added to Cart · View Cart
-                            </a>
-                        @else
-                            <form action="{{ route('cart.add_membership') }}" method="POST" class="m-0 p-0">
-                                @csrf
-                                <input type="hidden" name="card_id" value="{{ $card->card_id }}">
-                                <button type="submit" class="vip-btn-plan">
-                                    Get {{ $card->card_name }} Plan
-                                </button>
-                            </form>
-                        @endif
+                        <a href="{{ route('cart') }}" class="vip-btn-plan">
+                            Get {{ $card->card_name }} Plan
+                        </a>
                     </div>
                 </div>
                 @empty
