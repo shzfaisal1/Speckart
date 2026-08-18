@@ -174,8 +174,13 @@ class Sale extends Model
         return (int) ($this->earnedPoints ?: 0);
     }
 
-    public function getLoyaltyPointsUsedAttribute()
+    public function getSubtotalAttribute()
     {
-        return (float) ($this->loyalty_point_amount ?: 0);
+        return (float) ($this->total_item_price ?: ($this->total_basic_amount ?: $this->total_payable));
+    }
+
+    public function getCouponCodeAttribute(): ?string
+    {
+        return $this->earncoupon;
     }
 }

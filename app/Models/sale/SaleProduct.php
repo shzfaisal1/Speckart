@@ -59,7 +59,7 @@ class SaleProduct extends Model
 
     public function product()
     {
-        return $this->belongsTo(\App\Models\product\ProductCode::class, 'product_id');
+        return $this->belongsTo(\App\Models\product\Product::class, 'product_id');
     }
 
     public function lensPackage()
@@ -87,5 +87,28 @@ class SaleProduct extends Model
     public function getLensNameAttribute(): string
     {
         return $this->lens_type ?: ($this->lensPackage->package_name ?? ($this->lensPackage->name ?? 'Standard Lenses'));
+    }
+
+    public function getFrameColorAttribute(): ?string
+    {
+        return $this->product_color;
+    }
+
+    public function getFrameSizeAttribute(): ?string
+    {
+        return $this->product_size;
+    }
+
+    public function getTotalPriceAttribute(): float
+    {
+        return (float) (($this->sale_price ?: ($this->retail_price ?: 0)) * ($this->qty ?: 1));
+    }
+
+    public function hasPrescription(): bool
+    {
+        return !empty($this->prescription_notes) ||
+               !empty($this->prescription_file_url) ||
+               !empty($this->GL_EYE_RS_D) ||
+               !empty($this->GL_EYE_LS_D);
     }
 }

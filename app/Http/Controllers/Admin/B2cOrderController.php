@@ -426,7 +426,7 @@ class B2cOrderController extends Controller
         $ids    = $request->input('order_ids');
         $status = $request->input('bulk_status');
 
-        Sale::whereIn('id', $ids)->where('sales_type', 0)->update(['order_status' => $status]);
+        Sale::whereIn('sale_id', $ids)->where('sales_type', 0)->update(['order_status' => $status]);
 
         return redirect()->back()->with('success', count($ids) . " orders updated to " . ucfirst(str_replace('_', ' ', $status)));
     }
