@@ -1427,6 +1427,11 @@
                                                         @if(!empty($item['brand']))
                                                             <span class="sc-brand">{{ $item['brand'] }}</span>
                                                         @endif
+                                                        @if(!empty($item['product_type']))
+                                                            <span class="sc-size-tag" style="background:#e0f2f1; color:#07484A; font-weight:600;">
+                                                                <i class="bi bi-eyeglasses me-1" style="font-size:10px;"></i>{{ ucfirst($item['product_type']) }}
+                                                            </span>
+                                                        @endif
                                                         @if(!empty($item['size']))
                                                             <span class="sc-size-tag">Size: {{ $item['size'] }}</span>
                                                         @endif
