@@ -36,4 +36,19 @@ class SalePayment extends Model
     {
         return $this->belongsTo(Sale::class, 'sale_id', 'sale_id');
     }
+
+    public function getAmountAttribute(): float
+    {
+        return (float) ($this->pay_amount ?: ($this->total_price ?: 0));
+    }
+
+    public function getStatusAttribute(): string
+    {
+        return $this->gateway_status ?: 'success';
+    }
+
+    public function getMethodAttribute(): string
+    {
+        return $this->payment_gateway ?: ($this->pay_method ?: 'Online');
+    }
 }
