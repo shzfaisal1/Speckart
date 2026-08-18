@@ -306,10 +306,7 @@ class OrderController extends Controller
      */
     public function cancel_order(Request $request, $id)
     {
-        $sale = Sale::where('sale_id', $id)
-            ->orWhere('id', $id)
-            ->orWhere('order_no', $id)
-            ->first();
+        $sale = Sale::find($id);
 
         if ($sale) {
             $sale->order_status = 'cancelled';
@@ -331,7 +328,7 @@ class OrderController extends Controller
         $cartService = app(CartService::class);
         $added = 0;
 
-        $sale = Sale::with('products')->where('sale_id', $id)->orWhere('id', $id)->orWhere('order_no', $id)->first();
+        $sale = Sale::with('products')->find($id);
         if ($sale && $sale->products->isNotEmpty()) {
             foreach ($sale->products as $item) {
                 if ($item->product_id) {

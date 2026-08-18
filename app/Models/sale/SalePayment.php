@@ -11,6 +11,8 @@ class SalePayment extends Model
 
     protected $table = 'tbl_sale_payment';
 
+    protected $primaryKey = 'payment_id';
+
     protected $fillable = [
         // ── Original POS fields ──────────────────────────────────────────
         'payment_id', 'sale_id', 'order_no', 'total_price', 'pay_amount',

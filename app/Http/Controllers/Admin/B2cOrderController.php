@@ -221,9 +221,9 @@ class B2cOrderController extends Controller
         if ($request->has('item_id') && $request->has('items_power')) {
             $itemId = $request->input('item_id');
             $powers = $request->input('items_power');
-            $item = SaleProduct::where('sale_id', $order->id)->where('id', $itemId)->first();
+            $item = SaleProduct::where('sale_id', $order->sale_id)->where('id', $itemId)->first();
             if (!$item) {
-                $item = SaleProduct::where('sale_id', $order->id)->first();
+                $item = SaleProduct::where('sale_id', $order->sale_id)->first();
             }
             if ($item && is_array($powers)) {
                 $item->update([
@@ -242,7 +242,7 @@ class B2cOrderController extends Controller
             }
         } elseif ($request->has('items') && is_array($request->input('items'))) {
             foreach ($request->input('items') as $itemId => $powers) {
-                $item = SaleProduct::where('sale_id', $order->id)->where('id', $itemId)->first();
+                $item = SaleProduct::where('sale_id', $order->sale_id)->where('id', $itemId)->first();
                 if ($item) {
                     $item->update([
                         'GL_EYE_RS_D'    => (isset($powers['GL_EYE_RS_D']) && $powers['GL_EYE_RS_D'] !== '') ? $powers['GL_EYE_RS_D'] : $item->GL_EYE_RS_D,
