@@ -183,4 +183,46 @@ class Sale extends Model
     {
         return $this->earncoupon;
     }
+
+    public function getShippingFeeAttribute(): float
+    {
+        return (float) ($this->shipping_fee ?? 0);
+    }
+
+    public function getFullAddressTextAttribute(): string
+    {
+        if (!empty($this->shipping_address_snapshot)) {
+            $addr = json_decode($this->shipping_address_snapshot, true);
+            if (is_array($addr)) {
+                return trim(($addr['full_address'] ?? ($addr['address'] ?? '')) . ', ' . ($addr['city'] ?? '') . ', ' . ($addr['state'] ?? '') . ' ' . ($addr['pincode'] ?? ''));
+            }
+        }
+        return (string) ($this->address ?? ($this->cust_address ?? 'No address provided'));
+    }
+
+    public function getLogsAttribute()
+    {
+        return collect([]);
+    }
+
+    public function getNotesAttribute()
+    {
+        $notes = collect([]);
+        if (!empty($this->admin_note)) {
+            $notes->push((object)[
+                'note'       => $this->admin_note,
+                'user'       => (object)['name' => 'Admin Staff'],
+                'created_at' => $this->updated_at ?? now(),
+            ]);
+        }
+        return $notes;
+    }
+
+    public function getOptometristAttribute()
+    {
+        if (!empty($this->verified_by)) {
+            return \App\Models\User::find($this->verified_by);
+        }
+        return null;
+    }
 }

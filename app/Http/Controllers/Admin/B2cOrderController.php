@@ -135,7 +135,6 @@ class B2cOrderController extends Controller
             'products.lensPackage',
             'payments',
             'user',
-            'offer',
         ])->findOrFail($id);
 
         $order->membership_type = null;
