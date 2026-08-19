@@ -577,9 +577,223 @@
 </section>
 <!-- end new-arrivals-section -->
 
-<!-- shop-by-brand-section -->
-@if(isset($brands) && count($brands) > 0)
-<section class="shop-by-brand-section">
+<!-- ══════════════════════════════════════════════════════
+     SHOP BY BRANDS (MODERN LUXURY BRAND CARDS - NO CELEBRITY)
+══════════════════════════════════════════════════════ -->
+<style>
+.shop-by-brand-section-modern { 
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    padding: 55px 0 20px 0;
+    position: relative;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.brand-section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.brand-eyebrow-badge {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #008f8f;
+    background: #e6f8f8;
+    border: 1px solid rgba(0, 180, 180, 0.3);
+    padding: 5px 16px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.brand-main-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.brand-main-title span {
+    color: #00b4b4;
+}
+
+.brand-sub-title {
+    font-size: 14.5px;
+    color: #64748b;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* Brand Card */
+.brand-slider-wrapper {
+    position: relative;
+    padding: 0 6px;
+}
+
+.brand-card-modern {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 28px 22px;
+    margin: 12px;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 330px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.brand-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #02045c, #00b4b4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.brand-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 42px rgba(0, 180, 180, 0.16);
+    border-color: #00b4b4;
+    text-decoration: none;
+}
+
+.brand-card-modern:hover::before {
+    opacity: 1;
+}
+
+/* Large Brand Logo Box */
+.brand-logo-stage {
+    width: 100%;
+    height: 125px;
+    background: #f8fafc;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* padding: 14px 20px; */
+    margin-bottom: 20px;
+    border: 1.5px solid #eef2f6;
+    transition: all 0.3s ease;
+}
+
+.brand-card-modern:hover .brand-logo-stage {
+    background: #f0fdfd;
+    border-color: rgba(0, 180, 180, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(0, 180, 180, 0.1);
+}
+
+.brand-logo-stage img {
+    max-height: 90px;
+    max-width: 90%;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04));
+}
+
+.brand-card-modern:hover .brand-logo-stage img {
+    transform: scale(1.1);
+}
+
+.brand-monogram-badge {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #02045c 0%, #00b4b4 100%);
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 18px rgba(2, 4, 92, 0.2);
+    transition: transform 0.35s ease;
+}
+
+.brand-card-modern:hover .brand-monogram-badge {
+    transform: scale(1.1);
+}
+
+/* Brand Typography */
+.brand-title-text {
+    font-size: 21px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+    margin: 0 0 6px 0;
+    transition: color 0.2s ease;
+}
+
+.brand-card-modern:hover .brand-title-text {
+    color: #008f8f;
+}
+
+.brand-tagline-text {
+    font-size: 13.5px;
+    color: #64748b;
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+    min-height: 38px;
+}
+
+/* Brand Discount Tag */
+.brand-discount-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #008f8f;
+    background: #e6f8f8;
+    border: 1.5px solid rgba(0, 180, 180, 0.3);
+    padding: 5px 14px;
+    border-radius: 50px;
+    margin-bottom: 14px;
+    display: inline-block;
+}
+
+/* Explore CTA Button */
+.brand-explore-btn {
+    font-size: 13px;
+    font-weight: 700;
+    color: #02045c;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    padding: 8px 22px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.brand-card-modern:hover .brand-explore-btn {
+    background: #02045c;
+    border-color: #02045c;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(2, 4, 92, 0.25);
+    gap: 12px;
+}
+</style>
+
+<section class="shop-by-brand-section-modern">
     <div class="container">
         <div class="brand-section-header">
             <h3>SHOP BY <span>BRANDS</span></h3>
