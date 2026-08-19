@@ -422,6 +422,34 @@ class ProductController extends Controller
             if ($discount !== null && $mrp !== null && $discount > $mrp && $mrp > 0) {
                 $validationErrors[] = "Variant #{$variantNum}: Discount / Sale Price (₹{$discount}) cannot exceed Retail Price (₹{$mrp}).";
             }
+
+            // Image Aspect Ratio Validation (~2:1 Landscape Ratio)
+            if ($request->hasFile("variants.{$idx}.main_image")) {
+                $mainFile = $request->file("variants.{$idx}.main_image");
+                $imgInfo  = @getimagesize($mainFile->getRealPath());
+                if ($imgInfo) {
+                    $w = $imgInfo[0];
+                    $h = $imgInfo[1];
+                    $r = $h > 0 ? $w / $h : 0;
+                    if ($r < 1.3 || $r > 2.8) {
+                        $validationErrors[] = "Variant #{$variantNum}: Main Image must be in landscape ~2:1 ratio (recommended 800x400px or 1000x500px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
+                    }
+                }
+            }
+
+            if ($request->hasFile("variants.{$idx}.images")) {
+                foreach ($request->file("variants.{$idx}.images") as $gIdx => $gFile) {
+                    $imgInfo = @getimagesize($gFile->getRealPath());
+                    if ($imgInfo) {
+                        $w = $imgInfo[0];
+                        $h = $imgInfo[1];
+                        $r = $h > 0 ? $w / $h : 0;
+                        if ($r < 1.3 || $r > 2.8) {
+                            $validationErrors[] = "Variant #{$variantNum}: Gallery Image #" . ($gIdx + 1) . " must be in landscape ~2:1 ratio (recommended 800x400px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
+                        }
+                    }
+                }
+            }
         }
 
         if (!empty($validationErrors)) {
@@ -913,6 +941,34 @@ class ProductController extends Controller
             }
             if ($discount !== null && $mrp !== null && $discount > $mrp && $mrp > 0) {
                 $validationErrors[] = "Variant #{$variantNum}: Discount / Sale Price (₹{$discount}) cannot exceed Retail Price (₹{$mrp}).";
+            }
+
+            // Image Aspect Ratio Validation (~2:1 Landscape Ratio)
+            if ($request->hasFile("variants.{$idx}.main_image")) {
+                $mainFile = $request->file("variants.{$idx}.main_image");
+                $imgInfo  = @getimagesize($mainFile->getRealPath());
+                if ($imgInfo) {
+                    $w = $imgInfo[0];
+                    $h = $imgInfo[1];
+                    $r = $h > 0 ? $w / $h : 0;
+                    if ($r < 1.3 || $r > 2.8) {
+                        $validationErrors[] = "Variant #{$variantNum}: Main Image must be in landscape ~2:1 ratio (recommended 800x400px or 1000x500px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
+                    }
+                }
+            }
+
+            if ($request->hasFile("variants.{$idx}.images")) {
+                foreach ($request->file("variants.{$idx}.images") as $gIdx => $gFile) {
+                    $imgInfo = @getimagesize($gFile->getRealPath());
+                    if ($imgInfo) {
+                        $w = $imgInfo[0];
+                        $h = $imgInfo[1];
+                        $r = $h > 0 ? $w / $h : 0;
+                        if ($r < 1.3 || $r > 2.8) {
+                            $validationErrors[] = "Variant #{$variantNum}: Gallery Image #" . ($gIdx + 1) . " must be in landscape ~2:1 ratio (recommended 800x400px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
+                        }
+                    }
+                }
             }
         }
 
