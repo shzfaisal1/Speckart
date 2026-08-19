@@ -431,7 +431,7 @@ class ProductController extends Controller
                     $w = $imgInfo[0];
                     $h = $imgInfo[1];
                     $r = $h > 0 ? $w / $h : 0;
-                    if ($r < 1.3 || $r > 2.8) {
+                    if ($r < 1.2 || $r > 3.2) {
                         $validationErrors[] = "Variant #{$variantNum}: Main Image must be in landscape ~2:1 ratio (recommended 800x400px or 1000x500px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
                     }
                 }
@@ -444,7 +444,7 @@ class ProductController extends Controller
                         $w = $imgInfo[0];
                         $h = $imgInfo[1];
                         $r = $h > 0 ? $w / $h : 0;
-                        if ($r < 1.3 || $r > 2.8) {
+                        if ($r < 1.2 || $r > 3.2) {
                             $validationErrors[] = "Variant #{$variantNum}: Gallery Image #" . ($gIdx + 1) . " must be in landscape ~2:1 ratio (recommended 800x400px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
                         }
                     }
@@ -951,7 +951,7 @@ class ProductController extends Controller
                     $w = $imgInfo[0];
                     $h = $imgInfo[1];
                     $r = $h > 0 ? $w / $h : 0;
-                    if ($r < 1.3 || $r > 2.8) {
+                    if ($r < 1.2 || $r > 3.2) {
                         $validationErrors[] = "Variant #{$variantNum}: Main Image must be in landscape ~2:1 ratio (recommended 800x400px or 1000x500px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
                     }
                 }
@@ -964,7 +964,7 @@ class ProductController extends Controller
                         $w = $imgInfo[0];
                         $h = $imgInfo[1];
                         $r = $h > 0 ? $w / $h : 0;
-                        if ($r < 1.3 || $r > 2.8) {
+                        if ($r < 1.2 || $r > 3.2) {
                             $validationErrors[] = "Variant #{$variantNum}: Gallery Image #" . ($gIdx + 1) . " must be in landscape ~2:1 ratio (recommended 800x400px). Uploaded image is {$w}x{$h}px (Ratio: " . round($r, 2) . ":1).";
                         }
                     }
