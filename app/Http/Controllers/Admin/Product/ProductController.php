@@ -1281,5 +1281,124 @@ class ProductController extends Controller
             'success' => 'Product and all associated variants deleted successfully.'
         ]);
     }
+
+    /**
+     * Get complete 360-degree product family details for the Quick View Modal.
+     */
+    public function getProductDetails($product_id)
+    {
+        $firstVariant = Product::where('product_id', $product_id)
+            ->orWhere('id', $product_id)
+            ->orWhere('parent_product_code', $product_id)
+            ->first();
+
+        if (!$firstVariant) {
+            return response()->json(['error' => 'Product not found.'], 404);
+        }
+
+        $variants = !empty($firstVariant->parent_product_code)
+            ? Product::where('parent_product_code', $firstVariant->parent_product_code)->get()
+            : Product::where('product_id', $product_id)->get();
+
+        $first = $variants->first();
+        $type = $first->product_type ?: 'Frame';
+        $typeLower = strtolower($type);
+        $parentCode = $first->parent_product_code ?: $first->product_id;
+
+        // Resolve relational names
+        $category = !empty($first->category_id) ? DB::table('categories')->where('id', $first->category_id)->value('name') : null;
+        $subcategory = !empty($first->subcategory_id) ? DB::table('subcategories')->where('id', $first->subcategory_id)->value('name') : null;
+        $collection = !empty($first->special_collection) ? DB::table('collections')->where('id', $first->special_collection)->value('name') : $first->special_collection;
+
+        $asArray = function ($val) {
+            if (is_array($val)) return $val;
+            if (is_string($val)) return json_decode($val, true) ?: [];
+            return [];
+        };
+
+        // Lens packages
+        $packageNames = [];
+        $selectedPackages = $asArray($first->selected_lens_packages);
+        if (!empty($selectedPackages)) {
+            $packageNames = DB::table('lens_packages')->whereIn('id', $selectedPackages)->pluck('name')->toArray();
+        }
+
+        // Supported product types
+        $supportedTypeNames = [];
+        $supportedTypeIds = $asArray($first->supported_product_types);
+        if (!empty($supportedTypeIds)) {
+            $supportedTypeNames = DB::table('product_type_masters')->whereIn('id', $supportedTypeIds)->pluck('name')->toArray();
+        }
+
+        $uploadBase = asset('uploads/' . $typeLower . '/product/' . $parentCode);
+
+        $variantList = $variants->map(function ($v) use ($uploadBase, $asArray) {
+            $mainImgUrl = !empty($v->main_image) ? $uploadBase . '/' . $v->main_image : null;
+            $galleryUrls = [];
+            $galleryJson = $asArray($v->product_image);
+            foreach ($galleryJson as $g) {
+                $galleryUrls[] = $uploadBase . '/' . $g;
+            }
+
+            return [
+                'id'             => $v->id,
+                'product_code'   => $v->product_code,
+                'Color'          => $v->Color,
+                'Secondary_Color'=> $v->Secondary_Color,
+                'Size'           => $v->Size,
+                'Material'       => $v->Material,
+                'Quality'        => $v->Quality,
+                'Temple_Detail'  => $v->Temple_Detail,
+                'Bridge_Size'    => $v->Bridge_Size,
+                'Purchase_Price' => $v->Purchase_Price,
+                'Retail_Price'   => $v->Retail_Price,
+                'discount_price' => $v->discount_price,
+                'tax_hsn_code'   => $v->tax_hsn_code,
+                'lens_width'     => $v->lens_width,
+                'temple_length'  => $v->temple_length,
+                'frame_width'    => $v->frame_width,
+                'polarized'      => $v->polarized,
+                'uv_protection'  => $v->uv_protection,
+                // Contact lens specs
+                'Modality'       => $v->Modality,
+                'pack_size'      => $v->pack_size,
+                'WC'             => $v->WC,
+                'Dk_t'           => $v->Dk_t,
+                'BC'             => $v->base_carve ?: $v->BC,
+                'DIA'            => $v->Diameter ?: $v->DIA,
+                'SPH'            => $v->sphere ?: $v->SPH,
+                'CYL'            => $v->cylinder ?: $v->CYL,
+                'AXIS'           => $v->axis ?: $v->AXIS,
+                'main_image_url' => $mainImgUrl,
+                'gallery_urls'   => $galleryUrls,
+            ];
+        });
+
+        return response()->json([
+            'success'            => true,
+            'product_id'         => $first->product_id,
+            'parent_product_code'=> $parentCode,
+            'product_name'       => $first->product_name,
+            'product_type'       => $type,
+            'Company'            => $first->Company,
+            'category_name'      => $category,
+            'subcategory_name'   => $subcategory,
+            'collection_name'    => $collection,
+            'Shape'              => $first->Shape,
+            'Type'               => $first->Type,
+            'Description'        => $first->Description,
+            'face_shape'         => $asArray($first->face_shape),
+            'gender'             => $asArray($first->gender),
+            'age'                => $asArray($first->age),
+            'occasion'           => $asArray($first->occasion),
+            'status'             => (int)$first->status,
+            'is_b2c'             => (int)$first->is_b2c,
+            'supported_types'    => $supportedTypeNames,
+            'lens_packages'      => $packageNames,
+            'variants_count'     => $variants->count(),
+            'variants'           => $variantList,
+            'edit_url'           => url(config('app.admin_path', 'admin') . '/products/' . $first->product_id . '/edit'),
+        ]);
+    }
    
 }
