@@ -101,210 +101,6 @@
             font-size: 18px;
         }
     }
-
-    /* ═════════════════════════════════════════════════
-       SHOP BY BRANDS SECTION — LUXURY & MODERN STYLES
-    ═════════════════════════════════════════════════ */
-    .shop-by-brand-section {
-        padding: 50px 0 60px 0;
-        background: #f8fafc;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .brand-section-header {
-        text-align: center;
-        margin-bottom: 35px;
-    }
-
-    .brand-section-header h3 {
-        font-family: 'Poppins', sans-serif;
-        font-size: 32px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #0f172a;
-        letter-spacing: 1.5px;
-        margin: 0 0 8px 0;
-    }
-
-    .brand-section-header h3 span {
-        color: #06A5AA;
-    }
-
-    .brand-section-header p {
-        font-size: 14.5px;
-        color: #64748b;
-        max-width: 580px;
-        margin: 0 auto;
-        line-height: 1.5;
-    }
-
-    .shop-by-brand-slider {
-        margin: 0 -12px;
-    }
-
-    .shop-by-brand-slider .slick-slide {
-        padding: 10px 12px;
-    }
-
-    .brand-card-link {
-        text-decoration: none !important;
-        display: block;
-        color: inherit;
-    }
-
-    .shop-by-brand-slider-card {
-        background: #ffffff;
-        border-radius: 20px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
-        overflow: hidden;
-        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        display: flex;
-        flex-direction: column;
-        height: 315px;
-        position: relative;
-    }
-
-    .brand-card-link:hover .shop-by-brand-slider-card {
-        transform: translateY(-8px);
-        box-shadow: 0 16px 36px rgba(6, 165, 170, 0.14);
-        border-color: rgba(6, 165, 170, 0.4);
-    }
-
-    /* Hero Background & Product Preview */
-    .shop-by-brand-slider-card-img {
-        height: 195px;
-        width: 100%;
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-        padding: 20px;
-    }
-
-    .shop-by-brand-slider-card-img img {
-        max-width: 88%;
-        max-height: 88%;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        transition: transform 0.4s ease;
-        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.05));
-    }
-
-    .brand-card-link:hover .shop-by-brand-slider-card-img img {
-        transform: scale(1.08);
-    }
-
-    /* Logo Badge Pill */
-    .shop-by-brand-slider-card-img-sm {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
-        padding: 6px 14px;
-        margin: -24px auto 8px auto;
-        width: 115px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        z-index: 2;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .brand-card-link:hover .shop-by-brand-slider-card-img-sm {
-        border-color: #06A5AA;
-        box-shadow: 0 6px 18px rgba(6, 165, 170, 0.18);
-    }
-
-    .shop-by-brand-slider-card-img-sm img {
-        max-width: 90px;
-        max-height: 28px;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .brand-logo-text-fallback {
-        font-family: 'Poppins', sans-serif;
-        font-weight: 700;
-        font-size: 13px;
-        color: #06A5AA;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* Card Details Footer */
-    .brand-card-footer {
-        padding: 0 14px 14px 14px;
-        text-align: center;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .brand-card-footer h5 {
-        font-family: 'Poppins', sans-serif;
-        font-size: 15px;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 0 0 4px 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .brand-card-footer span {
-        font-size: 12px;
-        font-weight: 500;
-        color: #06A5AA;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 3px;
-        transition: gap 0.2s ease;
-    }
-
-    .brand-card-link:hover .brand-card-footer span {
-        gap: 6px;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 991px) {
-        .shop-by-brand-section {
-            padding: 40px 0 50px 0;
-        }
-        .brand-section-header h3 {
-            font-size: 26px;
-        }
-        .shop-by-brand-slider-card {
-            height: 290px;
-        }
-        .shop-by-brand-slider-card-img {
-            height: 175px;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .brand-section-header h3 {
-            font-size: 22px;
-        }
-        .brand-section-header p {
-            font-size: 13px;
-        }
-        .shop-by-brand-slider-card {
-            height: 275px;
-        }
-        .shop-by-brand-slider-card-img {
-            height: 160px;
-        }
-    }
 </style>
 <!-- benner-section -->
 <section class="benner-section">
@@ -577,60 +373,271 @@
 </section>
 <!-- end new-arrivals-section -->
 
-<!-- shop-by-brand-section -->
-@if(isset($brands) && count($brands) > 0)
-<section class="shop-by-brand-section">
+<!-- ══════════════════════════════════════════════════════
+     SHOP BY BRANDS (MODERN LUXURY BRAND CARDS - NO CELEBRITY)
+══════════════════════════════════════════════════════ -->
+<style>
+.shop-by-brand-section-modern { 
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    padding: 55px 0 20px 0;
+    position: relative;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.brand-section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.brand-eyebrow-badge {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #008f8f;
+    background: #e6f8f8;
+    border: 1px solid rgba(0, 180, 180, 0.3);
+    padding: 5px 16px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.brand-main-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.brand-main-title span {
+    color: #00b4b4;
+}
+
+.brand-sub-title {
+    font-size: 14.5px;
+    color: #64748b;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* Brand Card */
+.brand-slider-wrapper {
+    position: relative;
+    padding: 0 6px;
+}
+
+.brand-card-modern {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 28px 22px;
+    margin: 12px;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 330px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.brand-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #02045c, #00b4b4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.brand-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 42px rgba(0, 180, 180, 0.16);
+    border-color: #00b4b4;
+    text-decoration: none;
+}
+
+.brand-card-modern:hover::before {
+    opacity: 1;
+}
+
+/* Large Brand Logo Box */
+.brand-logo-stage {
+    width: 100%;
+    height: 125px;
+    background: #f8fafc;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* padding: 14px 20px; */
+    margin-bottom: 20px;
+    border: 1.5px solid #eef2f6;
+    transition: all 0.3s ease;
+}
+
+.brand-card-modern:hover .brand-logo-stage {
+    background: #f0fdfd;
+    border-color: rgba(0, 180, 180, 0.3);
+    box-shadow: inset 0 0 0 1px rgba(0, 180, 180, 0.1);
+}
+
+.brand-logo-stage img {
+    max-height: 90px;
+    max-width: 90%;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.04));
+}
+
+.brand-card-modern:hover .brand-logo-stage img {
+    transform: scale(1.1);
+}
+
+.brand-monogram-badge {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #02045c 0%, #00b4b4 100%);
+    color: #ffffff;
+    font-size: 26px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 18px rgba(2, 4, 92, 0.2);
+    transition: transform 0.35s ease;
+}
+
+.brand-card-modern:hover .brand-monogram-badge {
+    transform: scale(1.1);
+}
+
+/* Brand Typography */
+.brand-title-text {
+    font-size: 21px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.25;
+    margin: 0 0 6px 0;
+    transition: color 0.2s ease;
+}
+
+.brand-card-modern:hover .brand-title-text {
+    color: #008f8f;
+}
+
+.brand-tagline-text {
+    font-size: 13.5px;
+    color: #64748b;
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+    min-height: 38px;
+}
+
+/* Brand Discount Tag */
+.brand-discount-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #008f8f;
+    background: #e6f8f8;
+    border: 1.5px solid rgba(0, 180, 180, 0.3);
+    padding: 5px 14px;
+    border-radius: 50px;
+    margin-bottom: 14px;
+    display: inline-block;
+}
+
+/* Explore CTA Button */
+.brand-explore-btn {
+    font-size: 13px;
+    font-weight: 700;
+    color: #02045c;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    padding: 8px 22px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.brand-card-modern:hover .brand-explore-btn {
+    background: #02045c;
+    border-color: #02045c;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(2, 4, 92, 0.25);
+    gap: 12px;
+}
+</style>
+
+<section class="shop-by-brand-section-modern">
     <div class="container">
         <div class="brand-section-header">
-            <h3>SHOP BY <span>BRANDS</span></h3>
-            <p>Explore authentic craftsmanship, precision optics, and timeless silhouettes from leading eyewear labels.</p>
+            {{-- <span class="brand-eyebrow-badge"><i class="bi bi-stars"></i> Iconic Eyewear Houses</span> --}}
+            <h3 class="brand-main-title">SHOP BY <span>BRANDS</span></h3>
+            <p class="brand-sub-title">Explore authentic craftsmanship, precision optics, and timeless silhouettes from leading eyewear labels.</p>
         </div>
 
         <div class="row">
             <div class="col-lg-12">
                 <div class="brand-slider-wrapper">
                     <div class="shop-by-brand-slider">
-                        @foreach($brands as $brand)
+                        @if(isset($brands) && $brands->isNotEmpty())
+                            @foreach($brands as $brand)
                             <div>
-                                <a href="{{ $brand->url ?? $brand->catalog_url ?? route('products', ['brand' => $brand->brand_name ?? $brand->name ?? '']) }}" class="brand-card-link" title="Explore {{ $brand->brand_name ?? $brand->name ?? 'Brand' }}">
-                                    <div class="shop-by-brand-slider-card">
-                                        {{-- 1. Hero Product / Lifestyle Image Container --}}
-                                        <div class="shop-by-brand-slider-card-img">
-                                            <img src="{{ $brand->bg_image_url ?? asset('website/assets/img/bg/brands1.png') }}" 
-                                                 alt="{{ $brand->name ?? $brand->brand_name ?? 'Brand' }}" 
-                                                 loading="lazy">
-                                        </div>
-
-                                        {{-- 2. Floating Brand Logo Pill Badge --}}
-                                        <div class="shop-by-brand-slider-card-img-sm">
-                                            @if(!empty($brand->logo_img) || !empty($brand->logo_url) || !empty($brand->image))
-                                                <img src="{{ $brand->logo_img ?? $brand->logo_url ?? asset($brand->image) }}" 
-                                                     alt="{{ $brand->name ?? $brand->brand_name ?? 'Brand' }} Logo" 
-                                                     loading="lazy">
+                                <a href="{{ $brand->url }}" class="brand-card-modern">
+                                    <div class="w-100">
+                                        <div class="brand-logo-stage">
+                                            @if(!empty($brand->logo_img))
+                                                <img src="{{ $brand->logo_img }}" alt="{{ $brand->name }}" loading="lazy">
                                             @else
-                                                <span class="brand-logo-text-fallback">
-                                                    {{ $brand->initials ?? substr($brand->brand_name ?? $brand->name ?? 'BR', 0, 2) }}
-                                                </span>
+                                                <div class="brand-monogram-badge" style="background: linear-gradient(135deg, #02045c 0%, {{ $brand->accent ?? '#00b4b4' }} 100%);">
+                                                    {{ $brand->initials ?? substr($brand->name, 0, 2) }}
+                                                </div>
                                             @endif
                                         </div>
 
-                                        {{-- 3. Brand Details & Explore Link --}}
-                                        <div class="brand-card-footer">
-                                            <h5>{{ $brand->brand_name ?? $brand->name ?? 'Brand' }}</h5>
-                                            <span>Explore Collection <i class="bi bi-arrow-right-short fs-6"></i></span>
+                                        <h4 class="brand-title-text">{{ $brand->name }}</h4>
+                                        {{-- <p class="brand-tagline-text">{{ $brand->tagline }}</p> --}}
+                                    </div>
+
+                                    <div>
+                                        <div>
+                                            <span class="brand-explore-btn">
+                                                Explore Collection <i class="bi bi-arrow-right"></i>
+                                            </span>
                                         </div>
                                     </div>
                                 </a>
                             </div>
-                        @endforeach
+                            @endforeach
+                        @else
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-@endif
-<!-- end shop-by-brand-section -->
 
 <!-- own-creation -->
 <div class="own-creation overflow-hidden">
