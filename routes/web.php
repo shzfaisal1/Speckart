@@ -147,6 +147,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
     Route::post('/products',                  [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/{product_id}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product_id}',      [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product_id}',   [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::post('/products/{product_id}/destroy', [ProductController::class, 'destroy'])->name('products.destroy.post');
 
     /***************** PRODUCT FRAME ******************/
     Route::resource('frameproduct', FramemasterController::class);
