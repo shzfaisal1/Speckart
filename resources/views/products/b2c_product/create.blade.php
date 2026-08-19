@@ -975,67 +975,26 @@ body { background: var(--bg); }
             {{-- ===== RIGHT SIDEBAR ===== --}}
             <div class="pb-sidebar">
 
-                {{-- Live Customer Store Preview --}}
-                <div class="pb-card sb-card live-preview-card" style="border: 2px solid #e0e7ff; background: #fff; margin-bottom: 20px;">
-                    <div class="pb-card-header" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #fff; border-bottom: none;">
-                        <h5 style="color: #fff; font-size: .88rem;"><span class="icon" style="background: rgba(255,255,255,0.2);"><i class="fa fa-mobile-screen"></i></span> Live Store Preview</h5>
-                    </div>
-                    <div class="pb-card-body" style="padding: 14px;">
-                        <div class="preview-product-card" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-                            <div style="position: relative; height: 140px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                <span id="preview-badge" style="position: absolute; top: 8px; left: 8px; background: #f59e0b; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; display: none;">BEST SELLER</span>
-                                <span style="position: absolute; top: 8px; right: 8px; color: #cbd5e1; font-size: .9rem;"><i class="fa fa-heart"></i></span>
-                                <img id="preview-main-img" src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}" style="max-height: 105px; max-width: 88%; object-fit: contain;" alt="Preview">
-                            </div>
-                            <div style="padding: 12px;">
-                                <div id="preview-brand" style="font-size: 0.7rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.05em;">Brand</div>
-                                <div id="preview-title" style="font-size: 0.85rem; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">Product Name</div>
-                                <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
-                                    <span id="preview-sale-price" style="font-size: .95rem; font-weight: 800; color: #1e1b4b;">₹0.00</span>
-                                    <span id="preview-mrp" style="font-size: 0.75rem; color: #94a3b8; text-decoration: line-through; display: none;">₹0.00</span>
-                                    <span id="preview-discount-pill" style="font-size: 0.68rem; font-weight: 700; color: #10b981; display: none;">0% OFF</span>
-                                </div>
-                                <div id="preview-swatches" style="display: flex; gap: 5px; margin-top: 8px; align-items: center;">
-                                    <span style="font-size: 0.7rem; color: #64748b;">Colors:</span>
-                                    <div id="preview-color-dots" style="display: inline-flex; gap: 4px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Status & Visibility --}}
+                {{-- Status & Publishing --}}
                 <div class="pb-card sb-card">
                     <div class="pb-card-header">
-                        <h5><span class="icon"><i class="fa fa-eye"></i></span> Visibility</h5>
+                        <h5><span class="icon"><i class="fa fa-toggle-on"></i></span> Product Status</h5>
                     </div>
                     <div class="pb-card-body">
-                        <div class="mb-3">
-                            <label class="pb-label">Product Status</label>
+                        <input type="hidden" name="is_b2c" value="1">
+                        <div>
+                            <label class="pb-label">Store Visibility</label>
                             <div class="pb-radio-group">
                                 <label class="pb-radio-btn">
                                     <input type="radio" name="status" value="1" {{ ($editFirst?->status ?? '1') == '1' ? 'checked' : '' }}>
-                                    <span><i class="fa fa-toggle-on"></i> Active</span>
+                                    <span><i class="fa fa-check-circle" style="color:var(--success);"></i> Active (Live)</span>
                                 </label>
                                 <label class="pb-radio-btn">
                                     <input type="radio" name="status" value="0" {{ ($editFirst?->status ?? '1') == '0' ? 'checked' : '' }}>
-                                    <span><i class="fa fa-toggle-off"></i> Inactive</span>
+                                    <span><i class="fa fa-eye-slash" style="color:var(--muted);"></i> Inactive (Draft)</span>
                                 </label>
                             </div>
-                        </div>
-                        <div class="mb-0">
-                            <label class="pb-label">Show in B2C Website</label>
-                            <div class="pb-radio-group" id="visibility-radios">
-                                <label class="pb-radio-btn" id="b2c-yes-label" title="Complete checklist first" style="opacity:0.6; cursor:not-allowed;">
-                                    <input type="radio" name="is_b2c" id="is_b2c_yes" value="1" {{ ($editFirst?->is_b2c ?? '0') == '1' ? 'checked' : '' }} disabled>
-                                    <span><i class="fa fa-check-circle"></i> Yes</span>
-                                </label>
-                                <label class="pb-radio-btn">
-                                    <input type="radio" name="is_b2c" id="is_b2c_no" value="0" {{ ($editFirst?->is_b2c ?? '0') == '0' ? 'checked' : (empty($editFirst) ? 'checked' : '') }}>
-                                    <span><i class="fa fa-times-circle"></i> No</span>
-                                </label>
-                            </div>
-                            <small id="visibility-msg" style="color:var(--warning); margin-top:8px; display:block; font-size:0.75rem;"><i class="fa fa-exclamation-triangle"></i> Complete the Readiness Checklist below to publish.</small>
+                            <small style="color:var(--muted); margin-top:8px; display:block; font-size:0.75rem;"><i class="fa fa-info-circle"></i> Active products are immediately visible to customers on the website.</small>
                         </div>
                     </div>
                 </div>
@@ -1894,109 +1853,6 @@ function evaluateChecklist() {
     setCheckState('check-category', catSelected);
     setCheckState('check-variants', hasVariants);
     setCheckState('check-variant-data', allVariantsValid && hasVariants);
-
-    let fullyReady = nameFilled && catSelected && hasVariants && allVariantsValid;
-    
-    let yesBtn = document.getElementById('is_b2c_yes');
-    let yesLabel = document.getElementById('b2c-yes-label');
-    let msg = document.getElementById('visibility-msg');
-    
-    if (yesBtn && yesLabel) {
-        if (fullyReady) {
-            yesBtn.disabled = false;
-            yesLabel.style.opacity = '1';
-            yesLabel.style.cursor = 'pointer';
-            yesLabel.title = '';
-            if(msg) msg.style.display = 'none';
-        } else {
-            if (yesBtn.checked) {
-                document.getElementById('is_b2c_no').checked = true;
-            }
-            yesBtn.disabled = true;
-            yesLabel.style.opacity = '0.6';
-            yesLabel.style.cursor = 'not-allowed';
-            yesLabel.title = 'Complete checklist first';
-            if(msg) msg.style.display = 'block';
-        }
-    }
-
-    updateLivePreview();
-}
-
-function updateLivePreview() {
-    const nameInput = document.getElementById('product_name');
-    const nameVal = nameInput && nameInput.value.trim().length > 0 ? nameInput.value.trim() : 'Product Name';
-    const brandSelect = document.getElementById('Company');
-    let brandVal = 'Brand';
-    if (brandSelect && brandSelect.selectedIndex > 0) {
-        brandVal = brandSelect.options[brandSelect.selectedIndex].text;
-    }
-    
-    const titleEl = document.getElementById('preview-title');
-    const brandEl = document.getElementById('preview-brand');
-    if (titleEl) titleEl.textContent = nameVal;
-    if (brandEl) brandEl.textContent = brandVal !== 'Select Brand' ? brandVal : 'Brand';
-    
-    // Check Best Seller badge
-    const badgeEl = document.getElementById('preview-badge');
-    const bestSellerCb = document.querySelector('input[name="promotion_tag[]"][value="best_seller"]');
-    if (badgeEl) {
-        badgeEl.style.display = (bestSellerCb && bestSellerCb.checked) ? 'inline-block' : 'none';
-    }
-
-    // Find first variant pricing & image
-    const firstVariant = document.querySelector('.variant-card');
-    if (firstVariant) {
-        const mrp = parseFloat(firstVariant.querySelector('input[name$="[Retail_Price]"]')?.value) || 0;
-        const sale = parseFloat(firstVariant.querySelector('input[name$="[discount_price]"]')?.value) || mrp;
-        
-        const saleEl = document.getElementById('preview-sale-price');
-        const mrpEl = document.getElementById('preview-mrp');
-        const pillEl = document.getElementById('preview-discount-pill');
-        
-        if (saleEl) {
-            if (sale > 0) {
-                saleEl.textContent = '₹' + sale.toLocaleString('en-IN');
-            } else if (mrp > 0) {
-                saleEl.textContent = '₹' + mrp.toLocaleString('en-IN');
-            } else {
-                saleEl.textContent = '₹0.00';
-            }
-        }
-        
-        if (mrpEl && pillEl) {
-            if (mrp > 0 && sale > 0 && sale < mrp) {
-                mrpEl.textContent = '₹' + mrp.toLocaleString('en-IN');
-                mrpEl.style.display = 'inline';
-                const pct = Math.round(((mrp - sale) / mrp) * 100);
-                pillEl.textContent = pct + '% OFF';
-                pillEl.style.display = 'inline';
-            } else {
-                mrpEl.style.display = 'none';
-                pillEl.style.display = 'none';
-            }
-        }
-        
-        // Main image preview
-        const firstImg = firstVariant.querySelector('.main-img-preview img') || firstVariant.querySelector('img');
-        const previewImg = document.getElementById('preview-main-img');
-        if (firstImg && firstImg.src && previewImg) {
-            previewImg.src = firstImg.src;
-        }
-    }
-
-    // Render color swatches in preview
-    const dotsContainer = document.getElementById('preview-color-dots');
-    if (dotsContainer) {
-        dotsContainer.innerHTML = '';
-        const colorPickers = document.querySelectorAll('.variant-card input[name$="[Color]"]');
-        colorPickers.forEach(picker => {
-            const hex = picker.value || '#1a1a1a';
-            const dot = document.createElement('span');
-            dot.style.cssText = `width: 12px; height: 12px; border-radius: 50%; background: ${hex}; border: 1.5px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; display: inline-block;`;
-            dotsContainer.appendChild(dot);
-        });
-    }
 }
 
 function toggleMeasurements(header) {
