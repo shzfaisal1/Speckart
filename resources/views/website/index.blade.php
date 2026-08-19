@@ -378,9 +378,15 @@
 <section class="shop-by-brand-section">
     <h3>SHOP BY <span>BRANDS</span></h3>
     <div class="container">
+        <div class="brand-section-header">
+            {{-- <span class="brand-eyebrow-badge"><i class="bi bi-stars"></i> Iconic Eyewear Houses</span> --}}
+            <h3 class="brand-main-title">SHOP BY <span>BRANDS</span></h3>
+            <p class="brand-sub-title">Explore authentic craftsmanship, precision optics, and timeless silhouettes from leading eyewear labels.</p>
+        </div>
+
         <div class="row">
             <div class="col-lg-12">
-                <div class="wrapper">
+                <div class="brand-slider-wrapper">
                     <div class="shop-by-brand-slider">
                         @foreach($brands as $brand)
                             <div>
