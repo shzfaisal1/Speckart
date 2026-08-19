@@ -1694,11 +1694,17 @@ function previewMainImage(input) {
     const wrap = input.nextElementSibling;
     wrap.innerHTML = '';
     if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) {
+            alert(`File "${file.name}" exceeds the 5MB limit. Please upload an image under 5MB.`);
+            input.value = '';
+            return;
+        }
         const reader = new FileReader();
         reader.onload = e => {
             wrap.innerHTML = `<img src="${e.target.result}" class="img-thumb">`;
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 
@@ -1707,7 +1713,12 @@ function previewGallery(input) {
     // Remove only previous local previews, keep existing server images
     wrap.querySelectorAll('.local-preview').forEach(el => el.remove());
     
+    let hasOversized = false;
     Array.from(input.files).forEach(file => {
+        if (file.size > 5 * 1024 * 1024) {
+            hasOversized = true;
+            return;
+        }
         const reader = new FileReader();
         reader.onload = e => {
             const img = document.createElement('img');
@@ -1717,6 +1728,10 @@ function previewGallery(input) {
         };
         reader.readAsDataURL(file);
     });
+
+    if (hasOversized) {
+        alert("Some files were skipped because they exceed the 5MB limit.");
+    }
 }
 
 // ============================================================
@@ -1999,6 +2014,26 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
             if (skuInput) skuInput.classList.remove('is-invalid');
         }
         
+        // Price sanity checks
+        const mrpInput = card.querySelector('input[name$="[Retail_Price]"]');
+        const saleInput = card.querySelector('input[name$="[discount_price]"]');
+        const mrp = mrpInput && mrpInput.value ? parseFloat(mrpInput.value) : 0;
+        const sale = saleInput && saleInput.value ? parseFloat(saleInput.value) : 0;
+
+        if (mrp <= 0) {
+            cardError.push('Retail Price (MRP) must be > 0');
+            if (mrpInput) mrpInput.classList.add('is-invalid');
+        } else {
+            if (mrpInput) mrpInput.classList.remove('is-invalid');
+        }
+
+        if (sale > 0 && mrp > 0 && sale > mrp) {
+            cardError.push(`Sale Price (₹${sale}) cannot exceed MRP (₹${mrp})`);
+            if (saleInput) saleInput.classList.add('is-invalid');
+        } else {
+            if (saleInput) saleInput.classList.remove('is-invalid');
+        }
+
         if (!hasImg) {
             cardError.push('Main Image is required');
         }
