@@ -1243,7 +1243,20 @@
                         <p class="lens-step-sub">Pick the lens type that suits your need</p>
                         <div class="lens-type-grid">
                             @php
-                                $powerTypesMaster = \App\Models\PowerType::where('is_active', 1)->get();
+                                $rawSupportedTypes = $product->supported_product_types ?? null;
+                                if (is_string($rawSupportedTypes)) {
+                                    $supportedTypeIds = json_decode($rawSupportedTypes, true);
+                                } elseif (is_array($rawSupportedTypes)) {
+                                    $supportedTypeIds = $rawSupportedTypes;
+                                } else {
+                                    $supportedTypeIds = [];
+                                }
+
+                                $powerTypesQuery = \App\Models\PowerType::where('is_active', 1);
+                                if (!empty($supportedTypeIds) && is_array($supportedTypeIds)) {
+                                    $powerTypesQuery->whereIn('id', $supportedTypeIds);
+                                }
+                                $powerTypesMaster = $powerTypesQuery->get();
                             @endphp
                             @foreach($powerTypesMaster as $pt)
                             <div class="lens-type-card" onclick="selectLensType(this, 3)" data-power-type-id="{{ $pt->id }}">
@@ -1264,8 +1277,22 @@
                         <p class="lens-step-sub">Select the best lens coating for you</p>
                         <div class="lens-package-list">
                             @php
+                                $rawSelectedPackages = $product->selected_lens_packages ?? null;
+                                if (is_string($rawSelectedPackages)) {
+                                    $selectedPackageIds = json_decode($rawSelectedPackages, true);
+                                } elseif (is_array($rawSelectedPackages)) {
+                                    $selectedPackageIds = $rawSelectedPackages;
+                                } else {
+                                    $selectedPackageIds = [];
+                                }
+
                                 $lensTags = \App\Models\LensPackageTag::where('is_active', 1)->orderBy('sort_order')->get();
-                                $lensPackages = \App\Models\LensPackage::with(['tags', 'benefits', 'badges', 'coupons', 'powerTypes', 'media'])->where('is_active', 1)->orderBy('sort_order')->get();
+                                
+                                $lensPackagesQuery = \App\Models\LensPackage::with(['tags', 'benefits', 'badges', 'coupons', 'powerTypes', 'media'])->where('is_active', 1);
+                                if (!empty($selectedPackageIds) && is_array($selectedPackageIds)) {
+                                    $lensPackagesQuery->whereIn('id', $selectedPackageIds);
+                                }
+                                $lensPackages = $lensPackagesQuery->orderBy('sort_order')->get();
                             @endphp
 
                             <div class="lens-filters">

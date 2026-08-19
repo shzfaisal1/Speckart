@@ -206,10 +206,14 @@ class ProductController extends Controller
             });
         }
 
-        // Apply Sunglass Colour Filter
+        // Apply Sunglass / Lens Tint Colour Filter (Search in Color attribute safely)
         if ($request->filled('sunglass_colour')) {
             $sgColors = array_filter(array_map('trim', explode(',', $request->input('sunglass_colour'))));
-            $query->whereIn('sunglass_colour', $sgColors);
+            $query->where(function($q) use ($sgColors) {
+                foreach ($sgColors as $sc) {
+                    $q->orWhere('Color', 'LIKE', '%' . $sc . '%');
+                }
+            });
         }
 
         // Apply Price Range Filter
