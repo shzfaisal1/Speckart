@@ -893,25 +893,13 @@ body { background: var(--bg); }
                             {{-- ========== LENS FIELDS (hidden for Frame) ========== --}}
                             <div id="lens-classification-fields" style="display:none;">
                                 <div class="col-md-6 mb-3" style="display:block;">
-                                    <label class="pb-label">Power Type</label>
+                                    <label class="pb-label">Power Type / Usage Category</label>
                                     <select name="power_type" id="power_type" class="pb-input">
                                         <option value="">Select Power Type</option>
-                                        <option value="Single Vision">Single Vision</option>
-                                        <option value="Bifocal">Bifocal</option>
-                                        <option value="Multifocal">Multifocal</option>
-                                        <option value="Zero Power">Zero Power (Plano)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3" style="display:block;">
-                                    <label class="pb-label">Pack Size</label>
-                                    <select name="pack_size" id="pack_size" class="pb-input">
-                                        <option value="">Select Pack Size</option>
-                                        <option value="1">1 Lens</option>
-                                        <option value="2">2 Lenses (1 Pair)</option>
-                                        <option value="6">6 Lenses</option>
-                                        <option value="12">12 Lenses (Box)</option>
-                                        <option value="30">30 Lenses (Box)</option>
-                                        <option value="90">90 Lenses (Box)</option>
+                                        <option value="Single Vision">Single Vision (Spherical)</option>
+                                        <option value="Toric">Toric (Astigmatism / Cylindrical)</option>
+                                        <option value="Multifocal">Multifocal / Progressive (Presbyopia)</option>
+                                        <option value="Zero Power">Zero Power / Plano (Cosmetic / Color)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3" style="display:block;">
@@ -1150,77 +1138,38 @@ body { background: var(--bg); }
                 __OPT_FIELDS__
             </div>
 
-            {{-- Measurements & Details —— shown/hidden by category type --}}
-            <div class="variant-section-title measurements-section-title" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;" onclick="toggleMeasurements(this)">
-                <span><i class="fa fa-ruler-horizontal"></i> Measurements & Lab Dimensions (Optional)</span>
-                <i class="fa fa-chevron-down meas-toggle-icon" style="font-size: .8rem; color: #64748b; transition: transform .2s;"></i>
-            </div>
-
-            <div class="measurements-collapsible-wrapper" style="display: none; margin-bottom: 16px;">
-                {{-- FRAME Measurements (hidden for Lens) --}}
-                <div class="frame-measurements row-grid">
-                    <div>
-                        <label class="pb-label">Lens Width</label>
-                        <input type="text" name="variants[__IDX__][lens_width]" class="pb-input" placeholder="e.g. 52mm">
-                    </div>
-                    <div>
-                        <label class="pb-label">Temple Length</label>
-                        <input type="text" name="variants[__IDX__][temple_length]" class="pb-input" placeholder="e.g. 140mm">
-                    </div>
-                    <div>
-                        <label class="pb-label">Frame Width</label>
-                        <input type="text" name="variants[__IDX__][frame_width]" class="pb-input" placeholder="e.g. 138mm">
-                    </div>
-                    <div>
-                        <label class="pb-label">Polarized</label>
-                        <select name="variants[__IDX__][polarized]" class="pb-input">
-                            <option value="0">No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="pb-label">UV Protection</label>
-                        <input type="text" name="variants[__IDX__][uv_protection]" class="pb-input" placeholder="e.g. UV400">
-                    </div>
+            {{-- Measurements & Details —— Frame only (hidden for Contact Lenses) --}}
+            <div class="frame-measurements-wrapper">
+                <div class="variant-section-title measurements-section-title" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;" onclick="toggleMeasurements(this)">
+                    <span><i class="fa fa-ruler-horizontal"></i> Measurements & Lab Dimensions (Optional)</span>
+                    <i class="fa fa-chevron-down meas-toggle-icon" style="font-size: .8rem; color: #64748b; transition: transform .2s;"></i>
                 </div>
 
-                {{-- LENS Measurements (shown only for Lens, hidden by default) --}}
-                <div class="lens-measurements row-grid" style="display:none;">
-                    <div>
-                        <label class="pb-label">Pack Size</label>
-                        <select name="variants[__IDX__][pack_size]" class="pb-input">
-                            <option value="">Select Pack Size</option>
-                            <option value="1">1 Lens</option>
-                            <option value="2">2 Lenses (1 Pair)</option>
-                            <option value="6">6 Lenses</option>
-                            <option value="12">12 Lenses (Box)</option>
-                            <option value="30">30 Lenses (Box)</option>
-                            <option value="90">90 Lenses (Box)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="pb-label">Oxygen Transmissibility (Dk/t)</label>
-                        <input type="text" name="variants[__IDX__][Dk_t]" class="pb-input" placeholder="e.g. 33.3">
-                    </div>
-                    <div>
-                        <label class="pb-label">Base Curve (BC)</label>
-                        <input type="text" name="variants[__IDX__][BC]" class="pb-input" placeholder="e.g. 8.6">
-                    </div>
-                    <div>
-                        <label class="pb-label">Diameter (DIA)</label>
-                        <input type="text" name="variants[__IDX__][DIA]" class="pb-input" placeholder="e.g. 14.2">
-                    </div>
-                    <div>
-                        <label class="pb-label">Sphere (SPH) Range</label>
-                        <input type="text" name="variants[__IDX__][SPH]" class="pb-input" placeholder="e.g. -0.50 to -6.00">
-                    </div>
-                    <div>
-                        <label class="pb-label">Cylinder (CYL) Range</label>
-                        <input type="text" name="variants[__IDX__][CYL]" class="pb-input" placeholder="e.g. -0.75 to -2.25">
-                    </div>
-                    <div>
-                        <label class="pb-label">Axis Range</label>
-                        <input type="text" name="variants[__IDX__][AXIS]" class="pb-input" placeholder="e.g. 0° to 180°">
+                <div class="measurements-collapsible-wrapper" style="display: none; margin-bottom: 16px;">
+                    <div class="frame-measurements row-grid">
+                        <div>
+                            <label class="pb-label">Lens Width</label>
+                            <input type="text" name="variants[__IDX__][lens_width]" class="pb-input" placeholder="e.g. 52mm">
+                        </div>
+                        <div>
+                            <label class="pb-label">Temple Length</label>
+                            <input type="text" name="variants[__IDX__][temple_length]" class="pb-input" placeholder="e.g. 140mm">
+                        </div>
+                        <div>
+                            <label class="pb-label">Frame Width</label>
+                            <input type="text" name="variants[__IDX__][frame_width]" class="pb-input" placeholder="e.g. 138mm">
+                        </div>
+                        <div>
+                            <label class="pb-label">Polarized</label>
+                            <select name="variants[__IDX__][polarized]" class="pb-input">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="pb-label">UV Protection</label>
+                            <input type="text" name="variants[__IDX__][uv_protection]" class="pb-input" placeholder="e.g. UV400">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1273,15 +1222,16 @@ body { background: var(--bg); }
 @php
 // Build optical spec fields for Lens
 $optFieldsLens = [
-    'Color'    => ['label'=>'Lens Color / Tint'],
-    'Modality' => ['label'=>'Modality (Disposability)'],
-    'WC'       => ['label'=>'Water Content (%)'],
-    'Dk_t'     => ['label'=>'Oxygen Transmissibility (Dk/t)'],
-    'BC'       => ['label'=>'Base Curve (BC)'],
-    'DIA'      => ['label'=>'Diameter (DIA)'],
-    'SPH'      => ['label'=>'Sphere (SPH) Range'],
-    'CYL'      => ['label'=>'Cylinder (CYL) Range'],
-    'AXIS'     => ['label'=>'Axis Range'],
+    'Color'     => ['label'=>'Lens Color / Tint'],
+    'Modality'  => ['label'=>'Modality (Disposability)'],
+    'pack_size' => ['label'=>'Pack Size (Box)'],
+    'WC'        => ['label'=>'Water Content (%)'],
+    'Dk_t'      => ['label'=>'Oxygen Transmissibility (Dk/t)'],
+    'BC'        => ['label'=>'Base Curve (BC)'],
+    'DIA'       => ['label'=>'Diameter (DIA)'],
+    'SPH'       => ['label'=>'Sphere (SPH) Range'],
+    'CYL'       => ['label'=>'Cylinder (CYL) Range'],
+    'AXIS'      => ['label'=>'Axis Range'],
 ];
 
 // Build optical spec fields for Frame
@@ -1303,11 +1253,22 @@ foreach ($optFieldsLens as $key => $cfg) {
     if ($key === 'Modality') {
         $optHtmlLens .= '<select name="variants[__IDX__][' . $key . ']" class="pb-input">';
         $optHtmlLens .= '<option value="">Select Modality</option>';
-        $optHtmlLens .= '<option value="Daily">Daily</option>';
-        $optHtmlLens .= '<option value="Fortnightly">Fortnightly</option>';
-        $optHtmlLens .= '<option value="Monthly">Monthly</option>';
-        $optHtmlLens .= '<option value="Yearly">Yearly</option>';
-        $optHtmlLens .= '<option value="Quarterly">Quarterly</option>';
+        $optHtmlLens .= '<option value="Daily">Daily Disposables</option>';
+        $optHtmlLens .= '<option value="Fortnightly">Fortnightly (2-Week)</option>';
+        $optHtmlLens .= '<option value="Monthly">Monthly Disposables</option>';
+        $optHtmlLens .= '<option value="Quarterly">Quarterly (3-Month)</option>';
+        $optHtmlLens .= '<option value="Yearly">Yearly (Annual)</option>';
+        $optHtmlLens .= '</select>';
+    } elseif ($key === 'pack_size') {
+        $optHtmlLens .= '<select name="variants[__IDX__][' . $key . ']" class="pb-input">';
+        $optHtmlLens .= '<option value="">Select Pack Size</option>';
+        $optHtmlLens .= '<option value="1">1 Lens (Single)</option>';
+        $optHtmlLens .= '<option value="2">2 Lenses (1 Pair)</option>';
+        $optHtmlLens .= '<option value="6">6 Lenses (Box)</option>';
+        $optHtmlLens .= '<option value="10">10 Lenses (Box)</option>';
+        $optHtmlLens .= '<option value="12">12 Lenses (Box)</option>';
+        $optHtmlLens .= '<option value="30">30 Lenses (Box)</option>';
+        $optHtmlLens .= '<option value="90">90 Lenses (Box)</option>';
         $optHtmlLens .= '</select>';
     } else {
         $optHtmlLens .= '<input type="text" name="variants[__IDX__][' . $key . ']" class="pb-input" placeholder="' . $cfg['label'] . '">';
@@ -1443,28 +1404,19 @@ function updateVariantFields() {
         }
 
         // ── 3. Toggle Measurements section inside each variant card ──
-        const frameMeas = card.querySelectorAll('.frame-measurements');
-        const lensMeas  = card.querySelectorAll('.lens-measurements');
+        const frameMeasWrapper = card.querySelector('.frame-measurements-wrapper');
+        if (frameMeasWrapper) {
+            frameMeasWrapper.style.display = isLens ? 'none' : 'block';
+        }
+        
         const measWrapper = card.querySelector('.measurements-collapsible-wrapper');
-        const measTitle = card.querySelector('.measurements-section-title span');
-        
-        frameMeas.forEach(el => el.style.display = isLens ? 'none' : 'grid');
-        lensMeas.forEach(el  => el.style.display = isLens ? 'grid' : 'none');
-        
-        if (isLens) {
-            // Auto-expand lens specs for contact lenses
-            if (measWrapper) measWrapper.style.display = 'block';
-            if (measTitle) measTitle.innerHTML = '<i class="fa fa-eye"></i> Contact Lens Parameters & Powers';
-        } else {
-            if (measTitle) measTitle.innerHTML = '<i class="fa fa-ruler-horizontal"></i> Measurements & Lab Dimensions (Optional)';
-            if (isSunglass) {
-                // Auto-open and highlight Polarized & UV Protection for sunglasses
-                if (measWrapper) measWrapper.style.display = 'block';
-                const polSelect = card.querySelector('select[name$="[polarized]"]');
-                const uvInput = card.querySelector('input[name$="[uv_protection]"]');
-                if (polSelect && polSelect.value === '0') polSelect.value = '1';
-                if (uvInput && !uvInput.value) uvInput.value = 'UV400';
-            }
+        if (isSunglass && measWrapper) {
+            // Auto-open and highlight Polarized & UV Protection for sunglasses
+            measWrapper.style.display = 'block';
+            const polSelect = card.querySelector('select[name$="[polarized]"]');
+            const uvInput = card.querySelector('input[name$="[uv_protection]"]');
+            if (polSelect && polSelect.value === '0') polSelect.value = '1';
+            if (uvInput && !uvInput.value) uvInput.value = 'UV400';
         }
     });
 
