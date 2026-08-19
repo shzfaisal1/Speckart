@@ -65,12 +65,21 @@ body { background: var(--bg); }
 /* ---------- Layout ---------- */
 .pb-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 330px;
     gap: 24px;
     align-items: flex-start;
 }
+.pb-sidebar {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-bottom: 20px;
+}
 @media (max-width: 1024px) {
     .pb-layout { grid-template-columns: 1fr; }
+    .pb-sidebar { position: static; max-height: none; }
 }
 
 /* ---------- Cards ---------- */
@@ -976,7 +985,7 @@ body { background: var(--bg); }
             </div>
 
             {{-- ===== RIGHT SIDEBAR ===== --}}
-            <div>
+            <div class="pb-sidebar">
 
                 {{-- Live Customer Store Preview --}}
                 <div class="pb-card sb-card live-preview-card" style="border: 2px solid #e0e7ff; background: #fff; margin-bottom: 20px;">
@@ -997,6 +1006,10 @@ body { background: var(--bg); }
                                     <span id="preview-sale-price" style="font-size: .95rem; font-weight: 800; color: #1e1b4b;">₹0.00</span>
                                     <span id="preview-mrp" style="font-size: 0.75rem; color: #94a3b8; text-decoration: line-through; display: none;">₹0.00</span>
                                     <span id="preview-discount-pill" style="font-size: 0.68rem; font-weight: 700; color: #10b981; display: none;">0% OFF</span>
+                                </div>
+                                <div id="preview-swatches" style="display: flex; gap: 5px; margin-top: 8px; align-items: center;">
+                                    <span style="font-size: 0.7rem; color: #64748b;">Colors:</span>
+                                    <div id="preview-color-dots" style="display: inline-flex; gap: 4px;"></div>
                                 </div>
                             </div>
                         </div>
@@ -1138,72 +1151,77 @@ body { background: var(--bg); }
             </div>
 
             {{-- Measurements & Details —— shown/hidden by category type --}}
-            <div class="variant-section-title measurements-section-title"><i class="fa fa-ruler-horizontal"></i> Measurements & Details</div>
-
-            {{-- FRAME Measurements (hidden for Lens) --}}
-            <div class="frame-measurements row-grid">
-                <div>
-                    <label class="pb-label">Lens Width</label>
-                    <input type="text" name="variants[__IDX__][lens_width]" class="pb-input" placeholder="e.g. 52mm">
-                </div>
-                <div>
-                    <label class="pb-label">Temple Length</label>
-                    <input type="text" name="variants[__IDX__][temple_length]" class="pb-input" placeholder="e.g. 140mm">
-                </div>
-                <div>
-                    <label class="pb-label">Frame Width</label>
-                    <input type="text" name="variants[__IDX__][frame_width]" class="pb-input" placeholder="e.g. 138mm">
-                </div>
-                <div>
-                    <label class="pb-label">Polarized</label>
-                    <select name="variants[__IDX__][polarized]" class="pb-input">
-                        <option value="0">No</option>
-                        <option value="1">Yes</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="pb-label">UV Protection</label>
-                    <input type="text" name="variants[__IDX__][uv_protection]" class="pb-input" placeholder="e.g. UV400">
-                </div>
+            <div class="variant-section-title measurements-section-title" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px;" onclick="toggleMeasurements(this)">
+                <span><i class="fa fa-ruler-horizontal"></i> Measurements & Lab Dimensions (Optional)</span>
+                <i class="fa fa-chevron-down meas-toggle-icon" style="font-size: .8rem; color: #64748b; transition: transform .2s;"></i>
             </div>
 
-            {{-- LENS Measurements (shown only for Lens, hidden by default) --}}
-            <div class="lens-measurements row-grid" style="display:none;">
-                <div>
-                    <label class="pb-label">Pack Size</label>
-                    <select name="variants[__IDX__][pack_size]" class="pb-input">
-                        <option value="">Select Pack Size</option>
-                        <option value="1">1 Lens</option>
-                        <option value="2">2 Lenses (1 Pair)</option>
-                        <option value="6">6 Lenses</option>
-                        <option value="12">12 Lenses (Box)</option>
-                        <option value="30">30 Lenses (Box)</option>
-                        <option value="90">90 Lenses (Box)</option>
-                    </select>
+            <div class="measurements-collapsible-wrapper" style="display: none; margin-bottom: 16px;">
+                {{-- FRAME Measurements (hidden for Lens) --}}
+                <div class="frame-measurements row-grid">
+                    <div>
+                        <label class="pb-label">Lens Width</label>
+                        <input type="text" name="variants[__IDX__][lens_width]" class="pb-input" placeholder="e.g. 52mm">
+                    </div>
+                    <div>
+                        <label class="pb-label">Temple Length</label>
+                        <input type="text" name="variants[__IDX__][temple_length]" class="pb-input" placeholder="e.g. 140mm">
+                    </div>
+                    <div>
+                        <label class="pb-label">Frame Width</label>
+                        <input type="text" name="variants[__IDX__][frame_width]" class="pb-input" placeholder="e.g. 138mm">
+                    </div>
+                    <div>
+                        <label class="pb-label">Polarized</label>
+                        <select name="variants[__IDX__][polarized]" class="pb-input">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="pb-label">UV Protection</label>
+                        <input type="text" name="variants[__IDX__][uv_protection]" class="pb-input" placeholder="e.g. UV400">
+                    </div>
                 </div>
-                <div>
-                    <label class="pb-label">Oxygen Transmissibility (Dk/t)</label>
-                    <input type="text" name="variants[__IDX__][Dk_t]" class="pb-input" placeholder="e.g. 33.3">
-                </div>
-                <div>
-                    <label class="pb-label">Base Curve (BC)</label>
-                    <input type="text" name="variants[__IDX__][BC]" class="pb-input" placeholder="e.g. 8.6">
-                </div>
-                <div>
-                    <label class="pb-label">Diameter (DIA)</label>
-                    <input type="text" name="variants[__IDX__][DIA]" class="pb-input" placeholder="e.g. 14.2">
-                </div>
-                <div>
-                    <label class="pb-label">Sphere (SPH) Range</label>
-                    <input type="text" name="variants[__IDX__][SPH]" class="pb-input" placeholder="e.g. -0.50 to -6.00">
-                </div>
-                <div>
-                    <label class="pb-label">Cylinder (CYL) Range</label>
-                    <input type="text" name="variants[__IDX__][CYL]" class="pb-input" placeholder="e.g. -0.75 to -2.25">
-                </div>
-                <div>
-                    <label class="pb-label">Axis Range</label>
-                    <input type="text" name="variants[__IDX__][AXIS]" class="pb-input" placeholder="e.g. 0° to 180°">
+
+                {{-- LENS Measurements (shown only for Lens, hidden by default) --}}
+                <div class="lens-measurements row-grid" style="display:none;">
+                    <div>
+                        <label class="pb-label">Pack Size</label>
+                        <select name="variants[__IDX__][pack_size]" class="pb-input">
+                            <option value="">Select Pack Size</option>
+                            <option value="1">1 Lens</option>
+                            <option value="2">2 Lenses (1 Pair)</option>
+                            <option value="6">6 Lenses</option>
+                            <option value="12">12 Lenses (Box)</option>
+                            <option value="30">30 Lenses (Box)</option>
+                            <option value="90">90 Lenses (Box)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="pb-label">Oxygen Transmissibility (Dk/t)</label>
+                        <input type="text" name="variants[__IDX__][Dk_t]" class="pb-input" placeholder="e.g. 33.3">
+                    </div>
+                    <div>
+                        <label class="pb-label">Base Curve (BC)</label>
+                        <input type="text" name="variants[__IDX__][BC]" class="pb-input" placeholder="e.g. 8.6">
+                    </div>
+                    <div>
+                        <label class="pb-label">Diameter (DIA)</label>
+                        <input type="text" name="variants[__IDX__][DIA]" class="pb-input" placeholder="e.g. 14.2">
+                    </div>
+                    <div>
+                        <label class="pb-label">Sphere (SPH) Range</label>
+                        <input type="text" name="variants[__IDX__][SPH]" class="pb-input" placeholder="e.g. -0.50 to -6.00">
+                    </div>
+                    <div>
+                        <label class="pb-label">Cylinder (CYL) Range</label>
+                        <input type="text" name="variants[__IDX__][CYL]" class="pb-input" placeholder="e.g. -0.75 to -2.25">
+                    </div>
+                    <div>
+                        <label class="pb-label">Axis Range</label>
+                        <input type="text" name="variants[__IDX__][AXIS]" class="pb-input" placeholder="e.g. 0° to 180°">
+                    </div>
                 </div>
             </div>
 
@@ -1310,8 +1328,10 @@ foreach ($optFieldsFrame as $key => $cfg) {
     $optHtmlFrame .= '<div>';
     $optHtmlFrame .= '<label class="pb-label">' . $cfg['label'] . '</label>';
     if (($key === 'Color' || $key === 'Secondary_Color')) {
+        $defaultVal = $key === 'Color' ? '#1a1a1a' : '#ffffff';
         $optHtmlFrame .= '<div style="display: flex; gap: 8px; align-items: center; flex: 1;">';
-        $optHtmlFrame .= '<input type="color" name="variants[__IDX__][' . $key . ']" class="pb-input" style="width: 100%; height: 38px; padding: 2px; cursor: pointer;" title="Pick ' . $cfg['label'] . '">';
+        $optHtmlFrame .= '<input type="color" name="variants[__IDX__][' . $key . ']" class="pb-input color-picker-box" value="' . $defaultVal . '" style="width: 46px; height: 38px; padding: 2px; cursor: pointer; border-radius: 8px; flex-shrink: 0;" title="Pick ' . $cfg['label'] . '" oninput="syncColorHex(this)">';
+        $optHtmlFrame .= '<input type="text" class="pb-input color-hex-text" value="' . $defaultVal . '" placeholder="#hex" style="font-family: monospace; font-size: .85rem;" oninput="syncColorPicker(this)">';
         $optHtmlFrame .= '</div>';
     } elseif ($key === 'Size') {
         $optHtmlFrame .= '<select name="variants[__IDX__][' . $key . '][]" class="pb-input select2-size" multiple>';
@@ -1993,6 +2013,56 @@ function updateLivePreview() {
             previewImg.src = firstImg.src;
         }
     }
+
+    // Render color swatches in preview
+    const dotsContainer = document.getElementById('preview-color-dots');
+    if (dotsContainer) {
+        dotsContainer.innerHTML = '';
+        const colorPickers = document.querySelectorAll('.variant-card input[name$="[Color]"]');
+        colorPickers.forEach(picker => {
+            const hex = picker.value || '#1a1a1a';
+            const dot = document.createElement('span');
+            dot.style.cssText = `width: 12px; height: 12px; border-radius: 50%; background: ${hex}; border: 1.5px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; display: inline-block;`;
+            dotsContainer.appendChild(dot);
+        });
+    }
+}
+
+function toggleMeasurements(header) {
+    const card = header.closest('.variant-card') || header.parentElement;
+    const wrapper = card.querySelector('.measurements-collapsible-wrapper');
+    const icon = header.querySelector('.meas-toggle-icon');
+    if (!wrapper) return;
+    
+    if (wrapper.style.display === 'none' || wrapper.style.display === '') {
+        wrapper.style.display = 'block';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        wrapper.style.display = 'none';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+function syncColorHex(picker) {
+    const parent = picker.closest('div');
+    const hexInput = parent.querySelector('.color-hex-text');
+    if (hexInput) {
+        hexInput.value = picker.value.toUpperCase();
+    }
+    updateLivePreview();
+}
+
+function syncColorPicker(hexInput) {
+    const parent = hexInput.closest('div');
+    const picker = parent.querySelector('.color-picker-box');
+    let val = hexInput.value.trim();
+    if (!val.startsWith('#')) {
+        val = '#' + val;
+    }
+    if (/^#[0-9A-F]{6}$/i.test(val) && picker) {
+        picker.value = val;
+    }
+    updateLivePreview();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
