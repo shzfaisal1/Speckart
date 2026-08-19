@@ -379,7 +379,7 @@ class ProductController extends Controller
         // Global validation — parent_product_code removed from rules (it's auto-generated)
         $globalValidator = Validator::make($request->all(), [
             'product_name' => 'required|string|max:255',
-            'product_type' => 'required|string',
+            'product_type' => 'required|string|in:Frame,Lens',
             'variants'     => 'required|array|min:1',
         ]);
 
@@ -387,25 +387,45 @@ class ProductController extends Controller
             return response()->json(['error' => $globalValidator->errors()->all()]);
         }
 
-        // Validate each variant SKU
-        $skuErrors = [];
+        // Validate each variant SKU, pricing, and check for intra-payload duplicates
+        $validationErrors = [];
+        $seenSkus  = [];
         foreach ($variants as $idx => $variant) {
+            $variantNum = $idx + 1;
             $sku = trim($variant['product_code'] ?? '');
             if (empty($sku)) {
-                $skuErrors[] = "Variant #" . ($idx + 1) . ": SKU is required.";
+                $validationErrors[] = "Variant #{$variantNum}: SKU is required.";
                 continue;
             }
             if (strlen($sku) < 3) {
-                $skuErrors[] = "Variant #" . ($idx + 1) . ": SKU must be at least 3 characters.";
+                $validationErrors[] = "Variant #{$variantNum}: SKU must be at least 3 characters.";
                 continue;
             }
+            $skuLower = strtolower($sku);
+            if (in_array($skuLower, $seenSkus, true)) {
+                $validationErrors[] = "Variant #{$variantNum}: Duplicate SKU '{$sku}' is used multiple times in this form.";
+                continue;
+            }
+            $seenSkus[] = $skuLower;
+
             if (DB::table('tbl_product_code')->where('product_code', $sku)->exists()) {
-                $skuErrors[] = "Variant #" . ($idx + 1) . ": SKU '{$sku}' already exists.";
+                $validationErrors[] = "Variant #{$variantNum}: SKU '{$sku}' already exists.";
+            }
+
+            // Price validation
+            $mrp = isset($variant['Retail_Price']) && is_numeric($variant['Retail_Price']) ? (float)$variant['Retail_Price'] : null;
+            $discount = isset($variant['discount_price']) && is_numeric($variant['discount_price']) ? (float)$variant['discount_price'] : null;
+
+            if ($mrp !== null && $mrp < 0) {
+                $validationErrors[] = "Variant #{$variantNum}: Retail Price (MRP) cannot be negative.";
+            }
+            if ($discount !== null && $mrp !== null && $discount > $mrp && $mrp > 0) {
+                $validationErrors[] = "Variant #{$variantNum}: Discount / Sale Price (₹{$discount}) cannot exceed Retail Price (₹{$mrp}).";
             }
         }
 
-        if (!empty($skuErrors)) {
-            return response()->json(['error' => $skuErrors]);
+        if (!empty($validationErrors)) {
+            return response()->json(['error' => $validationErrors]);
         }
 
         try {
@@ -826,9 +846,12 @@ class ProductController extends Controller
     
     public function update(Request $request, $product_id)
     {
-        // BUG FIX: always fetch parent_product_code from DB
-        // Old code read it from $request->input() — if form didn't send it, it broke grouping
-        $firstVariant = Product::where('product_id', $product_id)->first();
+        // Fetch first variant by product_id, id, or parent_product_code
+        $firstVariant = Product::where('product_id', $product_id)
+            ->orWhere('id', $product_id)
+            ->orWhere('parent_product_code', $product_id)
+            ->first();
+
         if (!$firstVariant) {
             return response()->json(['error' => ['Product not found.']]);
         }
@@ -839,7 +862,7 @@ class ProductController extends Controller
 
         $globalValidator = Validator::make($request->all(), [
             'product_name' => 'required|string|max:255',
-            'product_type' => 'required|string',
+            'product_type' => 'required|string|in:Frame,Lens',
         ]);
 
         if ($globalValidator->fails()) {
@@ -849,6 +872,52 @@ class ProductController extends Controller
         $variants = $request->input('variants', []);
         if (empty($variants)) {
             return response()->json(['error' => ['At least one variant is required.']]);
+        }
+
+        // Validate each variant SKU, pricing, and check for intra-payload duplicates
+        $validationErrors = [];
+        $seenSkus  = [];
+        foreach ($variants as $idx => $variant) {
+            $variantNum = $idx + 1;
+            $variantId = $variant['id'] ?? null;
+            $sku = trim($variant['product_code'] ?? '');
+            if (empty($sku)) {
+                $validationErrors[] = "Variant #{$variantNum}: SKU is required.";
+                continue;
+            }
+            if (strlen($sku) < 3) {
+                $validationErrors[] = "Variant #{$variantNum}: SKU must be at least 3 characters.";
+                continue;
+            }
+            $skuLower = strtolower($sku);
+            if (in_array($skuLower, $seenSkus, true)) {
+                $validationErrors[] = "Variant #{$variantNum}: Duplicate SKU '{$sku}' is used multiple times in this form.";
+                continue;
+            }
+            $seenSkus[] = $skuLower;
+
+            $duplicateQuery = DB::table('tbl_product_code')->where('product_code', $sku);
+            if (!empty($variantId)) {
+                $duplicateQuery->where('id', '!=', $variantId);
+            }
+            if ($duplicateQuery->exists()) {
+                $validationErrors[] = "Variant #{$variantNum}: SKU '{$sku}' already exists.";
+            }
+
+            // Price validation
+            $mrp = isset($variant['Retail_Price']) && is_numeric($variant['Retail_Price']) ? (float)$variant['Retail_Price'] : null;
+            $discount = isset($variant['discount_price']) && is_numeric($variant['discount_price']) ? (float)$variant['discount_price'] : null;
+
+            if ($mrp !== null && $mrp < 0) {
+                $validationErrors[] = "Variant #{$variantNum}: Retail Price (MRP) cannot be negative.";
+            }
+            if ($discount !== null && $mrp !== null && $discount > $mrp && $mrp > 0) {
+                $validationErrors[] = "Variant #{$variantNum}: Discount / Sale Price (₹{$discount}) cannot exceed Retail Price (₹{$mrp}).";
+            }
+        }
+
+        if (!empty($validationErrors)) {
+            return response()->json(['error' => $validationErrors]);
         }
 
         $type              = $request->input('product_type', 'Frame');
