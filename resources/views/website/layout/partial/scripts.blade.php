@@ -205,29 +205,45 @@
         });
 
 
-        $('.shop-by-brand-slider').slick({
-            slidesToShow: 4,
-            slidesToScroll: 1,
-            arrows: false,
-            dots: false,
-            speed: 300,
-            infinite: false,
-            autoplaySpeed: 5000,
-            autoplay: false,
-            responsive: [{
-                    breakpoint: 991,
-                    settings: {
-                        slidesToShow: 3,
+        if ($('.shop-by-brand-slider').length) {
+            $('.shop-by-brand-slider').slick({
+                slidesToShow: 4,
+                slidesToScroll: 1,
+                arrows: false,
+                dots: false,
+                speed: 400,
+                infinite: true,
+                autoplay: true,
+                autoplaySpeed: 3500,
+                pauseOnHover: true,
+                responsive: [
+                    {
+                        breakpoint: 1200,
+                        settings: {
+                            slidesToShow: 4,
+                        }
+                    },
+                    {
+                        breakpoint: 991,
+                        settings: {
+                            slidesToShow: 3,
+                        }
+                    },
+                    {
+                        breakpoint: 767,
+                        settings: {
+                            slidesToShow: 2,
+                        }
+                    },
+                    {
+                        breakpoint: 480,
+                        settings: {
+                            slidesToShow: 1,
+                        }
                     }
-                },
-                {
-                    breakpoint: 767,
-                    settings: {
-                        slidesToShow: 1,
-                    }
-                }
-            ]
-        });
+                ]
+            });
+        }
     });
 </script>
 
