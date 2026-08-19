@@ -223,6 +223,93 @@ class WebSiteController extends Controller
             });
         };
 
+        // ── Fetch dynamic brands for "Shop by Brands" ──
+        $knownBrandMeta = [
+            'fastrack' => [
+                'name'     => 'Fastrack',
+                'tagline'  => 'Bold & Youthful Eyewear',
+                'logo_img' => asset('website/assets/img/bg/brand-sm1.png'),
+                'discount' => 'Under ₹1499',
+                'accent'   => '#ea580c',
+            ],
+            'vogue' => [
+                'name'     => 'Vogue Eyewear',
+                'tagline'  => 'Chic High-Fashion Silhouettes',
+                'logo_img' => asset('website/assets/img/bg/brand-sm2.png'),
+                'discount' => 'Up to 40% OFF',
+                'accent'   => '#c026d3',
+            ],
+            'titan' => [
+                'name'     => 'Titan Eyewear',
+                'tagline'  => 'Contemporary Precision & Elegance',
+                'logo_img' => asset('website/assets/img/bg/brand-sm3.png'),
+                'discount' => 'Starting ₹999',
+                'accent'   => '#0d9488',
+            ],
+            'tommy-hilfiger' => [
+                'name'     => 'Tommy Hilfiger',
+                'tagline'  => 'Classic American Designer Optics',
+                'logo_img' => asset('website/assets/img/bg/brand-sm4.png'),
+                'discount' => 'New Season',
+                'accent'   => '#1e3a8a',
+            ],
+            'ray-ban' => [
+                'name'     => 'Ray-Ban',
+                'tagline'  => 'Timeless & Iconic Global Optics',
+                'logo_img' => asset('website/assets/img/bg/brand-sm1.png'),
+                'discount' => 'Up to 30% OFF',
+                'accent'   => '#e11d48',
+            ],
+            'oakley' => [
+                'name'     => 'Oakley',
+                'tagline'  => 'High-Performance Sports Optics',
+                'logo_img' => asset('website/assets/img/bg/brand-sm2.png'),
+                'discount' => 'High Definition',
+                'accent'   => '#0284c7',
+            ],
+            'vincent-chase' => [
+                'name'     => 'Vincent Chase',
+                'tagline'  => 'Urban Luxury & Modern Acetates',
+                'logo_img' => asset('website/assets/img/bg/brand-sm3.png'),
+                'discount' => 'Trending Styles',
+                'accent'   => '#6366f1',
+            ],
+            'john-jacobs' => [
+                'name'     => 'John Jacobs',
+                'tagline'  => 'Handcrafted Titanium & Italian Craft',
+                'logo_img' => asset('website/assets/img/bg/brand-sm4.png'),
+                'discount' => 'Premium Line',
+                'accent'   => '#0f172a',
+            ],
+        ];
+
+        try {
+            $dbBrandRows = DB::table('tbl_brand')
+                ->where('status', '1')
+                ->get();
+        } catch (\Throwable $e) {
+            $dbBrandRows = collect();
+        }
+
+        $brandsCollection = collect();
+
+        foreach ($knownBrandMeta as $slug => $meta) {
+            $dbBrand = $dbBrandRows->firstWhere('brand_name', $meta['name']);
+            $discount = (!empty($dbBrand->discount)) ? $dbBrand->discount . '% OFF' : $meta['discount'];
+
+            $brandsCollection->push((object) [
+                'name'     => $meta['name'],
+                'slug'     => $slug,
+                'tagline'  => $meta['tagline'],
+                'logo_img' => $meta['logo_img'],
+                'discount' => $discount,
+                'url'      => url('/products?brand=' . $slug),
+                'initials' => strtoupper(substr($meta['name'], 0, 2)),
+                'accent'   => $meta['accent'],
+            ]);
+        }
+
+        $data['brands']            = $brandsCollection;
         $data['trending_products'] = $mapProducts($trendingList, 'website/assets/img/bg/Sunglasses1.png');
         $data['best_sellers']      = $mapProducts($bestSellerList, 'website/assets/img/bg/Eyeglasses1.png');
         $data['sunglasses']        = $mapProducts($sunglassesList, 'website/assets/img/bg/Sunglasses1.png');
