@@ -1180,6 +1180,7 @@ body { background: var(--bg); }
                     <label class="pb-label">Main Image <span class="req">*</span></label>
                     <input type="file" name="variants[__IDX__][main_image]"
                         class="pb-input" accept="image/*" onchange="previewMainImage(this)">
+                    <small class="text-muted" style="font-size:0.75rem; display:block; margin-top:3px;"><i class="fa fa-info-circle"></i> Ratio: <strong>2:1 landscape</strong> (e.g. 800×400px)</small>
                     <span class="pb-err main-image-err"></span>
                     <div class="img-preview-wrap main-img-preview"></div>
                 </div>
@@ -1187,6 +1188,7 @@ body { background: var(--bg); }
                     <label class="pb-label">Gallery Images</label>
                     <input type="file" name="variants[__IDX__][images][]"
                         class="pb-input" accept="image/*" multiple onchange="previewGallery(this)">
+                    <small class="text-muted" style="font-size:0.75rem; display:block; margin-top:3px;"><i class="fa fa-info-circle"></i> Ratio: <strong>2:1 landscape</strong> (e.g. 800×400px)</small>
                     <div class="img-preview-wrap gallery-preview"></div>
                 </div>
             </div>
@@ -1721,7 +1723,18 @@ function previewMainImage(input) {
         }
         const reader = new FileReader();
         reader.onload = e => {
-            wrap.innerHTML = `<img src="${e.target.result}" class="img-thumb">`;
+            const img = new Image();
+            img.onload = () => {
+                const ratio = img.naturalWidth / img.naturalHeight;
+                if (ratio < 1.3 || ratio > 2.8) {
+                    alert(`⚠️ Invalid Image Ratio: Eyewear photos must be in landscape format (~2:1 aspect ratio, e.g. 800×400px or 1000×500px).\n\nYour image is ${img.naturalWidth}×${img.naturalHeight}px (Ratio: ${ratio.toFixed(2)}:1).`);
+                    input.value = '';
+                    wrap.innerHTML = '';
+                    return;
+                }
+                wrap.innerHTML = `<img src="${e.target.result}" class="img-thumb">`;
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
@@ -1743,10 +1756,19 @@ function previewGallery(input) {
         }
         const reader = new FileReader();
         reader.onload = e => {
-            const img = document.createElement('img');
+            const img = new Image();
+            img.onload = () => {
+                const ratio = img.naturalWidth / img.naturalHeight;
+                if (ratio < 1.3 || ratio > 2.8) {
+                    alert(`⚠️ Gallery image skipped: Image "${file.name}" is not in landscape 2:1 ratio (${img.naturalWidth}×${img.naturalHeight}px).`);
+                    return;
+                }
+                const previewImg = document.createElement('img');
+                previewImg.src = e.target.result;
+                previewImg.className = 'img-thumb local-preview';
+                wrap.appendChild(previewImg);
+            };
             img.src = e.target.result;
-            img.className = 'img-thumb local-preview';
-            wrap.appendChild(img);
         };
         reader.readAsDataURL(file);
     });
@@ -2178,10 +2200,10 @@ function humanizeError(rawMsg) {
     msg = msg.replace(/Variant #(\d+): SKU is required\./i, '🏷️ <strong>Variant #$1:</strong> Missing SKU / Product Barcode code.');
     msg = msg.replace(/Variant #(\d+): SKU must be at least (\d+) characters\./i, '🏷️ <strong>Variant #$1:</strong> SKU code must be at least $2 letters.');
     msg = msg.replace(/Variant #(\d+): SKU '([^']+)' already exists\./i, '⚠️ <strong>Variant #$1:</strong> SKU "$2" is already used by an existing product in your inventory. Please use a unique SKU.');
-    msg = msg.replace(/Variant #(\d+): Duplicate SKU '([^']+)' is used multiple times in this form\./i, '⚠️ <strong>Duplicate SKU "$2":</strong> Two variants in this form cannot share the same SKU.');
     msg = msg.replace(/Variant #(\d+): Retail Price \(MRP\) cannot be negative\./i, '💰 <strong>Variant #$1:</strong> Retail Price (MRP) cannot be a negative number.');
     msg = msg.replace(/Variant #(\d+): Discount \/ Sale Price \(₹([^)]+)\) cannot exceed Retail Price \(₹([^)]+)\)\./i, '💰 <strong>Pricing Mistake in Variant #$1:</strong> Sale Price (₹$2) cannot be higher than MRP (₹$3).');
     msg = msg.replace(/Variant #(\d+): Main Image is required/i, '📸 <strong>Variant #$1:</strong> Needs a photo. Click "Choose File" to upload an image.');
+    msg = msg.replace(/Variant #(\d+): Main Image must be in landscape ~?2:1 ratio[^\.]*\./i, '📸 <strong>Variant #$1:</strong> Main Image must be in landscape ~2:1 ratio (e.g. 800×400px).');
     
     return msg;
 }
