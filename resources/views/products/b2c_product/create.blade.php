@@ -1151,21 +1151,25 @@ body { background: var(--bg); }
                     <label class="pb-label">Purchase Price</label>
                     <input type="number" step="0.01" name="variants[__IDX__][Purchase_Price]"
                         class="pb-input" placeholder="0.00">
+                    <span class="pb-err purchase-price-err"></span>
                 </div>
                 <div>
-                    <label class="pb-label">Retail Price (MRP)</label>
+                    <label class="pb-label">Retail Price (MRP) <span class="req">*</span></label>
                     <input type="number" step="0.01" name="variants[__IDX__][Retail_Price]"
                         class="pb-input" placeholder="0.00">
+                    <span class="pb-err retail-price-err"></span>
                 </div>
                 <div>
                     <label class="pb-label">Discount / Sale Price</label>
                     <input type="number" step="0.01" name="variants[__IDX__][discount_price]"
                         class="pb-input" placeholder="0.00">
+                    <span class="pb-err discount-price-err"></span>
                 </div>
                 <div>
                     <label class="pb-label">Tax / HSN Code</label>
                     <input type="text" name="variants[__IDX__][tax_hsn_code]"
                         class="pb-input" placeholder="e.g. 900490">
+                    <span class="pb-err hsn-err"></span>
                 </div>
             </div>
 
@@ -1173,9 +1177,10 @@ body { background: var(--bg); }
             <div class="variant-section-title"><i class="fa fa-images"></i> Images</div>
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="pb-label">Main Image</label>
+                    <label class="pb-label">Main Image <span class="req">*</span></label>
                     <input type="file" name="variants[__IDX__][main_image]"
                         class="pb-input" accept="image/*" onchange="previewMainImage(this)">
+                    <span class="pb-err main-image-err"></span>
                     <div class="img-preview-wrap main-img-preview"></div>
                 </div>
                 <div class="col-md-8 mb-3">
@@ -1982,88 +1987,114 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
     const submitBtn = document.getElementById('btn-submit');
     submitBtn.disabled = true;
 
-    const errBox    = document.getElementById('pb-global-errors');
-    errBox.style.display = 'none';
-    errBox.innerHTML = '';
+    // Reset all previous error messages and red highlights
+    document.querySelectorAll('.pb-input').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.pb-err').forEach(el => el.innerHTML = '');
 
-    // Validate product name
-    const pName = document.getElementById('product_name').value.trim();
+    let allErrors = [];
+    let firstInvalidElement = null;
+
+    // 1. Validate Product Name
+    const pNameInput = document.getElementById('product_name');
+    const pName = pNameInput ? pNameInput.value.trim() : '';
     if (!pName) {
-        submitBtn.disabled = false;
-        showError('Product Name is required.');
-        document.getElementById('product_name').classList.add('is-invalid');
-        return;
+        allErrors.push('🏷️ <strong>Product Name:</strong> Please enter a product name at the top.');
+        pNameInput.classList.add('is-invalid');
+        const pNameErr = document.getElementById('product_nameError');
+        if (pNameErr) pNameErr.innerHTML = '⚠️ Product Name is required.';
+        if (!firstInvalidElement) firstInvalidElement = pNameInput;
     }
 
-    // Validate at least 1 variant
+    // 2. Validate Category
+    const catSelect = document.getElementById('category_id');
+    const catVal = catSelect ? catSelect.value : '';
+    if (!catVal) {
+        allErrors.push('📂 <strong>Category:</strong> Please select a category.');
+        catSelect.classList.add('is-invalid');
+        const catErr = document.getElementById('category_idError');
+        if (catErr) catErr.innerHTML = '⚠️ Please select a category.';
+        if (!firstInvalidElement) firstInvalidElement = catSelect;
+    }
+
+    // 3. Validate at least 1 variant
     const variantCards = document.querySelectorAll('.variant-card');
     if (variantCards.length === 0) {
-        submitBtn.disabled = false;
-        showError('Please add at least one variant.');
-        return;
+        allErrors.push('➕ <strong>Variants:</strong> Please add at least one variant.');
     }
 
-    // Validate each variant (SKU, Price, Image)
-    let valid = true;
+    // 4. Validate each variant (SKU, MRP, Sale Price, Main Image)
+    const seenSkus = [];
     variantCards.forEach((card, i) => {
+        const vNum = i + 1;
+
+        // SKU validation
         const skuInput = card.querySelector('input[name$="[product_code]"]');
-        const skuErr   = card.querySelector('.sku-err') || document.createElement('span'); // fallback
+        const skuErr   = card.querySelector('.sku-err');
         const sku      = skuInput ? skuInput.value.trim() : '';
-        
-        const imgInput = card.querySelector('input[name$="[main_image]"]');
-        const hasImg   = (imgInput && imgInput.files && imgInput.files.length > 0) || card.querySelector('.main-img-preview img') !== null;
-        
-        let cardError = [];
-        
+
         if (!sku) {
-            cardError.push('SKU is required');
+            allErrors.push(`🏷️ <strong>Variant #${vNum}:</strong> SKU code is required.`);
             if (skuInput) skuInput.classList.add('is-invalid');
+            if (skuErr) skuErr.innerHTML = '⚠️ SKU / Barcode is required.';
+            if (!firstInvalidElement) firstInvalidElement = skuInput;
         } else if (sku.length < 3) {
-            cardError.push('SKU must be at least 3 chars');
+            allErrors.push(`🏷️ <strong>Variant #${vNum}:</strong> SKU code must be at least 3 characters.`);
             if (skuInput) skuInput.classList.add('is-invalid');
+            if (skuErr) skuErr.innerHTML = '⚠️ SKU must be at least 3 characters.';
+            if (!firstInvalidElement) firstInvalidElement = skuInput;
+        } else if (seenSkus.includes(sku.toLowerCase())) {
+            allErrors.push(`⚠️ <strong>Duplicate SKU:</strong> "${sku}" is used multiple times in this form.`);
+            if (skuInput) skuInput.classList.add('is-invalid');
+            if (skuErr) skuErr.innerHTML = `⚠️ Duplicate SKU "${sku}" cannot be repeated.`;
+            if (!firstInvalidElement) firstInvalidElement = skuInput;
         } else {
-            if (skuInput) skuInput.classList.remove('is-invalid');
+            seenSkus.push(sku.toLowerCase());
         }
-        
-        // Price sanity checks
+
+        // Retail Price (MRP) validation
         const mrpInput = card.querySelector('input[name$="[Retail_Price]"]');
-        const saleInput = card.querySelector('input[name$="[discount_price]"]');
-        const mrp = mrpInput && mrpInput.value ? parseFloat(mrpInput.value) : 0;
-        const sale = saleInput && saleInput.value ? parseFloat(saleInput.value) : 0;
+        const mrpErr   = card.querySelector('.retail-price-err');
+        const mrp      = mrpInput && mrpInput.value !== '' ? parseFloat(mrpInput.value) : NaN;
 
-        if (mrp <= 0) {
-            cardError.push('Retail Price (MRP) must be > 0');
+        if (isNaN(mrp) || mrp <= 0) {
+            allErrors.push(`💰 <strong>Variant #${vNum}:</strong> Retail Price (MRP) is required and must be greater than 0.`);
             if (mrpInput) mrpInput.classList.add('is-invalid');
-        } else {
-            if (mrpInput) mrpInput.classList.remove('is-invalid');
+            if (mrpErr) mrpErr.innerHTML = '⚠️ MRP is required (> 0).';
+            if (!firstInvalidElement) firstInvalidElement = mrpInput;
         }
 
-        if (sale > 0 && mrp > 0 && sale > mrp) {
-            cardError.push(`Sale Price (₹${sale}) cannot exceed MRP (₹${mrp})`);
+        // Discount / Sale Price validation
+        const saleInput = card.querySelector('input[name$="[discount_price]"]');
+        const saleErr   = card.querySelector('.discount-price-err');
+        const sale      = saleInput && saleInput.value !== '' ? parseFloat(saleInput.value) : 0;
+
+        if (sale > 0 && !isNaN(mrp) && sale > mrp) {
+            allErrors.push(`💰 <strong>Pricing Mistake in Variant #${vNum}:</strong> Sale Price (₹${sale}) cannot exceed MRP (₹${mrp}).`);
             if (saleInput) saleInput.classList.add('is-invalid');
-        } else {
-            if (saleInput) saleInput.classList.remove('is-invalid');
+            if (saleErr) saleErr.innerHTML = `⚠️ Sale Price (₹${sale}) cannot exceed MRP (₹${mrp}).`;
+            if (!firstInvalidElement) firstInvalidElement = saleInput;
         }
+
+        // Main Image validation
+        const imgInput = card.querySelector('input[name$="[main_image]"]');
+        const imgErr   = card.querySelector('.main-image-err');
+        const hasImg   = (imgInput && imgInput.files && imgInput.files.length > 0) || card.querySelector('.main-img-preview img') !== null;
 
         if (!hasImg) {
-            cardError.push('Main Image is required');
-        }
-
-        if (cardError.length > 0) {
-            if (skuErr.classList.contains('sku-err')) {
-                skuErr.innerHTML = cardError.join(', ');
-            } else {
-                showError(`Variant #${i+1}: ` + cardError.join(', '));
-            }
-            valid = false;
-        } else {
-            if (skuErr.classList.contains('sku-err')) skuErr.innerHTML = '';
+            allErrors.push(`📸 <strong>Variant #${vNum}:</strong> Needs a photo. Click "Choose File" to upload an image.`);
+            if (imgInput) imgInput.classList.add('is-invalid');
+            if (imgErr) imgErr.innerHTML = '⚠️ Main product image is required.';
+            if (!firstInvalidElement) firstInvalidElement = imgInput;
         }
     });
 
-    if (!valid) {
+    if (allErrors.length > 0) {
         submitBtn.disabled = false;
-        showError('Please fix variant errors before submitting. Images and SKUs are required.');
+        showError(allErrors);
+        if (firstInvalidElement) {
+            firstInvalidElement.focus();
+            firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
     }
 
