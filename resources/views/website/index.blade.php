@@ -812,7 +812,7 @@
                     <div class="col-lg-4 col-md-4 col-12">
                         <a href="{{ route('products', ['gender' => 'Kids']) }}" class="gender-card-link">
                             <div class="shop-gender-section-card">
-                                <img src="{{ asset('website/assets/img/icon/specs-kid.png') }}" alt="Kids">
+                                <img src="{{ asset('website/assets/img/icon/specs-kids.png') }}" alt="Kids">
                                 <p>Kids</p>
                             </div>
                         </a>
