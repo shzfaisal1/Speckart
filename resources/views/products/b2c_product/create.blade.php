@@ -1129,10 +1129,6 @@ body { background: var(--bg); }
                     <label class="pb-label">Frame Width</label>
                     <input type="text" name="variants[__IDX__][frame_width]" class="pb-input" placeholder="e.g. 138mm">
                 </div>
-                <div class="sunglass-color-wrapper" style="display:none;">
-                    <label class="pb-label">Sunglass Colour</label>
-                    <input type="text" name="variants[__IDX__][sunglass_colour]" class="pb-input" placeholder="e.g. Green, Grey">
-                </div>
                 <div>
                     <label class="pb-label">Polarized</label>
                     <select name="variants[__IDX__][polarized]" class="pb-input">
@@ -1162,46 +1158,29 @@ body { background: var(--bg); }
                 </div>
                 <div>
                     <label class="pb-label">Oxygen Transmissibility (Dk/t)</label>
-                    <input type="text" name="variants[__IDX__][dk_t]" class="pb-input" placeholder="e.g. 33.3">
+                    <input type="text" name="variants[__IDX__][Dk_t]" class="pb-input" placeholder="e.g. 33.3">
                 </div>
                 <div>
                     <label class="pb-label">Base Curve (BC)</label>
-                    <input type="text" name="variants[__IDX__][base_curve]" class="pb-input" placeholder="e.g. 8.6">
+                    <input type="text" name="variants[__IDX__][BC]" class="pb-input" placeholder="e.g. 8.6">
                 </div>
                 <div>
                     <label class="pb-label">Diameter (DIA)</label>
-                    <input type="text" name="variants[__IDX__][diameter]" class="pb-input" placeholder="e.g. 14.2">
+                    <input type="text" name="variants[__IDX__][DIA]" class="pb-input" placeholder="e.g. 14.2">
                 </div>
                 <div>
                     <label class="pb-label">Sphere (SPH) Range</label>
-                    <input type="text" name="variants[__IDX__][sph_range]" class="pb-input" placeholder="e.g. -0.50 to -6.00">
+                    <input type="text" name="variants[__IDX__][SPH]" class="pb-input" placeholder="e.g. -0.50 to -6.00">
                 </div>
                 <div>
                     <label class="pb-label">Cylinder (CYL) Range</label>
-                    <input type="text" name="variants[__IDX__][cyl_range]" class="pb-input" placeholder="e.g. -0.75 to -2.25">
+                    <input type="text" name="variants[__IDX__][CYL]" class="pb-input" placeholder="e.g. -0.75 to -2.25">
                 </div>
                 <div>
                     <label class="pb-label">Axis Range</label>
-                    <input type="text" name="variants[__IDX__][axis_range]" class="pb-input" placeholder="e.g. 0° to 180°">
+                    <input type="text" name="variants[__IDX__][AXIS]" class="pb-input" placeholder="e.g. 0° to 180°">
                 </div>
             </div>
-
-            {{-- Inventory --}}
-            <!--<div class="variant-section-title"><i class="fa fa-boxes"></i> Inventory</div>-->
-            <!--<div class="row-grid">-->
-            <!--    <div>-->
-            <!--        <label class="pb-label">Stock Quantity</label>-->
-            <!--        <input type="number" name="variants[__IDX__][stock_quantity]" class="pb-input" placeholder="0">-->
-            <!--    </div>-->
-            <!--    <div>-->
-            <!--        <label class="pb-label">Stock Status</label>-->
-            <!--        <select name="variants[__IDX__][stock_status]" class="pb-input">-->
-            <!--            <option value="In Stock">In Stock</option>-->
-            <!--            <option value="Out of Stock">Out of Stock</option>-->
-            <!--            <option value="On Backorder">On Backorder</option>-->
-            <!--        </select>-->
-            <!--    </div>-->
-            <!--</div>-->
 
             {{-- Pricing --}}
             <div class="variant-section-title"><i class="fa fa-tag"></i> Pricing</div>
@@ -1212,15 +1191,15 @@ body { background: var(--bg); }
                         class="pb-input" placeholder="0.00">
                 </div>
                 <div>
-                    <label class="pb-label">Retail Price</label>
+                    <label class="pb-label">Retail Price (MRP)</label>
                     <input type="number" step="0.01" name="variants[__IDX__][Retail_Price]"
                         class="pb-input" placeholder="0.00">
                 </div>
-                <!--<div>-->
-                <!--    <label class="pb-label">Discount Price</label>-->
-                <!--    <input type="number" step="0.01" name="variants[__IDX__][discount_price]"-->
-                <!--        class="pb-input" placeholder="0.00">-->
-                <!--</div>-->
+                <div>
+                    <label class="pb-label">Discount / Sale Price</label>
+                    <input type="number" step="0.01" name="variants[__IDX__][discount_price]"
+                        class="pb-input" placeholder="0.00">
+                </div>
                 <div>
                     <label class="pb-label">Tax / HSN Code</label>
                     <input type="text" name="variants[__IDX__][tax_hsn_code]"
@@ -1855,20 +1834,27 @@ function setupGlobalAc(inputId, dropdownId, routeKey, dataKey) {
 // Readiness Checklist
 // ============================================================
 function evaluateChecklist() {
-    let nameFilled = document.getElementById('product_name').value.trim().length > 0;
-    let catSelected = document.getElementById('category_id').value !== "";
+    let nameInput = document.getElementById('product_name');
+    let nameFilled = nameInput ? nameInput.value.trim().length > 0 : false;
+    let catInput = document.getElementById('category_id');
+    let catSelected = catInput ? catInput.value !== "" : false;
     
     const variants = document.querySelectorAll('.variant-card');
     let hasVariants = variants.length > 0;
     
     let allVariantsValid = hasVariants;
     variants.forEach(card => {
-        let sku = card.querySelector('input[name$="[product_code]"]').value.trim();
-        let price = parseFloat(card.querySelector('input[name$="[Retail_Price]"]').value) || 0;
+        let skuInput = card.querySelector('input[name$="[product_code]"]');
+        let sku = skuInput ? skuInput.value.trim() : '';
+        let priceInput = card.querySelector('input[name$="[Retail_Price]"]');
+        let price = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
         let imgInput = card.querySelector('input[name$="[main_image]"]');
-        let hasImg = (imgInput && imgInput.files && imgInput.files.length > 0) || card.querySelector('.main-img-preview img') !== null;
+        let hasImg = (imgInput && imgInput.files && imgInput.files.length > 0) 
+            || card.querySelector('.main-img-preview img') !== null 
+            || card.querySelector('.current-main-img') !== null
+            || card.querySelector('img') !== null;
         
-        if (!sku || price <= 0 || !hasImg) {
+        if (!sku) {
             allVariantsValid = false;
         }
     });

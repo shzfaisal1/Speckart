@@ -44,34 +44,43 @@ class ProductController extends Controller
                   ->orWhere('product_code', 'like', "%{$search}%")
                   ->orWhere('Company', 'like', "%{$search}%")
                   ->orWhere('Description', 'like', "%{$search}%")
+                  ->orWhere('parent_product_code', 'like', "%{$search}%")
                   ->orWhere('product_id', 'like', "%{$search}%");
             });
         }
 
-        $totalData     = Product::where('is_b2c', 1)->distinct('product_id')->count('product_id');
-        $totalFiltered = $query->distinct('product_id')->count('product_id');
+        $totalData     = Product::where('is_b2c', 1)->distinct()->count(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id)'));
+        $totalFiltered = (clone $query)->distinct()->count(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id)'));
 
-        $productIds = $query->select('product_id')
+        $parentCodes = (clone $query)->select(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id) as group_key'))
             ->distinct()
             ->offset($start)
             ->limit($limit)
-            ->pluck('product_id');
+            ->pluck('group_key');
 
-        $products = Product::whereIn('product_id', $productIds)->where('is_b2c', 1)->get();
-        $grouped  = $products->groupBy('product_id');
+        $products = Product::where('is_b2c', 1)
+            ->where(function($q) use ($parentCodes) {
+                $q->whereIn('parent_product_code', $parentCodes)
+                  ->orWhereIn('product_id', $parentCodes);
+            })
+            ->get();
+            
+        $grouped = $products->groupBy(function($item) {
+            return !empty($item->parent_product_code) ? $item->parent_product_code : $item->product_id;
+        });
 
         $data = [];
-        foreach ($productIds as $pid) {
-            $variants = $grouped->get($pid);
+        foreach ($parentCodes as $pkey) {
+            $variants = $grouped->get($pkey);
             if (!$variants || $variants->isEmpty()) continue;
 
             $first    = $variants->first();
             $isActive = $variants->contains('status', '1');
-            $skus     = $variants->pluck('product_code')->toArray();
+            $skus     = $variants->pluck('product_code')->filter()->unique()->values()->toArray();
 
             $data[] = [
                 'id'                  => $first->id,
-                'product_id'          => $pid,
+                'product_id'          => $first->product_id,
                 'product_code'        => $first->parent_product_code ?: $first->product_code,
                 'product_name'        => $first->product_name,
                 'Company'             => $first->Company ?? 'N/A',
@@ -358,9 +367,14 @@ class ProductController extends Controller
         $type     = $request->input('product_type', 'Frame');
         $variants = $request->input('variants', []);
 
-        // AUTO-GENERATE parent_product_code — NEVER accept from form, always server-side
-        // This is the shared key that links all variants of one product together
-        $parentProductCode = $this->generateUniqueParentCode();
+        // AUTO-GENERATE parent_product_code if not supplied by admin
+        $masterCodeInput = trim($request->input('product_code_master', ''));
+        if (!empty($masterCodeInput)) {
+            $existingParent = DB::table('tbl_product_code')->where('parent_product_code', $masterCodeInput)->exists();
+            $parentProductCode = $existingParent ? $this->generateUniqueParentCode() : $masterCodeInput;
+        } else {
+            $parentProductCode = $this->generateUniqueParentCode();
+        }
      
         // Global validation — parent_product_code removed from rules (it's auto-generated)
         $globalValidator = Validator::make($request->all(), [
@@ -397,7 +411,6 @@ class ProductController extends Controller
         try {
             DB::beginTransaction();
 
-            // BUG FIX: $typeLower was based on empty $type in old code — folder path was wrong
             $typeLower  = strtolower($type);
             $folderPath = public_path("uploads/{$typeLower}/product/{$parentProductCode}");
             if (!is_dir($folderPath)) {
@@ -462,7 +475,6 @@ class ProductController extends Controller
                 $frameWidth    = $variant['frame_width']   ?? null;
                 $stockQty      = $variant['stock_quantity']?? 0;
                 $stockStatus   = $variant['stock_status']  ?? null;
-                $sunglassColour= $variant['sunglass_colour']?? null;
                 $polarized     = $variant['polarized']     ?? 0;
                 $uvProtection  = $variant['uv_protection'] ?? null;
                 $barcode       = $variant['barcode']       ?? null;
@@ -470,17 +482,17 @@ class ProductController extends Controller
                 $taxHsnCode    = $variant['tax_hsn_code']  ?? null;
                 $variantStatus = $variant['status']        ?? $status; // Fallback to global status if not set
 
-                // Lens-specific fields
-                $modality      = $variant['Modality']      ?? null;
-                $wc            = $variant['WC']            ?? null;
-                $dk_t          = $variant['Dk_t']          ?? null;
-                $bc            = $variant['BC']            ?? null;
-                $dia           = $variant['DIA']           ?? null;
-                $sph           = $variant['SPH']           ?? null;
-                $cyl           = $variant['CYL']           ?? null;
-                $axis          = $variant['AXIS']          ?? null;
+                // Lens-specific fields (with resilient aliases)
+                $modality      = $variant['Modality']      ?? $variant['modality']      ?? null;
+                $wc            = $variant['WC']            ?? $variant['wc']            ?? null;
+                $dk_t          = $variant['Dk_t']          ?? $variant['dk_t']          ?? null;
+                $bc            = $variant['BC']            ?? $variant['base_curve']    ?? $variant['base_carve'] ?? null;
+                $dia           = $variant['DIA']           ?? $variant['diameter']      ?? null;
+                $sph           = $variant['SPH']           ?? $variant['sph_range']     ?? null;
+                $cyl           = $variant['CYL']           ?? $variant['cyl_range']     ?? null;
+                $axis          = $variant['AXIS']          ?? $variant['axis_range']    ?? null;
 
-                // BUG FIX: nullableFloat prevents SQLSTATE[22007] on empty price fields
+                // nullableFloat prevents SQLSTATE[22007] on empty price fields
                 $purBase     = $this->nullableFloat($variant['Purchase_Base_Price'] ?? null);
                 $purPrice    = $this->nullableFloat($variant['Purchase_Price']      ?? null);
                 $retailPrice = $this->nullableFloat($variant['Retail_Price']        ?? null);
@@ -530,12 +542,11 @@ class ProductController extends Controller
                     'frame_width'              => $frameWidth,
                     'stock_quantity'           => $stockQty,
                     'stock_status'             => $stockStatus,
-                    'sunglass_colour'          => $sunglassColour,
                     'polarized'                => $polarized,
                     'uv_protection'            => $uvProtection,
                     'barcode'                  => $barcode,
                     'discount_price'           => $discountPrice,
-                    'tax_hsn_code'             => $taxHsnCode,
+                    'hsn_code'                 => $taxHsnCode,
                     'Shape'                    => $shape,
                     'Material'                 => $material,
                     'Temple_Detail'            => $templeDetail,
@@ -552,8 +563,7 @@ class ProductController extends Controller
                     'product_image'            => json_encode($galleryImages),
                     'main_image'               => $mainImageName,
                     'status'                   => $variantStatus,
-                    'is_b2c'                   => "1",
-                    'show_in_b2c_website'      => $isB2c,
+                    'is_b2c'                   => $isB2c,
                     'category_id'              => $categoryId,
                     'subcategory_id'           => $subcategoryId,
                     'vendor'                   => $vendor,
@@ -902,7 +912,6 @@ class ProductController extends Controller
             $frameWidth    = $variant['frame_width']   ?? null;
             $stockQty      = $variant['stock_quantity']?? 0;
             $stockStatus   = $variant['stock_status']  ?? null;
-            $sunglassColour= $variant['sunglass_colour']?? null;
             $polarized     = $variant['polarized']     ?? 0;
             $uvProtection  = $variant['uv_protection'] ?? null;
             $barcode       = $variant['barcode']       ?? null;
@@ -910,15 +919,15 @@ class ProductController extends Controller
             $taxHsnCode    = $variant['tax_hsn_code']  ?? null;
             $variantStatus = $variant['status']        ?? $status; // Fallback to global status if not set
 
-            // Lens-specific fields
-            $modality      = $variant['Modality']      ?? null;
-            $wc            = $variant['WC']            ?? null;
-            $dk_t          = $variant['Dk_t']          ?? null;
-            $bc            = $variant['BC']            ?? null;
-            $dia           = $variant['DIA']           ?? null;
-            $sph           = $variant['SPH']           ?? null;
-            $cyl           = $variant['CYL']           ?? null;
-            $axis          = $variant['AXIS']          ?? null;
+            // Lens-specific fields (with resilient aliases)
+            $modality      = $variant['Modality']      ?? $variant['modality']      ?? null;
+            $wc            = $variant['WC']            ?? $variant['wc']            ?? null;
+            $dk_t          = $variant['Dk_t']          ?? $variant['dk_t']          ?? null;
+            $bc            = $variant['BC']            ?? $variant['base_curve']    ?? $variant['base_carve'] ?? null;
+            $dia           = $variant['DIA']           ?? $variant['diameter']      ?? null;
+            $sph           = $variant['SPH']           ?? $variant['sph_range']     ?? null;
+            $cyl           = $variant['CYL']           ?? $variant['cyl_range']     ?? null;
+            $axis          = $variant['AXIS']          ?? $variant['axis_range']    ?? null;
 
             $purBase      = $this->nullableFloat($variant['Purchase_Base_Price'] ?? null);
             $purPrice     = $this->nullableFloat($variant['Purchase_Price']      ?? null);
@@ -966,12 +975,11 @@ class ProductController extends Controller
                 'frame_width'              => $frameWidth,
                 'stock_quantity'           => $stockQty,
                 'stock_status'             => $stockStatus,
-                'sunglass_colour'          => $sunglassColour,
                 'polarized'                => $polarized,
                 'uv_protection'            => $uvProtection,
                 'barcode'                  => $barcode,
                 'discount_price'           => $discountPrice,
-                'tax_hsn_code'             => $taxHsnCode,
+                'hsn_code'                 => $taxHsnCode,
                 'Shape'                    => $shape,
                 'Material'                 => $material,
                 'Temple_Detail'            => $templeDetail,
@@ -987,7 +995,6 @@ class ProductController extends Controller
                 'BB_Price'                 => $bbPrice,
                 'status'                   => $variantStatus,
                 'is_b2c'                   => $isB2c,
-                'show_in_b2c_website'      => $isB2c,
                 'category_id'              => $categoryId,
                 'subcategory_id'           => $subcategoryId,
                 'vendor'                   => $vendor,
