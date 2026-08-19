@@ -1707,7 +1707,10 @@ function updateSkuLabel(input) {
 // Image Previews
 // ============================================================
 function previewMainImage(input) {
-    const wrap = input.nextElementSibling;
+    const parent = input.closest('.col-md-4') || input.parentElement;
+    const wrap = parent.querySelector('.main-img-preview');
+    if (!wrap) return;
+
     wrap.innerHTML = '';
     if (input.files && input.files[0]) {
         const file = input.files[0];
@@ -1725,7 +1728,10 @@ function previewMainImage(input) {
 }
 
 function previewGallery(input) {
-    const wrap = input.nextElementSibling;
+    const parent = input.closest('.col-md-8') || input.parentElement;
+    const wrap = parent.querySelector('.gallery-preview');
+    if (!wrap) return;
+
     // Remove only previous local previews, keep existing server images
     wrap.querySelectorAll('.local-preview').forEach(el => el.remove());
     
