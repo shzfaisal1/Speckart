@@ -146,7 +146,18 @@ body { background: var(--bg); }
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(79,70,229,.12);
 }
-.pb-input.is-invalid { border-color: var(--danger); }
+.pb-input.is-invalid {
+    border-color: var(--danger) !important;
+    background-color: #fff5f5 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+@keyframes fadeInShake {
+    0% { opacity: 0; transform: translateY(-8px); }
+    40% { opacity: 1; transform: translateX(-4px); }
+    70% { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+}
 
 .pb-err {
     font-size: .75rem;
@@ -2096,7 +2107,7 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
         document.getElementById('submit-loader').style.display = 'none';
 
         if (resp.error && resp.error.length > 0) {
-            showError(resp.error.join('<br>'));
+            showError(resp.error);
         } else if (resp.success) {
             // Show toast then redirect
             if (typeof $.toaster === 'function') {
@@ -2115,16 +2126,79 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
     });
 });
 
-function showError(msg) {
-    // Check if there is an element to show error
-    const errBox = document.getElementById('global-error') || document.createElement('div');
-    errBox.id = 'global-error';
-    errBox.className = 'alert alert-danger';
-    errBox.innerHTML = '<i class="fa fa-exclamation-triangle"></i> ' + msg;
+function humanizeError(rawMsg) {
+    if (!rawMsg) return 'An unexpected error occurred.';
+    let msg = rawMsg.trim();
     
-    const container = document.querySelector('.pb-page') || document.body;
-    container.prepend(errBox);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Replace raw database / technical validation strings with clear non-technical guidance
+    msg = msg.replace(/The product_name field is required\./i, '🏷️ <strong>Product Name:</strong> Please type a name for this eyewear product at the top.');
+    msg = msg.replace(/The product_name field must not be greater than (\d+) characters\./i, '🏷️ <strong>Product Name:</strong> Too long (maximum $1 characters).');
+    msg = msg.replace(/The category_id field is required\./i, '📂 <strong>Category:</strong> Please select a category (e.g. Eyeglasses, Sunglasses, Contact Lenses).');
+    msg = msg.replace(/The variants field is required\./i, '➕ <strong>Variants:</strong> Please add at least one color variant before saving.');
+    msg = msg.replace(/The product_type field is required\./i, '⚠️ <strong>Product Type:</strong> Please select a category to assign the product type.');
+    
+    // Variant-specific humanization
+    msg = msg.replace(/Variant #(\d+): SKU is required\./i, '🏷️ <strong>Variant #$1:</strong> Missing SKU / Product Barcode code.');
+    msg = msg.replace(/Variant #(\d+): SKU must be at least (\d+) characters\./i, '🏷️ <strong>Variant #$1:</strong> SKU code must be at least $2 letters.');
+    msg = msg.replace(/Variant #(\d+): SKU '([^']+)' already exists\./i, '⚠️ <strong>Variant #$1:</strong> SKU "$2" is already used by an existing product in your inventory. Please use a unique SKU.');
+    msg = msg.replace(/Variant #(\d+): Duplicate SKU '([^']+)' is used multiple times in this form\./i, '⚠️ <strong>Duplicate SKU "$2":</strong> Two variants in this form cannot share the same SKU.');
+    msg = msg.replace(/Variant #(\d+): Retail Price \(MRP\) cannot be negative\./i, '💰 <strong>Variant #$1:</strong> Retail Price (MRP) cannot be a negative number.');
+    msg = msg.replace(/Variant #(\d+): Discount \/ Sale Price \(₹([^)]+)\) cannot exceed Retail Price \(₹([^)]+)\)\./i, '💰 <strong>Pricing Mistake in Variant #$1:</strong> Sale Price (₹$2) cannot be higher than MRP (₹$3).');
+    msg = msg.replace(/Variant #(\d+): Main Image is required/i, '📸 <strong>Variant #$1:</strong> Needs a photo. Click "Choose File" to upload an image.');
+    
+    return msg;
+}
+
+function showError(errors) {
+    let errorList = Array.isArray(errors) ? errors : [errors];
+    
+    // Remove existing error container if present
+    const existing = document.getElementById('human-error-banner');
+    if (existing) existing.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'human-error-banner';
+    banner.style.cssText = `
+        background: #fef2f2;
+        border: 1.5px solid #f87171;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);
+        animation: fadeInShake 0.35s ease-in-out;
+    `;
+
+    let html = `
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <div style="background: #ef4444; color: #fff; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem; font-weight: 700; box-shadow: 0 2px 6px rgba(239,68,68,0.3);">
+                <i class="fa fa-exclamation"></i>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="margin: 0 0 6px 0; color: #991b1b; font-size: 0.96rem; font-weight: 700;">
+                    Please check the following items before saving:
+                </h4>
+                <ul style="margin: 0; padding-left: 18px; color: #b91c1c; font-size: 0.88rem; line-height: 1.6;">
+    `;
+
+    errorList.forEach(err => {
+        const friendlyMsg = humanizeError(err);
+        html += `<li style="margin-bottom: 4px;">${friendlyMsg}</li>`;
+    });
+
+    html += `
+                </ul>
+            </div>
+            <button type="button" onclick="this.closest('#human-error-banner').remove()" style="background: transparent; border: none; color: #991b1b; font-size: 1.3rem; cursor: pointer; padding: 0 6px; line-height: 1;" title="Dismiss">&times;</button>
+        </div>
+    `;
+
+    banner.innerHTML = html;
+
+    const mainContainer = document.querySelector('.pb-form-wrap') || document.querySelector('.pb-page') || document.body;
+    mainContainer.prepend(banner);
+
+    // Smooth scroll directly to the banner
+    banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 /* ═══════════════════════════════════════════════
    Package Section — Smart UX (redesigned)
