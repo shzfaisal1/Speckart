@@ -317,6 +317,78 @@ class WebSiteController extends Controller
         $data['new_arrivals']      = $mapProducts($newArrivalsList, 'website/assets/img/bg/Sunglasses1.png');
         $data['own_creations']     = $mapProducts($ownCreationsList, 'website/assets/img/bg/Creation1.png');
 
+        // ── Fetch dynamic brands for homepage slider ──
+        $defaultBrandBgs = [
+            asset('website/assets/img/bg/brands1.png'),
+            asset('website/assets/img/bg/brands2.png'),
+            asset('website/assets/img/bg/brands3.png'),
+            asset('website/assets/img/bg/brands4.png'),
+        ];
+        $defaultBrandLogos = [
+            asset('website/assets/img/bg/brand-sm1.png'),
+            asset('website/assets/img/bg/brand-sm2.png'),
+            asset('website/assets/img/bg/brand-sm3.png'),
+            asset('website/assets/img/bg/brand-sm4.png'),
+        ];
+
+        $rawBrands = DB::table('tbl_brand')
+            ->where('status', '1')
+            ->orderBy('brand_id', 'desc')
+            ->get();
+
+        $brands = collect($rawBrands)->map(function ($b, $idx) use ($defaultBrandBgs, $defaultBrandLogos) {
+            // 1. Logo image
+            $logoUrl = null;
+            if (!empty($b->image) && file_exists(public_path($b->image))) {
+                $logoUrl = asset($b->image);
+            } elseif (!empty($b->image)) {
+                $logoUrl = asset($b->image);
+            } else {
+                $logoUrl = $defaultBrandLogos[$idx % count($defaultBrandLogos)];
+            }
+
+            // 2. Fetch top active B2C product image as lifestyle/product background
+            $topProduct = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where('is_b2c', 1)
+                ->where('Company', $b->brand_name)
+                ->whereNotNull('main_image')
+                ->where('main_image', '!=', '')
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $bgImage = $defaultBrandBgs[$idx % count($defaultBrandBgs)];
+            if ($topProduct && !empty($topProduct->main_image)) {
+                $typeLower = strtolower($topProduct->product_type ?: 'frame');
+                if (!empty($topProduct->parent_product_code)) {
+                    $path = "uploads/{$typeLower}/product/{$topProduct->parent_product_code}/{$topProduct->main_image}";
+                    if (file_exists(public_path($path))) {
+                        $bgImage = asset($path);
+                    }
+                } else {
+                    $pathWithId = "uploads/{$typeLower}/product/{$topProduct->product_id}/{$topProduct->main_image}";
+                    if (file_exists(public_path($pathWithId))) {
+                        $bgImage = asset($pathWithId);
+                    } elseif (file_exists(public_path($topProduct->main_image))) {
+                        $bgImage = asset($topProduct->main_image);
+                    }
+                }
+            }
+
+            $b->name         = $b->brand_name;
+            $b->url          = route('products', ['brand' => $b->brand_name]);
+            $b->catalog_url  = $b->url;
+            $b->logo_img     = $logoUrl;
+            $b->logo_url     = $logoUrl;
+            $b->bg_image_url = $bgImage;
+            $cleanName       = preg_replace('/[^a-zA-Z0-9]/', '', $b->brand_name ?: 'BR');
+            $b->initials     = strtoupper(substr($cleanName, 0, 2)) ?: 'BR';
+
+            return $b;
+        });
+
+        $data['brands'] = $brands;
+
         return view('website.index',$data);
     }
 
