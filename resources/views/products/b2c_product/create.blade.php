@@ -2072,10 +2072,10 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
     const pNameInput = document.getElementById('product_name');
     const pName = pNameInput ? pNameInput.value.trim() : '';
     if (!pName) {
-        allErrors.push('🏷️ <strong>Product Name:</strong> Please enter a product name at the top.');
+        allErrors.push('<i class="fa fa-tag text-primary mr-1"></i> <strong>Product Name:</strong> Please enter a product name at the top.');
         pNameInput.classList.add('is-invalid');
         const pNameErr = document.getElementById('product_nameError');
-        if (pNameErr) pNameErr.innerHTML = '⚠️ Product Name is required.';
+        if (pNameErr) pNameErr.innerHTML = '<i class="fa fa-exclamation-circle text-danger mr-1"></i> Product Name is required.';
         if (!firstInvalidElement) firstInvalidElement = pNameInput;
     }
 
@@ -2083,17 +2083,17 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
     const catSelect = document.getElementById('category_id');
     const catVal = catSelect ? catSelect.value : '';
     if (!catVal) {
-        allErrors.push('📂 <strong>Category:</strong> Please select a category.');
+        allErrors.push('<i class="fa fa-folder text-primary mr-1"></i> <strong>Category:</strong> Please select a category.');
         catSelect.classList.add('is-invalid');
         const catErr = document.getElementById('category_idError');
-        if (catErr) catErr.innerHTML = '⚠️ Please select a category.';
+        if (catErr) catErr.innerHTML = '<i class="fa fa-exclamation-circle text-danger mr-1"></i> Please select a category.';
         if (!firstInvalidElement) firstInvalidElement = catSelect;
     }
 
     // 3. Validate at least 1 variant
     const variantCards = document.querySelectorAll('.variant-card');
     if (variantCards.length === 0) {
-        allErrors.push('➕ <strong>Variants:</strong> Please add at least one variant.');
+        allErrors.push('<i class="fa fa-plus-circle text-primary mr-1"></i> <strong>Variants:</strong> Please add at least one variant.');
     }
 
     // 4. Validate each variant (SKU, MRP, Sale Price, Main Image)
@@ -2107,19 +2107,19 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
         const sku      = skuInput ? skuInput.value.trim() : '';
 
         if (!sku) {
-            allErrors.push(`🏷️ <strong>Variant #${vNum}:</strong> SKU code is required.`);
+            allErrors.push(`<i class="fa fa-tag text-primary mr-1"></i> <strong>Variant #${vNum}:</strong> SKU code is required.`);
             if (skuInput) skuInput.classList.add('is-invalid');
-            if (skuErr) skuErr.innerHTML = '⚠️ SKU / Barcode is required.';
+            if (skuErr) skuErr.innerHTML = '<i class="fa fa-exclamation-circle text-danger mr-1"></i> SKU / Barcode is required.';
             if (!firstInvalidElement) firstInvalidElement = skuInput;
         } else if (sku.length < 3) {
-            allErrors.push(`🏷️ <strong>Variant #${vNum}:</strong> SKU code must be at least 3 characters.`);
+            allErrors.push(`<i class="fa fa-tag text-primary mr-1"></i> <strong>Variant #${vNum}:</strong> SKU code must be at least 3 characters.`);
             if (skuInput) skuInput.classList.add('is-invalid');
-            if (skuErr) skuErr.innerHTML = '⚠️ SKU must be at least 3 characters.';
+            if (skuErr) skuErr.innerHTML = '<i class="fa fa-exclamation-circle text-danger mr-1"></i> SKU must be at least 3 characters.';
             if (!firstInvalidElement) firstInvalidElement = skuInput;
         } else if (seenSkus.includes(sku.toLowerCase())) {
-            allErrors.push(`⚠️ <strong>Duplicate SKU:</strong> "${sku}" is used multiple times in this form.`);
+            allErrors.push(`<i class="fa fa-exclamation-triangle text-warning mr-1"></i> <strong>Duplicate SKU:</strong> "${sku}" is used multiple times in this form.`);
             if (skuInput) skuInput.classList.add('is-invalid');
-            if (skuErr) skuErr.innerHTML = `⚠️ Duplicate SKU "${sku}" cannot be repeated.`;
+            if (skuErr) skuErr.innerHTML = `<i class="fa fa-exclamation-triangle text-warning mr-1"></i> Duplicate SKU "${sku}" cannot be repeated.`;
             if (!firstInvalidElement) firstInvalidElement = skuInput;
         } else {
             seenSkus.push(sku.toLowerCase());
@@ -2131,9 +2131,9 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
         const mrp      = mrpInput && mrpInput.value !== '' ? parseFloat(mrpInput.value) : NaN;
 
         if (isNaN(mrp) || mrp <= 0) {
-            allErrors.push(`💰 <strong>Variant #${vNum}:</strong> Retail Price (MRP) is required and must be greater than 0.`);
+            allErrors.push(`<i class="fa fa-coins text-danger mr-1"></i> <strong>Variant #${vNum}:</strong> Retail Price (MRP) is required and must be greater than 0.`);
             if (mrpInput) mrpInput.classList.add('is-invalid');
-            if (mrpErr) mrpErr.innerHTML = '⚠️ MRP is required (> 0).';
+            if (mrpErr) mrpErr.innerHTML = '<i class="fa fa-exclamation-circle text-danger mr-1"></i> MRP is required (> 0).';
             if (!firstInvalidElement) firstInvalidElement = mrpInput;
         }
 
@@ -2143,9 +2143,9 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
         const sale      = saleInput && saleInput.value !== '' ? parseFloat(saleInput.value) : 0;
 
         if (sale > 0 && !isNaN(mrp) && sale > mrp) {
-            allErrors.push(`💰 <strong>Pricing Mistake in Variant #${vNum}:</strong> Sale Price (₹${sale}) cannot exceed MRP (₹${mrp}).`);
+            allErrors.push(`<i class="fa fa-coins text-danger mr-1"></i> <strong>Pricing Mistake in Variant #${vNum}:</strong> Sale Price (₹${sale}) cannot exceed MRP (₹${mrp}).`);
             if (saleInput) saleInput.classList.add('is-invalid');
-            if (saleErr) saleErr.innerHTML = `⚠️ Sale Price (₹${sale}) cannot exceed MRP (₹${mrp}).`;
+            if (saleErr) saleErr.innerHTML = `<i class="fa fa-exclamation-circle text-danger mr-1"></i> Sale Price (₹${sale}) cannot exceed MRP (₹${mrp}).`;
             if (!firstInvalidElement) firstInvalidElement = saleInput;
         }
 
@@ -2155,9 +2155,9 @@ document.getElementById('pb-form').addEventListener('submit', function(e) {
         const hasImg   = (imgInput && imgInput.files && imgInput.files.length > 0) || card.querySelector('.main-img-preview img') !== null;
 
         if (!hasImg) {
-            allErrors.push(`📸 <strong>Variant #${vNum}:</strong> Needs a photo. Click "Choose File" to upload an image.`);
+            allErrors.push(`<i class="fa fa-camera text-primary mr-1"></i> <strong>Variant #${vNum}:</strong> Needs a photo. Click "Choose File" to upload an image.`);
             if (imgInput) imgInput.classList.add('is-invalid');
-            if (imgErr) imgErr.innerHTML = '⚠️ Main product image is required.';
+            if (imgErr) imgErr.innerHTML = '<i class="fa fa-exclamation-circle text-danger mr-1"></i> Main product image is required.';
             if (!firstInvalidElement) firstInvalidElement = imgInput;
         }
     });
@@ -2235,21 +2235,21 @@ function humanizeError(rawMsg) {
     if (!rawMsg) return 'An unexpected error occurred.';
     let msg = rawMsg.trim();
     
-    // Replace raw database / technical validation strings with clear non-technical guidance
-    msg = msg.replace(/The product_name field is required\./i, '🏷️ <strong>Product Name:</strong> Please type a name for this eyewear product at the top.');
-    msg = msg.replace(/The product_name field must not be greater than (\d+) characters\./i, '🏷️ <strong>Product Name:</strong> Too long (maximum $1 characters).');
-    msg = msg.replace(/The category_id field is required\./i, '📂 <strong>Category:</strong> Please select a category (e.g. Eyeglasses, Sunglasses, Contact Lenses).');
-    msg = msg.replace(/The variants field is required\./i, '➕ <strong>Variants:</strong> Please add at least one color variant before saving.');
-    msg = msg.replace(/The product_type field is required\./i, '⚠️ <strong>Product Type:</strong> Please select a category to assign the product type.');
+    // Replace raw database / technical validation strings with clear non-technical guidance using FontAwesome icons
+    msg = msg.replace(/The product_name field is required\./i, '<i class="fa fa-tag text-primary mr-1"></i> <strong>Product Name:</strong> Please type a name for this eyewear product at the top.');
+    msg = msg.replace(/The product_name field must not be greater than (\d+) characters\./i, '<i class="fa fa-tag text-primary mr-1"></i> <strong>Product Name:</strong> Too long (maximum $1 characters).');
+    msg = msg.replace(/The category_id field is required\./i, '<i class="fa fa-folder text-primary mr-1"></i> <strong>Category:</strong> Please select a category (e.g. Eyeglasses, Sunglasses, Contact Lenses).');
+    msg = msg.replace(/The variants field is required\./i, '<i class="fa fa-plus-circle text-primary mr-1"></i> <strong>Variants:</strong> Please add at least one color variant before saving.');
+    msg = msg.replace(/The product_type field is required\./i, '<i class="fa fa-exclamation-triangle text-warning mr-1"></i> <strong>Product Type:</strong> Please select a category to assign the product type.');
     
     // Variant-specific humanization
-    msg = msg.replace(/Variant #(\d+): SKU is required\./i, '🏷️ <strong>Variant #$1:</strong> Missing SKU / Product Barcode code.');
-    msg = msg.replace(/Variant #(\d+): SKU must be at least (\d+) characters\./i, '🏷️ <strong>Variant #$1:</strong> SKU code must be at least $2 letters.');
-    msg = msg.replace(/Variant #(\d+): SKU '([^']+)' already exists\./i, '⚠️ <strong>Variant #$1:</strong> SKU "$2" is already used by an existing product in your inventory. Please use a unique SKU.');
-    msg = msg.replace(/Variant #(\d+): Retail Price \(MRP\) cannot be negative\./i, '💰 <strong>Variant #$1:</strong> Retail Price (MRP) cannot be a negative number.');
-    msg = msg.replace(/Variant #(\d+): Discount \/ Sale Price \(₹([^)]+)\) cannot exceed Retail Price \(₹([^)]+)\)\./i, '💰 <strong>Pricing Mistake in Variant #$1:</strong> Sale Price (₹$2) cannot be higher than MRP (₹$3).');
-    msg = msg.replace(/Variant #(\d+): Main Image is required/i, '📸 <strong>Variant #$1:</strong> Needs a photo. Click "Choose File" to upload an image.');
-    msg = msg.replace(/Variant #(\d+): Main Image must be in landscape ~?2:1 ratio[^\.]*\./i, '📸 <strong>Variant #$1:</strong> Main Image must be in landscape ~2:1 ratio (e.g. 800×400px).');
+    msg = msg.replace(/Variant #(\d+): SKU is required\./i, '<i class="fa fa-tag text-primary mr-1"></i> <strong>Variant #$1:</strong> Missing SKU / Product Barcode code.');
+    msg = msg.replace(/Variant #(\d+): SKU must be at least (\d+) characters\./i, '<i class="fa fa-tag text-primary mr-1"></i> <strong>Variant #$1:</strong> SKU code must be at least $2 letters.');
+    msg = msg.replace(/Variant #(\d+): SKU '([^']+)' already exists\./i, '<i class="fa fa-exclamation-triangle text-warning mr-1"></i> <strong>Variant #$1:</strong> SKU "$2" is already used by an existing product in your inventory. Please use a unique SKU.');
+    msg = msg.replace(/Variant #(\d+): Retail Price \(MRP\) cannot be negative\./i, '<i class="fa fa-coins text-danger mr-1"></i> <strong>Variant #$1:</strong> Retail Price (MRP) cannot be a negative number.');
+    msg = msg.replace(/Variant #(\d+): Discount \/ Sale Price \(₹([^)]+)\) cannot exceed Retail Price \(₹([^)]+)\)\./i, '<i class="fa fa-coins text-danger mr-1"></i> <strong>Pricing Mistake in Variant #$1:</strong> Sale Price (₹$2) cannot be higher than MRP (₹$3).');
+    msg = msg.replace(/Variant #(\d+): Main Image is required/i, '<i class="fa fa-camera text-primary mr-1"></i> <strong>Variant #$1:</strong> Needs a photo. Click "Choose File" to upload an image.');
+    msg = msg.replace(/Variant #(\d+): Main Image must be in landscape ~?2:1 ratio[^\.]*\./i, '<i class="fa fa-camera text-primary mr-1"></i> <strong>Variant #$1:</strong> Main Image must be in landscape ~2:1 ratio (e.g. 800×400px).');
     
     return msg;
 }
