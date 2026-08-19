@@ -377,7 +377,7 @@
      SHOP BY BRANDS (MODERN LUXURY BRAND CARDS - NO CELEBRITY)
 ══════════════════════════════════════════════════════ -->
 <style>
-.shop-by-brand-section-modern {
+.shop-by-brand-section-modern { 
     background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
     padding: 55px 0 20px 0;
     position: relative;
