@@ -605,7 +605,7 @@ body { background: var(--bg); }
                                 </select>
                                 <span class="pb-err" id="special_collectionError"></span>
                             </div>
-                             <div class="col-md-6 mb-3">
+                             <div class="col-md-6 mb-3 frame-only-field">
                                 <label class="pb-label">Shape</label>
                                 <select name="Shape" id="Shape" class="pb-input">
                                     <option value="">Select Shape</option>
@@ -617,7 +617,7 @@ body { background: var(--bg); }
                                 </select>
                                 <span class="pb-err" id="ShapeError"></span>
                             </div>
-                             <div class="col-md-6 mb-3">
+                             <div class="col-md-6 mb-3 frame-only-field">
                                 <label class="pb-label">Type</label>
                                 <select name="Type" id="Type" class="pb-input">
                                     <option value="">Select Type</option>
@@ -631,7 +631,7 @@ body { background: var(--bg); }
                             </div>
 
                             {{-- Step 1: What type of product is this frame? --}}
-                            <div class="col-md-12 mb-3" id="product-types-section">
+                            <div class="col-md-12 mb-3 frame-only-field" id="product-types-section">
                                 <label class="pb-label">
                                     <span style="background: var(--primary); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; margin-right: 8px;">1</span>
                                     What type of product is this frame?
@@ -672,7 +672,7 @@ body { background: var(--bg); }
 
                             {{-- Step 2: Assign Packages (auto-appears when product types are selected) --}}
                             @if(isset($lensPackages) && $lensPackages->count())
-                            <div class="col-md-12 mb-3" id="package-section" style="display: {{ !empty($selectedProductTypeIds) || !empty($savedLensPackageIds) ? 'block' : 'none' }};">
+                            <div class="col-md-12 mb-3 frame-only-field" id="package-section" style="display: {{ !empty($selectedProductTypeIds) || !empty($savedLensPackageIds) ? 'block' : 'none' }};">
                                 <div style="border: 2px solid #e0e7ff; border-radius: 12px; overflow: hidden;">
 
                                     {{-- Section header --}}
@@ -1396,32 +1396,39 @@ function updateVariantFields() {
     if (!catSelect) return;
 
     const selectedOption = catSelect.options[catSelect.selectedIndex];
-    const isLens = selectedOption && selectedOption.getAttribute('data-is-lens') === '1';
+    const catName = (selectedOption?.text || '').trim().toLowerCase();
+    
+    // Detect product mode: 'lens', 'sunglass', or 'frame'
+    const isLens = selectedOption && (selectedOption.getAttribute('data-is-lens') === '1' || catName.includes('contact') || catName.includes('lens'));
+    const isSunglass = catName.includes('sunglass') || catName.includes('goggle');
     
     // Update active product type
-    currentProductType = isLens ? 'Lens' : 'Frame';
+    currentProductType = isLens ? 'Lens' : (isSunglass ? 'Sunglass' : 'Frame');
 
     // Update badge & hidden input
     const badge = document.getElementById('badge-type');
-    if (badge) badge.textContent = currentProductType;
+    if (badge) badge.textContent = isLens ? 'Contact Lens' : (isSunglass ? 'Sunglasses' : 'Eyewear Frame');
     const prodTypeInput = document.getElementById('product_type');
-    if (prodTypeInput) prodTypeInput.value = currentProductType;
+    if (prodTypeInput) prodTypeInput.value = isLens ? 'Lens' : 'Frame';
 
-    // ── 1. Update optical spec fields in all existing variant cards ──
+    // ── 1. Show/Hide Frame-only fields in Card 1 (Shape, Type, Step 1 & Step 2 Lens Packages) ──
+    document.querySelectorAll('.frame-only-field').forEach(el => {
+        el.style.display = isLens ? 'none' : 'block';
+    });
+
+    // ── 2. Update optical spec fields in all existing variant cards ──
     document.querySelectorAll('.variant-card').forEach(card => {
         const idx = card.getAttribute('data-variant-idx');
         const container = card.querySelector('.optical-fields-container');
         if (container) {
-            // Preserve filled values before swap
             const values = {};
             container.querySelectorAll('input, select').forEach(el => {
                 const nameMatch = el.name.match(/variants\[\d+\]\[([^\]]+)\]/);
                 if (nameMatch) values[nameMatch[1]] = el.value;
             });
 
-            container.innerHTML = getOptFieldsHtml(currentProductType, idx);
+            container.innerHTML = getOptFieldsHtml(currentProductType === 'Lens' ? 'Lens' : 'Frame', idx);
 
-            // Re-initialize select2 for frame size picker
             if (currentProductType !== 'Lens') {
                 const sizeSelect = container.querySelector('.select2-size');
                 if (sizeSelect) {
@@ -1429,33 +1436,45 @@ function updateVariantFields() {
                 }
             }
 
-            // Restore preserved values
             container.querySelectorAll('input, select').forEach(el => {
                 const nameMatch = el.name.match(/variants\[\d+\]\[([^\]]+)\]/);
                 if (nameMatch && values[nameMatch[1]] !== undefined) el.value = values[nameMatch[1]];
             });
         }
 
-        // ── 2. Toggle Measurements section inside each variant card ──
+        // ── 3. Toggle Measurements section inside each variant card ──
         const frameMeas = card.querySelectorAll('.frame-measurements');
         const lensMeas  = card.querySelectorAll('.lens-measurements');
-        const measTitle = card.querySelector('.measurements-section-title');
+        const measWrapper = card.querySelector('.measurements-collapsible-wrapper');
+        const measTitle = card.querySelector('.measurements-section-title span');
+        
         frameMeas.forEach(el => el.style.display = isLens ? 'none' : 'grid');
         lensMeas.forEach(el  => el.style.display = isLens ? 'grid' : 'none');
-        // Show/hide sunglass colour only for sunglasses
-        const catName = catSelect.options[catSelect.selectedIndex]?.text.trim().toLowerCase() || '';
-        const isSunglass = catName.includes('sunglass') || catName.includes('goggle');
-        card.querySelectorAll('.sunglass-color-wrapper').forEach(w => {
-            w.style.display = isSunglass ? 'block' : 'none';
-            if (!isSunglass) { const i = w.querySelector('input'); if (i) i.value = ''; }
-        });
+        
+        if (isLens) {
+            // Auto-expand lens specs for contact lenses
+            if (measWrapper) measWrapper.style.display = 'block';
+            if (measTitle) measTitle.innerHTML = '<i class="fa fa-eye"></i> Contact Lens Parameters & Powers';
+        } else {
+            if (measTitle) measTitle.innerHTML = '<i class="fa fa-ruler-horizontal"></i> Measurements & Lab Dimensions (Optional)';
+            if (isSunglass) {
+                // Auto-open and highlight Polarized & UV Protection for sunglasses
+                if (measWrapper) measWrapper.style.display = 'block';
+                const polSelect = card.querySelector('select[name$="[polarized]"]');
+                const uvInput = card.querySelector('input[name$="[uv_protection]"]');
+                if (polSelect && polSelect.value === '0') polSelect.value = '1';
+                if (uvInput && !uvInput.value) uvInput.value = 'UV400';
+            }
+        }
     });
 
-    // ── 3. Toggle Classification & Filters section ──
+    // ── 4. Toggle Classification & Filters section ──
     const frameClassif = document.getElementById('frame-classification-fields');
     const lensClassif  = document.getElementById('lens-classification-fields');
     if (frameClassif) frameClassif.style.display = isLens ? 'none' : 'contents';
     if (lensClassif)  lensClassif.style.display  = isLens ? 'contents' : 'none';
+
+    evaluateChecklist();
 }
 
 function initializeProductType() {
