@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\b2c\B2cOrder;
-use App\Models\b2c\B2cOrderItem;
-use App\Models\b2c\B2cOrderLog;
-use App\Models\b2c\B2cOrderNote;
-use App\Models\b2c\B2cOrderPayment;
-use App\Models\b2c\B2cOrderReturn;
+use App\Models\sale\Sale;
+use App\Models\sale\SaleProduct;
+use App\Models\sale\SalePayment;
 use App\Models\Store;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,12 +19,6 @@ class B2cOrderController extends Controller
      */
     public function index(Request $request)
     {
-        // Sync legacy sales at most once per hour (not every page load)
-        if (!cache()->has('b2c_legacy_sync_done')) {
-            $this->syncFromLegacySales();
-            cache()->put('b2c_legacy_sync_done', true, now()->addHour());
-        }
-
         $page_title = 'B2C Orders';
         $breadcrumbs = [
             ['name' => 'Dashboard', 'link' => route('index')],
@@ -36,40 +27,35 @@ class B2cOrderController extends Controller
 
         // ── 1. Calculate KPI Metrics ──────────────────────────────────────
         $today = Carbon::today();
-
         $startOfMonth = Carbon::now()->startOfMonth();
-        $returnsCount = B2cOrder::where('order_status', 'returned')->count();
-        if (\Illuminate\Support\Facades\Schema::hasTable('b2c_order_returns')) {
-            $returnsCount = max($returnsCount, DB::table('b2c_order_returns')->count());
-        }
 
         $kpis = [
-            'orders_today'         => B2cOrder::whereDate('created_at', $today)->count(),
-            'revenue_today'        => (float) B2cOrder::whereDate('created_at', $today)->where('payment_status', 'paid')->sum('grand_total'),
-            'orders_this_month'    => B2cOrder::where('created_at', '>=', $startOfMonth)->count(),
-            'revenue_this_month'   => (float) B2cOrder::where('created_at', '>=', $startOfMonth)->where('payment_status', 'paid')->sum('grand_total'),
-            'pending_orders'       => B2cOrder::where('order_status', 'pending')->count(),
-            'ready_to_ship'        => B2cOrder::where('order_status', 'ready_to_ship')->count(),
-            'cancelled_orders'     => B2cOrder::where('order_status', 'cancelled')->count(),
-            'cancelled_this_month' => B2cOrder::where('order_status', 'cancelled')->where('created_at', '>=', $startOfMonth)->count(),
-            'returns_count'        => $returnsCount,
-            'payment_issues'       => B2cOrder::whereIn('payment_status', ['failed', 'cod_pending'])->count(),
-            'pending_rx'           => B2cOrder::where('rx_verification_status', 'pending_review')->count(),
-            'in_lab'               => B2cOrder::whereIn('lab_status', ['assigned', 'cutting', 'fitting'])->count(),
+            'orders_today'         => Sale::b2c()->whereDate('created_at', $today)->count(),
+            'revenue_today'        => (float) Sale::b2c()->whereDate('created_at', $today)->where('payment_status', 'paid')->sum('total_payable'),
+            'orders_this_month'    => Sale::b2c()->where('created_at', '>=', $startOfMonth)->count(),
+            'revenue_this_month'   => (float) Sale::b2c()->where('created_at', '>=', $startOfMonth)->where('payment_status', 'paid')->sum('total_payable'),
+            'pending_orders'       => Sale::b2c()->where('order_status', 'pending')->count(),
+            'ready_to_ship'        => Sale::b2c()->where('order_status', 'ready_to_ship')->count(),
+            'cancelled_orders'     => Sale::b2c()->where('order_status', 'cancelled')->count(),
+            'cancelled_this_month' => Sale::b2c()->where('order_status', 'cancelled')->where('created_at', '>=', $startOfMonth)->count(),
+            'returns_count'        => Sale::b2c()->where('order_status', 'returned')->count(),
+            'payment_issues'       => Sale::b2c()->whereIn('payment_status', ['failed', 'cod_pending'])->count(),
+            'pending_rx'           => Sale::b2c()->where('rx_verification_status', 'pending_review')->count(),
+            'in_lab'               => Sale::b2c()->whereIn('lab_status', ['assigned', 'cutting', 'fitting'])->count(),
         ];
 
         // ── 2. Build Query with Filters ───────────────────────────────────
-        $query = B2cOrder::with(['items', 'user', 'payments'])
+        $query = Sale::b2c()->with(['products', 'user', 'payments'])
             ->latest('created_at');
 
         // Omni-Search: Order ID, Name, Phone, Email, Tracking
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
             $query->where(function ($q) use ($search) {
-                $q->where('order_number', 'LIKE', "%{$search}%")
-                  ->orWhere('guest_name', 'LIKE', "%{$search}%")
-                  ->orWhere('guest_phone', 'LIKE', "%{$search}%")
-                  ->orWhere('guest_email', 'LIKE', "%{$search}%")
+                $q->where('order_no', 'LIKE', "%{$search}%")
+                  ->orWhere('cust_name', 'LIKE', "%{$search}%")
+                  ->orWhere('contact_no', 'LIKE', "%{$search}%")
+                  ->orWhere('email_id', 'LIKE', "%{$search}%")
                   ->orWhere('tracking_number', 'LIKE', "%{$search}%")
                   ->orWhereHas('user', function ($uq) use ($search) {
                       $uq->where('name', 'LIKE', "%{$search}%")
@@ -99,10 +85,10 @@ class B2cOrderController extends Controller
             $query->where('delivery_method', $request->input('delivery_method'));
         }
 
-        // Filter: Product Type (via items)
+        // Filter: Product Type (via products)
         if ($request->filled('product_type') && $request->input('product_type') !== 'all') {
             $pType = $request->input('product_type');
-            $query->whereHas('items', function ($iq) use ($pType) {
+            $query->whereHas('products', function ($iq) use ($pType) {
                 $iq->where('product_type', $pType);
             });
         }
@@ -124,8 +110,8 @@ class B2cOrderController extends Controller
                 $c = DB::table('tbl_customer')
                     ->where(function($q) use ($ord) {
                         if ($ord->user_id) $q->where('customer_id', $ord->user_id);
-                        if ($ord->customer_phone) $q->orWhere('contact_no', $ord->customer_phone);
-                        if ($ord->customer_email) $q->orWhere('email_id', $ord->customer_email);
+                        if ($ord->contact_no) $q->orWhere('contact_no', $ord->contact_no);
+                        if ($ord->email_id) $q->orWhere('email_id', $ord->email_id);
                     })
                     ->first();
 
@@ -144,17 +130,11 @@ class B2cOrderController extends Controller
      */
     public function show($id)
     {
-        $order = B2cOrder::with([
-            'items.product',
-            'items.lensPackage',
+        $order = Sale::b2c()->with([
+            'products.product',
+            'products.lensPackage',
             'payments',
-            'logs.user',
-            'notes.author',
-            'returns.item',
-            'returns.user',
             'user',
-            'optometrist',
-            'offer',
         ])->findOrFail($id);
 
         $order->membership_type = null;
@@ -162,8 +142,8 @@ class B2cOrderController extends Controller
             $c = DB::table('tbl_customer')
                 ->where(function($q) use ($order) {
                     if ($order->user_id) $q->where('customer_id', $order->user_id);
-                    if ($order->customer_phone) $q->orWhere('contact_no', $order->customer_phone);
-                    if ($order->customer_email) $q->orWhere('email_id', $order->customer_email);
+                    if ($order->contact_no) $q->orWhere('contact_no', $order->contact_no);
+                    if ($order->email_id) $q->orWhere('email_id', $order->email_id);
                 })
                 ->first();
 
@@ -173,11 +153,11 @@ class B2cOrderController extends Controller
             }
         }
 
-        $page_title = 'Order ' . $order->order_number;
+        $page_title = 'Order ' . $order->order_no;
         $breadcrumbs = [
             ['name' => 'Dashboard', 'link' => route('index')],
             ['name' => 'B2C Orders', 'link' => route('admin.b2c-orders.index')],
-            ['name' => $order->order_number, 'link' => 'javascript:void(0)'],
+            ['name' => $order->order_no, 'link' => 'javascript:void(0)'],
         ];
 
         // Available stores / lab centers
@@ -196,34 +176,22 @@ class B2cOrderController extends Controller
             'note'         => 'nullable|string|max:500',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
+        $order = Sale::findOrFail($id);
         $fromStatus = $order->order_status;
         $toStatus   = $request->input('order_status');
 
         $order->order_status = $toStatus;
         if ($request->filled('admin_note')) {
             $order->admin_note = $request->input('admin_note');
+        } elseif ($request->filled('note')) {
+            $order->admin_note = ($order->admin_note ? $order->admin_note . "\n" : "") . $request->input('note');
         }
         $order->save();
-
-        // Sync with legacy tbl_sales
-        $this->syncToLegacySale($order, $toStatus);
 
         // Auto-credit earned loyalty points if delivered
         if (in_array($toStatus, ['delivered', 'completed']) && $fromStatus !== $toStatus) {
             $this->creditLoyaltyPointsOnDelivery($order);
         }
-
-        // Record in Activity Log
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'order_status_updated',
-            'from_status' => $fromStatus,
-            'to_status'   => $toStatus,
-            'notes'       => $request->input('note') ?? "Order status changed from {$fromStatus} to {$toStatus}",
-            'created_at'  => Carbon::now(),
-        ]);
 
         return redirect()->back()->with('success', "Order status successfully updated to " . ucfirst(str_replace('_', ' ', $toStatus)));
     }
@@ -239,7 +207,7 @@ class B2cOrderController extends Controller
             'items'             => 'nullable|array',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
+        $order = Sale::findOrFail($id);
         $fromRxStatus = $order->rx_verification_status;
         $newRxStatus  = $request->input('rx_status');
 
@@ -252,9 +220,9 @@ class B2cOrderController extends Controller
         if ($request->has('item_id') && $request->has('items_power')) {
             $itemId = $request->input('item_id');
             $powers = $request->input('items_power');
-            $item = B2cOrderItem::where('order_id', $order->id)->where('id', $itemId)->first();
+            $item = SaleProduct::where('sale_id', $order->sale_id)->where('id', $itemId)->first();
             if (!$item) {
-                $item = B2cOrderItem::where('order_id', $order->id)->first();
+                $item = SaleProduct::where('sale_id', $order->sale_id)->first();
             }
             if ($item && is_array($powers)) {
                 $item->update([
@@ -273,7 +241,7 @@ class B2cOrderController extends Controller
             }
         } elseif ($request->has('items') && is_array($request->input('items'))) {
             foreach ($request->input('items') as $itemId => $powers) {
-                $item = B2cOrderItem::where('order_id', $order->id)->where('id', $itemId)->first();
+                $item = SaleProduct::where('sale_id', $order->sale_id)->where('id', $itemId)->first();
                 if ($item) {
                     $item->update([
                         'GL_EYE_RS_D'    => (isset($powers['GL_EYE_RS_D']) && $powers['GL_EYE_RS_D'] !== '') ? $powers['GL_EYE_RS_D'] : $item->GL_EYE_RS_D,
@@ -299,22 +267,6 @@ class B2cOrderController extends Controller
 
         $order->save();
 
-        // Sync with legacy tbl_sales
-        $this->syncToLegacySale($order, $order->order_status);
-
-        // Record in Activity Log
-        $user = Auth::user();
-        $userName = $user ? $user->name : 'Optometrist';
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'prescription_verified',
-            'from_status' => $fromRxStatus,
-            'to_status'   => $newRxStatus,
-            'notes'       => "Prescription saved & verified as '{$newRxStatus}' by {$userName}. Note: " . ($request->input('optometrist_notes') ?? 'None'),
-            'created_at'  => Carbon::now(),
-        ]);
-
         return redirect()->back()->with('success', "Prescription power saved & synced with Optical Lab Job Sheet!");
     }
 
@@ -330,8 +282,7 @@ class B2cOrderController extends Controller
             'lab_notes'       => 'nullable|string|max:500',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
-        $fromLabStatus = $order->lab_status;
+        $order = Sale::findOrFail($id);
         $toLabStatus   = $request->input('lab_status');
 
         $order->lab_status = $toLabStatus;
@@ -356,20 +307,6 @@ class B2cOrderController extends Controller
 
         $order->save();
 
-        // Sync with legacy tbl_sales
-        $this->syncToLegacySale($order, $order->order_status);
-
-        // Record in Activity Log
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'lab_status_updated',
-            'from_status' => $fromLabStatus,
-            'to_status'   => $toLabStatus,
-            'notes'       => "Lab status updated to '{$toLabStatus}'. Job #: " . ($order->lab_job_number ?? 'N/A'),
-            'created_at'  => Carbon::now(),
-        ]);
-
         return redirect()->back()->with('success', "Lab status updated to " . ucfirst(str_replace('_', ' ', $toLabStatus)));
     }
 
@@ -386,7 +323,7 @@ class B2cOrderController extends Controller
             'delivery_method'        => 'nullable|string',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
+        $order = Sale::findOrFail($id);
 
         $order->courier_partner = $request->input('courier_partner');
         $order->tracking_number = $request->input('tracking_number');
@@ -405,20 +342,6 @@ class B2cOrderController extends Controller
 
         $order->save();
 
-        // Sync with legacy tbl_sales
-        $this->syncToLegacySale($order, $order->order_status);
-
-        // Record in Activity Log
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'tracking_updated',
-            'from_status' => null,
-            'to_status'   => 'shipped',
-            'notes'       => "Courier: {$order->courier_partner} | Tracking: {$order->tracking_number}",
-            'created_at'  => Carbon::now(),
-        ]);
-
         return redirect()->back()->with('success', "Tracking information successfully updated and order marked as Shipped.");
     }
 
@@ -431,24 +354,11 @@ class B2cOrderController extends Controller
             'note' => 'required|string|max:2000',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
-
-        $note = B2cOrderNote::create([
-            'order_id'            => $order->id,
-            'user_id'             => Auth::id(),
-            'note'                => $request->input('note'),
-            'is_customer_visible' => false,
-        ]);
-
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'admin_note_added',
-            'from_status' => null,
-            'to_status'   => null,
-            'notes'       => "Note added: " . substr($request->input('note'), 0, 80) . "...",
-            'created_at'  => Carbon::now(),
-        ]);
+        $order = Sale::findOrFail($id);
+        
+        $currentNote = $order->admin_note;
+        $order->admin_note = ($currentNote ? $currentNote . "\n" : "") . $request->input('note');
+        $order->save();
 
         return redirect()->back()->with('success', "Internal staff note recorded.");
     }
@@ -462,24 +372,10 @@ class B2cOrderController extends Controller
             'cancellation_reason' => 'required|string|max:500',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
-        $fromStatus = $order->order_status;
+        $order = Sale::findOrFail($id);
         $order->order_status = 'cancelled';
         $order->admin_note   = ($order->admin_note ? $order->admin_note . " | " : "") . "Cancelled: " . $request->input('cancellation_reason');
         $order->save();
-
-        // Sync with legacy tbl_sales
-        $this->syncToLegacySale($order, 'cancelled');
-
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'order_cancelled',
-            'from_status' => $fromStatus,
-            'to_status'   => 'cancelled',
-            'notes'       => "Order cancelled. Reason: " . $request->input('cancellation_reason'),
-            'created_at'  => Carbon::now(),
-        ]);
 
         return redirect()->back()->with('success', "Order has been marked as Cancelled.");
     }
@@ -496,20 +392,14 @@ class B2cOrderController extends Controller
             'admin_notes'   => 'nullable|string|max:1000',
         ]);
 
-        $order = B2cOrder::findOrFail($id);
+        $order = Sale::findOrFail($id);
 
-        $returnRecord = B2cOrderReturn::create([
-            'order_id'      => $order->id,
-            'user_id'       => Auth::id(),
-            'return_type'   => $request->input('return_type'),
-            'reason'        => $request->input('reason'),
-            'exchange_type' => $request->input('exchange_type'),
-            'status'        => 'requested',
-            'admin_notes'   => $request->input('admin_notes'),
-        ]);
-
+        $order->return_type = $request->input('return_type');
         $order->return_reason = $request->input('reason');
-        $order->exchange_type = $request->input('exchange_type');
+        $order->return_exchange_type = $request->input('exchange_type');
+        $order->return_stage = 'requested';
+        $order->return_admin_notes = $request->input('admin_notes');
+
         if ($request->input('return_type') === 'lens_remake') {
             $order->lab_status = 'assigned'; // Re-open lab cutting ticket
             $order->lab_notes  = "FREE LENS REMAKE: " . ($request->input('admin_notes') ?? 'Optical power adjustment');
@@ -517,19 +407,6 @@ class B2cOrderController extends Controller
             $order->order_status = 'returned';
         }
         $order->save();
-
-        // Sync with legacy tbl_sales
-        $this->syncToLegacySale($order, $order->order_status);
-
-        B2cOrderLog::create([
-            'order_id'    => $order->id,
-            'user_id'     => Auth::id(),
-            'action'      => 'return_remake_initiated',
-            'from_status' => $order->order_status,
-            'to_status'   => $request->input('return_type'),
-            'notes'       => "Initiated " . ucfirst(str_replace('_', ' ', $request->input('return_type'))) . " due to " . ucfirst(str_replace('_', ' ', $request->input('reason'))),
-            'created_at'  => Carbon::now(),
-        ]);
 
         return redirect()->back()->with('success', "Return / Optical Remake action registered successfully.");
     }
@@ -548,22 +425,7 @@ class B2cOrderController extends Controller
         $ids    = $request->input('order_ids');
         $status = $request->input('bulk_status');
 
-        B2cOrder::whereIn('id', $ids)->update(['order_status' => $status]);
-
-        $updatedOrders = B2cOrder::whereIn('id', $ids)->get();
-        foreach ($updatedOrders as $ord) {
-            $this->syncToLegacySale($ord, $status);
-
-            B2cOrderLog::create([
-                'order_id'    => $ord->id,
-                'user_id'     => Auth::id(),
-                'action'      => 'bulk_status_update',
-                'from_status' => null,
-                'to_status'   => $status,
-                'notes'       => "Bulk updated to {$status}",
-                'created_at'  => Carbon::now(),
-            ]);
-        }
+        Sale::whereIn('sale_id', $ids)->where('sales_type', 0)->update(['order_status' => $status]);
 
         return redirect()->back()->with('success', count($ids) . " orders updated to " . ucfirst(str_replace('_', ' ', $status)));
     }
@@ -573,7 +435,7 @@ class B2cOrderController extends Controller
      */
     public function invoice($id)
     {
-        $order = B2cOrder::with(['items.product', 'items.lensPackage', 'payments', 'user'])->findOrFail($id);
+        $order = Sale::b2c()->with(['products.product', 'products.lensPackage', 'payments', 'user'])->findOrFail($id);
         $store = Store::first();
 
         return view('admin.b2c_orders.invoice', compact('order', 'store'));
@@ -584,197 +446,19 @@ class B2cOrderController extends Controller
      */
     public function labWorkOrder($id)
     {
-        $order = B2cOrder::with(['items.product', 'items.lensPackage', 'optometrist'])->findOrFail($id);
+        $order = Sale::b2c()->with(['products.product', 'products.lensPackage', 'user'])->findOrFail($id);
         $store = Store::first();
 
         return view('admin.b2c_orders.lab_work_order', compact('order', 'store'));
     }
 
     /**
-     * Automatically sync any existing orders from tbl_sales into b2c_orders if missing.
-     */
-    protected function syncFromLegacySales()
-    {
-        try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('tbl_sales') || !\Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
-                return;
-            }
-
-            $legacySales = DB::table('tbl_sales')
-                ->where(function($q) {
-                    $q->where('sales_type', 0)
-                      ->orWhere('order_no', 'LIKE', 'WEB%')
-                      ->orWhere('order_no', 'LIKE', 'B2C%');
-                })
-                ->where(function($q) {
-                    $q->where('is_deleted', 0)->orWhereNull('is_deleted');
-                })
-                ->get();
-
-            foreach ($legacySales as $sale) {
-                $orderNo = $sale->order_no ?? ('WEB' . $sale->sale_id);
-                $exists = B2cOrder::where('order_number', $orderNo)->exists();
-                if ($exists) {
-                    continue;
-                }
-
-                $products = DB::table('tbl_sales_product')->where('sale_id', $sale->sale_id ?? $sale->id)->get();
-                $hasRx = false;
-                foreach ($products as $p) {
-                    if (!empty($p->GL_EYE_RS_D) || !empty($p->GL_EYE_LS_D) || !empty($p->prescription_notes)) {
-                        $hasRx = true;
-                        break;
-                    }
-                }
-
-                $addressSnapshot = [
-                    'full_name'    => $sale->cust_name,
-                    'phone'        => $sale->contact_no,
-                    'email'        => $sale->email_id,
-                    'full_address' => $sale->cust_address,
-                    'pincode'      => $sale->pincode,
-                ];
-
-                $order = B2cOrder::create([
-                    'order_number'               => $orderNo,
-                    'user_id'                    => $sale->added_by ?? $sale->cust_id,
-                    'guest_name'                 => $sale->cust_name,
-                    'guest_email'                => $sale->email_id,
-                    'guest_phone'                => $sale->contact_no,
-                    'shipping_address_snapshot'  => $addressSnapshot,
-                    'subtotal'                   => (float)($sale->total_item_price ?? $sale->total_basic_amount ?? 0),
-                    'discount_amount'            => (float)($sale->total_discount ?? 0),
-                    'tax_amount'                 => (float)($sale->total_gst_amount ?? 0),
-                    'shipping_fee'               => 0,
-                    'grand_total'                => (float)($sale->total_payable ?? $sale->pay_amount ?? 0),
-                    'coupon_code'                => $sale->earncoupon ?? null,
-                    'coupon_discount'            => (float)($sale->coupon_amount ?? 0),
-                    'loyalty_points_used'        => (float)($sale->loyalty_point_amount ?? 0),
-                    'bogo_discount'              => (float)($sale->bogo_discount ?? 0),
-                    'order_status'               => 'pending',
-                    'rx_verification_status'     => $hasRx ? 'pending_review' : 'not_required',
-                    'is_rx_required'             => $hasRx,
-                    'payment_status'             => ($sale->pay_amount >= $sale->total_payable && $sale->total_payable > 0) ? 'paid' : 'pending',
-                    'delivery_method'            => 'standard',
-                    'created_at'                 => $sale->created_at ?? Carbon::now(),
-                    'updated_at'                 => $sale->updated_at ?? Carbon::now(),
-                ]);
-
-                foreach ($products as $prod) {
-                    $rx = null;
-                    if (!empty($prod->prescription_notes)) {
-                        $rx = json_decode($prod->prescription_notes, true);
-                    }
-
-                    B2cOrderItem::create([
-                        'order_id'              => $order->id,
-                        'product_id'            => $prod->product_id ?? null,
-                        'product_code'          => $prod->product_code ?? null,
-                        'product_name'          => $prod->product_deatils ?? 'Product',
-                        'product_type'          => $prod->product_type ?? 'frame',
-                        'frame_color'           => $prod->product_color ?? null,
-                        'frame_size'            => $prod->product_size ?? null,
-                        'qty'                   => (int)($prod->qty ?? 1),
-                        'base_price'            => (float)($prod->retail_price ?? $prod->base_price ?? 0),
-                        'sale_price'            => (float)($prod->sale_price ?? 0),
-                        'discount_amt'          => (float)($prod->discount_amt ?? $prod->product_discount ?? 0),
-                        'total_price'           => (float)(($prod->sale_price ?? 0) * ($prod->qty ?? 1)),
-                        'lens_package_id'       => $prod->package_id ?? null,
-                        'prescription_source'   => is_array($rx) ? ($rx['source'] ?? 'manual_entry') : 'manual_entry',
-                        'prescription_file_url' => is_array($rx) ? ($rx['file_url'] ?? null) : null,
-                        'GL_EYE_RS_D'           => $prod->GL_EYE_RS_D ?? (is_array($rx) ? ($rx['GL_EYE_RS_D'] ?? null) : null),
-                        'GL_EYE_RC_D'           => $prod->GL_EYE_RC_D ?? (is_array($rx) ? ($rx['GL_EYE_RC_D'] ?? null) : null),
-                        'GL_EYE_RA_D'           => $prod->GL_EYE_RA_D ?? (is_array($rx) ? ($rx['GL_EYE_RA_D'] ?? null) : null),
-                        'GL_EYE_RADD'           => $prod->GL_EYE_RADD ?? (is_array($rx) ? ($rx['GL_EYE_RADD'] ?? null) : null),
-                        'GL_EYE_LS_D'           => $prod->GL_EYE_LS_D ?? (is_array($rx) ? ($rx['GL_EYE_LS_D'] ?? null) : null),
-                        'GL_EYE_LC_D'           => $prod->GL_EYE_LC_D ?? (is_array($rx) ? ($rx['GL_EYE_LC_D'] ?? null) : null),
-                        'GL_EYE_LA_D'           => $prod->GL_EYE_LA_D ?? (is_array($rx) ? ($rx['GL_EYE_LA_D'] ?? null) : null),
-                        'GL_EYE_LADD'           => $prod->GL_EYE_LADD ?? (is_array($rx) ? ($rx['GL_EYE_LADD'] ?? null) : null),
-                        'GL_EYE_totalPD'        => $prod->GL_EYE_totalPD ?? (is_array($rx) ? ($rx['GL_EYE_totalPD'] ?? null) : null),
-                        'prescription_notes'    => $prod->prescription_notes ?? null,
-                        'item_status'           => 'pending',
-                        'created_at'            => $prod->created_at ?? $order->created_at,
-                        'updated_at'            => $prod->updated_at ?? $order->updated_at,
-                    ]);
-                }
-
-                B2cOrderPayment::create([
-                    'order_id'        => $order->id,
-                    'payment_gateway' => strtolower($sale->pay_method ?? 'COD'),
-                    'amount'          => (float)($sale->total_payable ?? $sale->pay_amount ?? 0),
-                    'payment_method'  => strtoupper($sale->pay_method ?? 'COD'),
-                    'status'          => ($sale->pay_amount >= $sale->total_payable && $sale->total_payable > 0) ? 'success' : 'pending',
-                    'paid_at'         => ($sale->pay_amount >= $sale->total_payable && $sale->total_payable > 0) ? ($sale->created_at ?? Carbon::now()) : null,
-                    'created_at'      => $sale->created_at ?? Carbon::now(),
-                    'updated_at'      => $sale->updated_at ?? Carbon::now(),
-                ]);
-
-                B2cOrderLog::create([
-                    'order_id'   => $order->id,
-                    'user_id'    => $sale->added_by ?? null,
-                    'action'     => 'order_placed',
-                    'notes'      => 'Order created via checkout.',
-                    'created_at' => $sale->created_at ?? Carbon::now(),
-                ]);
-            }
-        } catch (\Exception $e) {
-            \Log::error('B2C Order Sync error: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Keep legacy tbl_sales in sync with B2C Order status updates.
-     */
-    protected function syncToLegacySale(B2cOrder $order, ?string $orderStatus = null)
-    {
-        try {
-            if (!\Illuminate\Support\Facades\Schema::hasTable('tbl_sales')) {
-                return;
-            }
-
-            $status = $orderStatus ?? $order->order_status;
-            $legacySalesStatus = 0;
-
-            if (in_array($status, ['delivered', 'completed'])) {
-                $legacySalesStatus = 2;
-            } elseif (in_array($status, ['shipped', 'ready_to_ship', 'processing'])) {
-                $legacySalesStatus = 1;
-            } elseif (in_array($status, ['cancelled', 'returned'])) {
-                $legacySalesStatus = 3;
-            } else {
-                $legacySalesStatus = 0;
-            }
-
-            $updateData = [
-                'sales_status' => $legacySalesStatus,
-                'updated_at'   => Carbon::now(),
-            ];
-
-            if ($status === 'delivered') {
-                $updateData['delivered_date'] = Carbon::now()->toDateString();
-            }
-
-            if (!empty($order->tracking_number)) {
-                $updateData['tracking_no'] = $order->tracking_number;
-            }
-
-            DB::table('tbl_sales')
-                ->where('order_no', $order->order_number)
-                ->orWhere('id', $order->id)
-                ->update($updateData);
-
-        } catch (\Exception $e) {
-            \Log::error('Error syncing status to legacy sales: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * Credit earned loyalty points to customer ledger once order is delivered.
      */
-    protected function creditLoyaltyPointsOnDelivery(B2cOrder $order)
+    protected function creditLoyaltyPointsOnDelivery(Sale $order)
     {
         try {
-            $pointsToCredit = (int) ($order->loyalty_points_earned ?? 0);
+            $pointsToCredit = (int) ($order->earnedPoints ?? 0);
             if ($pointsToCredit <= 0) {
                 return;
             }
@@ -785,7 +469,7 @@ class B2cOrderController extends Controller
 
             // Check if already credited for this order to prevent duplicate points
             $alreadyCredited = DB::table('tbl_loyaltyrogram_histroy')
-                ->where('description', 'LIKE', '%' . $order->order_number . '%')
+                ->where('description', 'LIKE', '%' . $order->order_no . '%')
                 ->where('add_remove', 1) // 1 = Added / Earned
                 ->exists();
 
@@ -802,8 +486,8 @@ class B2cOrderController extends Controller
                         ->where(function ($q) use ($user, $order) {
                             if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
                             if (!empty($user->email)) $q->orWhere('email_id', $user->email);
-                            if (!empty($order->guest_phone)) $q->orWhere('contact_no', $order->guest_phone);
-                            if (!empty($order->guest_email)) $q->orWhere('email_id', $order->guest_email);
+                            if (!empty($order->contact_no)) $q->orWhere('contact_no', $order->contact_no);
+                            if (!empty($order->email_id)) $q->orWhere('email_id', $order->email_id);
                             $q->orWhere('customer_id', $user->id);
                         })
                         ->orderByDesc('customer_id')
@@ -811,11 +495,11 @@ class B2cOrderController extends Controller
                 }
             }
 
-            if (!$customer && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer') && (!empty($order->guest_phone) || !empty($order->guest_email))) {
+            if (!$customer && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer') && (!empty($order->contact_no) || !empty($order->email_id))) {
                 $customer = DB::table('tbl_customer')
                     ->where(function ($q) use ($order) {
-                        if (!empty($order->guest_phone)) $q->orWhere('contact_no', $order->guest_phone);
-                        if (!empty($order->guest_email)) $q->orWhere('email_id', $order->guest_email);
+                        if (!empty($order->contact_no)) $q->orWhere('contact_no', $order->contact_no);
+                        if (!empty($order->email_id)) $q->orWhere('email_id', $order->email_id);
                     })
                     ->orderByDesc('customer_id')
                     ->first();
@@ -831,7 +515,7 @@ class B2cOrderController extends Controller
                     'opening_points' => $openingBal,
                     'redeem'         => $pointsToCredit,
                     'bal_point'      => $closingBal,
-                    'description'    => 'Earned on Delivery of Order ' . $order->order_number,
+                    'description'    => 'Earned on Delivery of Order ' . $order->order_no,
                     'add_remove'     => 1, // 1 = Added/Earned
                     'store_id'       => $order->store_id ?? 1,
                     'added_by'       => Auth::id() ?? 1,

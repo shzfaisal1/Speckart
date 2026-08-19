@@ -118,6 +118,7 @@ class CartService
                 'lens_details'      => $lensDetails,
                 'lens_price'        => $lensPrice,
                 'quantity'          => (int) $quantity,
+                'product_type'      => $frame->product_type ?: ($frame->Type ?: 'Eyeglasses'),
                 'prescription_data' => $prescriptionData,
                 'promotion_tag'     => $frame->promotion_tag ?? null,
                 'is_first_frame_free' => isset($frame->promotion_tag) && stripos($frame->promotion_tag, 'First Frame Free') !== false,
@@ -347,7 +348,7 @@ class CartService
                 'cart_id'            => $cartId,
                 'product_id'         => $productId,
                 'product_code'       => $item['frame_code'] ?? null,
-                'product_type'       => 'frame',
+                'product_type'       => $item['product_type'] ?? 'Eyeglasses',
                 'qty'                => (int) ($item['quantity'] ?? 1),
                 'unit_price'         => (float) ($item['frame_price'] ?? 0),
                 'sale_price'         => (float) ($item['frame_price'] ?? 0),
@@ -458,6 +459,7 @@ class CartService
                             'lens_details'      => $lensDetails,
                             'lens_price'        => $lensPrice,
                             'quantity'          => (int) $dbItem->qty,
+                            'product_type'      => $dbItem->product_type ?: ($frame->product_type ?: ($frame->Type ?: 'Eyeglasses')),
                             'prescription_data' => $dbItem->prescription_notes ? json_decode($dbItem->prescription_notes, true) : null,
                             'promotion_tag'     => $frame->promotion_tag ?? null,
                             'is_first_frame_free' => isset($frame->promotion_tag) && stripos($frame->promotion_tag, 'First Frame Free') !== false,
@@ -791,9 +793,9 @@ class CartService
                 }
             }
 
-            if ($availableLoyaltyPoints == 0 && \Illuminate\Support\Facades\Schema::hasTable('b2c_orders')) {
-                $earned = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_earned');
-                $used   = (float) DB::table('b2c_orders')->where('user_id', $user->id)->sum('loyalty_points_used');
+            if ($availableLoyaltyPoints == 0 && \Illuminate\Support\Facades\Schema::hasTable('tbl_sales')) {
+                $earned = (float) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('earnedPoints');
+                $used   = (float) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('loyalty_point_amount');
                 $availableLoyaltyPoints = max(0, $earned - $used);
             }
         }
