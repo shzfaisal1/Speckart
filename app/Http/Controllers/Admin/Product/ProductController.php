@@ -1245,5 +1245,41 @@ class ProductController extends Controller
     {
         return route('admin.catalog.index');
     }
+
+    /**
+     * Delete an entire product family (all variants with matching parent_product_code)
+     * and clean up its upload directory from disk.
+     */
+    public function destroy($product_id)
+    {
+        $firstVariant = Product::where('product_id', $product_id)
+            ->orWhere('id', $product_id)
+            ->orWhere('parent_product_code', $product_id)
+            ->first();
+
+        if (!$firstVariant) {
+            return response()->json(['error' => 'Product not found.'], 404);
+        }
+
+        $parentCode = $firstVariant->parent_product_code ?: $firstVariant->product_id;
+        $typeLower  = strtolower($firstVariant->product_type ?: 'frame');
+
+        // Delete all variants in this family
+        if (!empty($firstVariant->parent_product_code)) {
+            Product::where('parent_product_code', $firstVariant->parent_product_code)->delete();
+        } else {
+            $firstVariant->delete();
+        }
+
+        // Clean up media directory from disk
+        $folderPath = public_path("uploads/{$typeLower}/product/{$parentCode}");
+        if (is_dir($folderPath)) {
+            \Illuminate\Support\Facades\File::deleteDirectory($folderPath);
+        }
+
+        return response()->json([
+            'success' => 'Product and all associated variants deleted successfully.'
+        ]);
+    }
    
 }
