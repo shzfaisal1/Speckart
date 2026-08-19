@@ -528,7 +528,7 @@ class ProductController extends Controller
                 $mainImageName = null;
                 if ($request->hasFile("variants.{$idx}.main_image")) {
                     $file          = $request->file("variants.{$idx}.main_image");
-                    $mainImageName = time() . '_main_' . $idx . '.' . $file->getClientOriginalExtension();
+                    $mainImageName = time() . '_' . uniqid() . '_main_' . $idx . '.' . $file->getClientOriginalExtension();
                     $file->move($folderPath, $mainImageName);
                 }
 
@@ -1013,7 +1013,7 @@ class ProductController extends Controller
             $mainImageName = null;
             if ($request->hasFile("variants.{$idx}.main_image")) {
                 $file          = $request->file("variants.{$idx}.main_image");
-                $mainImageName = time() . '_main_' . $idx . '.' . $file->getClientOriginalExtension();
+                $mainImageName = time() . '_' . uniqid() . '_main_' . $idx . '.' . $file->getClientOriginalExtension();
                 $file->move($folderPath, $mainImageName);
             }
 
