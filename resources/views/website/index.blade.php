@@ -374,6 +374,7 @@
 <!-- end new-arrivals-section -->
 
 <!-- shop-by-brand-section -->
+@if(isset($brands) && count($brands) > 0)
 <section class="shop-by-brand-section">
     <h3>SHOP BY <span>BRANDS</span></h3>
     <div class="container">
@@ -381,60 +382,27 @@
             <div class="col-lg-12">
                 <div class="wrapper">
                     <div class="shop-by-brand-slider">
-                        <div>
-                            <a href="{{url('/products?brand=ray-ban')}}">
-                            <div class="shop-by-brand-slider-card">
-                                <div class="shop-by-brand-slider-card-img">
-                                    <img src="{{asset('website/assets/img/bg/brands1.png')}}" alt="Ray-Ban">
+                        @foreach($brands as $brand)
+                            <div>
+                                <a href="{{ $brand->url ?? $brand->catalog_url ?? route('products', ['brand' => $brand->brand_name ?? $brand->name ?? '']) }}">
+                                <div class="shop-by-brand-slider-card">
+                                    <div class="shop-by-brand-slider-card-img">
+                                        <img src="{{ $brand->bg_image_url ?? asset('website/assets/img/bg/brands1.png') }}" alt="{{ $brand->name ?? $brand->brand_name ?? 'Brand' }}">
+                                    </div>
+                                    <div class="shop-by-brand-slider-card-img-sm">
+                                        <img src="{{ $brand->logo_img ?? $brand->logo_url ?? (!empty($brand->image) ? asset($brand->image) : asset('website/assets/img/bg/brand-sm1.png')) }}" alt="{{ $brand->name ?? $brand->brand_name ?? 'Brand' }}">
+                                    </div>
                                 </div>
-                                <div class="shop-by-brand-slider-card-img-sm">
-                                    <img src="{{asset('website/assets/img/bg/brand-sm1.png')}}" alt="Ray-Ban">
-                                </div>
+                                </a>
                             </div>
-                            </a>
-                        </div>
-                        <div>
-                            <a href="{{url('/products?brand=oakley')}}">
-                            <div class="shop-by-brand-slider-card">
-                                <div class="shop-by-brand-slider-card-img">
-                                    <img src="{{asset('website/assets/img/bg/brands2.png')}}" alt="Oakley">
-                                </div>
-                                <div class="shop-by-brand-slider-card-img-sm">
-                                    <img src="{{asset('website/assets/img/bg/brand-sm2.png')}}" alt="Oakley">
-                                </div>
-                            </div>
-                            </a>
-                        </div>
-                        <div>
-                            <a href="{{url('/products?brand=vincent-chase')}}">
-                            <div class="shop-by-brand-slider-card">
-                                <div class="shop-by-brand-slider-card-img">
-                                    <img src="{{asset('website/assets/img/bg/brands3.png')}}" alt="Vincent Chase">
-                                </div>
-                                <div class="shop-by-brand-slider-card-img-sm">
-                                    <img src="{{asset('website/assets/img/bg/brand-sm3.png')}}" alt="Vincent Chase">
-                                </div>
-                            </div>
-                            </a>
-                        </div>
-                        <div>
-                            <a href="{{url('/products?brand=john-jacobs')}}">
-                            <div class="shop-by-brand-slider-card">
-                                <div class="shop-by-brand-slider-card-img">
-                                    <img src="{{asset('website/assets/img/bg/brands4.png')}}" alt="John Jacobs">
-                                </div>
-                                <div class="shop-by-brand-slider-card-img-sm">
-                                    <img src="{{asset('website/assets/img/bg/brand-sm4.png')}}" alt="John Jacobs">
-                                </div>
-                            </div>
-                            </a>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+@endif
 <!-- end shop-by-brand-section -->
 
 <!-- own-creation -->

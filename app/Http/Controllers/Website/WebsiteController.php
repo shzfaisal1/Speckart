@@ -288,9 +288,14 @@ class WebSiteController extends Controller
                 }
             }
 
+            $b->name         = $b->brand_name;
+            $b->url          = route('products', ['brand' => $b->brand_name]);
+            $b->catalog_url  = $b->url;
+            $b->logo_img     = $logoUrl;
             $b->logo_url     = $logoUrl;
             $b->bg_image_url = $bgImage;
-            $b->catalog_url  = route('products', ['brand' => $b->brand_name]);
+            $cleanName       = preg_replace('/[^a-zA-Z0-9]/', '', $b->brand_name ?: 'BR');
+            $b->initials     = strtoupper(substr($cleanName, 0, 2)) ?: 'BR';
 
             return $b;
         });
