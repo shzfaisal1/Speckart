@@ -315,7 +315,7 @@ $(document).ready(function() {
         `;
 
         // Variant Cards List
-        let variantsHtml = '<h6 style="text-align:left; font-weight:700; color:#1e293b; margin-bottom:12px;">🎨 Color Variants (' + p.variants.length + ' Total)</h6>';
+        let variantsHtml = '<h6 style="text-align:left; font-weight:700; color:#1e293b; margin-bottom:12px;"><i class="fa fa-layer-group text-primary mr-1"></i> Color Variants (' + p.variants.length + ' Total)</h6>';
         
         p.variants.forEach((v, idx) => {
             let colorSwatch = v.Color ? `<span class="qv-swatch" style="background:${v.Color}; margin-right:6px;"></span>` : '';
