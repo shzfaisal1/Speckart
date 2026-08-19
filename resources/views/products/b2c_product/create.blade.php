@@ -1165,10 +1165,10 @@ body { background: var(--bg); }
                         class="pb-input" placeholder="0.00">
                     <span class="pb-err discount-price-err"></span>
                 </div>
-                <div>
+                <div style="display: none;">
                     <label class="pb-label">Tax / HSN Code</label>
-                    <input type="text" name="variants[__IDX__][tax_hsn_code]"
-                        class="pb-input" placeholder="e.g. 900490">
+                    <input type="hidden" name="variants[__IDX__][tax_hsn_code]"
+                        class="pb-input" value="900490">
                     <span class="pb-err hsn-err"></span>
                 </div>
             </div>
