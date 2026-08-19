@@ -1,6 +1,7 @@
 @extends('layouts.master')
 
 @section('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
 .badge-variant {
     background-color: #f1f5f9;
@@ -135,8 +136,14 @@ $(document).ready(function() {
                         return `
                             <div class="dropdown">
                                 <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">ACTION</button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="{{ url(config('app.admin_path').'/products') }}/${full.product_id}/edit">Edit</a>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="{{ url(config('app.admin_path').'/products') }}/${full.product_id}/edit">
+                                        <i class="fa fa-edit text-primary mr-1"></i> Edit
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item text-danger delete-product-btn" href="javascript:void(0);" data-id="${full.product_id}" data-name="${full.product_name || 'this product'}">
+                                        <i class="fa fa-trash text-danger mr-1"></i> Delete
+                                    </a>
                                 </div>
                             </div>
                         `;
@@ -171,6 +178,65 @@ $(document).ready(function() {
         debounceTimer = setTimeout(function() {
             dataListView.draw();
         }, 500);
+    });
+
+    // AJAX Delete Product Handler with SweetAlert2 Confirmation
+    $(document).on('click', '.delete-product-btn', function() {
+        let productId = $(this).data('id');
+        let productName = $(this).data('name');
+
+        Swal.fire({
+            title: 'Delete Product?',
+            html: `Are you sure you want to delete <strong>${productName}</strong>?<br><span class="text-muted" style="font-size:0.85rem;">All variants and photos will be permanently removed.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="fa fa-trash"></i> Yes, Delete',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-xl shadow-2xl',
+                confirmButton: 'btn btn-danger px-4 py-2 font-medium',
+                cancelButton: 'btn btn-secondary px-4 py-2 font-medium'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#processingLoader').show();
+                $.ajax({
+                    url: '{{ url(config("app.admin_path")."/products") }}/' + productId + '/destroy',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(resp) {
+                        $('#processingLoader').hide();
+                        if (resp.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: resp.success,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            dataListView.draw();
+                        } else {
+                            Swal.fire('Error', resp.error || 'Could not delete product.', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#processingLoader').hide();
+                        let msg = 'Failed to delete product.';
+                        try {
+                            let json = JSON.parse(xhr.responseText);
+                            if (json.error) msg = json.error;
+                            if (json.message) msg = json.message;
+                        } catch(e) {}
+                        Swal.fire('Delete Failed', msg, 'error');
+                    }
+                });
+            }
+        });
     });
 
     // AJAX Toggle Switch Status Handler
