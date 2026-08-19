@@ -1644,12 +1644,53 @@ function removeGalleryImage(btn, variantIdx, imageName) {
 }
 
 // ============================================================
+// SweetAlert2 UI Helpers
+// ============================================================
+function showSweetWarning(title, htmlMessage) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'warning',
+            title: title || 'Attention Required',
+            html: htmlMessage,
+            confirmButtonText: 'Got it',
+            confirmButtonColor: '#4f46e5',
+            customClass: {
+                popup: 'rounded-xl shadow-2xl',
+                confirmButton: 'px-5 py-2.5 rounded-lg font-medium'
+            }
+        });
+    } else {
+        alert(title + '\n' + htmlMessage.replace(/<[^>]*>?/gm, ''));
+    }
+}
+
+function showSweetToast(icon, message) {
+    if (typeof Swal !== 'undefined') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+        Toast.fire({
+            icon: icon || 'info',
+            title: message
+        });
+    }
+}
+
+// ============================================================
 // removeVariant
 // ============================================================
 function removeVariant(btn) {
     const card = btn.closest('.variant-card');
     if (document.querySelectorAll('.variant-card').length <= 1) {
-        alert('You must have at least one variant.');
+        showSweetWarning('Cannot Remove Variant', 'A product must have at least one variant.');
         return;
     }
     card.remove();
@@ -1717,7 +1758,7 @@ function previewMainImage(input) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
         if (file.size > 5 * 1024 * 1024) {
-            alert(`File "${file.name}" exceeds the 5MB limit. Please upload an image under 5MB.`);
+            showSweetWarning('File Too Large', `The image <strong>${file.name}</strong> exceeds the 5MB limit.<br>Please upload an image under 5MB.`);
             input.value = '';
             return;
         }
@@ -1726,8 +1767,13 @@ function previewMainImage(input) {
             const img = new Image();
             img.onload = () => {
                 const ratio = img.naturalWidth / img.naturalHeight;
-                if (ratio < 1.3 || ratio > 2.8) {
-                    alert(`⚠️ Invalid Image Ratio: Eyewear photos must be in landscape format (~2:1 aspect ratio, e.g. 800×400px or 1000×500px).\n\nYour image is ${img.naturalWidth}×${img.naturalHeight}px (Ratio: ${ratio.toFixed(2)}:1).`);
+                if (ratio < 1.2 || ratio > 3.2) {
+                    showSweetWarning('Invalid Aspect Ratio', `
+                        Eyewear product photos must be in landscape format with approx <strong>2:1 aspect ratio</strong> (e.g. 800×400px, 1000×500px, 1280×640px).<br><br>
+                        <div style="background:#f1f5f9; padding:8px 12px; border-radius:6px; font-size:0.85rem; color:#475569; margin-top:8px;">
+                            Selected file: <strong>${img.naturalWidth} × ${img.naturalHeight}px</strong> (Ratio: ${ratio.toFixed(2)}:1)
+                        </div>
+                    `);
                     input.value = '';
                     wrap.innerHTML = '';
                     return;
@@ -1759,8 +1805,8 @@ function previewGallery(input) {
             const img = new Image();
             img.onload = () => {
                 const ratio = img.naturalWidth / img.naturalHeight;
-                if (ratio < 1.3 || ratio > 2.8) {
-                    alert(`⚠️ Gallery image skipped: Image "${file.name}" is not in landscape 2:1 ratio (${img.naturalWidth}×${img.naturalHeight}px).`);
+                if (ratio < 1.2 || ratio > 3.2) {
+                    showSweetToast('warning', `Skipped "${file.name}": Non-landscape ratio (${img.naturalWidth}×${img.naturalHeight}px)`);
                     return;
                 }
                 const previewImg = document.createElement('img');
@@ -1774,7 +1820,7 @@ function previewGallery(input) {
     });
 
     if (hasOversized) {
-        alert("Some files were skipped because they exceed the 5MB limit.");
+        showSweetToast('warning', 'Some files were skipped because they exceed the 5MB limit.');
     }
 }
 
