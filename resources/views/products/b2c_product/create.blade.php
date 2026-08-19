@@ -978,6 +978,31 @@ body { background: var(--bg); }
             {{-- ===== RIGHT SIDEBAR ===== --}}
             <div>
 
+                {{-- Live Customer Store Preview --}}
+                <div class="pb-card sb-card live-preview-card" style="border: 2px solid #e0e7ff; background: #fff; margin-bottom: 20px;">
+                    <div class="pb-card-header" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: #fff; border-bottom: none;">
+                        <h5 style="color: #fff; font-size: .88rem;"><span class="icon" style="background: rgba(255,255,255,0.2);"><i class="fa fa-mobile-screen"></i></span> Live Store Preview</h5>
+                    </div>
+                    <div class="pb-card-body" style="padding: 14px;">
+                        <div class="preview-product-card" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
+                            <div style="position: relative; height: 140px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                <span id="preview-badge" style="position: absolute; top: 8px; left: 8px; background: #f59e0b; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; display: none;">BEST SELLER</span>
+                                <span style="position: absolute; top: 8px; right: 8px; color: #cbd5e1; font-size: .9rem;"><i class="fa fa-heart"></i></span>
+                                <img id="preview-main-img" src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}" style="max-height: 105px; max-width: 88%; object-fit: contain;" alt="Preview">
+                            </div>
+                            <div style="padding: 12px;">
+                                <div id="preview-brand" style="font-size: 0.7rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.05em;">Brand</div>
+                                <div id="preview-title" style="font-size: 0.85rem; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">Product Name</div>
+                                <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
+                                    <span id="preview-sale-price" style="font-size: .95rem; font-weight: 800; color: #1e1b4b;">₹0.00</span>
+                                    <span id="preview-mrp" style="font-size: 0.75rem; color: #94a3b8; text-decoration: line-through; display: none;">₹0.00</span>
+                                    <span id="preview-discount-pill" style="font-size: 0.68rem; font-weight: 700; color: #10b981; display: none;">0% OFF</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Status & Visibility --}}
                 <div class="pb-card sb-card">
                     <div class="pb-card-header">
@@ -1903,21 +1928,89 @@ function evaluateChecklist() {
             if(msg) msg.style.display = 'block';
         }
     }
+
+    updateLivePreview();
+}
+
+function updateLivePreview() {
+    const nameInput = document.getElementById('product_name');
+    const nameVal = nameInput && nameInput.value.trim().length > 0 ? nameInput.value.trim() : 'Product Name';
+    const brandSelect = document.getElementById('Company');
+    let brandVal = 'Brand';
+    if (brandSelect && brandSelect.selectedIndex > 0) {
+        brandVal = brandSelect.options[brandSelect.selectedIndex].text;
+    }
+    
+    const titleEl = document.getElementById('preview-title');
+    const brandEl = document.getElementById('preview-brand');
+    if (titleEl) titleEl.textContent = nameVal;
+    if (brandEl) brandEl.textContent = brandVal !== 'Select Brand' ? brandVal : 'Brand';
+    
+    // Check Best Seller badge
+    const badgeEl = document.getElementById('preview-badge');
+    const bestSellerCb = document.querySelector('input[name="promotion_tag[]"][value="best_seller"]');
+    if (badgeEl) {
+        badgeEl.style.display = (bestSellerCb && bestSellerCb.checked) ? 'inline-block' : 'none';
+    }
+
+    // Find first variant pricing & image
+    const firstVariant = document.querySelector('.variant-card');
+    if (firstVariant) {
+        const mrp = parseFloat(firstVariant.querySelector('input[name$="[Retail_Price]"]')?.value) || 0;
+        const sale = parseFloat(firstVariant.querySelector('input[name$="[discount_price]"]')?.value) || mrp;
+        
+        const saleEl = document.getElementById('preview-sale-price');
+        const mrpEl = document.getElementById('preview-mrp');
+        const pillEl = document.getElementById('preview-discount-pill');
+        
+        if (saleEl) {
+            if (sale > 0) {
+                saleEl.textContent = '₹' + sale.toLocaleString('en-IN');
+            } else if (mrp > 0) {
+                saleEl.textContent = '₹' + mrp.toLocaleString('en-IN');
+            } else {
+                saleEl.textContent = '₹0.00';
+            }
+        }
+        
+        if (mrpEl && pillEl) {
+            if (mrp > 0 && sale > 0 && sale < mrp) {
+                mrpEl.textContent = '₹' + mrp.toLocaleString('en-IN');
+                mrpEl.style.display = 'inline';
+                const pct = Math.round(((mrp - sale) / mrp) * 100);
+                pillEl.textContent = pct + '% OFF';
+                pillEl.style.display = 'inline';
+            } else {
+                mrpEl.style.display = 'none';
+                pillEl.style.display = 'none';
+            }
+        }
+        
+        // Main image preview
+        const firstImg = firstVariant.querySelector('.main-img-preview img') || firstVariant.querySelector('img');
+        const previewImg = document.getElementById('preview-main-img');
+        if (firstImg && firstImg.src && previewImg) {
+            previewImg.src = firstImg.src;
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     // Listen to changes
-    document.getElementById('pb-form').addEventListener('input', evaluateChecklist);
-    document.getElementById('pb-form').addEventListener('change', evaluateChecklist);
+    const form = document.getElementById('pb-form');
+    if (form) {
+        form.addEventListener('input', evaluateChecklist);
+        form.addEventListener('change', evaluateChecklist);
+    }
     
     // Observer for variant nodes being added/removed
-    const variantContainer = document.getElementById('variants-container');
+    const variantContainer = document.getElementById('variant-list') || document.getElementById('variants-container');
     if (variantContainer) {
         const observer = new MutationObserver(evaluateChecklist);
         observer.observe(variantContainer, { childList: true, subtree: true });
     }
     
-    setTimeout(evaluateChecklist, 500);
+    setTimeout(evaluateChecklist, 400);
 });
 
 // ============================================================
