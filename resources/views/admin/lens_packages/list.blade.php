@@ -77,12 +77,12 @@
                             <div class="form-group">
                                 <label class="form-label fw-medium">Package Mode</label>
                                 <select class="form-control" id="pkg_package_type" name="package_type">
-                                    <option value="frame_and_lens">🔵 Frame + Lens (Paid Combo)</option>
-                                    <option value="free_lens">🟢 Free Lens (Pay Frame Only)</option>
+                                    <option value="free_lens" selected>🟢 Free Lens (Pay Frame Only)</option>
                                     <option value="free_frame">🟣 Free Frame (Pay Lens Package Only)</option>
+                                    {{-- <option value="frame_and_lens">🔵 Frame + Lens (Paid Combo)</option> --}}
                                 </select>
                                 <small class="text-muted" id="pkg_mode_hint" style="font-size:11px; margin-top:4px; display:block;">
-                                    Customer pays for Frame + Lens upgrade price combined.
+                                    Lens is FREE. Customer pays only the Frame price. A "Free Lenses" badge is shown automatically.
                                 </small>
                             </div>
                         </div>
@@ -280,11 +280,47 @@
 </div>
 @endsection
 
-@push('styles')
+@section('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
     .benefit-row:hover { background-color: #f0f0f0 !important; }
     .badge-row { background: #fdfdfd; border: 1px dashed #ccc; border-radius: 4px; padding: 10px; margin-bottom: 8px; }
+
+    /* ── Pill-Chip style for Tags & Power Types ── */
+    .badge-chip-label {
+        cursor: pointer !important;
+        margin-bottom: 0 !important;
+        user-select: none !important;
+        display: inline-block !important;
+    }
+    .badge-chip-label input[type="checkbox"] {
+        display: none !important;
+    }
+    .badge-chip-label span {
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        border: 1.5px solid #d1d5db !important;
+        background-color: #ffffff !important;
+        color: #374151 !important;
+        transition: all 0.15s ease-in-out !important;
+        cursor: pointer !important;
+    }
+    .badge-chip-label:hover span {
+        border-color: #07484A !important;
+        color: #07484A !important;
+        background-color: #f0fdfa !important;
+    }
+    .badge-chip-label input[type="checkbox"]:checked + span,
+    .badge-chip-label.active span {
+        background-color: #07484A !important;
+        color: #ffffff !important;
+        border-color: #07484A !important;
+        box-shadow: 0 2px 6px rgba(7, 72, 74, 0.25) !important;
+    }
 
     /* ── Image Upload Styles ── */
     .media-preview-grid {
@@ -337,25 +373,8 @@
     .media-preview-item:hover .remove-btn {
         opacity: 1;
     }
-
-    /* ── Pill-Chip style for Tags & Power Types ── */
-    .badge-chip-label input[type="checkbox"]:checked + span {
-        background-color: #07484A !important;
-        color: #fff !important;
-        border-color: #07484A !important;
-    }
-    .badge-chip-label span {
-        color: #495057;
-        border-color: #ced4da !important;
-        background: #fff;
-        user-select: none;
-    }
-    .badge-chip-label:hover span {
-        border-color: #07484A !important;
-        color: #07484A;
-    }
 </style>
-@endpush
+@endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -509,7 +528,7 @@ $(document).ready(function() {
             $('#pkg_original_price').val(data.original_price);
             $('#pkg_warranty').val(data.warranty_months);
             $('#pkg_sort_order').val(data.sort_order);
-            $('#pkg_package_type').val(data.package_type || 'frame_and_lens').trigger('change');
+            $('#pkg_package_type').val(data.package_type || 'free_lens').trigger('change');
             $('#pkg_status').prop('checked', data.is_active == 1);
 
             // Pre-select tags
@@ -599,6 +618,9 @@ $(document).ready(function() {
                     addExistingMediaPreview(media);
                 });
             }
+
+            // Sync visual chip styling with pre-selected checkboxes
+            syncChipStyles();
         });
     });
 
@@ -685,6 +707,22 @@ $(document).ready(function() {
     });
 
     $('#lensPackageModal').on('hidden.bs.modal', resetForm);
+    syncChipStyles();
+});
+
+function syncChipStyles() {
+    $('.badge-chip-label').each(function () {
+        var isChecked = $(this).find('input[type="checkbox"]').is(':checked');
+        if (isChecked) {
+            $(this).addClass('active');
+        } else {
+            $(this).removeClass('active');
+        }
+    });
+}
+
+$(document).on('change', '.badge-chip-label input[type="checkbox"]', function () {
+    syncChipStyles();
 });
 
 function openModal(mode) {
@@ -692,6 +730,7 @@ function openModal(mode) {
         mode === 'add' ? 'Add Lens Package' : 'Edit Lens Package';
     document.getElementById('submitBtnText').textContent =
         mode === 'add' ? 'Save Package' : 'Update Package';
+    setTimeout(syncChipStyles, 50);
 }
 
 /* ── Package Mode → auto-sync is_free_lens + hint text ── */
@@ -755,8 +794,7 @@ function resetForm() {
     $('.coupon-checkbox').prop('checked', false);
     $('.highlight-toggle').prop('checked', false);
     // Reset package mode hint
-    $('#pkg_mode_hint').text('Customer pays for Frame + Lens upgrade price combined.');
-    $('#pkg_package_type').val('frame_and_lens');
+    $('#pkg_package_type').val('free_lens').trigger('change');
     // Reset promotional badge selector (if enabled)
     if ($('#pkg_badge_preset').length) {
         $('#pkg_badge_preset').val('').trigger('change');
@@ -768,6 +806,7 @@ function resetForm() {
     document.getElementById('pkg_status').checked = true;
     pendingFiles = [];
     $('#mediaPreviewGrid').empty();
+    syncChipStyles();
 }
 
 // ── Image Upload Logic ──
