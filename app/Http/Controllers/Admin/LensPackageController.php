@@ -121,8 +121,9 @@ class LensPackageController extends Controller
         ]);
 
         $validated['is_active']       = $request->boolean('is_active', false);
-        $validated['is_free_lens']    = $request->boolean('is_free_lens', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
+        // Derive is_free_lens from package_type — single source of truth
+        $validated['is_free_lens']    = ($validated['package_type'] === 'free_lens') ? 1 : 0;
         $validated['warranty_months'] = $validated['warranty_months'] ?? 0;
         $validated['sort_order']      = $validated['sort_order'] ?? 0;
 
@@ -212,8 +213,9 @@ class LensPackageController extends Controller
         ]);
 
         $validated['is_active']       = $request->boolean('is_active', false);
-        $validated['is_free_lens']    = $request->boolean('is_free_lens', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
+        // Derive is_free_lens from package_type — single source of truth
+        $validated['is_free_lens']    = ($validated['package_type'] === 'free_lens') ? 1 : 0;
         $validated['warranty_months'] = $validated['warranty_months'] ?? 0;
         $validated['sort_order']      = $validated['sort_order'] ?? 0;
 

@@ -261,30 +261,23 @@
                         <div id="mediaPreviewGrid" class="media-preview-grid"></div>
                     </div>
 
-                    {{-- Row 9: Flags and Modes --}}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
+                    {{-- Row 9: Package Mode, Status --}}
+                    <div class="row align-items-end">
+                        <div class="col-md-9">
+                            <div class="form-group mb-0">
                                 <label class="form-label fw-medium">Package Mode</label>
                                 <select class="form-control" id="pkg_package_type" name="package_type">
-                                    <option value="frame_and_lens">Frame + Lens (Paid Combo)</option>
-                                    <option value="free_lens">Free Lens (Pay Frame Only)</option>
-                                    <option value="free_frame">Free Frame (Pay Lens Package Only)</option>
-                                    <!--<option value="lens_only">Lens Only</option>-->
+                                    <option value="frame_and_lens">🔵 Frame + Lens (Paid Combo)</option>
+                                    <option value="free_lens">🟢 Free Lens (Pay Frame Only)</option>
+                                    <option value="free_frame">🟣 Free Frame (Pay Lens Package Only)</option>
                                 </select>
+                                <small class="text-muted" id="pkg_mode_hint" style="font-size:11px; margin-top:4px; display:block;">
+                                    Customer pays for Frame + Lens upgrade price combined.
+                                </small>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="form-label fw-medium d-block">Free Lens Badge</label>
-                                <div class="toggle-btn">
-                                    <input type="checkbox" id="pkg_free_lens" name="is_free_lens" class="toggle-switch" value="1">
-                                    <label for="pkg_free_lens">Toggle</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
+                            <div class="form-group mb-0">
                                 <label class="form-label fw-medium d-block">Status</label>
                                 <div class="toggle-btn">
                                     <input type="checkbox" id="pkg_status" name="is_active" class="toggle-switch" value="1" checked>
@@ -292,6 +285,8 @@
                                 </div>
                             </div>
                         </div>
+                        {{-- is_free_lens auto-set by Package Mode JS (no manual toggle) --}}
+                        <input type="hidden" id="pkg_free_lens" name="is_free_lens" value="0">
                         {{-- Sort Order (Hidden as of now) --}}
                         <input type="hidden" id="pkg_sort_order" name="sort_order" value="0">
                     </div>
@@ -513,8 +508,7 @@ $(document).ready(function() {
             $('#pkg_original_price').val(data.original_price);
             $('#pkg_warranty').val(data.warranty_months);
             $('#pkg_sort_order').val(data.sort_order);
-            $('#pkg_package_type').val(data.package_type || 'frame_and_lens');
-            $('#pkg_free_lens').prop('checked', data.is_free_lens == 1);
+            $('#pkg_package_type').val(data.package_type || 'frame_and_lens').trigger('change');
             $('#pkg_status').prop('checked', data.is_active == 1);
 
             // Pre-select tags
@@ -687,6 +681,23 @@ function openModal(mode) {
     document.getElementById('submitBtnText').textContent =
         mode === 'add' ? 'Save Package' : 'Update Package';
 }
+
+/* ── Package Mode → auto-sync is_free_lens + hint text ── */
+var packageModeHints = {
+    'frame_and_lens': 'Customer pays for Frame + Lens upgrade price combined.',
+    'free_lens':      'Lens is FREE. Customer pays only the Frame price. A "Free Lenses" badge is shown automatically.',
+    'free_frame':     'Frame is FREE. Customer pays only the Lens Package price. A "Free Frame" badge is shown automatically.'
+};
+
+$(document).on('change', '#pkg_package_type', function () {
+    var mode = $(this).val();
+    // Auto-set is_free_lens based on chosen package mode
+    var isFreeLens = (mode === 'free_lens') ? '1' : '0';
+    $('#pkg_free_lens').val(isFreeLens);
+    // Update contextual hint
+    var hint = packageModeHints[mode] || '';
+    $('#pkg_mode_hint').text(hint);
+});
 
 function addBadgeRow(label, bgColor, textColor) {
     label     = label     || '';
