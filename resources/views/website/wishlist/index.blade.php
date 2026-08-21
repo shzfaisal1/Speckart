@@ -496,6 +496,7 @@
                 var $btn = $(this);
                 var productId = $btn.data('product-id');
                 var productName = $btn.data('product-name');
+                var $col = $btn.closest('.wishlist-item-col');
                 var originalHtml = $btn.html();
 
                 $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-1"></i> Adding...');
@@ -516,10 +517,27 @@
                             if (response.cart_count !== undefined) {
                                 updateCartBadges(response.cart_count);
                             }
+                            if (response.wishlist_count !== undefined) {
+                                updateWishlistBadges(response.wishlist_count);
+                            }
+
                             $btn.html('<i class="bi bi-check-circle-fill me-1"></i> Added!');
+
+                            // Smoothly animate and remove card from Wishlist UI
                             setTimeout(function() {
-                                $btn.prop('disabled', false).html(originalHtml);
-                            }, 1800);
+                                $col.addClass('removing');
+                                setTimeout(function() {
+                                    $col.remove();
+
+                                    var remaining = $('.wishlist-item-col').length;
+                                    var itemText = remaining === 1 ? '1 Saved Item' : remaining + ' Saved Items';
+                                    $('#wishlist-title-count').text(itemText);
+
+                                    if (remaining === 0) {
+                                        $('#wishlist-empty-state').removeClass('d-none');
+                                    }
+                                }, 300);
+                            }, 500);
                         } else {
                             if (typeof toastr !== 'undefined') {
                                 toastr.error(response.message || 'Could not add to cart.');
