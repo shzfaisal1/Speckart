@@ -86,9 +86,9 @@
                         </div>
                     </div>
 
-                    {{-- Row 2: Pricing and Warranty --}}
+                    {{-- Row 2: Pricing --}}
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label fw-medium">
                                     Current Price (INR) <span class="text-danger">*</span>
@@ -97,20 +97,15 @@
                                        name="current_price" placeholder="1500" required>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label fw-medium">Original Price (INR)</label>
                                 <input type="number" step="0.01" min="0" class="form-control" id="pkg_original_price"
                                        name="original_price" placeholder="2000">
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label class="form-label fw-medium">Warranty (Months)</label>
-                                <input type="number" min="0" class="form-control" id="pkg_warranty"
-                                       name="warranty_months" placeholder="6" value="0">
-                            </div>
-                        </div>
+                        {{-- Warranty (Hidden for now) --}}
+                        <input type="hidden" id="pkg_warranty" name="warranty_months" value="0">
                     </div>
 
                     {{-- Row 3: Short Description --}}
@@ -152,7 +147,8 @@
                         </div>
                     </div>
 
-                    {{-- Row 6: Coupons --}}
+                    {{-- Row 6: Coupons (Hidden as of now) --}}
+                    {{--
                     <div class="form-group">
                         <label class="form-label fw-medium d-block">Applicable Coupons</label>
                         <div class="d-flex flex-wrap" style="gap: 15px;">
@@ -168,6 +164,7 @@
                             @endforeach
                         </div>
                     </div>
+                    --}}
 
                     {{-- Row 7: Power Types --}}
                     <div class="form-group">
