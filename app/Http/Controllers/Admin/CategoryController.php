@@ -25,6 +25,18 @@ class CategoryController extends Controller
         $categories = Category::withCount('subcategories')->latest();
 
         return DataTables::of($categories)
+            ->addColumn('category_type_badge', function ($row) {
+                $type = $row->category_type ?: 'frame';
+                $badges = [
+                    'frame'     => '<span class="badge" style="background:#4f46e5;color:#fff;font-size:12px;padding:4px 8px;border-radius:4px;"><i class="fa fa-eye me-1"></i> Eyeglasses</span>',
+                    'sunglass'  => '<span class="badge" style="background:#f59e0b;color:#000;font-size:12px;padding:4px 8px;border-radius:4px;"><i class="fa fa-sun-o me-1"></i> Sunglasses</span>',
+                    'lens'      => '<span class="badge" style="background:#06b6d4;color:#fff;font-size:12px;padding:4px 8px;border-radius:4px;"><i class="fa fa-circle-o me-1"></i> Contact Lens</span>',
+                    'solution'  => '<span class="badge" style="background:#10b981;color:#fff;font-size:12px;padding:4px 8px;border-radius:4px;"><i class="fa fa-flask me-1"></i> Solution</span>',
+                    'accessory' => '<span class="badge" style="background:#64748b;color:#fff;font-size:12px;padding:4px 8px;border-radius:4px;"><i class="fa fa-shopping-bag me-1"></i> Accessory</span>',
+                    'glass'     => '<span class="badge" style="background:#1e293b;color:#fff;font-size:12px;padding:4px 8px;border-radius:4px;"><i class="fa fa-cube me-1"></i> Spec Glass</span>',
+                ];
+                return $badges[$type] ?? '<span class="badge badge-light">' . ucfirst($type) . '</span>';
+            })
             ->addColumn('subcategories_count', function ($row) {
                 return '<span class="badge badge-info">' . $row->subcategories_count . '</span>';
             })
@@ -59,7 +71,7 @@ class CategoryController extends Controller
                 return '
                     <div class="toggle-btn">
                         <input type="checkbox" id="cat_' . $row->id . '" class="toggle-switch toggle-status"
-                               data-id="' . $row->id . '" ' . $checked . '>
+                                data-id="' . $row->id . '" ' . $checked . '>
                         <label for="cat_' . $row->id . '">Toggle</label>
                     </div>';
             })
@@ -80,7 +92,7 @@ class CategoryController extends Controller
                         </button>
                     </div>';
             })
-            ->rawColumns(['image', 'subcategories_count', 'store_name', 'created_at_formatted', 'is_active', 'action'])
+            ->rawColumns(['image', 'category_type_badge', 'subcategories_count', 'store_name', 'created_at_formatted', 'is_active', 'action'])
             ->make(true);
     }
 
@@ -90,6 +102,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name'            => 'required|string|max:100|unique:categories,name',
             'slug'            => 'required|string|max:100|unique:categories,slug',
+            'category_type'   => 'nullable|string|in:frame,sunglass,lens,solution,accessory,glass',
             'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description'     => 'nullable|string|max:500',
             'is_active'       => 'nullable|boolean',
@@ -97,6 +110,7 @@ class CategoryController extends Controller
         ]);
 
         $validated['slug']            = Str::slug($validated['slug'], '-');
+        $validated['category_type']   = $request->input('category_type', 'frame');
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['allowed_filters'] = $request->input('allowed_filters', []);
         $validated['added_by']        = auth()->user()->id;
@@ -132,6 +146,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name'            => 'required|string|max:100|unique:categories,name,' . $id,
             'slug'            => 'required|string|max:100|unique:categories,slug,' . $id,
+            'category_type'   => 'nullable|string|in:frame,sunglass,lens,solution,accessory,glass',
             'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description'     => 'nullable|string|max:500',
             'is_active'       => 'nullable|boolean',
@@ -139,6 +154,7 @@ class CategoryController extends Controller
         ]);
 
         $validated['slug']            = Str::slug($validated['slug'], '-');
+        $validated['category_type']   = $request->input('category_type', 'frame');
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['allowed_filters'] = $request->input('allowed_filters', []);
 

@@ -891,76 +891,213 @@
 
                                 <div class="col-lg-4 col-md-6 col-12">
                                     <div class="spec-card">
-                                        <span class="spec-label">Frame Size</span>
-                                        <span class="spec-value">{{ $product->Size ?? 'N/A' }}</span>
+                                        <span class="spec-label">Brand</span>
+                                        <span class="spec-value">{{ $product->Company ?? 'Speckart' }}</span>
                                     </div>
                                 </div>
-    
-     <div class="col-lg-4 col-md-6 col-12">
-                                    <div class="spec-card">
-                                        <span class="spec-label">Gender</span>
-                                        <span class="spec-value">
-                                            @php
-                                                $genderStr = 'N/A';
-                                                if(!empty($product->Gender)){
-                                                    $genders = json_decode($product->Gender, true);
-                                                    if(is_array($genders)){
-                                                        $genderStr = implode(', ', array_unique($genders));
-                                                    } else {
-                                                        $genderStr = $product->Gender;
+
+                                @php
+                                    $pTypeLower = strtolower($product->product_type ?? '');
+                                    $isContactLens = ($pTypeLower === 'lens') || !empty($product->Modality);
+                                    $isSolution = ($pTypeLower === 'solution');
+                                    $isAccessory = ($pTypeLower === 'accessory') || ($pTypeLower === 'other');
+                                    $isSunglass = ($pTypeLower === 'sunglass') || !empty($product->polarized);
+                                @endphp
+
+                                @if($isContactLens)
+                                    {{-- ── Contact Lens Specs ── --}}
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Disposability (Modality)</span>
+                                            <span class="spec-value">{{ $product->Modality ?? 'Daily' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Pack Size</span>
+                                            <span class="spec-value">{{ $product->Packing_Type ?? $product->Size ?? 'Standard Pack' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Water Content</span>
+                                            <span class="spec-value">{{ $product->WC ? (str_contains($product->WC, '%') ? $product->WC : $product->WC . '%') : 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Base Curve (BC)</span>
+                                            <span class="spec-value">{{ $product->base_carve ?? $product->BC ?? '8.6 mm' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Diameter (DIA)</span>
+                                            <span class="spec-value">{{ $product->Diameter ?? $product->DIA ?? '14.2 mm' }}</span>
+                                        </div>
+                                    </div>
+                                    @if(!empty($product->Color))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Lens Color / Tint</span>
+                                            <span class="spec-value">{{ $product->Color }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @elseif($isSolution)
+                                    {{-- ── Solution Specs ── --}}
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Volume / Size</span>
+                                            <span class="spec-value">{{ $product->Packing_Type ?? $product->Size ?? 'Standard Bottle' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Solution Type</span>
+                                            <span class="spec-value">{{ $product->Type ?? 'Multi-Purpose Solution' }}</span>
+                                        </div>
+                                    </div>
+                                    @if(!empty($product->Temple_Detail))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Inclusions</span>
+                                            <span class="spec-value">{{ $product->Temple_Detail }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if(!empty($product->Material))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Suitable For</span>
+                                            <span class="spec-value">{{ $product->Material }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if(!empty($product->Validity))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Shelf Life</span>
+                                            <span class="spec-value">{{ $product->Validity }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @elseif($isAccessory)
+                                    {{-- ── Accessory Specs ── --}}
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Accessory Type</span>
+                                            <span class="spec-value">{{ $product->Type ?? 'Eyewear Accessory' }}</span>
+                                        </div>
+                                    </div>
+                                    @if(!empty($product->Color))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Color</span>
+                                            <span class="spec-value">{{ $product->Color }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if(!empty($product->Material))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Material</span>
+                                            <span class="spec-value">{{ $product->Material }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @else
+                                    {{-- ── Eyeglasses & Sunglasses Specs ── --}}
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Frame Size</span>
+                                            <span class="spec-value">{{ $product->Size ?? 'Medium' }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Gender</span>
+                                            <span class="spec-value">
+                                                @php
+                                                    $genderStr = 'Unisex';
+                                                    if(!empty($product->Gender)){
+                                                        $genders = json_decode($product->Gender, true);
+                                                        if(is_array($genders)){
+                                                            $genderStr = implode(', ', array_unique($genders));
+                                                        } else {
+                                                            $genderStr = $product->Gender;
+                                                        }
                                                     }
-                                                }
-                                            @endphp
-                                            {{ $genderStr }}
-                                        </span>
+                                                @endphp
+                                                {{ $genderStr }}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!--<div class="col-lg-4 col-md-6 col-12">-->
-                                <!--    <div class="spec-card">-->
-                                <!--        <span class="spec-label">Frame Width</span>-->
-                                <!--        <span class="spec-value">-->
-                                <!--            {{ $product->Frame_Width ?? 'N/A' }}-->
-                                <!--        </span>-->
-                                <!--    </div>-->
-                                <!--</div>-->
-
-                                <div class="col-lg-4 col-md-6 col-12">
-                                    <div class="spec-card">
-                                        <span class="spec-label">Frame Dimensions</span>
-                                        <span class="spec-value">{{ $product->Frame_Dimensions ?? 'N/A' }}</span>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Frame Dimensions</span>
+                                            <span class="spec-value">
+                                                @php
+                                                    $dimParts = array_filter([$product->lens_width ?? null, $product->Bridge_Size ?? $product->bridge_size ?? null, $product->temple_length ?? null]);
+                                                    $dimStr = !empty($dimParts) ? implode('-', $dimParts) . ' mm' : ($product->frame_width ? $product->frame_width . ' mm' : 'Standard Fit');
+                                                @endphp
+                                                {{ $dimStr }}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="col-lg-4 col-md-6 col-12">
-                                    <div class="spec-card">
-                                        <span class="spec-label">Frame Colour</span>
-                                        <span class="spec-value">{{ $product->Colour ?? 'N/A' }}</span>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Frame Color</span>
+                                            <span class="spec-value">{{ $product->Color ?? 'N/A' }}</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="col-lg-4 col-md-6 col-12">
-                                    <div class="spec-card">
-                                        <span class="spec-label">Weight</span>
-                                        <span class="spec-value">
-                                            {{ $product->Weight ?? 'N/A' }}
-                                        </span>
+                                    @if(!empty($product->Shape))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Shape</span>
+                                            <span class="spec-value">{{ $product->Shape }}</span>
+                                        </div>
                                     </div>
-                                </div>
+                                    @endif
 
-                                <div class="col-lg-4 col-md-6 col-12">
-                                    <div class="spec-card">
-                                        <span class="spec-label">Weight Group</span>
-                                        <span class="spec-value">{{ $product->Weight_Group ?? 'N/A' }}</span>
+                                    @if(!empty($product->Type))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Frame Structure</span>
+                                            <span class="spec-value">{{ $product->Type }}</span>
+                                        </div>
                                     </div>
-                                </div>
+                                    @endif
 
-                                <div class="col-lg-4 col-md-6 col-12">
-                                    <div class="spec-card">
-                                        <span class="spec-label">Material</span>
-                                        <span class="spec-value">{{ $product->Material ?? 'N/A' }}</span>
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Material</span>
+                                            <span class="spec-value">{{ $product->Material ?? 'Premium Handcrafted' }}</span>
+                                        </div>
                                     </div>
-                                </div>
+
+                                    @if($isSunglass || !empty($product->polarized))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">Polarized</span>
+                                            <span class="spec-value">{{ !empty($product->polarized) ? 'Yes (Anti-Glare)' : 'No' }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    @if($isSunglass || !empty($product->uv_protection))
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="spec-card">
+                                            <span class="spec-label">UV Protection</span>
+                                            <span class="spec-value">{{ $product->uv_protection ?? 'UV400 (100% Protection)' }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @endif
 
                             </div>
                         </div>

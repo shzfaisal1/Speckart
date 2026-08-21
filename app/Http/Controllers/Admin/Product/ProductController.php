@@ -379,7 +379,7 @@ class ProductController extends Controller
         // Global validation — parent_product_code removed from rules (it's auto-generated)
         $globalValidator = Validator::make($request->all(), [
             'product_name' => 'required|string|max:255',
-            'product_type' => 'required|string|in:Frame,Lens',
+            'product_type' => 'required|string|in:Frame,Lens,Sunglass,Solution,Accessory,Other,Glass',
             'variants'     => 'required|array|min:1',
         ]);
 
@@ -624,6 +624,8 @@ class ProductController extends Controller
                     'added_by'                 => auth()->id(),
                     'store_id'                 => auth()->user()->store_id ?? null,
                     'Modality'                 => $modality,
+                    'Packing_Type'             => $variant['pack_size'] ?? $variant['Packing_Type'] ?? null,
+                    'Validity'                 => $variant['Validity'] ?? $variant['validity'] ?? null,
                     'WC'                       => $wc,
                     'Dk_t'                     => $dk_t,
                     'SPH'                      => $sph,
@@ -890,7 +892,7 @@ class ProductController extends Controller
 
         $globalValidator = Validator::make($request->all(), [
             'product_name' => 'required|string|max:255',
-            'product_type' => 'required|string|in:Frame,Lens',
+            'product_type' => 'required|string|in:Frame,Lens,Sunglass,Solution,Accessory,Other,Glass',
         ]);
 
         if ($globalValidator->fails()) {
@@ -1131,6 +1133,8 @@ class ProductController extends Controller
                 'parent_product_code'      => $parentProductCode,
                 'updated_by'               => auth()->id(),
                 'Modality'                 => $modality,
+                'Packing_Type'             => $variant['pack_size'] ?? $variant['Packing_Type'] ?? null,
+                'Validity'                 => $variant['Validity'] ?? $variant['validity'] ?? null,
                 'WC'                       => $wc,
                 'Dk_t'                     => $dk_t,
                 'SPH'                      => $sph,

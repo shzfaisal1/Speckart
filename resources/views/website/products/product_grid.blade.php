@@ -23,7 +23,12 @@
                         </div>
 
                         <div class="price-section">
-                            <span class="price">₹{{ number_format($product->Retail_Price, 2) }}</span>
+                            @if(!empty($product->discount_price) && $product->discount_price < $product->Retail_Price)
+                                <span class="price">₹{{ number_format($product->discount_price, 2) }}</span>
+                                <span class="text-muted text-decoration-line-through ms-2" style="font-size: 13px; font-weight: 500;">₹{{ number_format($product->Retail_Price, 2) }}</span>
+                            @else
+                                <span class="price">₹{{ number_format($product->Retail_Price, 2) }}</span>
+                            @endif
                             <button class="try-btn">Try on you</button>
                         </div>
                     </div>
