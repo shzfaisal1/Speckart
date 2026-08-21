@@ -23,12 +23,10 @@
                             <thead>
                                 <tr>
                                     <th class="wd-10p">ID</th>
-                                    <th class="wd-30p">Name</th>
-                                    <th class="wd-30p">Slug</th>
-                                    <th class="wd-10p">Sort Order</th>
-                                    <th class="wd-10p">Packages</th>
-                                    <th class="wd-10p">Status</th>
-                                    <th class="wd-10p">Action</th>
+                                    <th class="wd-45p">Name</th>
+                                    <th class="wd-15p">Packages</th>
+                                    <th class="wd-15p">Status</th>
+                                    <th class="wd-15p">Action</th>
                                 </tr>
                             </thead>
                         </table>
@@ -71,33 +69,14 @@
                                placeholder="e.g. Work Friendly" required>
                     </div>
 
-                    {{-- Slug --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium">
-                            Slug <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control" id="tag_slug" name="slug"
-                               placeholder="e.g. work-friendly" required>
-                        <div class="text-muted" style="font-size:11px;margin-top:4px">Auto-generated · editable</div>
-                    </div>
-
-                    {{-- Icon URL --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium">Icon URL</label>
-                        <input type="text" class="form-control" id="tag_icon_url" name="icon_url"
-                               placeholder="e.g. /assets/icons/work.png">
-                    </div>
-
-                    {{-- Sort Order --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium">Sort Order</label>
-                        <input type="number" min="0" class="form-control" id="tag_sort_order" name="sort_order"
-                               value="0">
-                    </div>
+                    {{-- Hidden Fields: Slug (auto-generated), Icon URL, Sort Order --}}
+                    <input type="hidden" id="tag_slug" name="slug" value="">
+                    <input type="hidden" id="tag_icon_url" name="icon_url" value="">
+                    <input type="hidden" id="tag_sort_order" name="sort_order" value="0">
 
                     {{-- Status --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">Status</label>
+                    <div class="form-group mb-0">
+                        <label class="form-label fw-medium d-block"><i class="fa fa-toggle-on text-primary me-1"></i> Status</label>
                         <div class="toggle-btn">
                             <input type="checkbox" id="tag_status" name="is_active" class="toggle-switch" value="1" checked>
                             <label for="tag_status">Toggle</label>
@@ -121,9 +100,9 @@
 </div>
 @endsection
 
-@push('styles')
+@section('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-@endpush
+@endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -151,8 +130,6 @@ $(document).ready(function() {
         columns: [
             { data: 'id', name: 'id' },
             { data: 'name', name: 'name' },
-            { data: 'slug_badge', name: 'slug' },
-            { data: 'sort_order', name: 'sort_order' },
             { data: 'packages_count', name: 'packages_count', searchable: false },
             { data: 'is_active', name: 'is_active', orderable: false, searchable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false }
@@ -330,6 +307,9 @@ function openModal(mode) {
 function resetForm() {
     document.getElementById('tagForm').reset();
     document.getElementById('record_id').value = '';
+    $('#tag_slug').val('');
+    $('#tag_icon_url').val('');
+    $('#tag_sort_order').val('0');
     document.getElementById('tag_status').checked = true;
 }
 </script>

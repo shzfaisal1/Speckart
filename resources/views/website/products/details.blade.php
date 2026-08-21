@@ -611,7 +611,9 @@
                     $isSolution = str_contains($catLower, 'solution') || ($typeLower === 'solution');
                     $isAccessory = str_contains($catLower, 'accessory') || ($typeLower === 'accessory') || ($typeLower === 'other');
                     $isSunglass = str_contains($catLower, 'sunglass') || ($typeLower === 'sunglass') || !empty($product->polarized);
-                    $isFrame = !$isContactLens && !$isSolution && !$isAccessory;
+                    $isReading  = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
+                    // $isFrame = true ONLY for pure eyeglasses — NOT sunglasses, reading glasses, accessories or contact lenses
+                    $isFrame = !$isContactLens && !$isSolution && !$isAccessory && !$isSunglass && !$isReading;
                 @endphp
 
                 <!-- Size & Variant Options -->
@@ -855,6 +857,7 @@
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap gap-3 mt-4">
                     @if($isSolution || $isAccessory)
+                        {{-- Direct purchase — no lenses or power involved --}}
                         <button id="main-action-btn"
                             class="btn btn-outline-custom active"
                             data-has-power="0"
@@ -863,6 +866,7 @@
                             <i class="bi bi-bag-check me-2"></i>BUY NOW
                         </button>
                     @elseif($isContactLens)
+                        {{-- Contact lenses — power grid handles details --}}
                         <button id="main-action-btn"
                             class="btn btn-outline-custom active"
                             data-has-power="0"
@@ -870,12 +874,37 @@
                             onclick="submitContactLensCart()">
                             <i class="bi bi-bag-check me-2"></i>BUY NOW
                         </button>
+                    @elseif($isSunglass)
+                        {{-- Sunglasses: 1-click BUY NOW for standard, BUY WITH POWER for Rx tint --}}
+                        <button id="main-action-btn"
+                            class="btn btn-outline-custom active"
+                            data-has-power="0"
+                            data-default-text="BUY NOW"
+                            onclick="addToCartAjax('Sunglass', null, null, null)">
+                            <i class="bi bi-bag-check me-2"></i>BUY NOW
+                        </button>
+                        <button class="btn btn-outline-custom"
+                            data-toggle="modal" data-target="#lensModal"
+                            onclick="openLensModal()">
+                            <i class="bi bi-eye me-2"></i>BUY WITH POWER
+                        </button>
+                        <button class="btn btn-outline-custom">Try on you</button>
+                    @elseif($isReading)
+                        {{-- Reading Glasses: Power chips on page, direct 1-click BUY NOW --}}
+                        <button id="main-action-btn"
+                            class="btn btn-outline-custom active"
+                            data-has-power="0"
+                            data-default-text="BUY NOW"
+                            onclick="addToCartAjax('Reading', null, null, null)">
+                            <i class="bi bi-bag-check me-2"></i>BUY NOW
+                        </button>
                     @else
+                        {{-- Eyeglasses: SELECT LENSES opens 3-step drawer, FRAME ONLY skips lenses --}}
                         <button id="main-action-btn"
                             class="btn btn-outline-custom active select-lenses-mode"
                             data-has-power="1"
                             data-default-text="Select Lenses">
-                            Select Lenses
+                            <i class="bi bi-eye me-2"></i>Select Lenses
                         </button>
                         <button class="btn btn-outline-custom">Try on you</button>
                     @endif
@@ -3531,18 +3560,23 @@
     }
 }
 
+        // main-action-btn click: eyeglasses open lens drawer; all others handled by onclick directly
         $('#main-action-btn').on('click', function() {
             const hasPower = this.dataset.hasPower === '1';
-
-            if (!hasPower) {
-                addToCartAjax('Frame Only', null, null, null);
-            } else {
+            if (hasPower) {
                 const lensModal = new bootstrap.Modal(
                     document.getElementById('lensModal')
                 );
                 lensModal.show();
             }
+            // hasPower===0 branches already have onclick handlers (addToCartAjax / submitContactLensCart)
         });
+
+        // Sunglass: "BUY WITH POWER" button opens the standard lens modal starting at Step 2 (Power Type)
+        function openLensModal() {
+            const lensModal = new bootstrap.Modal(document.getElementById('lensModal'));
+            lensModal.show();
+        }
 
         // Helper function when select button in details modal is clicked
         function selectLensFromDetails(packageId, isFree) {
