@@ -601,16 +601,38 @@
                     @endif
                 </div>
 
-                <!-- Size -->
+                @php
+                    $catLower  = strtolower($categoryName ?? '');
+                    $typeLower = strtolower($product->product_type ?? '');
+                    $isContactLens = str_contains($catLower, 'contact')
+                                     || str_contains($typeLower, 'contact')
+                                     || ($typeLower === 'lens')
+                                     || !empty($product->Modality);
+                    $isSolution = str_contains($catLower, 'solution') || ($typeLower === 'solution');
+                    $isAccessory = str_contains($catLower, 'accessory') || ($typeLower === 'accessory') || ($typeLower === 'other');
+                    $isSunglass = str_contains($catLower, 'sunglass') || ($typeLower === 'sunglass') || !empty($product->polarized);
+                    $isFrame = !$isContactLens && !$isSolution && !$isAccessory;
+                @endphp
+
+                <!-- Size & Variant Options -->
                 <div class="product-options mt-4">
+                    @if(!empty($product->Size))
                     <div class="option-group mb-4 d-flex align-items-center flex-wrap gap-2">
-                        <label class="option-label mb-0">Frame Size :</label>
+                        <label class="option-label mb-0">
+                            @if($isSolution)
+                                Bottle Volume :
+                            @elseif($isAccessory)
+                                Pack Size :
+                            @else
+                                Frame Size :
+                            @endif
+                        </label>
                         <div class="size-options d-flex flex-wrap gap-2" id="size-options">
                             @php
                                 // Size is stored as comma-separated string e.g. "Small,Medium,Large"
                                 $sizeRaw   = $product->Size ?: 'Medium';
                                 $sizeParts = array_values(array_filter(array_map('trim', explode(',', $sizeRaw))));
-                                // Abbreviation map — extend as needed
+                                // Abbreviation map
                                 $sizeMap = [
                                     'Extra Small'  => 'XS',
                                     'Small'        => 'S',
@@ -622,7 +644,7 @@
                             @endphp
                             @foreach($sizeParts as $i => $sz)
                                 @php
-                                    $abbr = $sizeMap[$sz] ?? strtoupper(substr($sz, 0, 1));
+                                    $abbr = $sizeMap[$sz] ?? ($isSolution || $isAccessory ? $sz : strtoupper(substr($sz, 0, 1)));
                                 @endphp
                                 <button class="size-btn {{ $i === 0 ? 'active' : '' }}"
                                         data-size="{{ $sz }}"
@@ -632,8 +654,10 @@
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
                     <!-- Colour -->
+                    @if(!empty($colorVariants) && $colorVariants->count() > 0 && !$isSolution)
                     <div class="option-group d-flex align-items-center flex-wrap gap-2">
                         <label class="option-label mb-0">Colour :</label>
                         <div class="color-options d-flex flex-wrap gap-2 align-items-center" id="color-options-container">
@@ -656,6 +680,7 @@
                             @endforeach
                         </div>
                     </div>
+                    @endif
                 </div>
 
                 @php
@@ -664,7 +689,7 @@
                         $supportedTypeIds = json_decode($supportedTypeIds, true) ?? [];
                     }
 
-                    if (!empty($supportedTypeIds)) {
+                    if (!empty($supportedTypeIds) && $isFrame) {
                         $productTypes = \App\Models\ProductType::where('is_active', 1)
                             ->whereIn('id', $supportedTypeIds)
                             ->get();
@@ -674,7 +699,7 @@
                 @endphp
                 
                 @if($productTypes->isNotEmpty())
-                <!-- Product Type -->
+                <!-- Product Type (Eyeglasses Only) -->
                 <div class="product-type-section mt-4 overflow-hidden" id="product-type-section">
                     <p class="option-label mb-2">Product Type :</p>
                     <div class="product-type-tabs d-flex gap-2 p-1">
@@ -707,14 +732,6 @@
                 </div>
                 @endif
 
-                @php
-                    $catLower  = strtolower($categoryName ?? '');
-                    $typeLower = strtolower($product->product_type ?? '');
-                    $isContactLens = str_contains($catLower, 'contact')
-                                     || str_contains($typeLower, 'contact')
-                                     || !empty($product->Modality);
-                @endphp
-
                 @if($isContactLens)
                 <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
                 <div class="power-type-section mt-4" id="power-type-section">
@@ -724,14 +741,11 @@
                             <button type="button" class="btn text-white rounded-pill px-3 py-1 fw-medium" style="background-color: #0d1430; font-size: 14px; border: none;">
                                 With Power
                             </button>
-                            <!-- Caret arrow pointing down to container -->
                             <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #0d1430; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);"></div>
                         </div>
                     </div>
 
-                    <!-- Outer Light Grey Container -->
                     <div class="p-3 rounded-4 mt-2" style="background-color: #eceff6;">
-                        <!-- Inner White Card -->
                         <div class="bg-white rounded-4 p-3 p-md-4 shadow-sm border border-light">
                             <!-- Option 1: Manual Power -->
                             <div class="power-option-group">
@@ -761,43 +775,49 @@
                                             <span class="text-muted" style="font-size: 11px;">SPH</span>
                                         </div>
                                         <div class="col-6 col-md-4">
-                                            <select class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option selected>Select</option>
-                                                <option value="-1.00">-1.00</option>
-                                                <option value="-1.25">-1.25</option>
-                                                <option value="-1.50">-1.50</option>
-                                                <option value="-2.00">-2.00</option>
+                                            <select id="cl-right-sph" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
+                                                <option value="" selected>Right SPH</option>
+                                                <option value="0.00">0.00 (Plano)</option>
+                                                @for($p = -0.50; $p >= -12.00; $p -= 0.25)
+                                                    <option value="{{ number_format($p, 2) }}">{{ number_format($p, 2) }}</option>
+                                                @endfor
+                                                @for($p = 0.50; $p <= 6.00; $p += 0.25)
+                                                    <option value="+{{ number_format($p, 2) }}">+{{ number_format($p, 2) }}</option>
+                                                @endfor
                                             </select>
                                         </div>
                                         <div class="col-6 col-md-4">
-                                            <select class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option selected>Select</option>
-                                                <option value="-1.00">-1.00</option>
-                                                <option value="-1.25">-1.25</option>
-                                                <option value="-1.50">-1.50</option>
-                                                <option value="-2.00">-2.00</option>
+                                            <select id="cl-left-sph" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
+                                                <option value="" selected>Left SPH</option>
+                                                <option value="0.00">0.00 (Plano)</option>
+                                                @for($p = -0.50; $p >= -12.00; $p -= 0.25)
+                                                    <option value="{{ number_format($p, 2) }}">{{ number_format($p, 2) }}</option>
+                                                @endfor
+                                                @for($p = 0.50; $p <= 6.00; $p += 0.25)
+                                                    <option value="+{{ number_format($p, 2) }}">+{{ number_format($p, 2) }}</option>
+                                                @endfor
                                             </select>
                                         </div>
 
                                         <!-- No. of Boxes -->
                                         <div class="col-md-4 d-flex flex-column justify-content-center">
                                             <span class="fw-bold" style="color: #0d1430; font-size: 14px;">No. of Boxes</span>
-                                            <span class="text-muted" style="font-size: 11px;">6 lens/box</span>
+                                            <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?: ($product->pack_size ?: '30 lens/box') }}</span>
                                         </div>
                                         <div class="col-6 col-md-4">
-                                            <select class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option value="1" selected>1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
+                                            <select id="cl-right-boxes" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
+                                                <option value="1" selected>1 Box</option>
+                                                <option value="2">2 Boxes</option>
+                                                <option value="3">3 Boxes</option>
+                                                <option value="4">4 Boxes</option>
                                             </select>
                                         </div>
                                         <div class="col-6 col-md-4">
-                                            <select class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option value="1" selected>1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
+                                            <select id="cl-left-boxes" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
+                                                <option value="1" selected>1 Box</option>
+                                                <option value="2">2 Boxes</option>
+                                                <option value="3">3 Boxes</option>
+                                                <option value="4">4 Boxes</option>
                                             </select>
                                         </div>
                                     </div>
@@ -820,7 +840,7 @@
                     <h6 class="fw-bold mb-3" style="color: #0d1430; font-size: 16px;">Lenses per Pack</h6>
                     <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #0d1430; width: 140px; background: #fff;">
                         <div class="px-3 py-1 text-start fw-medium" style="background-color: #edeafb; font-size: 13px; color: #0d1430;">
-                            6 lens/box
+                            {{ $product->Packing_Type ?: ($product->pack_size ?: '30 Lenses / Box') }}
                         </div>
                         <div class="p-2 text-start">
                             @if($hasDiscount)
@@ -834,13 +854,31 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap gap-3 mt-4">
-                    <button id="main-action-btn"
-                        class="btn btn-outline-custom active"
-                        data-has-power="{{ $isContactLens ? '1' : '1' }}"
-                        data-default-text="{{ $isContactLens ? 'Select Lenses' : 'Select Lenses' }}">
-                        Select Lenses
-                    </button>
-                    <button class="btn btn-outline-custom">Try on you</button>
+                    @if($isSolution || $isAccessory)
+                        <button id="main-action-btn"
+                            class="btn btn-outline-custom active"
+                            data-has-power="0"
+                            data-default-text="BUY NOW"
+                            onclick="addToCartAjax('Direct', null, null, null)">
+                            <i class="bi bi-bag-check me-2"></i>BUY NOW
+                        </button>
+                    @elseif($isContactLens)
+                        <button id="main-action-btn"
+                            class="btn btn-outline-custom active"
+                            data-has-power="0"
+                            data-default-text="BUY NOW"
+                            onclick="submitContactLensCart()">
+                            <i class="bi bi-bag-check me-2"></i>BUY NOW
+                        </button>
+                    @else
+                        <button id="main-action-btn"
+                            class="btn btn-outline-custom active select-lenses-mode"
+                            data-has-power="1"
+                            data-default-text="Select Lenses">
+                            Select Lenses
+                        </button>
+                        <button class="btn btn-outline-custom">Try on you</button>
+                    @endif
                 </div>
 
             </div>
@@ -2701,6 +2739,32 @@
             } else {
                 currentVariantId = null;
             }
+        }
+
+        // Helper for Contact Lens Direct Buy with Power Submission
+        function submitContactLensCart() {
+            const isManual = $('input[name="power_submission"]:checked').val() === 'manual';
+            let rxData = null;
+
+            if (isManual) {
+                const rightSph = $('#check-right').is(':checked') ? ($('#cl-right-sph').val() || 'Plano (0.00)') : null;
+                const rightBoxes = $('#check-right').is(':checked') ? $('#cl-right-boxes').val() : 1;
+                const leftSph = $('#check-left').is(':checked') ? ($('#cl-left-sph').val() || 'Plano (0.00)') : null;
+                const leftBoxes = $('#check-left').is(':checked') ? $('#cl-left-boxes').val() : 1;
+
+                rxData = JSON.stringify({
+                    type: 'contact_lens_manual',
+                    right: { sph: rightSph, boxes: rightBoxes },
+                    left: { sph: leftSph, boxes: leftBoxes }
+                });
+            } else {
+                rxData = JSON.stringify({
+                    type: 'contact_lens_later',
+                    later: true
+                });
+            }
+
+            addToCartAjax('Contact Lens', null, rxData, null);
         }
 
         // Cart Submission helper via AJAX
