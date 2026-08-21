@@ -65,13 +65,13 @@ class LensPackageController extends Controller
                 $type = $row->package_type ?? ($row->is_free_lens ? 'free_lens' : 'frame_and_lens');
                 switch ($type) {
                     case 'free_lens':
-                        return '<span class="badge badge-success px-2 py-1" style="background-color:#198754; color:#fff; font-size:11px;">🟢 Free Lens</span>';
+                        return '<span class="badge badge-success px-2 py-1" style="background-color:#198754; color:#fff; font-size:11px;"><i class="fa fa-check-circle me-1"></i>Free Lens</span>';
                     case 'free_frame':
-                        return '<span class="badge badge-purple px-2 py-1" style="background-color:#6f42c1; color:#fff; font-size:11px;">🟣 Free Frame</span>';
+                        return '<span class="badge badge-purple px-2 py-1" style="background-color:#6f42c1; color:#fff; font-size:11px;"><i class="fa fa-gift me-1"></i>Free Frame</span>';
                     case 'lens_only':
-                        return '<span class="badge badge-info px-2 py-1" style="font-size:11px;">Lens Only</span>';
+                        return '<span class="badge badge-info px-2 py-1" style="font-size:11px;"><i class="fa fa-circle me-1"></i>Lens Only</span>';
                     default:
-                        return '<span class="badge badge-primary px-2 py-1" style="background-color:#0d6efd; color:#fff; font-size:11px;">🔵 Paid Combo</span>';
+                        return '<span class="badge badge-primary px-2 py-1" style="background-color:#0d6efd; color:#fff; font-size:11px;"><i class="fa fa-cubes me-1"></i>Paid Combo</span>';
                 }
             })
             ->addColumn('tags_list', function ($row) {
