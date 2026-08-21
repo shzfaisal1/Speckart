@@ -216,7 +216,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function() {
-    const baseUrl = "{{ url('coupons') }}";
+    const baseUrl = "{{ route('admin.coupons.index') }}";
 
     var table = $('#coupons-table').DataTable({
         processing: true,

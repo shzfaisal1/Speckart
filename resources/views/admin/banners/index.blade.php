@@ -212,7 +212,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function () {
-    const baseUrl = "{{ url('banners') }}";
+    const baseUrl = "{{ route('admin.banners.index') }}";
 
     var table = $('#banners-table').DataTable({
         processing: true,

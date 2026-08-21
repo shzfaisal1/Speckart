@@ -233,7 +233,7 @@ const Toast = Swal.mixin({
 //  DATATABLE
 // ══════════════════════════════════════════════════════════════
 $(document).ready(function () {
-    const baseUrl = "{{ url('product-types') }}";
+    const baseUrl = "{{ route('admin.product-types.index') }}";
 
     var table = $('#frame-types-table').DataTable({
         processing: true,

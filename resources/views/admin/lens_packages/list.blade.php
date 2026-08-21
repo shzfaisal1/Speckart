@@ -390,7 +390,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function() {
-    const baseUrl = "{{ url('lens-packages') }}";
+    const baseUrl = "{{ route('admin.lens-packages.index') }}";
 
     var table = $('#lens-packages-table').DataTable({
         processing: true,
@@ -819,7 +819,7 @@ function uploadFilesNow(packageId, fileList) {
 
     if (count === 0) return;
 
-    var baseUrl = '{{ url("lens-packages") }}';
+    var baseUrl = '{{ route("admin.lens-packages.index") }}';
 
     $.ajax({
         url: `${baseUrl}/${packageId}/media`,
@@ -851,7 +851,7 @@ function uploadPendingFiles(packageId) {
 }
 
 function deleteExistingMedia(mediaId, btnEl) {
-    var baseUrl = '{{ url("lens-packages") }}';
+    var baseUrl = '{{ route("admin.lens-packages.index") }}';
 
     Swal.fire({
         title: 'Delete this image?',

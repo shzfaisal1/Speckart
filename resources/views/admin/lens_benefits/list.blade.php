@@ -153,7 +153,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function() {
-    const baseUrl = "{{ url('lens-benefits') }}";
+    const baseUrl = "{{ route('admin.lens-benefits.index') }}";
 
     var table = $('#benefits-table').DataTable({
         processing: true,
