@@ -33,15 +33,15 @@
     <div class="filter-section-body open" id="sec-frametype">
         <div class="icon-filter-grid">
             <div class="icon-filter-item {{ in_array('Full Rim', $reqFrameTypes) ? 'active-filter' : '' }}" data-filter="frame_type" data-value="Full Rim">
-                <img src="{{ asset('assets/img/icon/full-rim.png') }}" alt="Full Rim" onerror="this.style.display='none'">
+                <img src="{{ asset('website/assets/img/icon/full-rim.png') }}" alt="Full Rim" onerror="this.style.display='none'">
                 Full Rim
             </div>
             <div class="icon-filter-item {{ in_array('Half Rim', $reqFrameTypes) ? 'active-filter' : '' }}" data-filter="frame_type" data-value="Half Rim">
-                <img src="{{ asset('assets/img/icon/half-rim.png') }}" alt="Half Rim" onerror="this.style.display='none'">
+                <img src="{{ asset('website/assets/img/icon/half-rim.png') }}" alt="Half Rim" onerror="this.style.display='none'">
                 Half Rim
             </div>
             <div class="icon-filter-item {{ in_array('Rimless', $reqFrameTypes) ? 'active-filter' : '' }}" data-filter="frame_type" data-value="Rimless">
-                <img src="{{ asset('assets/img/icon/rimless.png') }}" alt="Rimless" onerror="this.style.display='none'">
+                <img src="{{ asset('website/assets/img/icon/rimless.png') }}" alt="Rimless" onerror="this.style.display='none'">
                 Rimless
             </div>
         </div>
@@ -68,7 +68,7 @@
                 $isShapeActive = in_array(strtolower($shapeVal), array_map('strtolower', $reqShapes));
             @endphp
             <div class="icon-filter-item {{ $isShapeActive ? 'active-filter' : '' }}" data-filter="shape" data-value="{{ $shapeVal }}">
-                <img src="{{ asset('assets/img/icon/' . $icon) }}" alt="{{ $shapeVal }}" onerror="this.style.display='none'">
+                <img src="{{ asset('website/assets/img/icon/' . $icon) }}" alt="{{ $shapeVal }}" onerror="this.style.display='none'">
                 {{ $shapeVal }}
             </div>
             @endforeach

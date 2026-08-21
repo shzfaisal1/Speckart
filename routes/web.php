@@ -56,6 +56,12 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/ajax-search',             [\App\Http\Controllers\Website\ProductController::class, 'ajaxSearch'])->name('ajax.search');
     Route::get('/product/{slug}',          [\App\Http\Controllers\Website\ProductController::class, 'details'])->name('product.detail');
 
+    // Home Eye-Test Appointment Booking
+    Route::get('/home-eye-test',                           [\App\Http\Controllers\Website\HomeEyeTestController::class, 'index'])->name('home-eye-test');
+    Route::post('/home-eye-test/book',                     [\App\Http\Controllers\Website\HomeEyeTestController::class, 'book'])->name('home-eye-test.book');
+    Route::get('/home-eye-test/confirmation/{booking_id}', [\App\Http\Controllers\Website\HomeEyeTestController::class, 'confirmation'])->name('home-eye-test.confirmation');
+    Route::get('/my-eye-test-appointments',                [\App\Http\Controllers\Website\HomeEyeTestController::class, 'myAppointments'])->name('my-eye-test-appointments');
+
     // Shopping Cart
     Route::get('/cart',                    [\App\Http\Controllers\Website\CartController::class, 'shopping_cart'])->name('cart');
     Route::post('/cart/add',               [\App\Http\Controllers\Website\CartController::class, 'addToCart'])->name('cart.add');
