@@ -62,17 +62,32 @@ class CartController extends Controller
         if ($result['status']) {
             // Automatically remove item from wishlist if user is authenticated
             if (Auth::check()) {
+                $product = \App\Models\product\Product::where('id', $frameId)
+                    ->orWhere('product_id', $frameId)
+                    ->first();
+
+                $targetProductIds = [(string) $frameId];
+                if ($product) {
+                    if (!empty($product->id)) {
+                        $targetProductIds[] = (string) $product->id;
+                    }
+                    if (!empty($product->product_id)) {
+                        $targetProductIds[] = (string) $product->product_id;
+                    }
+                    if (!empty($product->parent_product_code)) {
+                        $siblingIds = \App\Models\product\Product::where('parent_product_code', $product->parent_product_code)
+                            ->pluck('product_id')
+                            ->merge(\App\Models\product\Product::where('parent_product_code', $product->parent_product_code)->pluck('id'))
+                            ->filter()
+                            ->map(fn($id) => (string) $id)
+                            ->toArray();
+                        $targetProductIds = array_merge($targetProductIds, $siblingIds);
+                    }
+                }
+                $targetProductIds = array_unique(array_filter($targetProductIds));
+
                 \App\Models\Wishlist::where('user_id', Auth::id())
-                    ->where(function($q) use ($frameId) {
-                        $q->where('product_id', $frameId);
-                        $product = \App\Models\product\Product::where('product_id', $frameId)
-                            ->orWhere('id', $frameId)
-                            ->first();
-                        if ($product) {
-                            $q->orWhere('product_id', $product->product_id)
-                              ->orWhere('product_id', $product->id);
-                        }
-                    })
+                    ->whereIn('product_id', $targetProductIds)
                     ->delete();
             }
 
