@@ -668,6 +668,7 @@
                                 $isPrimary = $variant->id == $product->id;
                                 $c1 = $variant->color_primary   ?? '#1a1a1a';
                                 $c2 = $variant->color_secondary ?? null;
+                                $variantUrl = $variant->detail_url ?? url('/product/' . ($variant->product_id ?? $variant->id));
                                 // Build background: split diagonal if dual-color
                                 $bgStyle = $c2
                                     ? "background: linear-gradient(135deg, {$c1} 50%, {$c2} 50%);"
@@ -676,8 +677,8 @@
                             <div class="color-swatch {{ $isPrimary ? 'active' : '' }}"
                                  style="{{ $bgStyle }}"
                                  data-variant-id="{{ $variant->id }}"
-                                 data-variant-url="{{ $variant->detail_url }}"
-                                 onclick="window.location.href='{{ $variant->detail_url }}'">
+                                 data-variant-url="{{ $variantUrl }}"
+                                 onclick="window.location.href='{{ $variantUrl }}'">
                             </div>
                             @endforeach
                         </div>
@@ -804,7 +805,7 @@
                                         <!-- No. of Boxes -->
                                         <div class="col-md-4 d-flex flex-column justify-content-center">
                                             <span class="fw-bold" style="color: #0d1430; font-size: 14px;">No. of Boxes</span>
-                                            <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?: ($product->pack_size ?: '30 lens/box') }}</span>
+                                            <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '30 lens/box') }}</span>
                                         </div>
                                         <div class="col-6 col-md-4">
                                             <select id="cl-right-boxes" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
@@ -842,7 +843,7 @@
                     <h6 class="fw-bold mb-3" style="color: #0d1430; font-size: 16px;">Lenses per Pack</h6>
                     <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #0d1430; width: 140px; background: #fff;">
                         <div class="px-3 py-1 text-start fw-medium" style="background-color: #edeafb; font-size: 13px; color: #0d1430;">
-                            {{ $product->Packing_Type ?: ($product->pack_size ?: '30 Lenses / Box') }}
+                            {{ $product->Packing_Type ?? ($product->pack_size ?? '30 Lenses / Box') }}
                         </div>
                         <div class="p-2 text-start">
                             @if($hasDiscount)
@@ -988,7 +989,7 @@
                                     <div class="col-lg-4 col-md-6 col-12">
                                         <div class="spec-card">
                                             <span class="spec-label">Water Content</span>
-                                            <span class="spec-value">{{ $product->WC ? (str_contains($product->WC, '%') ? $product->WC : $product->WC . '%') : 'N/A' }}</span>
+                                            <span class="spec-value">{{ !empty($product->WC) ? (str_contains($product->WC, '%') ? $product->WC : $product->WC . '%') : 'N/A' }}</span>
                                         </div>
                                     </div>
                                     <div class="col-lg-4 col-md-6 col-12">
@@ -1108,7 +1109,7 @@
                                             <span class="spec-value">
                                                 @php
                                                     $dimParts = array_filter([$product->lens_width ?? null, $product->Bridge_Size ?? $product->bridge_size ?? null, $product->temple_length ?? null]);
-                                                    $dimStr = !empty($dimParts) ? implode('-', $dimParts) . ' mm' : ($product->frame_width ? $product->frame_width . ' mm' : 'Standard Fit');
+                                                    $dimStr = !empty($dimParts) ? implode('-', $dimParts) . ' mm' : (($product->frame_width ?? null) ? $product->frame_width . ' mm' : 'Standard Fit');
                                                 @endphp
                                                 {{ $dimStr }}
                                             </span>
