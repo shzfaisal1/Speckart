@@ -48,16 +48,34 @@
 }
 
 /* ══════════════════════════════════════
-   CUSTOM CATALOG CONTAINER
+   CUSTOM CATALOG CONTAINER (FLUID WIDE)
 ══════════════════════════════════════ */
 .cat-container {
     width: 100%;
-    max-width: 1200px;
-    padding-left: 20px;
-    padding-right: 20px;
+    max-width: 1440px;
+    padding-left: 24px;
+    padding-right: 24px;
     margin-left: auto;
     margin-right: auto;
+    box-sizing: border-box;
 }
+
+@media (min-width: 1600px) {
+    .cat-container {
+        max-width: 1560px;
+        padding-left: 32px;
+        padding-right: 32px;
+    }
+}
+
+@media (min-width: 1920px) {
+    .cat-container {
+        max-width: 1720px;
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+}
+
 @media (max-width: 767px) {
     .cat-container {
         padding-left: 12px;
@@ -161,25 +179,80 @@
     background: var(--cat-primary-dark);
 }
 
-/* Sort dropdown */
+/* ══════════════════════════════════════
+   PREMIUM SORT DROPDOWN
+══════════════════════════════════════ */
 .cat-sort-btn {
     background: #ffffff;
-    border: 1px solid var(--cat-border);
-    border-radius: 30px;
-    padding: 7px 16px;
-    font-size: 12.5px;
+    border: 1.5px solid var(--cat-border);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--cat-text-secondary);
+    color: var(--cat-text);
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     cursor: pointer;
     box-shadow: var(--cat-shadow);
     transition: var(--cat-transition);
 }
-.cat-sort-btn:hover {
+
+.cat-sort-btn:hover,
+.cat-sort-btn[aria-expanded="true"] {
     border-color: var(--cat-primary);
     color: var(--cat-primary);
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(50, 154, 154, 0.15);
+}
+
+.cat-sort-btn i {
+    font-size: 13px;
+    color: var(--cat-primary);
+}
+
+.cat-sort-dropdown-menu {
+    background: #ffffff !important;
+    border: 1px solid var(--cat-border) !important;
+    border-radius: 14px !important;
+    padding: 6px !important;
+    min-width: 205px !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08) !important;
+}
+
+.cat-sort-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 9px 14px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--cat-text) !important;
+    transition: all 0.18s ease !important;
+    cursor: pointer !important;
+}
+
+.cat-sort-item:hover {
+    background: #f8fafc !important;
+    color: var(--cat-primary) !important;
+}
+
+.cat-sort-item.active,
+.cat-sort-item:active {
+    background: var(--cat-primary-soft) !important;
+    color: var(--cat-primary-dark) !important;
+    font-weight: 700 !important;
+}
+
+.cat-sort-item .active-check-icon {
+    display: none;
+    font-size: 15px;
+    color: var(--cat-primary);
+}
+
+.cat-sort-item.active .active-check-icon {
+    display: inline-block;
 }
 
 /* ══════════════════════════════════════
@@ -344,7 +417,7 @@
     border-bottom: 1px solid var(--cat-border);
     position: sticky !important;
     top: 105px !important;
-    z-index: 90 !important;
+    z-index: 10 !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 .mobile-filter-trigger-btn, .mobile-sort-trigger-btn {
@@ -724,13 +797,13 @@
         </button>
         <div class="dropdown flex-grow-1">
             <button class="mobile-sort-trigger-btn w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-sort-down"></i> Sort By
+                <i class="bi bi-arrow-down-up me-1"></i> <span class="sort-current-text">Popularity</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3 w-100">
-                <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="">Popularity</a></li>
-                <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="newest">Newest First</a></li>
-                <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="price_low">Price: Low to High</a></li>
-                <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="price_high">Price: High to Low</a></li>
+            <ul class="dropdown-menu dropdown-menu-end cat-sort-dropdown-menu border-0 shadow-lg mt-2 w-100">
+                <li><a class="dropdown-item sort-item cat-sort-item active" data-sort=""><span>Popularity</span><i class="bi bi-check2 active-check-icon"></i></a></li>
+                <li><a class="dropdown-item sort-item cat-sort-item" data-sort="newest"><span>Newest First</span><i class="bi bi-check2 active-check-icon"></i></a></li>
+                <li><a class="dropdown-item sort-item cat-sort-item" data-sort="price_low"><span>Price: Low to High</span><i class="bi bi-check2 active-check-icon"></i></a></li>
+                <li><a class="dropdown-item sort-item cat-sort-item" data-sort="price_high"><span>Price: High to Low</span><i class="bi bi-check2 active-check-icon"></i></a></li>
             </ul>
         </div>
     </div>
@@ -777,13 +850,13 @@
                     </div>
                     <div class="dropdown">
                         <button class="cat-sort-btn dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-sort-down"></i> Sort By
+                            <i class="bi bi-arrow-down-up me-1"></i> <span class="sort-current-text">Popularity</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3" style="min-width:180px;">
-                            <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="">Popularity</a></li>
-                            <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="newest">Newest First</a></li>
-                            <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="price_low">Price: Low to High</a></li>
-                            <li><a class="dropdown-item py-2 sort-item fw-medium" data-sort="price_high">Price: High to Low</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end cat-sort-dropdown-menu border-0 shadow-lg mt-2">
+                            <li><a class="dropdown-item sort-item cat-sort-item active" data-sort=""><span>Popularity</span><i class="bi bi-check2 active-check-icon"></i></a></li>
+                            <li><a class="dropdown-item sort-item cat-sort-item" data-sort="newest"><span>Newest First</span><i class="bi bi-check2 active-check-icon"></i></a></li>
+                            <li><a class="dropdown-item sort-item cat-sort-item" data-sort="price_low"><span>Price: Low to High</span><i class="bi bi-check2 active-check-icon"></i></a></li>
+                            <li><a class="dropdown-item sort-item cat-sort-item" data-sort="price_high"><span>Price: High to Low</span><i class="bi bi-check2 active-check-icon"></i></a></li>
                         </ul>
                     </div>
                 </div>
@@ -863,9 +936,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sort Item Click Handler
     $(document).on('click', '.sort-item', function(e) {
         e.preventDefault();
+        const sortVal = $(this).data('sort');
+        const sortLabel = $(this).find('span').text() || $(this).text();
+        
         $('.sort-item').removeClass('active');
-        $(this).addClass('active');
-        $('.cat-sort-btn, .mobile-sort-trigger-btn').html('<i class="bi bi-sort-down"></i> ' + $(this).text());
+        $(`.sort-item[data-sort="${sortVal}"]`).addClass('active');
+        $('.sort-current-text').text(sortLabel);
         fetchFilteredProducts();
     });
 
