@@ -77,9 +77,9 @@
                             <div class="form-group">
                                 <label class="form-label fw-medium">Package Mode</label>
                                 <select class="form-control" id="pkg_package_type" name="package_type">
-                                    <option value="free_lens" selected>🟢 Free Lens (Pay Frame Only)</option>
-                                    <option value="free_frame">🟣 Free Frame (Pay Lens Package Only)</option>
-                                    {{-- <option value="frame_and_lens">🔵 Frame + Lens (Paid Combo)</option> --}}
+                                    <option value="free_lens" selected>Free Lens (Pay Frame Only)</option>
+                                    <option value="free_frame">Free Frame (Pay Lens Package Only)</option>
+                                    {{-- <option value="frame_and_lens">Frame + Lens (Paid Combo)</option> --}}
                                 </select>
                                 <small class="text-muted" id="pkg_mode_hint" style="font-size:11px; margin-top:4px; display:block;">
                                     Lens is FREE. Customer pays only the Frame price. A "Free Lenses" badge is shown automatically.
@@ -140,7 +140,7 @@
                     {{-- Row 4: Filter Tags --}}
                     <div class="form-group">
                         <label class="form-label fw-medium d-block mb-2">
-                            🏷️ Filter Tags
+                            <i class="fa fa-tags text-primary me-1"></i> Filter Tags
                             <span class="text-muted" style="font-size:11px; font-weight:400;">(used for lens filter chips on PDP)</span>
                         </label>
                         <div class="d-flex flex-wrap" style="gap: 10px;">
@@ -159,7 +159,7 @@
                     {{-- Row 5: Power Type Categories --}}
                     <div class="form-group">
                         <label class="form-label fw-medium d-block mb-2">
-                            👓 Power Type Categories
+                            <i class="fa fa-eye text-primary me-1"></i> Power Type Categories
                             <span class="text-muted" style="font-size:11px; font-weight:400;">(determines which prescriptions this package supports)</span>
                         </label>
                         <div class="d-flex flex-wrap" style="gap: 10px;">
@@ -178,7 +178,7 @@
                     {{-- Row 6: Key Benefits --}}
                     <div class="form-group">
                         <label class="form-label fw-medium d-block mb-2">
-                            ✨ Key Benefits
+                            <i class="fa fa-check-circle text-primary me-1"></i> Key Benefits
                             <span class="text-muted" style="font-size:11px; font-weight:400;">(shown as bullet points on PDP)</span>
                         </label>
                         <div id="benefitsList" style="border: 1px solid #ced4da; border-radius: 6px; padding: 10px; max-height: 180px; overflow-y: auto; background:#fafafa;">
@@ -200,19 +200,19 @@
                     {{--
                     <div class="form-group">
                         <label class="form-label fw-medium d-block mb-1">
-                            🎖️ Promotional Ribbon / Badge
+                            <i class="fa fa-award text-primary me-1"></i> Promotional Ribbon / Badge
                             <span class="text-muted" style="font-size:11px; font-weight:400;">(Single ribbon displayed on the top-left of the lens card)</span>
                         </label>
                         <div class="row align-items-center">
                             <div class="col-md-6">
                                 <select class="form-control" id="pkg_badge_preset">
                                     <option value="" data-bg="" data-text="">-- None (No custom ribbon) --</option>
-                                    <option value="Bestseller" data-bg="#10b981" data-text="#ffffff">🟢 Bestseller</option>
-                                    <option value="Most Popular" data-bg="#f59e0b" data-text="#ffffff">🟠 Most Popular</option>
-                                    <option value="Doctor Recommended" data-bg="#07484A" data-text="#ffffff">🔵 Doctor Recommended</option>
-                                    <option value="Trending" data-bg="#0284c7" data-text="#ffffff">🔷 Trending</option>
-                                    <option value="Limited Deal" data-bg="#dc2626" data-text="#ffffff">🔴 Limited Deal</option>
-                                    <option value="custom" data-bg="#07484A" data-text="#ffffff">✍️ Custom Text & Color...</option>
+                                    <option value="Bestseller" data-bg="#10b981" data-text="#ffffff">Bestseller</option>
+                                    <option value="Most Popular" data-bg="#f59e0b" data-text="#ffffff">Most Popular</option>
+                                    <option value="Doctor Recommended" data-bg="#07484A" data-text="#ffffff">Doctor Recommended</option>
+                                    <option value="Trending" data-bg="#0284c7" data-text="#ffffff">Trending</option>
+                                    <option value="Limited Deal" data-bg="#dc2626" data-text="#ffffff">Limited Deal</option>
+                                    <option value="custom" data-bg="#07484A" data-text="#ffffff">Custom Text & Color...</option>
                                 </select>
                             </div>
                             <div class="col-md-6" id="customBadgeFields" style="display:none;">
@@ -240,7 +240,7 @@
                     {{-- Row 8: Package Demo Images --}}
                     <div class="form-group">
                         <label class="form-label fw-medium d-block mb-1">
-                            🖼️ Package Demo Images
+                            <i class="fa fa-image text-primary me-1"></i> Package Demo Images
                             <span class="text-muted" style="font-size: 11px; font-weight: 400;">(displayed in the lens selector on PDP)</span>
                         </label>
                         <div class="d-flex align-items-center" style="gap: 10px;">
@@ -255,7 +255,7 @@
 
                     {{-- Row 9: Status --}}
                     <div class="d-flex align-items-center" style="gap:12px; padding: 10px 0 4px;">
-                        <label class="form-label fw-medium mb-0">⚡ Status</label>
+                        <label class="form-label fw-medium mb-0"><i class="fa fa-toggle-on text-primary me-1"></i> Status</label>
                         <div class="toggle-btn">
                             <input type="checkbox" id="pkg_status" name="is_active" class="toggle-switch" value="1" checked>
                             <label for="pkg_status">Toggle</label>
