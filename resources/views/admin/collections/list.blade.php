@@ -123,7 +123,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function () {
-    const baseUrl = "{{ url('collections') }}";
+    const baseUrl = "{{ route('admin.collections.index') }}";
 
     var table = $('#collections-table').DataTable({
         processing: true,

@@ -142,7 +142,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function() {
-    const baseUrl = "{{ url('lens-tags') }}";
+    const baseUrl = "{{ route('admin.lens-tags.index') }}";
 
     var table = $('#tags-table').DataTable({
         processing: true,

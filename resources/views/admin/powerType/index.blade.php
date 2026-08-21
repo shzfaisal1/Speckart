@@ -146,7 +146,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function() {
-    const baseUrl = "{{ url('power-types') }}";
+    const baseUrl = "{{ route('admin.power-types.index') }}";
 
     var table = $('#power-table').DataTable({
         processing: true,
