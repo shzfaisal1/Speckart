@@ -581,12 +581,15 @@ body { background: var(--bg); }
                                             // Detect lens category from name OR allowed_filters from DB
                                             $catFilters = $category->allowed_filters ?? [];
                                             $nameLower  = strtolower($category->name);
-                                            $isLensCategory = str_contains($nameLower, 'lens')
+                                            $catType    = strtolower($category->category_type ?? '');
+                                            $isLensCategory = ($catType === 'lens')
+                                                || str_contains($nameLower, 'lens')
                                                 || str_contains($nameLower, 'lense')
                                                 || str_contains($nameLower, 'contact')
                                                 || in_array('modality', $catFilters);
                                         @endphp
                                         <option value="{{ $category->id }}"
+                                            data-category-type="{{ $catType ?: ($isLensCategory ? 'lens' : 'frame') }}"
                                             data-is-lens="{{ $isLensCategory ? '1' : '0' }}"
                                             {{ ($editFirst?->category_id ?? '') == $category->id ? 'selected' : '' }}>
                                             {{ $category->name }}
@@ -1222,6 +1225,23 @@ $optFieldsFrame = [
     'Quality'         => ['label'=>'Quality'],
 ];
 
+// Build optical spec fields for Solution
+$optFieldsSolution = [
+    'pack_size'     => ['label'=>'Bottle Volume / Size (e.g. 60ml, 120ml, 355ml, Twin Pack)'],
+    'Type'          => ['label'=>'Solution Type'],
+    'Temple_Detail' => ['label'=>'Inclusions / Freebies (e.g. Includes Free Antimicrobial Lens Case)'],
+    'Material'      => ['label'=>'Suitable For (e.g. All Soft Lenses, Silicone Hydrogel)'],
+    'Validity'      => ['label'=>'Shelf Life / Expiry (e.g. 36 Months / 90 Days after opening)'],
+];
+
+// Build optical spec fields for Accessory
+$optFieldsAccessory = [
+    'Type'      => ['label'=>'Accessory Type'],
+    'Color'     => ['label'=>'Primary Color'],
+    'Material'  => ['label'=>'Material (e.g. Hard Plastic, Microfiber, Leatherette, Metal)'],
+    'pack_size' => ['label'=>'Pack Quantity (e.g. 1 Kit, Pack of 3, 50ml + 2 Cloths)'],
+];
+
 // Build Lens fields HTML
 $optHtmlLens = '';
 foreach ($optFieldsLens as $key => $cfg) {
@@ -1251,6 +1271,55 @@ foreach ($optFieldsLens as $key => $cfg) {
         $optHtmlLens .= '<input type="text" name="variants[__IDX__][' . $key . ']" class="pb-input" placeholder="' . $cfg['label'] . '">';
     }
     $optHtmlLens .= '</div>';
+}
+
+// Build Solution fields HTML
+$optHtmlSolution = '';
+foreach ($optFieldsSolution as $key => $cfg) {
+    $optHtmlSolution .= '<div>';
+    $optHtmlSolution .= '<label class="pb-label">' . $cfg['label'] . '</label>';
+    if ($key === 'pack_size') {
+        $optHtmlSolution .= '<input type="text" name="variants[__IDX__][' . $key . ']" class="pb-input" placeholder="e.g. 355 ml, Twin Pack (355ml x 2)">';
+    } elseif ($key === 'Type') {
+        $optHtmlSolution .= '<select name="variants[__IDX__][' . $key . ']" class="pb-input">';
+        $optHtmlSolution .= '<option value="Multi-Purpose Disinfecting Solution">Multi-Purpose Disinfecting Solution</option>';
+        $optHtmlSolution .= '<option value="Saline Solution">Saline Rinsing Solution</option>';
+        $optHtmlSolution .= '<option value="Rewetting / Lubricating Drops">Rewetting / Lubricating Drops</option>';
+        $optHtmlSolution .= '<option value="Hydrogen Peroxide Cleaning System">Hydrogen Peroxide Cleaning System</option>';
+        $optHtmlSolution .= '<option value="Daily Cleaner">Daily Cleaner</option>';
+        $optHtmlSolution .= '</select>';
+    } else {
+        $optHtmlSolution .= '<input type="text" name="variants[__IDX__][' . $key . ']" class="pb-input" placeholder="' . $cfg['label'] . '">';
+    }
+    $optHtmlSolution .= '</div>';
+}
+
+// Build Accessory fields HTML
+$optHtmlAccessory = '';
+foreach ($optFieldsAccessory as $key => $cfg) {
+    $optHtmlAccessory .= '<div>';
+    $optHtmlAccessory .= '<label class="pb-label">' . $cfg['label'] . '</label>';
+    if ($key === 'Color') {
+        $defaultVal = '#1a1a1a';
+        $optHtmlAccessory .= '<div style="display: flex; gap: 8px; align-items: center; flex: 1;">';
+        $optHtmlAccessory .= '<input type="color" name="variants[__IDX__][' . $key . ']" class="pb-input color-picker-box" value="' . $defaultVal . '" style="width: 46px; height: 38px; padding: 2px; cursor: pointer; border-radius: 8px; flex-shrink: 0;" oninput="syncColorHex(this)">';
+        $optHtmlAccessory .= '<input type="text" class="pb-input color-hex-text" value="' . $defaultVal . '" placeholder="#hex" style="font-family: monospace; font-size: .85rem;" oninput="syncColorPicker(this)">';
+        $optHtmlAccessory .= '</div>';
+    } elseif ($key === 'Type') {
+        $optHtmlAccessory .= '<select name="variants[__IDX__][' . $key . ']" class="pb-input">';
+        $optHtmlAccessory .= '<option value="Contact Lens Case Kit">Contact Lens Case Kit (with mirror & tweezer)</option>';
+        $optHtmlAccessory .= '<option value="Lens Cleaning Spray">Lens Cleaning Spray</option>';
+        $optHtmlAccessory .= '<option value="Microfiber Cleaning Cloth">Microfiber Cleaning Cloth</option>';
+        $optHtmlAccessory .= '<option value="Hard Eyewear Case">Hard Eyewear Case</option>';
+        $optHtmlAccessory .= '<option value="Eyewear Chain / Strap">Eyewear Chain / Strap</option>';
+        $optHtmlAccessory .= '<option value="Anti-Fog Reusable Cloth">Anti-Fog Reusable Cloth</option>';
+        $optHtmlAccessory .= '<option value="Repair Screwdriver Kit">Repair Screwdriver Kit</option>';
+        $optHtmlAccessory .= '<option value="Other Accessory">Other Accessory</option>';
+        $optHtmlAccessory .= '</select>';
+    } else {
+        $optHtmlAccessory .= '<input type="text" name="variants[__IDX__][' . $key . ']" class="pb-input" placeholder="' . $cfg['label'] . '">';
+    }
+    $optHtmlAccessory .= '</div>';
 }
 
 // Build Frame fields HTML
@@ -1313,11 +1382,17 @@ const PRODUCT_TYPE = '{{ $type }}';
 let variantIndex = 0;
 const OPT_FIELDS_HTML_LENS = `{!! addslashes($optHtmlLens) !!}`;
 const OPT_FIELDS_HTML_FRAME = `{!! addslashes($optHtmlFrame) !!}`;
+const OPT_FIELDS_HTML_SOLUTION = `{!! addslashes($optHtmlSolution) !!}`;
+const OPT_FIELDS_HTML_ACCESSORY = `{!! addslashes($optHtmlAccessory) !!}`;
 let currentProductType = PRODUCT_TYPE;
 
 function getOptFieldsHtml(type, idx) {
     if (type === 'Lens') {
         return OPT_FIELDS_HTML_LENS.replaceAll('__IDX__', idx);
+    } else if (type === 'Solution') {
+        return OPT_FIELDS_HTML_SOLUTION.replaceAll('__IDX__', idx);
+    } else if (type === 'Accessory' || type === 'Other') {
+        return OPT_FIELDS_HTML_ACCESSORY.replaceAll('__IDX__', idx);
     } else {
         return OPT_FIELDS_HTML_FRAME.replaceAll('__IDX__', idx);
     }
@@ -1335,23 +1410,45 @@ function updateVariantFields() {
 
     const selectedOption = catSelect.options[catSelect.selectedIndex];
     const catName = (selectedOption?.text || '').trim().toLowerCase();
+    const catType = (selectedOption?.getAttribute('data-category-type') || '').trim().toLowerCase();
     
-    // Detect product mode: 'lens', 'sunglass', or 'frame'
-    const isLens = selectedOption && (selectedOption.getAttribute('data-is-lens') === '1' || catName.includes('contact') || catName.includes('lens'));
-    const isSunglass = catName.includes('sunglass') || catName.includes('goggle');
+    // Detect product mode: 'lens', 'solution', 'accessory', 'sunglass', or 'frame'
+    const isLens = catType === 'lens' || selectedOption.getAttribute('data-is-lens') === '1' || catName.includes('contact') || catName.includes('lens');
+    const isSolution = catType === 'solution' || catName.includes('solution') || catName.includes('drop') || catName.includes('liquid');
+    const isAccessory = catType === 'accessory' || catName.includes('accessory') || catName.includes('case') || catName.includes('cloth') || catName.includes('chain');
+    const isSunglass = catType === 'sunglass' || catName.includes('sunglass') || catName.includes('goggle');
     
-    // Update active product type
-    currentProductType = isLens ? 'Lens' : (isSunglass ? 'Sunglass' : 'Frame');
+    if (isLens) {
+        currentProductType = 'Lens';
+    } else if (isSolution) {
+        currentProductType = 'Solution';
+    } else if (isAccessory) {
+        currentProductType = 'Accessory';
+    } else if (isSunglass) {
+        currentProductType = 'Sunglass';
+    } else {
+        currentProductType = 'Frame';
+    }
 
     // Update badge & hidden input
     const badge = document.getElementById('badge-type');
-    if (badge) badge.textContent = isLens ? 'Contact Lens' : (isSunglass ? 'Sunglasses' : 'Eyewear Frame');
+    const badgeNames = {
+        'Lens': 'Contact Lens',
+        'Solution': 'Lens Solution',
+        'Accessory': 'Eyewear Accessory',
+        'Sunglass': 'Sunglasses',
+        'Frame': 'Eyewear Frame',
+    };
+    if (badge) badge.textContent = badgeNames[currentProductType] || currentProductType;
+    
     const prodTypeInput = document.getElementById('product_type');
-    if (prodTypeInput) prodTypeInput.value = isLens ? 'Lens' : 'Frame';
+    if (prodTypeInput) prodTypeInput.value = currentProductType;
+
+    const isNonFrame = isLens || isSolution || isAccessory;
 
     // ── 1. Show/Hide Frame-only fields in Card 1 (Shape, Type, Step 1 & Step 2 Lens Packages) ──
     document.querySelectorAll('.frame-only-field').forEach(el => {
-        el.style.display = isLens ? 'none' : 'block';
+        el.style.display = isNonFrame ? 'none' : 'block';
     });
 
     // ── 2. Update optical spec fields in all existing variant cards ──
@@ -1365,9 +1462,9 @@ function updateVariantFields() {
                 if (nameMatch) values[nameMatch[1]] = el.value;
             });
 
-            container.innerHTML = getOptFieldsHtml(currentProductType === 'Lens' ? 'Lens' : 'Frame', idx);
+            container.innerHTML = getOptFieldsHtml(currentProductType, idx);
 
-            if (currentProductType !== 'Lens') {
+            if (currentProductType === 'Frame' || currentProductType === 'Sunglass') {
                 const sizeSelect = container.querySelector('.select2-size');
                 if (sizeSelect) {
                     $(sizeSelect).select2({ placeholder: 'Select Size(s)', allowClear: true, width: '100%' });
@@ -1383,7 +1480,7 @@ function updateVariantFields() {
         // ── 3. Toggle Measurements section inside each variant card ──
         const frameMeasWrapper = card.querySelector('.frame-measurements-wrapper');
         if (frameMeasWrapper) {
-            frameMeasWrapper.style.display = isLens ? 'none' : 'block';
+            frameMeasWrapper.style.display = isNonFrame ? 'none' : 'block';
         }
         
         const measWrapper = card.querySelector('.measurements-collapsible-wrapper');
@@ -1400,7 +1497,7 @@ function updateVariantFields() {
     // ── 4. Toggle Classification & Filters section ──
     const frameClassif = document.getElementById('frame-classification-fields');
     const lensClassif  = document.getElementById('lens-classification-fields');
-    if (frameClassif) frameClassif.style.display = isLens ? 'none' : 'contents';
+    if (frameClassif) frameClassif.style.display = isNonFrame ? 'none' : 'contents';
     if (lensClassif)  lensClassif.style.display  = isLens ? 'contents' : 'none';
 
     evaluateChecklist();
@@ -1411,13 +1508,31 @@ function initializeProductType() {
     if (catSelect) {
         const selectedOption = catSelect.options[catSelect.selectedIndex];
         if (selectedOption && selectedOption.value !== "") {
-            const isLens = selectedOption.getAttribute('data-is-lens') === '1';
-            currentProductType = isLens ? 'Lens' : 'Frame';
+            const catName = (selectedOption?.text || '').trim().toLowerCase();
+            const catType = (selectedOption?.getAttribute('data-category-type') || '').trim().toLowerCase();
+            if (catType === 'lens' || selectedOption.getAttribute('data-is-lens') === '1' || catName.includes('contact') || catName.includes('lens')) {
+                currentProductType = 'Lens';
+            } else if (catType === 'solution' || catName.includes('solution') || catName.includes('drop')) {
+                currentProductType = 'Solution';
+            } else if (catType === 'accessory' || catName.includes('accessory') || catName.includes('case')) {
+                currentProductType = 'Accessory';
+            } else if (catType === 'sunglass' || catName.includes('sunglass') || catName.includes('goggle')) {
+                currentProductType = 'Sunglass';
+            } else {
+                currentProductType = 'Frame';
+            }
         }
     }
     // Update badge & hidden input
     const badge = document.getElementById('badge-type');
-    if (badge) badge.textContent = currentProductType;
+    const badgeNames = {
+        'Lens': 'Contact Lens',
+        'Solution': 'Lens Solution',
+        'Accessory': 'Eyewear Accessory',
+        'Sunglass': 'Sunglasses',
+        'Frame': 'Eyewear Frame',
+    };
+    if (badge) badge.textContent = badgeNames[currentProductType] || currentProductType;
     const prodTypeInput = document.getElementById('product_type');
     if (prodTypeInput) prodTypeInput.value = currentProductType;
 }

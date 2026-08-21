@@ -22,13 +22,14 @@
                     <table id="categories-table" class="table datatables-basic w-100">
                         <thead>
                             <tr>
-                                <th class="wd-10p">ID</th>
+                                <th class="wd-5p">ID</th>
                                 <th class="wd-10p">Image</th>
-                                <th class="wd-20p">Name</th>
+                                <th class="wd-15p">Name</th>
+                                <th class="wd-15p">Category Type</th>
                                 <th class="wd-15p">Slug</th>
                                 <th class="wd-10p">Subcategories</th>
                                 <th class="wd-10p">Store</th>
-                                <th class="wd-15p">Created At</th>
+                                <th class="wd-10p">Created At</th>
                                 <th class="wd-10p">Status</th>
                                 <th class="wd-10p">Action</th>
                             </tr>
@@ -45,7 +46,7 @@
      ADD / EDIT MODAL
      ════════════════════════════════════════════════ --}}
 <div class="modal fade" data-backdrop="static" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document" style="max-width: 520px;">
+    <div class="modal-dialog" role="document" style="max-width: 540px;">
         <div class="modal-content">
 
             <div class="modal-header">
@@ -69,7 +70,22 @@
                             Category Name <span class="text-danger">*</span>
                         </label>
                         <input type="text" class="form-control" id="cat_name" name="name"
-                               placeholder="e.g. Eyewear" required>
+                               placeholder="e.g. Eyeglasses, Contact Lenses, Lens Solutions" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label fw-medium">
+                            Category Type <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control" id="cat_type" name="category_type" required>
+                            <option value="frame">👓 Eyeglasses / Frame</option>
+                            <option value="sunglass">🕶️ Sunglasses</option>
+                            <option value="lens">👁️ Contact Lenses</option>
+                            <option value="solution">🧴 Contact Lens Solution</option>
+                            <option value="accessory">🎁 Eyewear Accessories</option>
+                            <option value="glass">🔬 Spectacle Glass (Lab)</option>
+                        </select>
+                        <div class="text-muted" style="font-size:11px;margin-top:4px">Controls which product fields, specifications, and lens options appear on the website and product builder.</div>
                     </div>
 
                     <div class="form-group">
@@ -77,7 +93,7 @@
                             Slug <span class="text-danger">*</span>
                         </label>
                         <input type="text" class="form-control" id="cat_slug" name="slug"
-                               placeholder="e.g. eyewear" required>
+                               placeholder="e.g. eyeglasses" required>
                         <div class="text-muted" style="font-size:11px;margin-top:4px">Auto-generated · editable</div>
                     </div>
 
@@ -146,9 +162,10 @@ $(document).ready(function () {
         serverSide: true,
         ajax: "{{ route('admin.categories.data') }}",
         columns: [
-            { data: 'id',                 name: 'id' },
-            { data: 'image',              name: 'image', orderable: false, searchable: false },
-            { data: 'name',               name: 'name' },
+            { data: 'id',                  name: 'id' },
+            { data: 'image',               name: 'image', orderable: false, searchable: false },
+            { data: 'name',                name: 'name' },
+            { data: 'category_type_badge', name: 'category_type' },
             {
                 data: 'slug', name: 'slug',
                 render: function (data) {
@@ -234,6 +251,7 @@ $(document).ready(function () {
         $.get(`${baseUrl}/${id}/edit`, function (data) {
             $('#record_id').val(data.id);
             $('#cat_name').val(data.name);
+            $('#cat_type').val(data.category_type || 'frame');
             $('#cat_slug').val(data.slug);
             $('#cat_description').val(data.description ?? '');
             $('#cat_status').prop('checked', data.is_active == 1);
@@ -358,6 +376,7 @@ function openModal(mode) {
 function resetForm() {
     document.getElementById('categoryForm').reset();
     document.getElementById('record_id').value = '';
+    document.getElementById('cat_type').value = 'frame';
     document.getElementById('cat_status').checked = true;
     document.getElementById('current_image_preview').innerHTML = '';
 }

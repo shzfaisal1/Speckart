@@ -12,7 +12,7 @@ class Category extends Model
 
     protected $table = 'categories';
 
-    protected $fillable = ['name', 'slug', 'image', 'description', 'is_active', 'added_by', 'store_id', 'allowed_filters'];
+    protected $fillable = ['name', 'slug', 'category_type', 'image', 'description', 'is_active', 'added_by', 'store_id', 'allowed_filters'];
 
     protected $casts = [
         'is_active' => 'boolean',
