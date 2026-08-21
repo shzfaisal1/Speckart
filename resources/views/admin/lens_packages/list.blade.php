@@ -23,11 +23,10 @@
                             <thead>
                                 <tr>
                                     <th class="wd-5p">ID</th>
-                                    <th class="wd-20p">Name</th>
+                                    <th class="wd-30p">Package</th>
                                     <th class="wd-15p">Price</th>
-                                    <th class="wd-10p">Warranty</th>
-                                    <th class="wd-20p">Tags</th>
-                                    <th class="wd-10p">Free Lens</th>
+                                    <th class="wd-15p">Mode</th>
+                                    <th class="wd-15p">Tags</th>
                                     <th class="wd-10p">Status</th>
                                     <th class="wd-10p">Action</th>
                                 </tr>
@@ -197,9 +196,8 @@
                         </div>
                     </div>
 
-                    <hr class="my-2">
-
-                    {{-- Row 7: Promotional Ribbon / Badge (Single Clean Selector) --}}
+                    {{-- Row 7: Promotional Ribbon / Badge (Hidden as of now) --}}
+                    {{--
                     <div class="form-group">
                         <label class="form-label fw-medium d-block mb-1">
                             🎖️ Promotional Ribbon / Badge
@@ -237,6 +235,7 @@
                             <span id="badgeLivePreviewNone" class="text-muted fst-italic" style="font-size:11px;">No custom badge (will show Package Mode auto-badge if Free Lens/Frame)</span>
                         </div>
                     </div>
+                    --}}
 
                     {{-- Row 8: Package Demo Images --}}
                     <div class="form-group">
@@ -385,9 +384,8 @@ $(document).ready(function() {
             { data: 'id', name: 'id' },
             { data: 'name', name: 'name' },
             { data: 'price', name: 'current_price' },
-            { data: 'warranty', name: 'warranty_months' },
+            { data: 'package_mode', name: 'package_type', orderable: false },
             { data: 'tags_list', name: 'tags_list', orderable: false, searchable: false },
-            { data: 'is_free_lens', name: 'is_free_lens', orderable: false },
             { data: 'is_active', name: 'is_active', orderable: false, searchable: false },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ]
@@ -410,27 +408,29 @@ $(document).ready(function() {
 
         var formData = $(this).serializeArray();
 
-        // Add single badge
-        var badgePreset = $('#pkg_badge_preset').val();
-        var badges = [];
-        if (badgePreset === 'custom') {
-            var customLabel = $('#pkg_badge_custom_label').val().trim();
-            if (customLabel) {
+        // Add single badge (if enabled)
+        if ($('#pkg_badge_preset').length) {
+            var badgePreset = $('#pkg_badge_preset').val();
+            var badges = [];
+            if (badgePreset === 'custom') {
+                var customLabel = $('#pkg_badge_custom_label').val().trim();
+                if (customLabel) {
+                    badges.push({
+                        label: customLabel,
+                        bg_color: $('#pkg_badge_custom_bg').val() || '#07484A',
+                        text_color: $('#pkg_badge_custom_text').val() || '#ffffff'
+                    });
+                }
+            } else if (badgePreset) {
+                var selectedOpt = $('#pkg_badge_preset option:selected');
                 badges.push({
-                    label: customLabel,
-                    bg_color: $('#pkg_badge_custom_bg').val() || '#07484A',
-                    text_color: $('#pkg_badge_custom_text').val() || '#ffffff'
+                    label: badgePreset,
+                    bg_color: selectedOpt.data('bg') || '#10b981',
+                    text_color: selectedOpt.data('text') || '#ffffff'
                 });
             }
-        } else if (badgePreset) {
-            var selectedOpt = $('#pkg_badge_preset option:selected');
-            badges.push({
-                label: badgePreset,
-                bg_color: selectedOpt.data('bg') || '#10b981',
-                text_color: selectedOpt.data('text') || '#ffffff'
-            });
+            formData.push({ name: 'badges_json', value: JSON.stringify(badges) });
         }
-        formData.push({ name: 'badges_json', value: JSON.stringify(badges) });
 
         // Add benefits
         var benefitsData = [];
@@ -572,21 +572,23 @@ $(document).ready(function() {
                 });
             }
 
-            // Pre-fill single badge
-            var primaryBadge = (data.badges && data.badges.length) ? data.badges[0] : null;
-            if (primaryBadge) {
-                var matchingOption = $(`#pkg_badge_preset option[value="${primaryBadge.label}"]`);
-                if (matchingOption.length) {
-                    $('#pkg_badge_preset').val(primaryBadge.label).trigger('change');
+            // Pre-fill single badge (if enabled)
+            if ($('#pkg_badge_preset').length) {
+                var primaryBadge = (data.badges && data.badges.length) ? data.badges[0] : null;
+                if (primaryBadge) {
+                    var matchingOption = $(`#pkg_badge_preset option[value="${primaryBadge.label}"]`);
+                    if (matchingOption.length) {
+                        $('#pkg_badge_preset').val(primaryBadge.label).trigger('change');
+                    } else {
+                        $('#pkg_badge_preset').val('custom').trigger('change');
+                        $('#pkg_badge_custom_label').val(primaryBadge.label);
+                        $('#pkg_badge_custom_bg').val(primaryBadge.bg_color || '#07484A');
+                        $('#pkg_badge_custom_text').val(primaryBadge.text_color || '#ffffff');
+                        updateBadgePreview();
+                    }
                 } else {
-                    $('#pkg_badge_preset').val('custom').trigger('change');
-                    $('#pkg_badge_custom_label').val(primaryBadge.label);
-                    $('#pkg_badge_custom_bg').val(primaryBadge.bg_color || '#07484A');
-                    $('#pkg_badge_custom_text').val(primaryBadge.text_color || '#ffffff');
-                    updateBadgePreview();
+                    $('#pkg_badge_preset').val('').trigger('change');
                 }
-            } else {
-                $('#pkg_badge_preset').val('').trigger('change');
             }
 
             // Pre-fill existing media images
@@ -755,11 +757,13 @@ function resetForm() {
     // Reset package mode hint
     $('#pkg_mode_hint').text('Customer pays for Frame + Lens upgrade price combined.');
     $('#pkg_package_type').val('frame_and_lens');
-    // Reset promotional badge selector
-    $('#pkg_badge_preset').val('').trigger('change');
-    $('#pkg_badge_custom_label').val('');
-    $('#pkg_badge_custom_bg').val('#07484A');
-    $('#pkg_badge_custom_text').val('#ffffff');
+    // Reset promotional badge selector (if enabled)
+    if ($('#pkg_badge_preset').length) {
+        $('#pkg_badge_preset').val('').trigger('change');
+        $('#pkg_badge_custom_label').val('');
+        $('#pkg_badge_custom_bg').val('#07484A');
+        $('#pkg_badge_custom_text').val('#ffffff');
+    }
     // Reset status & media
     document.getElementById('pkg_status').checked = true;
     pendingFiles = [];

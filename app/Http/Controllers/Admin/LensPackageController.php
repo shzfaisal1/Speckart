@@ -23,52 +23,61 @@ class LensPackageController extends Controller
     public function index()
     {
         $setting['page_title'] = 'Lens Packages';
-        $setting['tags'] = LensPackageTag::where('is_active', true)->orderBy('sort_order')->get();
-        $setting['benefits'] = LensBenefit::where('is_active', true)->get();
-        $setting['coupons'] = Coupon::where('is_active', true)->get();
+        $setting['tags']       = LensPackageTag::where('is_active', true)->orderBy('sort_order')->get();
+        $setting['benefits']   = LensBenefit::where('is_active', true)->get();
         $setting['powerTypes'] = PowerType::where('is_active', '1')->get();
         $setting['categories'] = ProductType::where('is_active', true)->orderBy('sort_order')->get();
-        $setting['frameTypes'] = FrameType::where('status', '1')->orderBy('type_name')->get();
-        $setting['frameShapes'] = FrameShape::where('status', '1')->orderBy('shape_name')->get();
-        $setting['brands'] = Brand::where('status', '1')->orderBy('brand_name')->get();
         return view('admin.lens_packages.list', $setting);
     }
 
     public function data()
     {
-        $packages = LensPackage::with(['tags', 'badges', 'coupons'])->latest();
+        $packages = LensPackage::with(['tags', 'media', 'powerTypes'])->latest();
 
         return DataTables::of($packages)
-            ->addColumn('slug_badge', function ($row) {
-                return '<code class="bg-light px-2 py-1 rounded">' . e($row->slug) . '</code>';
+            ->editColumn('name', function ($row) {
+                $primaryMedia = $row->media->first();
+                $imgUrl = $primaryMedia ? asset($primaryMedia->url) : 'https://static5.lenskart.com/media/uploads/Antiglare_1_updated.png';
+                $powerTypesText = $row->powerTypes->isNotEmpty()
+                    ? '<small class="text-muted d-block" style="font-size:11px;">' . e($row->powerTypes->pluck('description')->implode(', ')) . '</small>'
+                    : '';
+
+                return '
+                    <div class="d-flex align-items-center" style="gap: 10px;">
+                        <img src="' . $imgUrl . '" alt="' . e($row->name) . '" class="rounded border" style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0; background: #f8f9fa;">
+                        <div>
+                            <strong class="text-dark d-block" style="font-size:13px;">' . e($row->name) . '</strong>
+                            ' . $powerTypesText . '
+                        </div>
+                    </div>';
             })
             ->addColumn('price', function ($row) {
-                $current  = '₹' . number_format($row->current_price);
+                $current  = '₹' . number_format($row->current_price, 2);
                 $original = $row->original_price
-                    ? ' / <s>₹' . number_format($row->original_price) . '</s>'
+                    ? ' <small class="text-muted">/ <s>₹' . number_format($row->original_price, 2) . '</s></small>'
                     : '';
-                return '<span class="font-weight-semibold text-success">' . $current . '</span>' . $original;
+                return '<span class="fw-bold text-success">' . $current . '</span>' . $original;
             })
-            ->addColumn('warranty', function ($row) {
-                if (is_null($row->warranty_months) || $row->warranty_months <= 0) {
-                    return '<span class="text-muted">—</span>';
+            ->addColumn('package_mode', function ($row) {
+                $type = $row->package_type ?? ($row->is_free_lens ? 'free_lens' : 'frame_and_lens');
+                switch ($type) {
+                    case 'free_lens':
+                        return '<span class="badge badge-success px-2 py-1" style="background-color:#198754; color:#fff; font-size:11px;">🟢 Free Lens</span>';
+                    case 'free_frame':
+                        return '<span class="badge badge-purple px-2 py-1" style="background-color:#6f42c1; color:#fff; font-size:11px;">🟣 Free Frame</span>';
+                    case 'lens_only':
+                        return '<span class="badge badge-info px-2 py-1" style="font-size:11px;">Lens Only</span>';
+                    default:
+                        return '<span class="badge badge-primary px-2 py-1" style="background-color:#0d6efd; color:#fff; font-size:11px;">🔵 Paid Combo</span>';
                 }
-                return '<span class="badge badge-info">'
-                    . $row->warranty_months . ' Month' . ($row->warranty_months > 1 ? 's' : '')
-                    . '</span>';
             })
             ->addColumn('tags_list', function ($row) {
                 if ($row->tags->isEmpty()) {
-                    return '<span class="text-muted">—</span>';
+                    return '<span class="text-muted" style="font-size:11px;">—</span>';
                 }
                 return $row->tags->map(function ($tag) {
-                    return '<span class="badge badge-primary me-1">' . e($tag->name) . '</span>';
+                    return '<span class="badge badge-secondary me-1" style="font-size:11px;">' . e($tag->name) . '</span>';
                 })->implode(' ');
-            })
-            ->addColumn('is_free_lens', function ($row) {
-                return $row->is_free_lens
-                    ? '<span class="badge badge-success">Free Lenses</span>'
-                    : '<span class="badge badge-light text-muted">No</span>';
             })
             ->addColumn('is_active', function ($row) {
                 $checked = $row->is_active ? 'checked' : '';
@@ -81,21 +90,23 @@ class LensPackageController extends Controller
             })
             ->addColumn('action', function ($row) {
                 return '
-                    <div class="d-flex" style="gap: 8px;">
+                    <div class="d-flex" style="gap: 6px;">
                         <button class="btn btn-sm btn-success btn-edit-package"
                                 data-id="' . $row->id . '"
                                 data-toggle="modal"
                                 data-target="#lensPackageModal"
-                                onclick="openModal(\'edit\')">
+                                onclick="openModal(\'edit\')"
+                                title="Edit Package">
                             <i class="fa fa-edit"></i>
                         </button>
                         <button class="btn btn-sm btn-danger btn-delete-package"
-                                data-id="' . $row->id . '">
+                                data-id="' . $row->id . '"
+                                title="Delete Package">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>';
             })
-            ->rawColumns(['slug_badge', 'price', 'warranty', 'tags_list', 'is_free_lens', 'is_active', 'action'])
+            ->rawColumns(['name', 'price', 'package_mode', 'tags_list', 'is_active', 'action'])
             ->make(true);
     }
 
