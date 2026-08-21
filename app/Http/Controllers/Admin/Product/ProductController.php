@@ -680,7 +680,7 @@ class ProductController extends Controller
         $shapes      = DB::table('tbl_shape')->where('status', '1')->get();
         $materials   = DB::table('tbl_material')->where('status', '1')->get();
         $colors      = DB::table('tbl_color')->where('status', '1')->get();
-        $categories  = DB::table('categories')->where('is_active', true)->whereNull('deleted_at')->orderBy('name')->get();
+        $categories  = Category::where('is_active', true)->whereNull('deleted_at')->orderBy('name')->get();
         $collections = DB::table('collections')->where('is_active', true)->whereNull('deleted_at')->orderBy('name')->get();
 
         $page_title = 'Edit B2C ' . $type . ' Product';

@@ -580,7 +580,13 @@ body { background: var(--bg); }
                                         @php
                                             // Detect lens category from name OR allowed_filters from DB
                                             $catFilters = $category->allowed_filters ?? [];
-                                            $nameLower  = strtolower($category->name);
+                                            if (is_string($catFilters)) {
+                                                $catFilters = json_decode($catFilters, true) ?: explode(',', $catFilters);
+                                            }
+                                            if (!is_array($catFilters)) {
+                                                $catFilters = [];
+                                            }
+                                            $nameLower  = strtolower($category->name ?? '');
                                             $catType    = strtolower($category->category_type ?? '');
                                             $isLensCategory = ($catType === 'lens')
                                                 || str_contains($nameLower, 'lens')
