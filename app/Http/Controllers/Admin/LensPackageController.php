@@ -25,7 +25,10 @@ class LensPackageController extends Controller
         $setting['page_title'] = 'Lens Packages';
         $setting['tags']       = LensPackageTag::where('is_active', true)->orderBy('sort_order')->get();
         $setting['benefits']   = LensBenefit::where('is_active', true)->get();
-        $setting['powerTypes'] = PowerType::where('is_active', '1')->get();
+        // Only load actual lens prescriptions (exclude 'Frame Only' which is handled at Step 1)
+        $setting['powerTypes'] = PowerType::where('is_active', '1')
+            ->where('description', 'NOT LIKE', '%Frame Only%')
+            ->get();
         $setting['categories'] = ProductType::where('is_active', true)->orderBy('sort_order')->get();
         return view('admin.lens_packages.list', $setting);
     }
