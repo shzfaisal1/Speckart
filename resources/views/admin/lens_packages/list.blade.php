@@ -199,19 +199,42 @@
 
                     <hr class="my-2">
 
-                    {{-- Row 7: Promotional Badges --}}
+                    {{-- Row 7: Promotional Ribbon / Badge (Single Clean Selector) --}}
                     <div class="form-group">
-                        <label class="form-label fw-medium d-block mb-2">
-                            🎖️ Promotional Badges
-                            <button type="button" class="btn btn-sm btn-outline-primary ml-2" onclick="addBadgeRow()">
-                                <i class="fa fa-plus"></i> Add Badge
-                            </button>
-                            <span class="text-muted" style="font-size:11px; font-weight:400; display:block; margin-top:2px;">
-                                Custom ribbons shown on the lens card image (e.g. Bestseller, Most Popular). Leave empty to use auto-badges from Package Mode.
-                            </span>
+                        <label class="form-label fw-medium d-block mb-1">
+                            🎖️ Promotional Ribbon / Badge
+                            <span class="text-muted" style="font-size:11px; font-weight:400;">(Single ribbon displayed on the top-left of the lens card)</span>
                         </label>
-                        <div id="badgesContainer" class="p-2 border rounded" style="background-color: #f9f9f9; min-height: 48px;">
-                            {{-- Dynamic rows injected here --}}
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <select class="form-control" id="pkg_badge_preset">
+                                    <option value="" data-bg="" data-text="">-- None (No custom ribbon) --</option>
+                                    <option value="Bestseller" data-bg="#10b981" data-text="#ffffff">🟢 Bestseller</option>
+                                    <option value="Most Popular" data-bg="#f59e0b" data-text="#ffffff">🟠 Most Popular</option>
+                                    <option value="Doctor Recommended" data-bg="#07484A" data-text="#ffffff">🔵 Doctor Recommended</option>
+                                    <option value="Trending" data-bg="#0284c7" data-text="#ffffff">🔷 Trending</option>
+                                    <option value="Limited Deal" data-bg="#dc2626" data-text="#ffffff">🔴 Limited Deal</option>
+                                    <option value="custom" data-bg="#07484A" data-text="#ffffff">✍️ Custom Text & Color...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="customBadgeFields" style="display:none;">
+                                <div class="d-flex align-items-center" style="gap:8px;">
+                                    <input type="text" class="form-control" id="pkg_badge_custom_label" placeholder="e.g. Premium HD">
+                                    <div class="d-flex align-items-center" style="gap:3px;" title="Background Color">
+                                        <small class="text-muted" style="font-size:10px;">BG:</small>
+                                        <input type="color" class="form-control p-0" id="pkg_badge_custom_bg" value="#07484A" style="width:34px;height:34px;cursor:pointer;">
+                                    </div>
+                                    <div class="d-flex align-items-center" style="gap:3px;" title="Text Color">
+                                        <small class="text-muted" style="font-size:10px;">Text:</small>
+                                        <input type="color" class="form-control p-0" id="pkg_badge_custom_text" value="#ffffff" style="width:34px;height:34px;cursor:pointer;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 d-flex align-items-center" style="gap:10px;">
+                            <span class="text-muted" style="font-size:11px;">Card Preview:</span>
+                            <span id="badgeLivePreview" class="badge px-2 py-1 shadow-sm" style="font-size:10px; font-weight:600; display:none; border-radius:3px;"></span>
+                            <span id="badgeLivePreviewNone" class="text-muted fst-italic" style="font-size:11px;">No custom badge (will show Package Mode auto-badge if Free Lens/Frame)</span>
                         </div>
                     </div>
 
@@ -387,15 +410,26 @@ $(document).ready(function() {
 
         var formData = $(this).serializeArray();
 
-        // Add badges
+        // Add single badge
+        var badgePreset = $('#pkg_badge_preset').val();
         var badges = [];
-        $('.badge-row').each(function () {
+        if (badgePreset === 'custom') {
+            var customLabel = $('#pkg_badge_custom_label').val().trim();
+            if (customLabel) {
+                badges.push({
+                    label: customLabel,
+                    bg_color: $('#pkg_badge_custom_bg').val() || '#07484A',
+                    text_color: $('#pkg_badge_custom_text').val() || '#ffffff'
+                });
+            }
+        } else if (badgePreset) {
+            var selectedOpt = $('#pkg_badge_preset option:selected');
             badges.push({
-                label: $(this).find('.badge-label').val(),
-                bg_color: $(this).find('.badge-bg-color').val(),
-                text_color: $(this).find('.badge-text-color').val()
+                label: badgePreset,
+                bg_color: selectedOpt.data('bg') || '#10b981',
+                text_color: selectedOpt.data('text') || '#ffffff'
             });
-        });
+        }
         formData.push({ name: 'badges_json', value: JSON.stringify(badges) });
 
         // Add benefits
@@ -538,12 +572,21 @@ $(document).ready(function() {
                 });
             }
 
-            // Pre-fill badges
-            $('#badgesContainer').empty();
-            if (data.badges) {
-                data.badges.forEach(function (badge) {
-                    addBadgeRow(badge.label, badge.bg_color, badge.text_color);
-                });
+            // Pre-fill single badge
+            var primaryBadge = (data.badges && data.badges.length) ? data.badges[0] : null;
+            if (primaryBadge) {
+                var matchingOption = $(`#pkg_badge_preset option[value="${primaryBadge.label}"]`);
+                if (matchingOption.length) {
+                    $('#pkg_badge_preset').val(primaryBadge.label).trigger('change');
+                } else {
+                    $('#pkg_badge_preset').val('custom').trigger('change');
+                    $('#pkg_badge_custom_label').val(primaryBadge.label);
+                    $('#pkg_badge_custom_bg').val(primaryBadge.bg_color || '#07484A');
+                    $('#pkg_badge_custom_text').val(primaryBadge.text_color || '#ffffff');
+                    updateBadgePreview();
+                }
+            } else {
+                $('#pkg_badge_preset').val('').trigger('change');
             }
 
             // Pre-fill existing media images
@@ -666,46 +709,35 @@ $(document).on('change', '#pkg_package_type', function () {
     $('#pkg_mode_hint').text(hint);
 });
 
-function addBadgeRow(label, bgColor, textColor) {
-    label     = label     || '';
-    bgColor   = bgColor   || '#07484A';
-    textColor = textColor || '#ffffff';
+function updateBadgePreview() {
+    var preset = $('#pkg_badge_preset').val();
+    if (!preset) {
+        $('#customBadgeFields').hide();
+        $('#badgeLivePreview').hide();
+        $('#badgeLivePreviewNone').show();
+        return;
+    }
 
-    var html = `
-        <div class="badge-row d-flex align-items-center mb-2" style="gap: 10px;">
-            <input type="text" class="form-control form-control-sm badge-label"
-                   placeholder="e.g. Bestseller" value="${label}" style="max-width:200px" required>
-            <div class="d-flex align-items-center" style="gap: 5px;">
-                <label class="text-muted mb-0" style="font-size:11px;white-space:nowrap">BG:</label>
-                <input type="color" class="form-control form-control-sm badge-bg-color"
-                       value="${bgColor}" style="width:40px;height:30px;padding:2px;">
-            </div>
-            <div class="d-flex align-items-center" style="gap: 5px;">
-                <label class="text-muted mb-0" style="font-size:11px;white-space:nowrap">Text:</label>
-                <input type="color" class="form-control form-control-sm badge-text-color"
-                       value="${textColor}" style="width:40px;height:30px;padding:2px;">
-            </div>
-            <span class="badge badge-preview" style="background:${bgColor};color:${textColor};padding:5px 10px;border-radius:4px">
-                ${label || 'Preview'}
-            </span>
-            <button type="button" class="btn btn-sm btn-danger ml-auto" onclick="$(this).closest('.badge-row').remove()">
-                <i class="fa fa-trash"></i>
-            </button>
-        </div>
-    `;
-    $('#badgesContainer').append(html);
-
-    // Live preview binding
-    var row = $('#badgesContainer .badge-row:last');
-    row.find('.badge-label, .badge-bg-color, .badge-text-color').on('input change', function () {
-        var preview = row.find('.badge-preview');
-        preview.text(row.find('.badge-label').val() || 'Preview');
-        preview.css({
-            'background': row.find('.badge-bg-color').val(),
-            'color': row.find('.badge-text-color').val()
-        });
-    });
+    if (preset === 'custom') {
+        $('#customBadgeFields').show();
+        var customLabel = $('#pkg_badge_custom_label').val().trim() || 'Custom Ribbon';
+        var customBg = $('#pkg_badge_custom_bg').val() || '#07484A';
+        var customText = $('#pkg_badge_custom_text').val() || '#ffffff';
+        $('#badgeLivePreview').text(customLabel).css({ 'background-color': customBg, 'color': customText }).show();
+        $('#badgeLivePreviewNone').hide();
+    } else {
+        $('#customBadgeFields').hide();
+        var opt = $('#pkg_badge_preset option:selected');
+        var label = opt.val();
+        var bg = opt.data('bg') || '#10b981';
+        var text = opt.data('text') || '#ffffff';
+        $('#badgeLivePreview').text(label).css({ 'background-color': bg, 'color': text }).show();
+        $('#badgeLivePreviewNone').hide();
+    }
 }
+
+$(document).on('change', '#pkg_badge_preset', updateBadgePreview);
+$(document).on('input change', '#pkg_badge_custom_label, #pkg_badge_custom_bg, #pkg_badge_custom_text', updateBadgePreview);
 
 function resetForm() {
     document.getElementById('lensPackageForm').reset();
@@ -723,8 +755,12 @@ function resetForm() {
     // Reset package mode hint
     $('#pkg_mode_hint').text('Customer pays for Frame + Lens upgrade price combined.');
     $('#pkg_package_type').val('frame_and_lens');
-    // Reset badges and images
-    $('#badgesContainer').empty();
+    // Reset promotional badge selector
+    $('#pkg_badge_preset').val('').trigger('change');
+    $('#pkg_badge_custom_label').val('');
+    $('#pkg_badge_custom_bg').val('#07484A');
+    $('#pkg_badge_custom_text').val('#ffffff');
+    // Reset status & media
     document.getElementById('pkg_status').checked = true;
     pendingFiles = [];
     $('#mediaPreviewGrid').empty();
