@@ -989,7 +989,7 @@
                                     <div class="col-lg-4 col-md-6 col-12">
                                         <div class="spec-card">
                                             <span class="spec-label">Water Content</span>
-                                            <span class="spec-value">{{ $product->WC ? (str_contains($product->WC, '%') ? $product->WC : $product->WC . '%') : 'N/A' }}</span>
+                                            <span class="spec-value">{{ !empty($product->WC) ? (str_contains($product->WC, '%') ? $product->WC : $product->WC . '%') : 'N/A' }}</span>
                                         </div>
                                     </div>
                                     <div class="col-lg-4 col-md-6 col-12">
