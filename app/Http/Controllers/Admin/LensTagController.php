@@ -60,6 +60,12 @@ class LensTagController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->filled('slug') && $request->filled('name')) {
+            $request->merge(['slug' => Str::slug($request->input('name'), '_')]);
+        } elseif ($request->filled('slug')) {
+            $request->merge(['slug' => Str::slug($request->input('slug'), '_')]);
+        }
+
         $validated = $request->validate([
             'name'       => 'required|string|max:100',
             'slug'       => 'required|string|max:100|unique:lens_package_tags,slug',
@@ -68,7 +74,7 @@ class LensTagController extends Controller
             'is_active'  => 'nullable|boolean',
         ]);
 
-        $validated['slug']      = Str::slug($validated['slug'], '-');
+        $validated['slug']      = Str::slug($validated['slug'], '_');
         $validated['is_active'] = $request->boolean('is_active', true);
 
         $tag = LensPackageTag::create($validated);
@@ -90,6 +96,12 @@ class LensTagController extends Controller
     {
         $tag = LensPackageTag::findOrFail($id);
 
+        if (!$request->filled('slug') && $request->filled('name')) {
+            $request->merge(['slug' => Str::slug($request->input('name'), '_')]);
+        } elseif ($request->filled('slug')) {
+            $request->merge(['slug' => Str::slug($request->input('slug'), '_')]);
+        }
+
         $validated = $request->validate([
             'name'       => 'required|string|max:100',
             'slug'       => 'required|string|max:100|unique:lens_package_tags,slug,' . $id,
@@ -98,7 +110,7 @@ class LensTagController extends Controller
             'is_active'  => 'nullable|boolean',
         ]);
 
-        $validated['slug']      = Str::slug($validated['slug'], '-');
+        $validated['slug']      = Str::slug($validated['slug'], '_');
         $validated['is_active'] = $request->boolean('is_active', true);
 
         $tag->update($validated);
