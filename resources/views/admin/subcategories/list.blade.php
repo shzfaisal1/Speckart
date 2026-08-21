@@ -163,7 +163,7 @@ const Toast = Swal.mixin({
 });
 
 $(document).ready(function () {
-    const baseUrl = "{{ url('subcategories') }}";
+    const baseUrl = "{{ route('admin.subcategories.index') }}";
 
     var table = $('#subcategories-table').DataTable({
         processing: true,
