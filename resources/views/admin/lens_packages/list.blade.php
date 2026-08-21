@@ -261,9 +261,9 @@
                         <div id="mediaPreviewGrid" class="media-preview-grid"></div>
                     </div>
 
-                    {{-- Row 9: Flags and Sorting --}}
+                    {{-- Row 9: Flags and Modes --}}
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label fw-medium">Package Mode</label>
                                 <select class="form-control" id="pkg_package_type" name="package_type">
@@ -292,12 +292,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label class="form-label fw-medium">Sort Order</label>
-                                <input type="number" min="0" class="form-control" id="pkg_sort_order" name="sort_order" value="0">
-                            </div>
-                        </div>
+                        {{-- Sort Order (Hidden as of now) --}}
+                        <input type="hidden" id="pkg_sort_order" name="sort_order" value="0">
                     </div>
 
                 </div>

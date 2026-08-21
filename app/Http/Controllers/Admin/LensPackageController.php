@@ -101,6 +101,12 @@ class LensPackageController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('slug')) {
+            $request->merge(['slug' => Str::slug($request->input('slug'), '_')]);
+        } elseif ($request->filled('name')) {
+            $request->merge(['slug' => Str::slug($request->input('name'), '_')]);
+        }
+
         $validated = $request->validate([
             'name'              => 'required|string|max:150',
             'slug'              => 'required|string|max:150|unique:lens_packages,slug',
@@ -114,7 +120,6 @@ class LensPackageController extends Controller
             'sort_order'        => 'nullable|integer|min:0',
         ]);
 
-        $validated['slug']            = Str::slug($validated['slug'], '_');
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['is_free_lens']    = $request->boolean('is_free_lens', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
@@ -187,6 +192,12 @@ class LensPackageController extends Controller
     {
         $package = LensPackage::findOrFail($id);
 
+        if ($request->filled('slug')) {
+            $request->merge(['slug' => Str::slug($request->input('slug'), '_')]);
+        } elseif ($request->filled('name')) {
+            $request->merge(['slug' => Str::slug($request->input('name'), '_')]);
+        }
+
         $validated = $request->validate([
             'name'              => 'required|string|max:150',
             'slug'              => 'required|string|max:150|unique:lens_packages,slug,' . $id,
@@ -200,7 +211,6 @@ class LensPackageController extends Controller
             'sort_order'        => 'nullable|integer|min:0',
         ]);
 
-        $validated['slug']            = Str::slug($validated['slug'], '_');
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['is_free_lens']    = $request->boolean('is_free_lens', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
