@@ -62,209 +62,20 @@
                 <input type="hidden" id="record_id" name="record_id" value="">
 
                 <div class="modal-body" style="max-height: calc(100vh - 200px); overflow-y: auto;">
-                    
-                    {{-- Row 1: Name and Slug --}}
+
+                    {{-- Row 1: Package Name + Package Mode (side by side) --}}
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-7">
                             <div class="form-group">
                                 <label class="form-label fw-medium">
                                     Package Name <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" class="form-control" id="pkg_name" name="name"
-                                       placeholder="e.g. Premium Blu Cut" required>
+                                       placeholder="e.g. Premium Blu Cut Coating 1.60" required>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <div class="form-group">
-                                <label class="form-label fw-medium">
-                                    Slug <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control" id="pkg_slug" name="slug"
-                                       placeholder="e.g. premium_blu_cut" required>
-                                <div class="text-muted" style="font-size:11px;margin-top:4px">Auto-generated · editable</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Row 2: Pricing --}}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label fw-medium">
-                                    Current Price (INR) <span class="text-danger">*</span>
-                                </label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="pkg_current_price"
-                                       name="current_price" placeholder="1500" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label fw-medium">Original Price (INR)</label>
-                                <input type="number" step="0.01" min="0" class="form-control" id="pkg_original_price"
-                                       name="original_price" placeholder="2000">
-                            </div>
-                        </div>
-                        {{-- Warranty (Hidden for now) --}}
-                        <input type="hidden" id="pkg_warranty" name="warranty_months" value="0">
-                    </div>
-
-                    {{-- Row 3: Short Description --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium">Short Description</label>
-                        <textarea class="form-control" id="pkg_description" name="short_description"
-                                  rows="2" placeholder="Provide a summary of the lens package..."></textarea>
-                    </div>
-
-                    {{-- Row 4: Filter Tags --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">Filter Tags</label>
-                        <div class="d-flex flex-wrap" style="gap: 15px;">
-                            @foreach($tags as $tag)
-                                <div class="form-check">
-                                    <input class="form-check-input tag-checkbox" type="checkbox"
-                                           name="tags[]" value="{{ $tag->id }}" id="tag_{{ $tag->id }}">
-                                    <label class="form-check-label" for="tag_{{ $tag->id }}">{{ $tag->name }}</label>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Row 5: Benefits --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">Benefits</label>
-                        <div id="benefitsList" style="border: 1px solid #ced4da; border-radius: 4px; padding: 10px; max-height: 200px; overflow-y: auto;">
-                            @foreach($benefits as $benefit)
-                                <div class="d-flex align-items-center mb-2 p-2 border rounded benefit-row" style="background-color: #fcfcfc;">
-                                    <div class="form-check flex-grow-1">
-                                        <input class="form-check-input benefit-checkbox" type="checkbox"
-                                               name="benefits[]" value="{{ $benefit->id }}" id="benefit_{{ $benefit->id }}">
-                                        <label class="form-check-label" for="benefit_{{ $benefit->id }}">
-                                            {{ $benefit->name }}
-                                        </label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Row 6: Coupons (Hidden as of now) --}}
-                    {{--
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">Applicable Coupons</label>
-                        <div class="d-flex flex-wrap" style="gap: 15px;">
-                            @foreach($coupons as $coupon)
-                                <div class="form-check">
-                                    <input class="form-check-input coupon-checkbox" type="checkbox"
-                                           name="coupons[]" value="{{ $coupon->id }}" id="coupon_{{ $coupon->id }}">
-                                    <label class="form-check-label" for="coupon_{{ $coupon->id }}">
-                                        <code>{{ $coupon->code }}</code>
-                                        <span class="text-muted">({{ $coupon->discount_type === 'fixed' ? '₹'.$coupon->discount_value : $coupon->discount_value.'%' }})</span>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    --}}
-
-                    {{-- Row 7: Power Types --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">Power Type Categories</label>
-                        <div class="d-flex flex-wrap" style="gap: 15px;">
-                            @foreach($powerTypes as $pType)
-                                <div class="form-check">
-                                    <input class="form-check-input power-type-checkbox" type="checkbox"
-                                           name="power_types[]" value="{{ $pType->id }}" id="power_type_{{ $pType->id }}">
-                                    <label class="form-check-label" for="power_type_{{ $pType->id }}">
-                                        {{ $pType->description }}
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!--{{-- Frame Types --}}-->
-                    <!--<div class="form-group">-->
-                    <!--    <label class="form-label fw-medium d-block">Frame Types</label>-->
-                    <!--    <div class="d-flex flex-wrap" style="gap: 15px;">-->
-                    <!--        @foreach($frameTypes as $fType)-->
-                    <!--            <div class="form-check">-->
-                    <!--                <input class="form-check-input frame-type-checkbox" type="checkbox"-->
-                    <!--                       name="frame_types[]" value="{{ $fType->type_id }}" id="frame_type_{{ $fType->type_id }}">-->
-                    <!--                <label class="form-check-label" for="frame_type_{{ $fType->type_id }}">-->
-                    <!--                    {{ $fType->type_name }} ({{ $fType->product_type }})-->
-                    <!--                </label>-->
-                    <!--            </div>-->
-                    <!--        @endforeach-->
-                    <!--    </div>-->
-                    <!--</div>-->
-
-                    {{-- Frame Shapes --}}
-                    <!--<div class="form-group">-->
-                    <!--    <label class="form-label fw-medium d-block">Frame Shapes</label>-->
-                    <!--    <div class="d-flex flex-wrap" style="gap: 15px;">-->
-                    <!--        @foreach($frameShapes as $fShape)-->
-                    <!--            <div class="form-check">-->
-                    <!--                <input class="form-check-input frame-shape-checkbox" type="checkbox"-->
-                    <!--                       name="frame_shapes[]" value="{{ $fShape->shape_id }}" id="frame_shape_{{ $fShape->shape_id }}">-->
-                    <!--                <label class="form-check-label" for="frame_shape_{{ $fShape->shape_id }}">-->
-                    <!--                    {{ $fShape->shape_name }} ({{ $fShape->product_type }})-->
-                    <!--                </label>-->
-                    <!--            </div>-->
-                    <!--        @endforeach-->
-                    <!--    </div>-->
-                    <!--</div>-->
-
-                    {{-- Brands --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">Brands</label>
-                        <div class="d-flex flex-wrap" style="gap: 15px;">
-                            @foreach($brands as $brand)
-                                <div class="form-check">
-                                    <input class="form-check-input brand-checkbox" type="checkbox"
-                                           name="brands[]" value="{{ $brand->brand_id }}" id="brand_{{ $brand->brand_id }}">
-                                    <label class="form-check-label" for="brand_{{ $brand->brand_id }}">
-                                        {{ $brand->brand_name }}
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Row 8: Dynamic Promotional Badges --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">
-                            Promotional Badges
-                            <button type="button" class="btn btn-sm btn-outline-primary ml-2" onclick="addBadgeRow()">
-                                <i class="fa fa-plus"></i> Add Badge
-                            </button>
-                        </label>
-                        <div id="badgesContainer" class="p-2 border rounded" style="background-color: #f9f9f9; min-height: 50px;">
-                            {{-- Dynamic rows injected here --}}
-                        </div>
-                    </div>
-
-                    {{-- Row 8½: Package Images --}}
-                    <div class="form-group">
-                        <label class="form-label fw-medium d-block">
-                            Package Images
-                            <span class="text-muted" style="font-size: 11px; font-weight: 400;">(multiple allowed)</span>
-                        </label>
-
-                        <div class="d-flex align-items-center" style="gap: 10px;">
-                            <label for="mediaFileInput" class="btn btn-sm btn-outline-primary mb-0" style="cursor:pointer; white-space:nowrap;">
-                                <i class="fa fa-upload"></i> Choose Images
-                            </label>
-                            <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none;">
-                            <small class="text-muted mb-0">JPG, PNG, WEBP, GIF — max 5 MB each</small>
-                        </div>
-
-                        <div id="mediaPreviewGrid" class="media-preview-grid"></div>
-                    </div>
-
-                    {{-- Row 9: Package Mode, Status --}}
-                    <div class="row align-items-end">
-                        <div class="col-md-9">
-                            <div class="form-group mb-0">
                                 <label class="form-label fw-medium">Package Mode</label>
                                 <select class="form-control" id="pkg_package_type" name="package_type">
                                     <option value="frame_and_lens">🔵 Frame + Lens (Paid Combo)</option>
@@ -276,19 +87,158 @@
                                 </small>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="form-group mb-0">
-                                <label class="form-label fw-medium d-block">Status</label>
-                                <div class="toggle-btn">
-                                    <input type="checkbox" id="pkg_status" name="is_active" class="toggle-switch" value="1" checked>
-                                    <label for="pkg_status">Toggle</label>
+                        {{-- Slug auto-generated server-side from name; hidden from form --}}
+                        <input type="hidden" id="pkg_slug" name="slug" value="">
+                        {{-- is_free_lens auto-set by Package Mode JS --}}
+                        <input type="hidden" id="pkg_free_lens" name="is_free_lens" value="0">
+                        {{-- Hidden fields --}}
+                        <input type="hidden" id="pkg_warranty" name="warranty_months" value="0">
+                        <input type="hidden" id="pkg_sort_order" name="sort_order" value="0">
+                    </div>
+
+                    {{-- Row 2: Pricing --}}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-medium">
+                                    Current Price (₹) <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">₹</span>
+                                    </div>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="pkg_current_price"
+                                           name="current_price" placeholder="1499" required>
                                 </div>
                             </div>
                         </div>
-                        {{-- is_free_lens auto-set by Package Mode JS (no manual toggle) --}}
-                        <input type="hidden" id="pkg_free_lens" name="is_free_lens" value="0">
-                        {{-- Sort Order (Hidden as of now) --}}
-                        <input type="hidden" id="pkg_sort_order" name="sort_order" value="0">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-medium">
+                                    Original Price (₹)
+                                    <span class="text-muted" style="font-size:11px; font-weight:400;">(MRP / Strike-through)</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">₹</span>
+                                    </div>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="pkg_original_price"
+                                           name="original_price" placeholder="2499">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Row 3: Short Description --}}
+                    <div class="form-group">
+                        <label class="form-label fw-medium">Short Description</label>
+                        <textarea class="form-control" id="pkg_description" name="short_description"
+                                  rows="2" placeholder="e.g. Advanced blue light filtration with anti-glare double coating..."></textarea>
+                    </div>
+
+                    <hr class="my-2">
+
+                    {{-- Row 4: Filter Tags --}}
+                    <div class="form-group">
+                        <label class="form-label fw-medium d-block mb-2">
+                            🏷️ Filter Tags
+                            <span class="text-muted" style="font-size:11px; font-weight:400;">(used for lens filter chips on PDP)</span>
+                        </label>
+                        <div class="d-flex flex-wrap" style="gap: 10px;">
+                            @foreach($tags as $tag)
+                                <label class="badge-chip-label" for="tag_{{ $tag->id }}" style="cursor:pointer;">
+                                    <input class="tag-checkbox" type="checkbox" name="tags[]"
+                                           value="{{ $tag->id }}" id="tag_{{ $tag->id }}" style="display:none;">
+                                    <span class="badge border px-3 py-2" style="font-size:12px; border-radius:20px; font-weight:500; transition:all 0.15s;">
+                                        {{ $tag->name }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Row 5: Power Type Categories --}}
+                    <div class="form-group">
+                        <label class="form-label fw-medium d-block mb-2">
+                            👓 Power Type Categories
+                            <span class="text-muted" style="font-size:11px; font-weight:400;">(determines which prescriptions this package supports)</span>
+                        </label>
+                        <div class="d-flex flex-wrap" style="gap: 10px;">
+                            @foreach($powerTypes as $pType)
+                                <label class="badge-chip-label" for="power_type_{{ $pType->id }}" style="cursor:pointer;">
+                                    <input class="power-type-checkbox" type="checkbox" name="power_types[]"
+                                           value="{{ $pType->id }}" id="power_type_{{ $pType->id }}" style="display:none;">
+                                    <span class="badge border px-3 py-2" style="font-size:12px; border-radius:20px; font-weight:500; transition:all 0.15s;">
+                                        {{ $pType->description }}
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Row 6: Key Benefits --}}
+                    <div class="form-group">
+                        <label class="form-label fw-medium d-block mb-2">
+                            ✨ Key Benefits
+                            <span class="text-muted" style="font-size:11px; font-weight:400;">(shown as bullet points on PDP)</span>
+                        </label>
+                        <div id="benefitsList" style="border: 1px solid #ced4da; border-radius: 6px; padding: 10px; max-height: 180px; overflow-y: auto; background:#fafafa;">
+                            @foreach($benefits as $benefit)
+                                <div class="d-flex align-items-center mb-1 benefit-row">
+                                    <div class="form-check flex-grow-1 mb-0">
+                                        <input class="form-check-input benefit-checkbox" type="checkbox"
+                                               name="benefits[]" value="{{ $benefit->id }}" id="benefit_{{ $benefit->id }}">
+                                        <label class="form-check-label" for="benefit_{{ $benefit->id }}">
+                                            {{ $benefit->name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <hr class="my-2">
+
+                    {{-- Row 7: Promotional Badges --}}
+                    <div class="form-group">
+                        <label class="form-label fw-medium d-block mb-2">
+                            🎖️ Promotional Badges
+                            <button type="button" class="btn btn-sm btn-outline-primary ml-2" onclick="addBadgeRow()">
+                                <i class="fa fa-plus"></i> Add Badge
+                            </button>
+                            <span class="text-muted" style="font-size:11px; font-weight:400; display:block; margin-top:2px;">
+                                Custom ribbons shown on the lens card image (e.g. Bestseller, Most Popular). Leave empty to use auto-badges from Package Mode.
+                            </span>
+                        </label>
+                        <div id="badgesContainer" class="p-2 border rounded" style="background-color: #f9f9f9; min-height: 48px;">
+                            {{-- Dynamic rows injected here --}}
+                        </div>
+                    </div>
+
+                    {{-- Row 8: Package Demo Images --}}
+                    <div class="form-group">
+                        <label class="form-label fw-medium d-block mb-1">
+                            🖼️ Package Demo Images
+                            <span class="text-muted" style="font-size: 11px; font-weight: 400;">(displayed in the lens selector on PDP)</span>
+                        </label>
+                        <div class="d-flex align-items-center" style="gap: 10px;">
+                            <label for="mediaFileInput" class="btn btn-sm btn-outline-secondary mb-0" style="cursor:pointer; white-space:nowrap;">
+                                <i class="fa fa-upload"></i> Choose Images
+                            </label>
+                            <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none;">
+                            <small class="text-muted mb-0">JPG, PNG, WEBP — max 5 MB each</small>
+                        </div>
+                        <div id="mediaPreviewGrid" class="media-preview-grid"></div>
+                    </div>
+
+                    {{-- Row 9: Status --}}
+                    <div class="d-flex align-items-center" style="gap:12px; padding: 10px 0 4px;">
+                        <label class="form-label fw-medium mb-0">⚡ Status</label>
+                        <div class="toggle-btn">
+                            <input type="checkbox" id="pkg_status" name="is_active" class="toggle-switch" value="1" checked>
+                            <label for="pkg_status">Toggle</label>
+                        </div>
+                        <small class="text-muted">Active packages are visible to customers on the website.</small>
                     </div>
 
                 </div>
@@ -364,6 +314,23 @@
     }
     .media-preview-item:hover .remove-btn {
         opacity: 1;
+    }
+
+    /* ── Pill-Chip style for Tags & Power Types ── */
+    .badge-chip-label input[type="checkbox"]:checked + span {
+        background-color: #07484A !important;
+        color: #fff !important;
+        border-color: #07484A !important;
+    }
+    .badge-chip-label span {
+        color: #495057;
+        border-color: #ced4da !important;
+        background: #fff;
+        user-select: none;
+    }
+    .badge-chip-label:hover span {
+        border-color: #07484A !important;
+        color: #07484A;
     }
 </style>
 @endpush
@@ -743,17 +710,22 @@ function addBadgeRow(label, bgColor, textColor) {
 function resetForm() {
     document.getElementById('lensPackageForm').reset();
     document.getElementById('record_id').value = '';
+    // Reset hidden fields
+    $('#pkg_slug').val('');
+    $('#pkg_free_lens').val('0');
+    $('#pkg_sort_order').val('0');
+    // Reset chip checkboxes
     $('.tag-checkbox').prop('checked', false);
-    $('.coupon-checkbox').prop('checked', false);
     $('.power-type-checkbox').prop('checked', false);
     $('.benefit-checkbox').prop('checked', false);
-    $('.frame-type-checkbox').prop('checked', false);
-    $('.frame-shape-checkbox').prop('checked', false);
-    $('.brand-checkbox').prop('checked', false);
+    $('.coupon-checkbox').prop('checked', false);
     $('.highlight-toggle').prop('checked', false);
+    // Reset package mode hint
+    $('#pkg_mode_hint').text('Customer pays for Frame + Lens upgrade price combined.');
+    $('#pkg_package_type').val('frame_and_lens');
+    // Reset badges and images
     $('#badgesContainer').empty();
     document.getElementById('pkg_status').checked = true;
-    // Clear image preview
     pendingFiles = [];
     $('#mediaPreviewGrid').empty();
 }
