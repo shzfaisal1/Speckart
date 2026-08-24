@@ -926,17 +926,8 @@
                             <i class="bi bi-eye me-2"></i>BUY WITH POWER
                         </button>
                         <button class="btn btn-outline-custom">Try on you</button>
-                    @elseif($isReading)
-                        {{-- Reading Glasses: Power chips on page, direct 1-click BUY NOW --}}
-                        <button id="main-action-btn"
-                            class="btn btn-outline-custom active"
-                            data-has-power="0"
-                            data-default-text="BUY NOW"
-                            onclick="addToCartAjax('Reading', null, null, null)">
-                            <i class="bi bi-bag-check me-2"></i>BUY NOW
-                        </button>
                     @else
-                        {{-- Eyeglasses: SELECT LENSES opens 3-step drawer, FRAME ONLY skips lenses --}}
+                        {{-- Eyeglasses / Frames: Dynamic action button controlled by selectProductType --}}
                         <button id="main-action-btn"
                             class="btn btn-outline-custom active select-lenses-mode"
                             data-has-power="1"
@@ -3617,8 +3608,9 @@
             const isReadingGlasses  = typeSlug.includes('reading');
             const isZeroPower       = typeSlug.includes('zero');
 
-            // Reset reading power whenever tab changes
+            // Reset reading power whenever tab changes & clear active chip highlights
             window.selectedReadingPower = null;
+            document.querySelectorAll('.power-chips-wrap .power-chip').forEach(c => c.classList.remove('active'));
 
             // ── 4. Show / hide inline power chips ──
             document.querySelectorAll('.power-chips-wrap').forEach(p => p.classList.add('d-none'));
@@ -3657,6 +3649,14 @@
                 btn.dataset.hasPower = '0';
             }
         }
+
+        // ── Auto-initialize active product type tab on page load ──
+        $(document).ready(function() {
+            const activeTab = document.querySelector('.ptype-tab.active');
+            if (activeTab) {
+                selectProductType(activeTab);
+            }
+        });
 
         // ── Power chip selection: capture reading power value ──
         // (delegated so it works for dynamically rendered chips too)
