@@ -1895,11 +1895,11 @@
                                     <div class="sc-gold-title">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['title']) }}</div>
                                     <div class="sc-gold-subtitle">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['subtitle']) }}</div>
                                     <div class="sc-gold-cta">
-                                        <button type="button" id="btn-add-membership" data-card-id="1" class="sc-gold-btn">
+                                        <button type="button" id="btn-add-membership" data-card-id="{{ $bs['card_id'] ?? 1 }}" class="sc-gold-btn">
                                             <span id="btn-add-membership-text">{{ Str::replace(['👑', '★', '⚠️'], '', $bs['btn_text']) }}</span>
                                             <span id="btn-add-membership-spinner" class="spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
                                         </button>
-                                        <button type="button" id="btn-add-membership-arrow" data-card-id="1" class="sc-gold-arrow">
+                                        <button type="button" id="btn-add-membership-arrow" data-card-id="{{ $bs['card_id'] ?? 1 }}" class="sc-gold-arrow">
                                             <i class="bi bi-arrow-right"></i>
                                         </button>
                                     </div>

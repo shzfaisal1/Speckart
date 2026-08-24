@@ -310,13 +310,18 @@ class CartController extends Controller
      */
     public function addMembershipToCart(Request $request)
     {
-        $request->validate([
-            'card_id' => 'required|integer',
-        ]);
+        $cardId = $request->input('card_id');
+        $card = null;
+        if ($cardId) {
+            $card = DB::table('tbl_membership_card')
+                ->where('card_id', $cardId)
+                ->orWhere('id', $cardId)
+                ->first();
+        }
 
-        $card = DB::table('tbl_membership_card')
-            ->where('card_id', $request->card_id)
-            ->first();
+        if (!$card) {
+            $card = DB::table('tbl_membership_card')->where('flag', 0)->first();
+        }
 
         if (!$card) {
             if ($request->expectsJson()) {
@@ -327,16 +332,16 @@ class CartController extends Controller
 
         // Store membership in session
         session()->put('cart_membership', [
-            'card_id'               => $card->card_id,
-            'card_name'             => $card->card_name,
-            'price'                 => (float) $card->price,
-            'validity_days'         => (int) $card->validity_days,
-            'loyalty_earn_first'    => (float) $card->loyalty_earn_first,
-            'loyalty_earn_repeat'   => (float) $card->loyalty_earn_repeat,
-            'loyalty_use_percent'   => (float) $card->loyalty_use_percent,
-            'coupon_percent'        => (float) $card->coupon_percent,
-            'voucher_validity_days' => (int) $card->voucher_validity_days,
-            'enable_bogo'           => (int) $card->enable_bogo,
+            'card_id'               => $card->card_id ?? ($card->id ?? 1),
+            'card_name'             => $card->card_name ?? 'Gold VIP Membership',
+            'price'                 => (float) ($card->price ?? 600),
+            'validity_days'         => (int) ($card->validity_days ?? 365),
+            'loyalty_earn_first'    => (float) ($card->loyalty_earn_first ?? 0),
+            'loyalty_earn_repeat'   => (float) ($card->loyalty_earn_repeat ?? 0),
+            'loyalty_use_percent'   => (float) ($card->loyalty_use_percent ?? 0),
+            'coupon_percent'        => (float) ($card->coupon_percent ?? 0),
+            'voucher_validity_days' => (int) ($card->voucher_validity_days ?? 365),
+            'enable_bogo'           => (int) ($card->enable_bogo ?? 1),
         ]);
 
         if ($request->expectsJson()) {
