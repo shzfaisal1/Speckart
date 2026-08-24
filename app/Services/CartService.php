@@ -626,18 +626,18 @@ class CartService
             $items[$key] = $item;
         }
 
-        // Inject membership card into items if in cart
+        // Inject membership card at the TOP of cart items if in cart
         if ($hasMembershipInCart) {
             $cartMembership = session()->get('cart_membership');
-            $membershipKey = 'membership_' . $cartMembership['card_id'];
-            $items[$membershipKey] = [
+            $membershipKey = 'membership_' . ($cartMembership['card_id'] ?? 1);
+            $membershipItem = [
                 'key'               => $membershipKey,
                 'is_membership'     => true,
                 'frame_id'          => null,
                 'frame_code'        => 'MEMBERSHIP',
-                'frame_name'        => $cartMembership['card_name'],
+                'frame_name'        => $cartMembership['card_name'] ?? 'Gold VIP Membership',
                 'brand'             => 'Privilege Club',
-                'frame_price'       => (float) $cartMembership['price'],
+                'frame_price'       => (float) ($cartMembership['price'] ?? 600),
                 'frame_image'       => asset('assets/img/icon/gold_membership_card.png'),
                 'size'              => 'N/A',
                 'lens_package_id'   => null,
@@ -647,7 +647,9 @@ class CartService
                 'quantity'          => 1,
                 'prescription_data' => null,
             ];
-            $frameSubtotal += (float) $cartMembership['price'];
+            // Prepend membership card so it appears on top of the products
+            $items = [$membershipKey => $membershipItem] + $items;
+            $frameSubtotal += (float) ($cartMembership['price'] ?? 600);
         }
 
         // Check if there is an active BOGO offer or membership BOGO with extra 3rd item discount (cached & date-validated)
@@ -916,13 +918,20 @@ class CartService
         $freeItemAvailable = ($bogoEligibleCount >= 2 && $membershipBogoEnabled && $bogoSavings > 0);
         session()->put('free_item_selected', $freeItemAvailable);
 
+        // Fetch active membership card for banner button data-card-id
+        $firstCard = DB::table('tbl_membership_card')->where('flag', 0)->first();
+        $bannerCardId = $firstCard ? ($firstCard->card_id ?? $firstCard->id) : 1;
+        $bannerCardPrice = $firstCard ? (float)$firstCard->price : 600;
+
         if (!$hasMembershipInCart && !$membershipBogoEnabled) {
             // State 1: Membership NOT in cart
             $bannerState = [
                 'state'      => 1,
+                'card_id'    => $bannerCardId,
+                'card_price' => $bannerCardPrice,
                 'title'      => 'Add Gold Max Membership and',
                 'subtitle'   => 'Avail Buy 1 Get 1 Free + ' . (int)$bogoExtraDiscount . '% OFF on 3rd Pair + ' . (int)$cashbackPercent . '% Loyalty Points',
-                'btn_text'   => 'Add Gold',
+                'btn_text'   => 'Add Gold @ ₹' . number_format($bannerCardPrice, 0),
                 'btn_action' => 'add_membership',
                 'cta_url'    => route('website.membership'),
             ];
