@@ -920,7 +920,7 @@ class CartService
 
         // Fetch active membership card for banner button data-card-id
         $firstCard = DB::table('tbl_membership_card')->where('flag', 0)->first();
-        $bannerCardId = $firstCard ? ($firstCard->card_id ?? $firstCard->id) : 1;
+        $bannerCardId = $firstCard ? ($firstCard->card_id ?? 1) : 1;
         $bannerCardPrice = $firstCard ? (float)$firstCard->price : 600;
 
         if (!$hasMembershipInCart && !$membershipBogoEnabled) {

@@ -315,7 +315,6 @@ class CartController extends Controller
         if ($cardId) {
             $card = DB::table('tbl_membership_card')
                 ->where('card_id', $cardId)
-                ->orWhere('id', $cardId)
                 ->first();
         }
 
