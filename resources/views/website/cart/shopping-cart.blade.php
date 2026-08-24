@@ -1575,7 +1575,7 @@
                                                                             <th>SPH</th>
                                                                             <th>CYL</th>
                                                                             <th>AXIS</th>
-                                                                            <th>ADD</th>
+                                                                            {{-- <th>ADD</th> --}}
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -1584,14 +1584,14 @@
                                                                             <td>{{ !empty($rx['right_eye_sph']) ? $rx['right_eye_sph'] : '-' }}</td>
                                                                             <td>{{ !empty($rx['right_eye_cyl']) ? $rx['right_eye_cyl'] : '-' }}</td>
                                                                             <td>{{ !empty($rx['right_eye_axis']) && $rx['right_eye_axis'] != '0' ? $rx['right_eye_axis'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['right_eye_ap']) ? $rx['right_eye_ap'] : '-' }}</td>
+                                                                            {{-- <td>{{ !empty($rx['right_eye_ap']) ? $rx['right_eye_ap'] : '-' }}</td> --}}
                                                                         </tr>
                                                                         <tr>
                                                                             <td>L</td>
                                                                             <td>{{ !empty($rx['left_eye_sph']) ? $rx['left_eye_sph'] : '-' }}</td>
                                                                             <td>{{ !empty($rx['left_eye_cyl']) ? $rx['left_eye_cyl'] : '-' }}</td>
                                                                             <td>{{ !empty($rx['left_eye_axis']) && $rx['left_eye_axis'] != '0' ? $rx['left_eye_axis'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['left_eye_ap']) ? $rx['left_eye_ap'] : '-' }}</td>
+                                                                            {{-- <td>{{ !empty($rx['left_eye_ap']) ? $rx['left_eye_ap'] : '-' }}</td> --}}
                                                                         </tr>
                                                                     </tbody>
                                                                 </table>

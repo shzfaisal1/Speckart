@@ -109,6 +109,7 @@
             font-size: 13px;
             text-decoration: none;
         }
+
         /* ===== End Loyalty Points Styles ===== */
 
         /* =========================================================
@@ -133,7 +134,7 @@
             z-index: 999;
         }
 
-        .header .nav-links li:hover > .mega-box {
+        .header .nav-links li:hover>.mega-box {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
@@ -300,8 +301,15 @@
         }
 
         @keyframes lenskartFadeIn {
-            from { opacity: 0; transform: translateY(3px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(3px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .lenskart-pane-header {
@@ -673,7 +681,7 @@
             height: 34px;
             object-fit: contain;
             margin-bottom: 6px;
-            filter: brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+            filter: brightness(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
         }
 
         .lenskart-city-item span {
@@ -1371,566 +1379,901 @@
             background: #dc2626;
             color: #ffffff;
         }
+
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .site-header-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            width: 100%;
+            max-width: 100%;
+            background: #07484a;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: visible;
+        }
+
+        .site-header-sticky .header {
+            background: #07484a;
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+
+        .site-header-sticky .header-container {
+            position: relative;
+            top: auto;
+            left: auto;
+            right: auto;
+            z-index: auto;
+            max-width: 100%;
+        }
+
+        .site-header-sticky .header nav {
+            position: relative;
+            top: auto;
+            z-index: 99;
+            width: 100%;
+            max-width: 100%;
+            overflow: visible;
+        }
+
+        .site-header-sticky .header nav .wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+            overflow: visible;
+        }
+
+        .header .nav-links {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        @media (min-width: 992px) and (max-width: 1200px) {
+            .header .nav-links {
+                gap: 0.75rem !important;
+            }
+
+            .header .nav-links > li > a {
+                font-size: 13px !important;
+                letter-spacing: -0.2px;
+            }
+
+            .lenskart-vtabs {
+                width: 220px !important;
+                padding: 10px 8px !important;
+            }
+
+            .lenskart-vtab-item {
+                padding: 8px 10px !important;
+            }
+
+            .lenskart-vtab-avatar {
+                width: 34px !important;
+                height: 34px !important;
+            }
+
+            .lenskart-vtab-title {
+                font-size: 12px !important;
+            }
+
+            .lenskart-products-grid {
+                gap: 6px !important;
+            }
+
+            .lenskart-item-card {
+                padding: 6px 8px !important;
+                min-height: 48px !important;
+            }
+
+            .lenskart-item-thumb {
+                width: 42px !important;
+                height: 28px !important;
+            }
+
+            .lenskart-item-title {
+                font-size: 11.5px !important;
+            }
+
+            .lenskart-cl-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 12px !important;
+                padding: 14px !important;
+            }
+
+            .lenskart-cities-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
+            }
+        }
     </style>
 
-    <!-- navbar -->
-    @include('website.layout.partial.login-modal')
-    <section class="header" data-is-logged-in="{{ auth()->check() ? 'true' : 'false' }}">
-        <div class="container header-container">
-            <div class="row mb-0">
-                <div class="col-lg-12 px-lg-4 px-2">
-                    <div class="top-menu px-0 flex-wrap flex-md-wrap flex-lg-nowrap">
-                        <div class="d-lg-block d-md-none d-none">
-                            <div class="d-flex align-items-center ms-lg-0 ms-mb-3 ms-3">
-                                <a href="/speckart-website" class="logo">
-                                    <img src="{{ asset('website/assets/img/logo/Specskart-logo-png.png') }}" alt="Speckarts Logo">
+    <!-- announcement bar (scrolls away naturally with page) -->
+    {{-- @include('website.layout.partial.announcement-bar') --}}
+
+    <!-- Sticky Main Header Wrapper (Logo, Search, User Profile, Mega Menu Navigation) -->
+    <header class="site-header-sticky">
+        <!-- navbar -->
+        @include('website.layout.partial.login-modal')
+        <section class="header" data-is-logged-in="{{ auth()->check() ? 'true' : 'false' }}">
+            <div class="container header-container">
+                <div class="row mb-0">
+                    <div class="col-lg-12 px-lg-4 px-2">
+                        <div class="top-menu px-0 flex-wrap flex-md-wrap flex-lg-nowrap">
+                            <div class="d-lg-block d-md-none d-none">
+                                <div class="d-flex align-items-center ms-lg-0 ms-mb-3 ms-3">
+                                    <a href="/speckart-website" class="logo">
+                                        <img src="{{ asset('website/assets/img/logo/Specskart-logo-png.png') }}"
+                                            alt="Speckarts Logo">
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="d-lg-none d-md-block d-block">
+                                <a style="padding: 2px 12px;display: flex;flex-direction: column;">
+                                    <div>
+                                        <p class="mb-0" style="color:rgb(255, 94, 72)">Get faster delivery <img
+                                                src="{{ asset('website/assets/img/icon/Thunder3x.webp') }}"
+                                                alt="gold-delivery-icon" title="gold-delivery-icon"
+                                                class="gold-delivery-icon"></p>
+                                    </div>
+                                    <div class="select-location">
+                                        <div class="location-text">
+                                            <h5>Select Location</h5>
+                                        </div>
+                                        <div class="location-arrow">
+                                            <svg width="10" height="6" viewBox="0 0 8 4" fill="none">
+                                                <path d="M4 4 0 0h8L4 4Z" fill="#fff" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
-                        </div>
-                        <div class="d-lg-none d-md-block d-block">
-                            <a style="padding: 2px 12px;display: flex;flex-direction: column;">
-                                <div>
-                                    <p class="mb-0" style="color:rgb(255, 94, 72)">Get faster delivery <img
-                                            src="{{ asset('website/assets/img/icon/Thunder3x.webp') }}" alt="gold-delivery-icon"
-                                            title="gold-delivery-icon" class="gold-delivery-icon"></p>
-                                </div>
-                                <div class="select-location">
-                                    <div class="location-text">
-                                        <h5>Select Location</h5>
-                                    </div>
-                                    <div class="location-arrow">
-                                        <svg width="10" height="6" viewBox="0 0 8 4" fill="none">
-                                            <path d="M4 4 0 0h8L4 4Z" fill="#fff" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="top-menu-list d-lg-none d-md-block d-block">
-                            <ul class="ps-0 mb-0 d-flex align-items-center justify-content-end">
-                                <!-- Wishlist -->
-                                <li>
-                                    <a href="{{ route('wishlist') }}" class="wishlist-link">
-                                        <p class="wishlist-icon position-relative mb-0">
-                                            <img src="{{ asset('website/assets/img/icon/Wishlist.png') }}" alt="Wishlist">
-                                            <span class="wishlist-badge badge rounded-pill bg-danger position-absolute {{ $initialWishlistCount > 0 ? '' : 'd-none' }}"
-                                                style="top: -5px; right: -8px; font-size: 10px; padding: 2px 5px;">{{ $initialWishlistCount }}</span>
-                                        </p>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('cart') }}" class="cart-link">
-                                        <p class="cart-icon position-relative mb-0">
-                                            <img src="{{ asset('website/assets/img/icon/My-Cart.png') }}" alt="Cart">
-                                            <span class="cart-badge badge rounded-pill bg-danger position-absolute {{ $initialCartCount > 0 ? '' : 'd-none' }}"
-                                                style="top: -5px; right: -8px; font-size: 10px; padding: 2px 5px;">{{ $initialCartCount }}</span>
-                                        </p>
-                                    </a>
-                                </li>
+                            <div class="top-menu-list d-lg-none d-md-block d-block">
+                                <ul class="ps-0 mb-0 d-flex align-items-center justify-content-end">
+                                    <!-- Wishlist -->
+                                    <li>
+                                        <a href="{{ route('wishlist') }}" class="wishlist-link">
+                                            <p class="wishlist-icon position-relative mb-0">
+                                                <img src="{{ asset('website/assets/img/icon/Wishlist.png') }}"
+                                                    alt="Wishlist">
+                                                <span
+                                                    class="wishlist-badge badge rounded-pill bg-danger position-absolute {{ $initialWishlistCount > 0 ? '' : 'd-none' }}"
+                                                    style="top: -5px; right: -8px; font-size: 10px; padding: 2px 5px;">{{ $initialWishlistCount }}</span>
+                                            </p>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('cart') }}" class="cart-link">
+                                            <p class="cart-icon position-relative mb-0">
+                                                <img src="{{ asset('website/assets/img/icon/My-Cart.png') }}"
+                                                    alt="Cart">
+                                                <span
+                                                    class="cart-badge badge rounded-pill bg-danger position-absolute {{ $initialCartCount > 0 ? '' : 'd-none' }}"
+                                                    style="top: -5px; right: -8px; font-size: 10px; padding: 2px 5px;">{{ $initialCartCount }}</span>
+                                            </p>
+                                        </a>
+                                    </li>
 
-                                <!-- Menu -->
-                                <li class="pe-2">
-                                    <button class="btn mobile-menu-btn p-0" data-bs-toggle="offcanvas"
-                                        data-bs-target="#mobileSidebar">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                            <path d="M5 17H14.5M5 12H19M5 7H19" stroke="#fff" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="search-box position-relative">
-                            <form action="{{ route('products') }}" method="GET" id="header-search-form">
-                                <div class="input-group custom-search">
-                                    <input type="text" class="form-control border-0 px-3 ajax-search-input" id="searchInput" name="search" autocomplete="off"
-                                        placeholder="Search glasses, lenses, specs..." value="{{ request('search') }}">
-                                    <button class="btn search-btn" type="submit" style="border-left:1px solid #000;">
-                                        Search
-                                    </button>
-                                </div>
-                            </form>
+                                    <!-- Menu -->
+                                    <li class="pe-2">
+                                        <button class="btn mobile-menu-btn p-0" data-bs-toggle="offcanvas"
+                                            data-bs-target="#mobileSidebar">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                <path d="M5 17H14.5M5 12H19M5 7H19" stroke="#fff" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="search-box position-relative">
+                                <form action="{{ route('products') }}" method="GET" id="header-search-form">
+                                    <div class="input-group custom-search">
+                                        <input type="text" class="form-control border-0 px-3 ajax-search-input"
+                                            id="searchInput" name="search" autocomplete="off"
+                                            placeholder="Search glasses, lenses, specs..."
+                                            value="{{ request('search') }}">
+                                        <button class="btn search-btn" type="submit"
+                                            style="border-left:1px solid #000;">
+                                            Search
+                                        </button>
+                                    </div>
+                                </form>
 
-                            <!-- Search Dropdown -->
-                            <div id="search-suggestions-dropdown" class="search-suggestions-dropdown ajax-search-dropdown" style="display:none;">
-                                <div class="search-suggestions-content">
-                                    <!-- Suggestions populated via AJAX -->
+                                <!-- Search Dropdown -->
+                                <div id="search-suggestions-dropdown"
+                                    class="search-suggestions-dropdown ajax-search-dropdown" style="display:none;">
+                                    <div class="search-suggestions-content">
+                                        <!-- Suggestions populated via AJAX -->
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="top-menu-list d-lg-block d-md-none d-none">
-                            <ul class="ps-0">
-                                <li>
-                                    <a href="{{ route('wishlist') }}" class="wishlist-link">
-                                        <p class="wishlist-icon position-relative">
-                                            <img src="{{ asset('website/assets/img/icon/Wishlist.png') }}" alt="Wishlist">
-                                            <span class="wishlist-badge badge rounded-pill bg-danger position-absolute {{ $initialWishlistCount > 0 ? '' : 'd-none' }}"
-                                                style="top: -4px; right: 3px; font-size: 10px; padding: 2px 5px;">{{ $initialWishlistCount }}</span>
-                                        </p>
-                                        <p>Wishlist</p>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('cart') }}" class="cart-link">
-                                        <p class="cart-icon position-relative">
-                                            <img src="{{ asset('website/assets/img/icon/My-Cart.png') }}" alt="Cart">
-                                            <span class="cart-badge badge rounded-pill bg-danger position-absolute {{ $initialCartCount > 0 ? '' : 'd-none' }}"
-                                                style="top: -5px; right: -8px; font-size: 10px; padding: 2px 5px;">{{ $initialCartCount }}</span>
-                                        </p>
-                                        <p>My Cart</p>
-                                    </a>
-                                </li>
-
-                                <li class="dropdown pe-0 user-profile-nav-item">
-                                    @guest
-                                        <a href="{{ route('login.web') }}">
-                                            <p>
-                                                <img src="{{ asset('website/assets/img/icon/Signup.png') }}" alt="Login">
+                            <div class="top-menu-list d-lg-block d-md-none d-none">
+                                <ul class="ps-0">
+                                    <li>
+                                        <a href="{{ route('wishlist') }}" class="wishlist-link">
+                                            <p class="wishlist-icon position-relative">
+                                                <img src="{{ asset('website/assets/img/icon/Wishlist.png') }}"
+                                                    alt="Wishlist">
+                                                <span
+                                                    class="wishlist-badge badge rounded-pill bg-danger position-absolute {{ $initialWishlistCount > 0 ? '' : 'd-none' }}"
+                                                    style="top: -4px; right: 3px; font-size: 10px; padding: 2px 5px;">{{ $initialWishlistCount }}</span>
                                             </p>
-                                            <p>Sign up / Sign In</p>
+                                            <p>Wishlist</p>
                                         </a>
-                                    @endguest
-
-                                    @auth
-                                        <a href="javascript:void(0);" class="dropdown-toggle user-nav-toggle">
-                                            <p>
-                                                <img src="{{ Auth::user()->image ? Auth::user()->profile_image_url : asset('website/assets/img/icon/user.png') }}" alt="{{ Auth::user()->name }}" class="profile-avatar" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/icon/user.png') }}';">
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('cart') }}" class="cart-link">
+                                            <p class="cart-icon position-relative">
+                                                <img src="{{ asset('website/assets/img/icon/My-Cart.png') }}"
+                                                    alt="Cart">
+                                                <span
+                                                    class="cart-badge badge rounded-pill bg-danger position-absolute {{ $initialCartCount > 0 ? '' : 'd-none' }}"
+                                                    style="top: -5px; right: -8px; font-size: 10px; padding: 2px 5px;">{{ $initialCartCount }}</span>
                                             </p>
-                                            <p>{{ Auth::user()->name }}</p>
+                                            <p>My Cart</p>
                                         </a>
-                                        <div class="user-profile-menu-dropdown">
-                                            <ul class="user-dropdown-list">
-                                                <li>
-                                                    <a href="{{ route('profile') }}" class="user-dropdown-link">
-                                                        <i class="bi bi-person"></i>
-                                                        <span>Profile</span>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="{{ route('my-orders') }}" class="user-dropdown-link">
-                                                        <i class="bi bi-box-seam"></i>
-                                                        <span>My Orders</span>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="{{ route('my-addresses') }}" class="user-dropdown-link">
-                                                        <i class="bi bi-geo-alt"></i>
-                                                        <span>My Addresses</span>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="{{ route('my-prescriptions') }}" class="user-dropdown-link">
-                                                        <i class="bi bi-file-earmark-medical"></i>
-                                                        <span>My Prescriptions</span>
-                                                    </a>
-                                                </li>
-                                                <li class="user-dropdown-divider"></li>
-                                                <li>
-                                                    <form method="POST" action="{{ route('logout.web') }}" style="margin:0; width:100%;">
-                                                        @csrf
-                                                        <button type="submit" class="user-dropdown-logout-link">
-                                                            <i class="bi bi-box-arrow-right"></i>
-                                                            <span>Logout</span>
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    @endauth
-                                </li>
-                            </ul>
+                                    </li>
+
+                                    <li class="dropdown pe-0 user-profile-nav-item">
+                                        @guest
+                                            <a href="{{ route('login.web') }}">
+                                                <p>
+                                                    <img src="{{ asset('website/assets/img/icon/Signup.png') }}"
+                                                        alt="Login">
+                                                </p>
+                                                <p>Sign up / Sign In</p>
+                                            </a>
+                                        @endguest
+
+                                        @auth
+                                            <a href="javascript:void(0);" class="dropdown-toggle user-nav-toggle">
+                                                <p>
+                                                    <img src="{{ Auth::user()->image ? Auth::user()->profile_image_url : asset('website/assets/img/icon/user.png') }}"
+                                                        alt="{{ Auth::user()->name }}" class="profile-avatar"
+                                                        onerror="this.onerror=null;this.src='{{ asset('website/assets/img/icon/user.png') }}';">
+                                                </p>
+                                                <p>{{ Auth::user()->name }}</p>
+                                            </a>
+                                            <div class="user-profile-menu-dropdown">
+                                                <ul class="user-dropdown-list">
+                                                    <li>
+                                                        <a href="{{ route('profile') }}" class="user-dropdown-link">
+                                                            <i class="bi bi-person"></i>
+                                                            <span>Profile</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="{{ route('my-orders') }}" class="user-dropdown-link">
+                                                            <i class="bi bi-box-seam"></i>
+                                                            <span>My Orders</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="{{ route('my-addresses') }}" class="user-dropdown-link">
+                                                            <i class="bi bi-geo-alt"></i>
+                                                            <span>My Addresses</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="{{ route('my-prescriptions') }}"
+                                                            class="user-dropdown-link">
+                                                            <i class="bi bi-file-earmark-medical"></i>
+                                                            <span>My Prescriptions</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="user-dropdown-divider"></li>
+                                                    <li>
+                                                        <form method="POST" action="{{ route('logout.web') }}"
+                                                            style="margin:0; width:100%;">
+                                                            @csrf
+                                                            <button type="submit" class="user-dropdown-logout-link">
+                                                                <i class="bi bi-box-arrow-right"></i>
+                                                                <span>Logout</span>
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        @endauth
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- =========================================================
+            <!-- =========================================================
              DESKTOP NAVIGATION: VERTICAL TABS + RIGHT 3x3 PRODUCT GRID
         ========================================================= -->
-        <nav class="d-lg-block d-md-none d-none">
-            <div class="wrapper">
-                <div class="row mb-0">
-                    <div class="col-lg-12 text-center">
-                        <input type="radio" name="slider" id="menu-btn">
-                        <input type="radio" name="slider" id="close-btn">
-                        <ul class="nav-links gap-3">
-                            <label for="close-btn" class="btn close-btn"><i class="fas fa-times"></i></label>
+            <nav class="d-lg-block d-md-none d-none">
+                <div class="wrapper">
+                    <div class="row g-0 m-0">
+                        <div class="col-12 px-0 text-center">
+                            <input type="radio" name="slider" id="menu-btn">
+                            <input type="radio" name="slider" id="close-btn">
+                            <ul class="nav-links gap-3">
+                                <label for="close-btn" class="btn close-btn"><i class="fas fa-times"></i></label>
 
-                            <!-- 1. EYEGLASSES (VERTICAL TABS: MEN, WOMEN, KIDS -> RIGHT 3x3 GRID) -->
-                            <li class="lenskart-nav-parent">
-                                <a href="{{ route('products') }}?category=eyeglasses" class="desktop-item">Eyeglasses</a>
-                                <input type="checkbox" id="showMegaEye">
-                                <label for="showMegaEye" class="mobile-item">Eyeglasses</label>
-                                <div class="mega-box">
-                                    <div class="lenskart-mega-container">
-                                        <div class="lenskart-vlayout">
-                                            <!-- LEFT: Vertical Tabs for Men, Women, Kids -->
-                                            <div class="lenskart-vtabs">
-                                                <!-- Tab 1: Men -->
-                                                <div class="lenskart-vtab-item active" data-vtarget="#eye-pane-men">
-                                                    <div class="lenskart-vtab-left">
-                                                        <img src="{{ asset('website/assets/img/icon/specs-men.png') }}" alt="Men" class="lenskart-vtab-avatar">
-                                                        <div class="lenskart-vtab-info">
-                                                            <span class="lenskart-vtab-title">MEN Eyeglasses</span>
-                                                            <span class="lenskart-vtab-badge"><i class="bi bi-patch-check-fill"></i> with FREE lenses</span>
+                                <!-- 1. EYEGLASSES (VERTICAL TABS: MEN, WOMEN, KIDS -> RIGHT 3x3 GRID) -->
+                                <li class="lenskart-nav-parent">
+                                    <a href="{{ route('products') }}?category=eyeglasses"
+                                        class="desktop-item">Eyeglasses</a>
+                                    <input type="checkbox" id="showMegaEye">
+                                    <label for="showMegaEye" class="mobile-item">Eyeglasses</label>
+                                    <div class="mega-box">
+                                        <div class="lenskart-mega-container">
+                                            <div class="lenskart-vlayout">
+                                                <!-- LEFT: Vertical Tabs for Men, Women, Kids -->
+                                                <div class="lenskart-vtabs">
+                                                    <!-- Tab 1: Men -->
+                                                    <div class="lenskart-vtab-item active"
+                                                        data-vtarget="#eye-pane-men">
+                                                        <div class="lenskart-vtab-left">
+                                                            <img src="{{ asset('website/assets/img/icon/specs-men.png') }}"
+                                                                alt="Men" class="lenskart-vtab-avatar">
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">MEN Eyeglasses</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-patch-check-fill"></i> with FREE
+                                                                    lenses</span>
+                                                            </div>
                                                         </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
                                                     </div>
-                                                    <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+
+                                                    <!-- Tab 2: Women -->
+                                                    <div class="lenskart-vtab-item" data-vtarget="#eye-pane-women">
+                                                        <div class="lenskart-vtab-left">
+                                                            <img src="{{ asset('website/assets/img/icon/specs-women.png') }}"
+                                                                alt="Women" class="lenskart-vtab-avatar">
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">WOMEN
+                                                                    Eyeglasses</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-patch-check-fill"></i> with FREE
+                                                                    lenses</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
+
+                                                    <!-- Tab 3: Kids -->
+                                                    <div class="lenskart-vtab-item" data-vtarget="#eye-pane-kids">
+                                                        <div class="lenskart-vtab-left">
+                                                            <img src="{{ asset('website/assets/img/icon/specs-kid.png') }}"
+                                                                alt="Kids" class="lenskart-vtab-avatar">
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">KIDS
+                                                                    Eyeglasses</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-patch-check-fill"></i> with FREE
+                                                                    lenses</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Tab 2: Women -->
-                                                <div class="lenskart-vtab-item" data-vtarget="#eye-pane-women">
-                                                    <div class="lenskart-vtab-left">
-                                                        <img src="{{ asset('website/assets/img/icon/specs-women.png') }}" alt="Women" class="lenskart-vtab-avatar">
-                                                        <div class="lenskart-vtab-info">
-                                                            <span class="lenskart-vtab-title">WOMEN Eyeglasses</span>
-                                                            <span class="lenskart-vtab-badge"><i class="bi bi-patch-check-fill"></i> with FREE lenses</span>
+                                                <!-- RIGHT: Active Tab Content (3x3 Products Grid) -->
+                                                <div class="lenskart-vcontent">
+                                                    <!-- PANE 1: MEN EYEGLASSES -->
+                                                    <div class="lenskart-vpane active" id="eye-pane-men">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>MEN'S</span> Eyewear Collection</h5>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men"
+                                                                class="view-more-link">
+                                                                View All Men's Glasses <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&brand=John%20Jacobs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs1.png') }}"
+                                                                            alt="John Jacobs"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">John Jacobs |
+                                                                            Owndays</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹3000</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&brand=Vincent%20Chase"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs2.png') }}"
+                                                                            alt="Vincent Chase"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Vincent Chase
+                                                                            | Speckart Air</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&shape=Rectangle"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs3.png') }}"
+                                                                            alt="Hustlr"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Hustlr |
+                                                                            Shark Tank Edition</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&frame_type=Full-Rim"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs4.png') }}"
+                                                                            alt="Essentials"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Essentials |
+                                                                            Daily Wear</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&shape=Rectangle"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs5.png') }}"
+                                                                            alt="Rectangle Frames"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Rectangle &
+                                                                            Square Frames</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹800</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&shape=Round"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs6.png') }}"
+                                                                            alt="Round Frames"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Round &
+                                                                            Aviator Styles</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹999</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&frame_type=Rimless"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/Rimless.png') }}"
+                                                                            alt="Rimless Frames"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Rimless &
+                                                                            Titanium Frames</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men&frame_type=Half-Rim"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/Half-Rim.png') }}"
+                                                                            alt="Half Rim"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Halfrim
+                                                                            Business Frames</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1200</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=men"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs7.png') }}"
+                                                                            alt="All Brands"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Men
+                                                                            Brands & Styles</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
-                                                </div>
 
-                                                <!-- Tab 3: Kids -->
-                                                <div class="lenskart-vtab-item" data-vtarget="#eye-pane-kids">
-                                                    <div class="lenskart-vtab-left">
-                                                        <img src="{{ asset('website/assets/img/icon/specs-kid.png') }}" alt="Kids" class="lenskart-vtab-avatar">
-                                                        <div class="lenskart-vtab-info">
-                                                            <span class="lenskart-vtab-title">KIDS Eyeglasses</span>
-                                                            <span class="lenskart-vtab-badge"><i class="bi bi-patch-check-fill"></i> with FREE lenses</span>
+                                                    <!-- PANE 2: WOMEN EYEGLASSES -->
+                                                    <div class="lenskart-vpane" id="eye-pane-women">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>WOMEN'S</span> Eyewear Collection</h5>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women"
+                                                                class="view-more-link">
+                                                                View All Women's Glasses <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&brand=John%20Jacobs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs1.png') }}"
+                                                                            alt="John Jacobs"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">John Jacobs |
+                                                                            Owndays</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹3000</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&brand=Vincent%20Chase"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs6.png') }}"
+                                                                            alt="Vincent Chase"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Vincent Chase
+                                                                            | Speckart Air</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&shape=Cat-Eye"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs7.png') }}"
+                                                                            alt="Cat-Eye"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Hustlr |
+                                                                            Cat-Eye & Chic</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&frame_type=Full-Rim"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs4.png') }}"
+                                                                            alt="Essentials"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Essentials |
+                                                                            Lightweight Daily</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&shape=Round"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs5.png') }}"
+                                                                            alt="Round Frames"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Round &
+                                                                            Hexagonal Styles</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹800</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&shape=Cat-Eye"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs3.png') }}"
+                                                                            alt="Butterfly Frames"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Butterfly &
+                                                                            Oversized Glam</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1200</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&frame_type=Rimless"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/Rimless.png') }}"
+                                                                            alt="Rimless Frames"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Rimless Sleek
+                                                                            Metals</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women&frame_type=Half-Rim"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/Half-Rim.png') }}"
+                                                                            alt="Half Rim"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Halfrim
+                                                                            Pastel Frames</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1100</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=eyeglasses&gender=women"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs2.png') }}"
+                                                                            alt="All Brands"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Women
+                                                                            Brands & Styles</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+
+                                                    <!-- PANE 3: KIDS EYEGLASSES -->
+                                                    <div class="lenskart-vpane" id="eye-pane-kids">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>KIDS'</span> Eyewear Collection</h5>
+                                                            <a href="{{ route('products') }}?category=kids"
+                                                                class="view-more-link">
+                                                                View All Kids' Glasses <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?category=kids&age=5-8%20Yrs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s1.png') }}"
+                                                                            alt="Juniors"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Juniors | 5
+                                                                            to 8 years</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹800</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids&age=8-12%20Yrs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s2.png') }}"
+                                                                            alt="Tweens"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Tweens | 8 to
+                                                                            12 years</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids&age=8-12%20Yrs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s3.png') }}"
+                                                                            alt="Teens"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Teens | 12 to
+                                                                            17 years</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s4.png') }}"
+                                                                            alt="Hooper Mini"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Hooper Mini |
+                                                                            Flexi Unbreakable</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹999</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s1.png') }}"
+                                                                            alt="Creatr"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Creatr
+                                                                            Ultra-Light Frames</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹600</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s2.png') }}"
+                                                                            alt="Flexi"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Flexi
+                                                                            Shock-Absorbing</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹800</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids&shape=Round"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s3.png') }}"
+                                                                            alt="Round Kids"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Round & Oval
+                                                                            Kid Shapes</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/s4.png') }}"
+                                                                            alt="Zero Power"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Zero Power
+                                                                            Anti-Breakage</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹600</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=kids"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/specs4.png') }}"
+                                                                            alt="All Kids"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Kids
+                                                                            Glasses & Frames</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <!-- RIGHT: Active Tab Content (3x3 Products Grid) -->
-                                            <div class="lenskart-vcontent">
-                                                <!-- PANE 1: MEN EYEGLASSES -->
-                                                <div class="lenskart-vpane active" id="eye-pane-men">
-                                                    <div class="lenskart-pane-header">
-                                                        <h5><span>MEN'S</span> Eyewear Collection</h5>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men" class="view-more-link">
-                                                            View All Men's Glasses <i class="bi bi-arrow-right"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="lenskart-products-grid">
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&brand=John%20Jacobs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs1.png') }}" alt="John Jacobs"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">John Jacobs | Owndays</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹3000</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&brand=Vincent%20Chase" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs2.png') }}" alt="Vincent Chase"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Vincent Chase | Speckart Air</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&shape=Rectangle" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs3.png') }}" alt="Hustlr"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Hustlr | Shark Tank Edition</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&frame_type=Full-Rim" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs4.png') }}" alt="Essentials"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Essentials | Daily Wear</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&shape=Rectangle" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs5.png') }}" alt="Rectangle Frames"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Rectangle & Square Frames</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹800</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&shape=Round" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs6.png') }}" alt="Round Frames"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Round & Aviator Styles</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹999</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&frame_type=Rimless" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/Rimless.png') }}" alt="Rimless Frames"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Rimless & Titanium Frames</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men&frame_type=Half-Rim" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/Half-Rim.png') }}" alt="Half Rim"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Halfrim Business Frames</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1200</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=men" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs7.png') }}" alt="All Brands"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">All Men Brands & Styles</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                    </div>
+                                            <!-- Bottom Perks Bar -->
+                                            <div class="lenskart-mega-footer">
+                                                <div class="lenskart-footer-perks">
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-shield-check text-success"></i> 1 Year
+                                                        Warranty</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-arrow-repeat text-primary"></i> 14-Day Free
+                                                        Exchange</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-truck text-warning"></i> Free Shipping Pan
+                                                        India</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-patch-check-fill text-info"></i> 100%
+                                                        Authentic</div>
                                                 </div>
-
-                                                <!-- PANE 2: WOMEN EYEGLASSES -->
-                                                <div class="lenskart-vpane" id="eye-pane-women">
-                                                    <div class="lenskart-pane-header">
-                                                        <h5><span>WOMEN'S</span> Eyewear Collection</h5>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women" class="view-more-link">
-                                                            View All Women's Glasses <i class="bi bi-arrow-right"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="lenskart-products-grid">
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&brand=John%20Jacobs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs1.png') }}" alt="John Jacobs"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">John Jacobs | Owndays</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹3000</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&brand=Vincent%20Chase" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs6.png') }}" alt="Vincent Chase"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Vincent Chase | Speckart Air</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&shape=Cat-Eye" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs7.png') }}" alt="Cat-Eye"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Hustlr | Cat-Eye & Chic</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&frame_type=Full-Rim" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs4.png') }}" alt="Essentials"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Essentials | Lightweight Daily</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&shape=Round" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs5.png') }}" alt="Round Frames"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Round & Hexagonal Styles</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹800</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&shape=Cat-Eye" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs3.png') }}" alt="Butterfly Frames"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Butterfly & Oversized Glam</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1200</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&frame_type=Rimless" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/Rimless.png') }}" alt="Rimless Frames"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Rimless Sleek Metals</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women&frame_type=Half-Rim" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/Half-Rim.png') }}" alt="Half Rim"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Halfrim Pastel Frames</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1100</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=eyeglasses&gender=women" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs2.png') }}" alt="All Brands"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">All Women Brands & Styles</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
-
-                                                <!-- PANE 3: KIDS EYEGLASSES -->
-                                                <div class="lenskart-vpane" id="eye-pane-kids">
-                                                    <div class="lenskart-pane-header">
-                                                        <h5><span>KIDS'</span> Eyewear Collection</h5>
-                                                        <a href="{{ route('products') }}?category=kids" class="view-more-link">
-                                                            View All Kids' Glasses <i class="bi bi-arrow-right"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="lenskart-products-grid">
-                                                        <a href="{{ route('products') }}?category=kids&age=5-8%20Yrs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s1.png') }}" alt="Juniors"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Juniors | 5 to 8 years</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹800</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids&age=8-12%20Yrs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s2.png') }}" alt="Tweens"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Tweens | 8 to 12 years</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids&age=8-12%20Yrs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s3.png') }}" alt="Teens"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Teens | 12 to 17 years</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s4.png') }}" alt="Hooper Mini"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Hooper Mini | Flexi Unbreakable</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹999</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s1.png') }}" alt="Creatr"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Creatr Ultra-Light Frames</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹600</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s2.png') }}" alt="Flexi"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Flexi Shock-Absorbing</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹800</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids&shape=Round" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s3.png') }}" alt="Round Kids"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Round & Oval Kid Shapes</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/s4.png') }}" alt="Zero Power"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Zero Power Anti-Breakage</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹600</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=kids" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/specs4.png') }}" alt="All Kids"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">All Kids Glasses & Frames</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                                <a href="{{ route('products') }}?category=eyeglasses"
+                                                    class="lenskart-footer-link">
+                                                    View All Eyeglasses <i class="bi bi-arrow-right"></i>
+                                                </a>
                                             </div>
-                                        </div>
-
-                                        <!-- Bottom Perks Bar -->
-                                        <div class="lenskart-mega-footer">
-                                            <div class="lenskart-footer-perks">
-                                                <div class="lenskart-perk"><i class="bi bi-shield-check text-success"></i> 1 Year Warranty</div>
-                                                <div class="lenskart-perk"><i class="bi bi-arrow-repeat text-primary"></i> 14-Day Free Exchange</div>
-                                                <div class="lenskart-perk"><i class="bi bi-truck text-warning"></i> Free Shipping Pan India</div>
-                                                <div class="lenskart-perk"><i class="bi bi-patch-check-fill text-info"></i> 100% Authentic</div>
-                                            </div>
-                                            <a href="{{ route('products') }}?category=eyeglasses" class="lenskart-footer-link">
-                                                View All Eyeglasses <i class="bi bi-arrow-right"></i>
-                                            </a>
                                         </div>
                                     </div>
-                                </div>
-                            </li>
+                                </li>
 
-                            {{-- <!-- 2. SCREEN GLASSES (VERTICAL TABS: MEN, WOMEN, KIDS -> RIGHT 3x3 GRID) -->
+                                {{-- <!-- 2. SCREEN GLASSES (VERTICAL TABS: MEN, WOMEN, KIDS -> RIGHT 3x3 GRID) -->
                             <li class="lenskart-nav-parent">
                                 <a href="{{ route('products') }}?category=computer-glasses" class="desktop-item">Screen Glasses</a>
                                 <input type="checkbox" id="showMegaScreen">
@@ -2490,404 +2833,607 @@
                                 </div>
                             </li> --}}
 
-                            <!-- 4. SUNGLASSES (VERTICAL TABS: MEN, WOMEN, TRENDING -> RIGHT 3x3 GRID) -->
-                            <li class="lenskart-nav-parent">
-                                <a href="{{ route('products') }}?category=sunglasses" class="desktop-item">Sunglasses</a>
-                                <input type="checkbox" id="showMegaSun">
-                                <label for="showMegaSun" class="mobile-item">Sunglasses</label>
-                                <div class="mega-box">
-                                    <div class="lenskart-mega-container">
-                                        <div class="lenskart-vlayout">
-                                            <!-- LEFT: Vertical Tabs for Sunglasses -->
-                                            <div class="lenskart-vtabs">
-                                                <!-- Tab 1: Men -->
-                                                <div class="lenskart-vtab-item active" data-vtarget="#sun-pane-men">
-                                                    <div class="lenskart-vtab-left">
-                                                        <img src="{{ asset('website/assets/img/icon/specs-men.png') }}" alt="Men" class="lenskart-vtab-avatar">
-                                                        <div class="lenskart-vtab-info">
-                                                            <span class="lenskart-vtab-title">MEN Sunglasses</span>
-                                                            <span class="lenskart-vtab-badge"><i class="bi bi-sun-fill"></i> 100% UV Protection</span>
+                                <!-- 4. SUNGLASSES (VERTICAL TABS: MEN, WOMEN, TRENDING -> RIGHT 3x3 GRID) -->
+                                <li class="lenskart-nav-parent">
+                                    <a href="{{ route('products') }}?category=sunglasses"
+                                        class="desktop-item">Sunglasses</a>
+                                    <input type="checkbox" id="showMegaSun">
+                                    <label for="showMegaSun" class="mobile-item">Sunglasses</label>
+                                    <div class="mega-box">
+                                        <div class="lenskart-mega-container">
+                                            <div class="lenskart-vlayout">
+                                                <!-- LEFT: Vertical Tabs for Sunglasses -->
+                                                <div class="lenskart-vtabs">
+                                                    <!-- Tab 1: Men -->
+                                                    <div class="lenskart-vtab-item active"
+                                                        data-vtarget="#sun-pane-men">
+                                                        <div class="lenskart-vtab-left">
+                                                            <img src="{{ asset('website/assets/img/icon/specs-men.png') }}"
+                                                                alt="Men" class="lenskart-vtab-avatar">
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">MEN Sunglasses</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-sun-fill"></i> 100% UV
+                                                                    Protection</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
+
+                                                    <!-- Tab 2: Women -->
+                                                    <div class="lenskart-vtab-item" data-vtarget="#sun-pane-women">
+                                                        <div class="lenskart-vtab-left">
+                                                            <img src="{{ asset('website/assets/img/icon/specs-women.png') }}"
+                                                                alt="Women" class="lenskart-vtab-avatar">
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">WOMEN
+                                                                    Sunglasses</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-sun-fill"></i> 100% UV
+                                                                    Protection</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
+
+                                                    <!-- Tab 3: Trending -->
+                                                    <div class="lenskart-vtab-item" data-vtarget="#sun-pane-trending">
+                                                        <div class="lenskart-vtab-left">
+                                                            <img src="{{ asset('website/assets/img/icon/sunglasses.png') }}"
+                                                                alt="Trending" class="lenskart-vtab-avatar">
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">KIDS
+                                                                    Sunglasses</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-fire"></i> Best Sellers</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
+                                                </div>
+
+                                                <!-- RIGHT: Active Tab Content (3x3 Products Grid) -->
+                                                <div class="lenskart-vcontent">
+                                                    <!-- PANE 1: MEN SUNGLASSES -->
+                                                    <div class="lenskart-vpane active" id="sun-pane-men">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>MEN'S</span> Sunglasses Collection</h5>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men"
+                                                                class="view-more-link">
+                                                                View All Men's Sunglasses <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men&brand=Vincent%20Chase"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}"
+                                                                            alt="Vincent Chase"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Vincent Chase
+                                                                            | Polarized</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men&brand=John%20Jacobs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses2.png') }}"
+                                                                            alt="John Jacobs"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">John Jacobs |
+                                                                            Luxury Italian</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹3500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men&shape=Aviator"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses3.png') }}"
+                                                                            alt="Aviator"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Aviators &
+                                                                            Navigators</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1200</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men&shape=Wayfarer"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses4.png') }}"
+                                                                            alt="Wayfarer"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Wayfarers &
+                                                                            Classics</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹999</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men&shape=Round"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}"
+                                                                            alt="Round Sunglasses"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Round &
+                                                                            Hexagonal Sun</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1100</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=men"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/sunglasses.png') }}"
+                                                                            alt="All Sunglasses"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Men
+                                                                            Sunglasses</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹800</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
-                                                </div>
 
-                                                <!-- Tab 2: Women -->
-                                                <div class="lenskart-vtab-item" data-vtarget="#sun-pane-women">
-                                                    <div class="lenskart-vtab-left">
-                                                        <img src="{{ asset('website/assets/img/icon/specs-women.png') }}" alt="Women" class="lenskart-vtab-avatar">
-                                                        <div class="lenskart-vtab-info">
-                                                            <span class="lenskart-vtab-title">WOMEN Sunglasses</span>
-                                                            <span class="lenskart-vtab-badge"><i class="bi bi-sun-fill"></i> 100% UV Protection</span>
+                                                    <!-- PANE 2: WOMEN SUNGLASSES -->
+                                                    <div class="lenskart-vpane" id="sun-pane-women">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>WOMEN'S</span> Sunglasses Collection</h5>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=women"
+                                                                class="view-more-link">
+                                                                View All Women's Sunglasses <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=women&brand=Vincent%20Chase"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}"
+                                                                            alt="Vincent Chase"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Vincent Chase
+                                                                            | Polarized</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=women&brand=John%20Jacobs"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses2.png') }}"
+                                                                            alt="John Jacobs"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">John Jacobs |
+                                                                            Luxury Italian</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹3500</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=women&shape=Cat-Eye"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses3.png') }}"
+                                                                            alt="Cat-Eye"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Cat-Eye &
+                                                                            Butterfly</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1200</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=women&shape=Round"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses4.png') }}"
+                                                                            alt="Oversized"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Oversized &
+                                                                            Glam</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1400</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses&gender=women"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/icon/sunglasses.png') }}"
+                                                                            alt="All Sunglasses"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Women
+                                                                            Sunglasses</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹800</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
-                                                </div>
 
-                                                <!-- Tab 3: Trending -->
-                                                <div class="lenskart-vtab-item" data-vtarget="#sun-pane-trending">
-                                                    <div class="lenskart-vtab-left">
-                                                        <img src="{{ asset('website/assets/img/icon/sunglasses.png') }}" alt="Trending" class="lenskart-vtab-avatar">
-                                                        <div class="lenskart-vtab-info">
-                                                            <span class="lenskart-vtab-title">KIDS Sunglasses</span>
-                                                            <span class="lenskart-vtab-badge"><i class="bi bi-fire"></i> Best Sellers</span>
+                                                    <!-- PANE 3: TRENDING SUNGLASSES -->
+                                                    <div class="lenskart-vpane" id="sun-pane-trending">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>KIDS</span> Sunglasses Editions</h5>
+                                                            <a href="{{ route('products') }}?category=sunglasses"
+                                                                class="view-more-link">
+                                                                View All Kids' Sunglasses <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?category=sunglasses"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}"
+                                                                            alt="Polarized"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Polarized
+                                                                            Sunglasses</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1499</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses2.png') }}"
+                                                                            alt="Power Sun"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Power
+                                                                            Sunglasses</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1999</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses3.png') }}"
+                                                                            alt="Harry Potter"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Harry Potter
+                                                                            Edition</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹2499</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?category=sunglasses"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb"><img
+                                                                            src="{{ asset('website/assets/img/bg/Sunglasses4.png') }}"
+                                                                            alt="Active Sport"></div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Hustlr Active
+                                                                            Sport</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹1299</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i
+                                                                    class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
                                                         </div>
                                                     </div>
-                                                    <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
                                                 </div>
                                             </div>
 
-                                            <!-- RIGHT: Active Tab Content (3x3 Products Grid) -->
-                                            <div class="lenskart-vcontent">
-                                                <!-- PANE 1: MEN SUNGLASSES -->
-                                                <div class="lenskart-vpane active" id="sun-pane-men">
-                                                    <div class="lenskart-pane-header">
-                                                        <h5><span>MEN'S</span> Sunglasses Collection</h5>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men" class="view-more-link">
-                                                            View All Men's Sunglasses <i class="bi bi-arrow-right"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="lenskart-products-grid">
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men&brand=Vincent%20Chase" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}" alt="Vincent Chase"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Vincent Chase | Polarized</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men&brand=John%20Jacobs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses2.png') }}" alt="John Jacobs"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">John Jacobs | Luxury Italian</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹3500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men&shape=Aviator" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses3.png') }}" alt="Aviator"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Aviators & Navigators</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1200</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men&shape=Wayfarer" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses4.png') }}" alt="Wayfarer"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Wayfarers & Classics</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹999</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men&shape=Round" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}" alt="Round Sunglasses"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Round & Hexagonal Sun</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1100</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=men" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/sunglasses.png') }}" alt="All Sunglasses"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">All Men Sunglasses</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹800</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                    </div>
+                                            <div class="lenskart-mega-footer">
+                                                <div class="lenskart-footer-perks">
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-shield-check text-success"></i> Polarized &
+                                                        UV400 Protection</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-sunglasses text-primary"></i> Prescription
+                                                        Power Available</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-truck text-warning"></i> Free Shipping Pan
+                                                        India</div>
                                                 </div>
-
-                                                <!-- PANE 2: WOMEN SUNGLASSES -->
-                                                <div class="lenskart-vpane" id="sun-pane-women">
-                                                    <div class="lenskart-pane-header">
-                                                        <h5><span>WOMEN'S</span> Sunglasses Collection</h5>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=women" class="view-more-link">
-                                                            View All Women's Sunglasses <i class="bi bi-arrow-right"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="lenskart-products-grid">
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=women&brand=Vincent%20Chase" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}" alt="Vincent Chase"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Vincent Chase | Polarized</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=women&brand=John%20Jacobs" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses2.png') }}" alt="John Jacobs"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">John Jacobs | Luxury Italian</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹3500</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=women&shape=Cat-Eye" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses3.png') }}" alt="Cat-Eye"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Cat-Eye & Butterfly</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1200</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=women&shape=Round" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses4.png') }}" alt="Oversized"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Oversized & Glam</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1400</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses&gender=women" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/icon/sunglasses.png') }}" alt="All Sunglasses"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">All Women Sunglasses</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹800</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
-
-                                                <!-- PANE 3: TRENDING SUNGLASSES -->
-                                                <div class="lenskart-vpane" id="sun-pane-trending">
-                                                    <div class="lenskart-pane-header">
-                                                        <h5><span>KIDS</span> Sunglasses Editions</h5>
-                                                        <a href="{{ route('products') }}?category=sunglasses" class="view-more-link">
-                                                            View All Kids' Sunglasses <i class="bi bi-arrow-right"></i>
-                                                        </a>
-                                                    </div>
-                                                    <div class="lenskart-products-grid">
-                                                        <a href="{{ route('products') }}?category=sunglasses" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses1.png') }}" alt="Polarized"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Polarized Sunglasses</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1499</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses2.png') }}" alt="Power Sun"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Power Sunglasses</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1999</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses3.png') }}" alt="Harry Potter"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Harry Potter Edition</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹2499</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                        <a href="{{ route('products') }}?category=sunglasses" class="lenskart-item-card">
-                                                            <div class="lenskart-item-card-left">
-                                                                <div class="lenskart-item-thumb"><img src="{{ asset('website/assets/img/bg/Sunglasses4.png') }}" alt="Active Sport"></div>
-                                                                <div class="lenskart-item-info">
-                                                                    <span class="lenskart-item-title">Hustlr Active Sport</span>
-                                                                    <span class="lenskart-item-price">Starts at <strong>₹1299</strong></span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="bi bi-chevron-right lenskart-item-chevron"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="lenskart-mega-footer">
-                                            <div class="lenskart-footer-perks">
-                                                <div class="lenskart-perk"><i class="bi bi-shield-check text-success"></i> Polarized & UV400 Protection</div>
-                                                <div class="lenskart-perk"><i class="bi bi-sunglasses text-primary"></i> Prescription Power Available</div>
-                                                <div class="lenskart-perk"><i class="bi bi-truck text-warning"></i> Free Shipping Pan India</div>
-                                            </div>
-                                            <a href="{{ route('products') }}?category=sunglasses" class="lenskart-footer-link">
-                                                Explore All Sunglasses <i class="bi bi-arrow-right"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-
-                            <!-- 5. CONTACT LENSES -->
-                            <li>
-                                <a href="{{ route('products') }}?type=Contact%20Lens" class="desktop-item">Contact Lenses</a>
-                                <input type="checkbox" id="showMegaCL">
-                                <label for="showMegaCL" class="mobile-item">Contact Lenses</label>
-                                <div class="mega-box">
-                                    <div class="lenskart-mega-container">
-                                        <div class="lenskart-cl-grid">
-                                            <!-- Column 1: Brands -->
-                                            <div class="lenskart-cl-col">
-                                                <header>Popular Brands</header>
-                                                <ul class="lenskart-cl-list">
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&brand=Aqualens"><span>Aqualens</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&brand=Bausch%20Lomb"><span>Bausch & Lomb</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&brand=Soflens"><span>Soflens</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&brand=Acuvue"><span>Acuvue</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&brand=Alcon"><span>Alcon</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&brand=Iconnect"><span>Iconnect</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                </ul>
-                                            </div>
-
-                                            <!-- Column 2: Modality -->
-                                            <div class="lenskart-cl-col">
-                                                <header>By Disposability</header>
-                                                <ul class="lenskart-cl-list">
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Daily"><span>Daily Disposable</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Monthly"><span>Monthly Disposable</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Day%20%26%20Night"><span>Day & Night</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Yearly"><span>Yearly Disposable</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Bi-weekly"><span>Bi-Weekly</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                </ul>
-                                            </div>
-
-                                            <!-- Column 3: Power -->
-                                            <div class="lenskart-cl-col">
-                                                <header>By Power Type</header>
-                                                <ul class="lenskart-cl-list">
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Spherical - (CYL 0.5)</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Spherical + (CYL 0.5)</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Cylindrical Power (>0.75)</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Toric Power Lenses</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                </ul>
-                                            </div>
-
-                                            <!-- Column 4: Color & Solutions -->
-                                            <div class="lenskart-cl-col">
-                                                <header>Color Lenses & Care</header>
-                                                <ul class="lenskart-cl-list">
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&color=Green"><span><span class="lenskart-cl-color-dot" style="background:#10b981;"></span>Green</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&color=Blue"><span><span class="lenskart-cl-color-dot" style="background:#3b82f6;"></span>Blue</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&color=Brown"><span><span class="lenskart-cl-color-dot" style="background:#92400e;"></span>Hazel & Brown</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens&color=Turquoise"><span><span class="lenskart-cl-color-dot" style="background:#06b6d4;"></span>Turquoise</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Lens Cleaning Solutions</span> <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-
-                                        <div class="lenskart-mega-footer">
-                                            <div class="lenskart-footer-perks">
-                                                <div class="lenskart-perk"><i class="bi bi-droplet-fill text-info"></i> High Moisture & Oxygen</div>
-                                                <div class="lenskart-perk"><i class="bi bi-patch-check-fill text-success"></i> 100% Authentic Products</div>
-                                                <div class="lenskart-perk"><i class="bi bi-truck text-warning"></i> Free Shipping Pan India</div>
-                                            </div>
-                                            <a href="{{ route('products') }}?type=Contact%20Lens" class="lenskart-footer-link">
-                                                View All Contact Lenses <i class="bi bi-arrow-right"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-
-                            <!-- 6. HOME EYE-TEST -->
-                            <li>
-                                <a href="{{ route('home-eye-test') }}" class="desktop-item">Home Eye-test</a>
-                                <input type="checkbox" id="showMegaHome">
-                                <label for="showMegaHome" class="mobile-item">Home Eye-test</label>
-                                <div class="mega-box">
-                                    <div class="lenskart-mega-container">
-                                        <div class="lenskart-promo-card">
-                                            <div class="lenskart-promo-img">
-                                                <img src="{{ asset('website/assets/img/bg/eye-test.png') }}" alt="Home Eye Test">
-                                            </div>
-                                            <div class="lenskart-promo-content">
-                                                <h3>Get your eyes checked at home</h3>
-                                                <p>A certified refractionist will visit your home with latest 12-step eye testing equipment and 100+ top trial frames to choose from.</p>
-                                                <a href="{{ route('home-eye-test') }}" class="lenskart-btn-primary"><i class="bi bi-calendar2-check"></i> Book Appointment at ₹99</a>
+                                                <a href="{{ route('products') }}?category=sunglasses"
+                                                    class="lenskart-footer-link">
+                                                    Explore All Sunglasses <i class="bi bi-arrow-right"></i>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </li>
+                                </li>
 
-                            <!-- 7. STORE LOCATOR -->
-                            <li>
-                                <a href="#" class="desktop-item">Store Locator</a>
-                                <input type="checkbox" id="showMegaStore">
-                                <label for="showMegaStore" class="mobile-item">Store Locator</label>
-                                <div class="mega-box">
-                                    <div class="lenskart-mega-container">
-                                        <div class="lenskart-promo-card">
-                                            <div class="lenskart-promo-content" style="width: 50%;">
-                                                <h3>Over 1800+ Speckarts Stores</h3>
-                                                <p>Experience eyewear in a whole new way: Visit your nearest store and treat yourself to 5000+ eyewear styles and free eye testing.</p>
-                                                <a href="#" class="lenskart-btn-primary"><i class="bi bi-geo-alt-fill"></i> Locate Nearest Store</a>
+                                <!-- 5. CONTACT LENSES -->
+                                <li>
+                                    <a href="{{ route('products') }}?type=Contact%20Lens"
+                                        class="desktop-item">Contact Lenses</a>
+                                    <input type="checkbox" id="showMegaCL">
+                                    <label for="showMegaCL" class="mobile-item">Contact Lenses</label>
+                                    <div class="mega-box">
+                                        <div class="lenskart-mega-container">
+                                            <div class="lenskart-cl-grid">
+                                                <!-- Column 1: Brands -->
+                                                <div class="lenskart-cl-col">
+                                                    <header>Popular Brands</header>
+                                                    <ul class="lenskart-cl-list">
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Aqualens"><span>Aqualens</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Bausch%20Lomb"><span>Bausch
+                                                                    & Lomb</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Soflens"><span>Soflens</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Acuvue"><span>Acuvue</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Alcon"><span>Alcon</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Iconnect"><span>Iconnect</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                    </ul>
+                                                </div>
+
+                                                <!-- Column 2: Modality -->
+                                                <div class="lenskart-cl-col">
+                                                    <header>By Disposability</header>
+                                                    <ul class="lenskart-cl-list">
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Daily"><span>Daily
+                                                                    Disposable</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Monthly"><span>Monthly
+                                                                    Disposable</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Day%20%26%20Night"><span>Day
+                                                                    & Night</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Yearly"><span>Yearly
+                                                                    Disposable</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Bi-weekly"><span>Bi-Weekly</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                    </ul>
+                                                </div>
+
+                                                <!-- Column 3: Power -->
+                                                <div class="lenskart-cl-col">
+                                                    <header>By Power Type</header>
+                                                    <ul class="lenskart-cl-list">
+                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Spherical
+                                                                    - (CYL 0.5)</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Spherical
+                                                                    + (CYL 0.5)</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Cylindrical
+                                                                    Power (>0.75)</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Toric
+                                                                    Power Lenses</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
+                                                <!-- Column 4: Color & Solutions -->
+                                                <div class="lenskart-cl-col">
+                                                    <header>Color Lenses & Care</header>
+                                                    <ul class="lenskart-cl-list">
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Green"><span><span
+                                                                        class="lenskart-cl-color-dot"
+                                                                        style="background:#10b981;"></span>Green</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Blue"><span><span
+                                                                        class="lenskart-cl-color-dot"
+                                                                        style="background:#3b82f6;"></span>Blue</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Brown"><span><span
+                                                                        class="lenskart-cl-color-dot"
+                                                                        style="background:#92400e;"></span>Hazel &
+                                                                    Brown</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                        <li><a
+                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Turquoise"><span><span
+                                                                        class="lenskart-cl-color-dot"
+                                                                        style="background:#06b6d4;"></span>Turquoise</span>
+                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
+                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Lens
+                                                                    Cleaning Solutions</span> <i
+                                                                    class="bi bi-chevron-right text-muted"></i></a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
                                             </div>
-                                            <div style="width: 50%;">
-                                                <div class="lenskart-cities-grid">
-                                                    <a href="#" class="lenskart-city-item">
-                                                        <img src="{{ asset('website/assets/img/icon/Andra-Pradesh-W.png') }}" alt="Delhi">
-                                                        <span>Delhi</span>
-                                                    </a>
-                                                    <a href="#" class="lenskart-city-item">
-                                                        <img src="{{ asset('website/assets/img/icon/Gujarat-W-1.png') }}" alt="Bangalore">
-                                                        <span>Bangalore</span>
-                                                    </a>
-                                                    <a href="#" class="lenskart-city-item">
-                                                        <img src="{{ asset('website/assets/img/icon/Maharashtra-W.png') }}" alt="Mumbai">
-                                                        <span>Mumbai</span>
-                                                    </a>
-                                                    <a href="#" class="lenskart-city-item">
-                                                        <img src="{{ asset('website/assets/img/icon/Gujarat-W.png') }}" alt="Ahmedabad">
-                                                        <span>Ahmedabad</span>
-                                                    </a>
-                                                    <a href="#" class="lenskart-city-item">
-                                                        <img src="{{ asset('website/assets/img/icon/Lakshadweep-W.png') }}" alt="Chennai">
-                                                        <span>Chennai</span>
-                                                    </a>
+
+                                            <div class="lenskart-mega-footer">
+                                                <div class="lenskart-footer-perks">
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-droplet-fill text-info"></i> High Moisture &
+                                                        Oxygen</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-patch-check-fill text-success"></i> 100%
+                                                        Authentic Products</div>
+                                                    <div class="lenskart-perk"><i
+                                                            class="bi bi-truck text-warning"></i> Free Shipping Pan
+                                                        India</div>
+                                                </div>
+                                                <a href="{{ route('products') }}?type=Contact%20Lens"
+                                                    class="lenskart-footer-link">
+                                                    View All Contact Lenses <i class="bi bi-arrow-right"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <!-- 6. HOME EYE-TEST -->
+                                <li>
+                                    <a href="{{ route('home-eye-test') }}" class="desktop-item">Home Eye-test</a>
+                                    <input type="checkbox" id="showMegaHome">
+                                    <label for="showMegaHome" class="mobile-item">Home Eye-test</label>
+                                    <div class="mega-box">
+                                        <div class="lenskart-mega-container">
+                                            <div class="lenskart-promo-card">
+                                                <div class="lenskart-promo-img">
+                                                    <img src="{{ asset('website/assets/img/bg/eye-test.png') }}"
+                                                        alt="Home Eye Test">
+                                                </div>
+                                                <div class="lenskart-promo-content">
+                                                    <h3>Get your eyes checked at home</h3>
+                                                    <p>A certified refractionist will visit your home with latest
+                                                        12-step eye testing equipment and 100+ top trial frames to
+                                                        choose from.</p>
+                                                    <a href="{{ route('home-eye-test') }}"
+                                                        class="lenskart-btn-primary"><i
+                                                            class="bi bi-calendar2-check"></i> Book Appointment at
+                                                        ₹99</a>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </li>
+                                </li>
 
-                        </ul>
-                        <label for="menu-btn" class="btn menu-btn"><i class="fas fa-bars"></i></label>
+                                <!-- 7. STORE LOCATOR -->
+                                <li>
+                                    <a href="#" class="desktop-item">Store Locator</a>
+                                    <input type="checkbox" id="showMegaStore">
+                                    <label for="showMegaStore" class="mobile-item">Store Locator</label>
+                                    <div class="mega-box">
+                                        <div class="lenskart-mega-container">
+                                            <div class="lenskart-promo-card">
+                                                <div class="lenskart-promo-content" style="width: 50%;">
+                                                    <h3>Over 1800+ Speckarts Stores</h3>
+                                                    <p>Experience eyewear in a whole new way: Visit your nearest store
+                                                        and treat yourself to 5000+ eyewear styles and free eye testing.
+                                                    </p>
+                                                    <a href="#" class="lenskart-btn-primary"><i
+                                                            class="bi bi-geo-alt-fill"></i> Locate Nearest Store</a>
+                                                </div>
+                                                <div style="width: 50%;">
+                                                    <div class="lenskart-cities-grid">
+                                                        <a href="#" class="lenskart-city-item">
+                                                            <img src="{{ asset('website/assets/img/icon/Andra-Pradesh-W.png') }}"
+                                                                alt="Delhi">
+                                                            <span>Delhi</span>
+                                                        </a>
+                                                        <a href="#" class="lenskart-city-item">
+                                                            <img src="{{ asset('website/assets/img/icon/Gujarat-W-1.png') }}"
+                                                                alt="Bangalore">
+                                                            <span>Bangalore</span>
+                                                        </a>
+                                                        <a href="#" class="lenskart-city-item">
+                                                            <img src="{{ asset('website/assets/img/icon/Maharashtra-W.png') }}"
+                                                                alt="Mumbai">
+                                                            <span>Mumbai</span>
+                                                        </a>
+                                                        <a href="#" class="lenskart-city-item">
+                                                            <img src="{{ asset('website/assets/img/icon/Gujarat-W.png') }}"
+                                                                alt="Ahmedabad">
+                                                            <span>Ahmedabad</span>
+                                                        </a>
+                                                        <a href="#" class="lenskart-city-item">
+                                                            <img src="{{ asset('website/assets/img/icon/Lakshadweep-W.png') }}"
+                                                                alt="Chennai">
+                                                            <span>Chennai</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+
+                            </ul>
+                            <label for="menu-btn" class="btn menu-btn"><i class="fas fa-bars"></i></label>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </nav>
-    </section>
+            </nav>
+        </section>
+    </header>
 
     <!-- =========================================================
          PREMIUM MOBILE & TABLET DRAWER (OFFCANVAS)
     ========================================================= -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileSidebar">
-        
+
         <!-- Drawer Sticky Header -->
         <div class="offcanvas-header mobile-drawer-header">
             <a href="/" class="mobile-drawer-logo">
@@ -2900,18 +3446,19 @@
 
         <!-- Drawer Body Scrollable Container -->
         <div class="offcanvas-body mobile-drawer-body">
-            
+
             <!-- 1. USER ACCOUNT HERO / GUEST CARD -->
             @auth
                 <div class="mobile-user-card">
                     <div class="mobile-user-top">
-                        <img src="{{ Auth::user()->image ? Auth::user()->profile_image_url : asset('website/assets/img/icon/user.png') }}" 
-                             alt="{{ Auth::user()->name }}" 
-                             class="mobile-user-avatar"
-                             onerror="this.onerror=null;this.src='{{ asset('website/assets/img/icon/user.png') }}';">
+                        <img src="{{ Auth::user()->image ? Auth::user()->profile_image_url : asset('website/assets/img/icon/user.png') }}"
+                            alt="{{ Auth::user()->name }}" class="mobile-user-avatar"
+                            onerror="this.onerror=null;this.src='{{ asset('website/assets/img/icon/user.png') }}';">
                         <div class="mobile-user-info">
                             <div class="mobile-user-name">Hello, {{ Auth::user()->name }}</div>
-                            <div class="mobile-user-meta">{{ Auth::user()->phone ?? (Auth::user()->mobile ?? (Auth::user()->email ?? 'Speckarts Member')) }}</div>
+                            <div class="mobile-user-meta">
+                                {{ Auth::user()->phone ?? (Auth::user()->mobile ?? (Auth::user()->email ?? 'Speckarts Member')) }}
+                            </div>
                             <span class="mobile-user-badge"><i class="bi bi-patch-check-fill"></i> Gold Member</span>
                         </div>
                     </div>
@@ -2954,7 +3501,8 @@
                         <i class="bi bi-bag-check-fill"></i>
                     </div>
                     <span class="pill-label">My Cart</span>
-                    <span class="badge-pill {{ $initialCartCount > 0 ? '' : 'd-none' }}">{{ $initialCartCount }}</span>
+                    <span
+                        class="badge-pill {{ $initialCartCount > 0 ? '' : 'd-none' }}">{{ $initialCartCount }}</span>
                 </a>
 
                 <a href="{{ route('wishlist') }}" class="mobile-quick-pill">
@@ -2962,7 +3510,8 @@
                         <i class="bi bi-heart-fill"></i>
                     </div>
                     <span class="pill-label">Wishlist</span>
-                    <span class="badge-pill {{ $initialWishlistCount > 0 ? '' : 'd-none' }}">{{ $initialWishlistCount }}</span>
+                    <span
+                        class="badge-pill {{ $initialWishlistCount > 0 ? '' : 'd-none' }}">{{ $initialWishlistCount }}</span>
                 </a>
 
                 <a href="{{ route('home-eye-test') }}" class="mobile-quick-pill">
@@ -3004,12 +3553,18 @@
                         <i class="bi bi-chevron-down mobile-nav-chevron"></i>
                     </div>
                     <ul class="mobile-sub-nav">
-                        <li><a href="{{ route('products') }}?category=eyeglasses">All Eyeglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=eyeglasses&gender=men">Men's Eyeglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=eyeglasses&gender=women">Women's Eyeglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=kids">Kids' Eyeglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=eyeglasses&frame_type=Rimless">Rimless Frames <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=eyeglasses&frame_type=Half%20Rim">Half Rim Frames <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=eyeglasses">All Eyeglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=eyeglasses&gender=men">Men's Eyeglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=eyeglasses&gender=women">Women's Eyeglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=kids">Kids' Eyeglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=eyeglasses&frame_type=Rimless">Rimless Frames
+                                <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=eyeglasses&frame_type=Half%20Rim">Half Rim
+                                Frames <i class="bi bi-arrow-right-short"></i></a></li>
                     </ul>
                 </div>
 
@@ -3023,10 +3578,14 @@
                         <i class="bi bi-chevron-down mobile-nav-chevron"></i>
                     </div>
                     <ul class="mobile-sub-nav">
-                        <li><a href="{{ route('products') }}?category=computer-glasses">All Screen Glasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=computer-glasses&gender=men">Men's Screen Specs <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=computer-glasses&gender=women">Women's Screen Specs <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=computer-glasses&gender=kids">Kids' Blue Light Specs <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=computer-glasses">All Screen Glasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=computer-glasses&gender=men">Men's Screen Specs
+                                <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=computer-glasses&gender=women">Women's Screen
+                                Specs <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=computer-glasses&gender=kids">Kids' Blue Light
+                                Specs <i class="bi bi-arrow-right-short"></i></a></li>
                     </ul>
                 </div>
 
@@ -3040,11 +3599,16 @@
                         <i class="bi bi-chevron-down mobile-nav-chevron"></i>
                     </div>
                     <ul class="mobile-sub-nav">
-                        <li><a href="{{ route('products') }}?category=sunglasses">All Sunglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=sunglasses&gender=men">Men's Sunglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=sunglasses&gender=women">Women's Sunglasses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=sunglasses&shape=Aviator">Aviators <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?category=sunglasses&shape=Wayfarer">Wayfarers <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=sunglasses">All Sunglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=sunglasses&gender=men">Men's Sunglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=sunglasses&gender=women">Women's Sunglasses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=sunglasses&shape=Aviator">Aviators <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?category=sunglasses&shape=Wayfarer">Wayfarers <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
                     </ul>
                 </div>
 
@@ -3058,10 +3622,14 @@
                         <i class="bi bi-chevron-down mobile-nav-chevron"></i>
                     </div>
                     <ul class="mobile-sub-nav">
-                        <li><a href="{{ route('products') }}?type=Contact%20Lens">All Contact Lenses <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Daily">Daily Disposable <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Monthly">Monthly Disposable <i class="bi bi-arrow-right-short"></i></a></li>
-                        <li><a href="{{ route('products') }}?type=Contact%20Lens&color=Green">Color Lenses <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?type=Contact%20Lens">All Contact Lenses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Daily">Daily Disposable <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?type=Contact%20Lens&modality=Monthly">Monthly Disposable
+                                <i class="bi bi-arrow-right-short"></i></a></li>
+                        <li><a href="{{ route('products') }}?type=Contact%20Lens&color=Green">Color Lenses <i
+                                    class="bi bi-arrow-right-short"></i></a></li>
                     </ul>
                 </div>
 
@@ -3072,7 +3640,8 @@
                             <i class="bi bi-calendar2-check"></i>
                             <span>Book Home Eye-Test</span>
                         </div>
-                        <span class="badge" style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-weight:800; font-size:10px; padding:3px 7px; border-radius:8px;">₹99</span>
+                        <span class="badge"
+                            style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-weight:800; font-size:10px; padding:3px 7px; border-radius:8px;">₹99</span>
                     </a>
                 </div>
 
@@ -3097,7 +3666,7 @@
                         <i class="bi bi-whatsapp"></i> WhatsApp Support
                     </a>
                 </div>
-                
+
                 @auth
                     <form method="POST" action="{{ route('logout.web') }}" style="margin:0; width:100%;">
                         @csrf
@@ -3119,7 +3688,7 @@
             $(document).on('click', '.mobile-nav-heading', function(e) {
                 var $group = $(this).closest('.mobile-nav-group');
                 var $subNav = $group.find('.mobile-sub-nav');
-                
+
                 if ($subNav.length > 0) {
                     e.preventDefault();
                     if ($group.hasClass('open')) {

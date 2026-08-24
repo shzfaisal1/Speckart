@@ -13,8 +13,7 @@ img{
   height: 100%;
 }
 .header nav{
-    top:70px;
-    position: fixed;
+    position: relative;
     z-index: 99;
     width: 100%;
     background: #fff;
@@ -292,11 +291,10 @@ img{
 
 .header{
     background: #07484A;
-    position: sticky;
-    top: 0;
+    position: relative;
     width: 100%;
     z-index: 11;
-    height: 126px;
+    height: auto;
 }
 .header .top-menu{
     padding: 10px 0;
@@ -2683,7 +2681,7 @@ img{
   }
 
   .header{
-      height: 110px;
+      height: auto;
     }
     
     .header .top-menu .top-menu-list ul li img{
@@ -2808,7 +2806,7 @@ img{
     }
     
     .header{
-      height: 110px;  
+      height: auto;  
     }
     .header .top-menu .logo img{
         width: 100%;
@@ -6074,10 +6072,7 @@ img{
 
 
 .header-container{
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    right: 0px;
+    position: relative;
     z-index: 100;
     margin: 0px auto;
     max-width: 1920px;
@@ -6237,8 +6232,7 @@ img{
 /*}*/
 
 .top-menu {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 999;
 }
 
