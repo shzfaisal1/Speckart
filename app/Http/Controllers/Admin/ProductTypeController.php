@@ -61,21 +61,23 @@ class ProductTypeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'           => 'required|string|max:100',
-            'slug'           => 'required|string|max:100|unique:product_type_masters,slug',
-            'subtitle'       => 'nullable|string|max:150',
-            'icon'           => 'nullable|string|max:20',
-            'has_power'      => 'nullable|boolean',
-            'default_powers' => 'nullable|string',   // comes as JSON string from hidden input
-            'is_active'      => 'nullable|boolean',
+            'name'                    => 'required|string|max:100',
+            'slug'                    => 'required|string|max:100|unique:product_type_masters,slug',
+            'subtitle'                => 'nullable|string|max:150',
+            'icon'                    => 'nullable|string|max:20',
+            'has_power'               => 'nullable|boolean',
+            'default_powers'          => 'nullable|string',   // comes as JSON string from hidden input
+            'default_lens_package_id' => 'nullable|integer',  // FIX: Zero Power auto-bundle package
+            'is_active'               => 'nullable|boolean',
         ]);
 
         // decode powers JSON string → array (store as array, Laravel casts to JSON)
-        $validated['default_powers'] = $this->parsePowers($request->default_powers, $request->has_power);
+        $validated['default_powers']          = $this->parsePowers($request->default_powers, $request->has_power);
+        $validated['default_lens_package_id'] = $request->filled('default_lens_package_id') ? (int) $request->default_lens_package_id : null;
 
         // slug: lowercase + underscores only
         $validated['slug']      = Str::slug($validated['slug'], '_');
-        $validated['is_active'] = $request->boolean('is_active', false);  // unchecked checkbox = not sent = false
+        $validated['is_active'] = $request->boolean('is_active', false);
         $validated['has_power'] = $request->boolean('has_power', false);
 
         $type = ProductTypeMaster::create($validated);
@@ -101,19 +103,21 @@ class ProductTypeController extends Controller
         $type = ProductTypeMaster::findOrFail($id);
 
         $validated = $request->validate([
-            'name'           => 'required|string|max:100',
-            'slug'           => 'required|string|max:100|unique:product_type_masters,slug,' . $id,
-            'subtitle'       => 'nullable|string|max:150',
-            'icon'           => 'nullable|string|max:20',
-            'has_power'      => 'nullable|boolean',
-            'default_powers' => 'nullable|string',
-            'is_active'      => 'nullable|boolean',
+            'name'                    => 'required|string|max:100',
+            'slug'                    => 'required|string|max:100|unique:product_type_masters,slug,' . $id,
+            'subtitle'                => 'nullable|string|max:150',
+            'icon'                    => 'nullable|string|max:20',
+            'has_power'               => 'nullable|boolean',
+            'default_powers'          => 'nullable|string',
+            'default_lens_package_id' => 'nullable|integer',  // FIX: Zero Power auto-bundle package
+            'is_active'               => 'nullable|boolean',
         ]);
 
-        $validated['default_powers'] = $this->parsePowers($request->default_powers, $request->has_power);
-        $validated['slug']           = Str::slug($validated['slug'], '_');
-        $validated['is_active']      = $request->boolean('is_active', false);  // unchecked checkbox = not sent = false
-        $validated['has_power']      = $request->boolean('has_power', false);
+        $validated['default_powers']          = $this->parsePowers($request->default_powers, $request->has_power);
+        $validated['default_lens_package_id'] = $request->filled('default_lens_package_id') ? (int) $request->default_lens_package_id : null;
+        $validated['slug']                    = Str::slug($validated['slug'], '_');
+        $validated['is_active']               = $request->boolean('is_active', false);
+        $validated['has_power']               = $request->boolean('has_power', false);
 
         $type->update($validated);
 
