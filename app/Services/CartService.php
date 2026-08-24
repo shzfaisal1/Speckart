@@ -133,7 +133,14 @@ class CartService
                 'prescription_data' => $prescriptionData,
                 'promotion_tag'     => $frame->promotion_tag ?? null,
                 'is_first_frame_free' => isset($frame->promotion_tag) && stripos($frame->promotion_tag, 'First Frame Free') !== false,
-                'is_bogo_eligible'    => isset($frame->promotion_tag) && (stripos($frame->promotion_tag, 'BOGO') !== false || stripos($frame->promotion_tag, 'Buy 1 Get 1') !== false),
+                'is_bogo_eligible'    => (function() use ($frame) {
+                    $pt = strtolower($frame->product_type ?: ($frame->Type ?: ''));
+                    // Strictly exclude Contact Lenses, Solutions, Accessories, and Other from BOGO
+                    if (str_contains($pt, 'contact') || str_contains($pt, 'solution') || str_contains($pt, 'accessory') || $pt === 'lens' || $pt === 'other') {
+                        return false;
+                    }
+                    return isset($frame->promotion_tag) && (stripos($frame->promotion_tag, 'BOGO') !== false || stripos($frame->promotion_tag, 'Buy 1 Get 1') !== false);
+                })(),
             ];
         }
 
@@ -474,7 +481,13 @@ class CartService
                             'prescription_data' => $dbItem->prescription_notes ? json_decode($dbItem->prescription_notes, true) : null,
                             'promotion_tag'     => $frame->promotion_tag ?? null,
                             'is_first_frame_free' => isset($frame->promotion_tag) && stripos($frame->promotion_tag, 'First Frame Free') !== false,
-                            'is_bogo_eligible'    => isset($frame->promotion_tag) && (stripos($frame->promotion_tag, 'BOGO') !== false || stripos($frame->promotion_tag, 'Buy 1 Get 1') !== false),
+                            'is_bogo_eligible'    => (function() use ($frame, $dbItem) {
+                                $pt = strtolower($dbItem->product_type ?: ($frame->product_type ?: ($frame->Type ?: '')));
+                                if (str_contains($pt, 'contact') || str_contains($pt, 'solution') || str_contains($pt, 'accessory') || $pt === 'lens' || $pt === 'other') {
+                                    return false;
+                                }
+                                return isset($frame->promotion_tag) && (stripos($frame->promotion_tag, 'BOGO') !== false || stripos($frame->promotion_tag, 'Buy 1 Get 1') !== false);
+                            })(),
                         ];
                     }
                 }
@@ -585,14 +598,23 @@ class CartService
                 $item['is_first_frame_free_applied'] = true;
             }
 
-            // When membership BOGO is active, ALL regular frame items are eligible.
-            // Otherwise fall back to promotion_tag-based eligibility.
-            $isRegularFrame = empty($item['is_membership']);
+            // When membership BOGO is active, only regular optical/sunglass frames are eligible.
+            // Strictly exclude Contact Lenses, Solutions, Accessories, and other non-frame items.
+            $prodTypeLower   = strtolower(trim($item['product_type'] ?? 'frame'));
+            $isIneligibleCategory = str_contains($prodTypeLower, 'contact')
+                                 || ($prodTypeLower === 'lens')
+                                 || str_contains($prodTypeLower, 'solution')
+                                 || str_contains($prodTypeLower, 'accessory')
+                                 || str_contains($prodTypeLower, 'other');
+
+            $isRegularFrame  = empty($item['is_membership']) && !$isIneligibleCategory;
             $effectivelyBogoEligible = $isRegularFrame && ($hasMembershipInCart || $membershipBogoEnabled || !empty($item['is_bogo_eligible']));
             if ($effectivelyBogoEligible) {
                 $bogoEligibleCount += $qty;
                 // Mark it so the expansion loop below picks it up consistently
                 $item['is_bogo_eligible'] = true;
+            } else {
+                $item['is_bogo_eligible'] = false;
             }
 
             $frameSubtotal += ($fPrice * $qty);
@@ -683,21 +705,30 @@ class CartService
                 return $b['price'] <=> $a['price'];
             });
 
-            // Every 2nd frame in sorted list is 100% FREE (BOGO Pair)
+            // Initialize item-level discount tracking
+            foreach ($items as $k => $item) {
+                $items[$k]['item_bogo_discount'] = 0;
+            }
+
+            // Every 2nd frame in sorted list is 100% FREE (BOGO Pair - Lower Value Frame)
             // Every 3rd frame (unmatched 3rd item in a set) gets 60% OFF!
             for ($i = 1; $i < count($frameUnits); $i++) {
                 $key = $frameUnits[$i]['key'];
                 if ($i % 2 == 1) {
-                    // 2nd item of a pair (indices 1, 3, 5...)
+                    // 2nd item of a pair (indices 1, 3, 5...) -> Lower-priced frame in this pair
                     if ($hasNonAgBifocal) {
                         // Fall back to "Buy 2nd at 50%" rule
-                        $bogoSavings += ($frameUnits[$i]['price'] * 0.5);
+                        $discountAmt = ($frameUnits[$i]['price'] * 0.5);
+                        $bogoSavings += $discountAmt;
                         $items[$key]['is_bogo_half'] = true;
+                        $items[$key]['item_bogo_discount'] = ($items[$key]['item_bogo_discount'] ?? 0) + $discountAmt;
                         $bogoFallbackMessage = "Note: BOGO isn't valid with Non-AG bifocal lenses – second pair is 50% off instead.";
                     } else {
-                        // Standard BOGO (100% free frame)
-                        $bogoSavings += $frameUnits[$i]['price'];
+                        // Standard BOGO (100% free frame on the lower-value product)
+                        $discountAmt = $frameUnits[$i]['price'];
+                        $bogoSavings += $discountAmt;
                         $items[$key]['is_bogo_free'] = true;
+                        $items[$key]['item_bogo_discount'] = ($items[$key]['item_bogo_discount'] ?? 0) + $discountAmt;
                     }
                 } else {
                     // Unmatched 3rd item of a set (indices 2, 4, 6... when it is the last item in array)
@@ -707,6 +738,7 @@ class CartService
                         $items[$key]['is_bogo_third_discount'] = true;
                         $items[$key]['bogo_third_discount_percent'] = $bogoExtraDiscount;
                         $items[$key]['bogo_third_savings'] = $thirdDiscountAmount;
+                        $items[$key]['item_bogo_discount'] = ($items[$key]['item_bogo_discount'] ?? 0) + $thirdDiscountAmount;
                     }
                 }
             }

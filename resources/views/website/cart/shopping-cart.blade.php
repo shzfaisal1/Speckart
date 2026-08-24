@@ -1439,10 +1439,19 @@
                                                     <div class="sc-item-name">{{ $item['frame_name'] }}</div>
                                                 </div>
 
-                                                <div class="sc-price-block flex-shrink-0">
+                                                <div class="sc-price-block flex-shrink-0 text-end">
                                                     @if(isset($item['is_bogo_free']) && $item['is_bogo_free'])
-                                                        <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
-                                                        <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
+                                                        @php
+                                                            $itemQty = (int)($item['quantity'] ?? 1);
+                                                            $totalLineMrp = ($item['frame_price'] + $item['lens_price']) * $itemQty;
+                                                            // 1 unit is free
+                                                            $totalLinePayable = ($item['frame_price'] * max(0, $itemQty - 1)) + ($item['lens_price'] * $itemQty);
+                                                        @endphp
+                                                        <div class="sc-price-old">₹{{ number_format($totalLineMrp, 0) }}</div>
+                                                        <div class="sc-price-now green">₹{{ number_format($totalLinePayable, 0) }}</div>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-block mt-1" style="font-size: 10px; padding: 2px 6px;">
+                                                            <i class="bi bi-gift-fill me-1"></i>{{ $itemQty > 1 ? '1 Free + ' . ($itemQty - 1) . ' Paid' : '100% Free Frame' }}
+                                                        </span>
                                                     @elseif(isset($item['is_bogo_third_discount']) && $item['is_bogo_third_discount'])
                                                         @php
                                                             $pct = (float)($item['bogo_third_discount_percent'] ?? 60);
@@ -1450,6 +1459,9 @@
                                                         @endphp
                                                         <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
                                                         <div class="sc-price-now blue">₹{{ number_format($discountedFramePrice + $item['lens_price'], 0) }}</div>
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle d-inline-block mt-1" style="font-size: 10px; padding: 2px 6px;">
+                                                            {{ (int)$pct }}% OFF on 3rd Pair
+                                                        </span>
                                                     @elseif(isset($item['is_bogo_half']) && $item['is_bogo_half'])
                                                         <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
                                                         <div class="sc-price-now green">₹{{ number_format(($item['frame_price'] * 0.5) + $item['lens_price'], 0) }}</div>
@@ -1457,7 +1469,7 @@
                                                         <div class="sc-price-old">₹{{ number_format($item['frame_price'], 0) }}</div>
                                                         <div class="sc-price-now green">₹{{ number_format($item['lens_price'], 0) }}</div>
                                                     @else
-                                                        <div class="sc-price-now">₹{{ number_format($item['frame_price'] + $item['lens_price'], 0) }}</div>
+                                                        <div class="sc-price-now">₹{{ number_format(($item['frame_price'] + $item['lens_price']) * ($item['quantity'] ?? 1), 0) }}</div>
                                                     @endif
                                                 </div>
                                             </div>

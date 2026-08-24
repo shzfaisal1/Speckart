@@ -201,13 +201,13 @@ class CheckoutController extends Controller
                 $framePrice = (float)($item['frame_price'] ?? 0);
                 $lensPrice  = (float)($item['lens_price'] ?? 0);
 
-                $itemDiscount = 0;
-                if (!empty($item['is_bogo_free']))  $itemDiscount = $framePrice;
-                if (!empty($item['is_bogo_half']))  $itemDiscount = $framePrice * 0.5;
-                if (!empty($item['bogo_third_savings'])) $itemDiscount = (float)$item['bogo_third_savings'];
-                if (!empty($item['is_first_frame_free_applied'])) $itemDiscount = $framePrice;
+                $itemDiscount = (float)($item['item_bogo_discount'] ?? 0);
+                if (!empty($item['is_first_frame_free_applied'])) {
+                    $itemDiscount += ($framePrice * $qty);
+                }
 
-                $salePrice = max(0, $framePrice - $itemDiscount) + $lensPrice;
+                $totalLinePayable = max(0, ($framePrice * $qty) - $itemDiscount) + ($lensPrice * $qty);
+                $salePrice = $qty > 0 ? ($totalLinePayable / $qty) : $totalLinePayable;
 
                 $prescriptionNotes = null;
                 $rx = null;
