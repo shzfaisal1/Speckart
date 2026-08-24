@@ -567,6 +567,17 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
          Route::post('/{id}/toggle-status',  'toggleStatus') ->name('toggle-status');
      });
 
+    // ── HOME EYE TEST APPOINTMENTS ADMIN MODULE ──
+    Route::controller(\App\Http\Controllers\Admin\HomeEyeTestAdminController::class)
+     ->prefix('home-eye-test')
+     ->name('home-eye-test.')
+     ->group(function () {
+         Route::get('/',              'index')        ->name('index');
+         Route::get('/{id}',          'show')         ->name('show');
+         Route::post('/{id}/status',  'updateStatus') ->name('update-status');
+         Route::post('/{id}/delete',  'destroy')      ->name('delete');
+     });
+
 });
 
 

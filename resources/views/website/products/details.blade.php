@@ -2922,10 +2922,7 @@
                 $('#step4-title').text('Upload Prescription');
                 $('#step4-sub').text('Upload image or PDF document of prescription.');
             } else if (option === 'dontknow') {
-                const rxData = JSON.stringify({
-                    later: true
-                });
-                addToCartAjax(selectedLensType, selectedLensPackageId, rxData, null);
+                window.location.href = "{{ route('home-eye-test') }}";
             }
         }
 
