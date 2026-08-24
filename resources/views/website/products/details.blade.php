@@ -1475,20 +1475,10 @@
                         <p class="lens-step-sub">Pick the lens type that suits your need</p>
                         <div class="lens-type-grid">
                             @php
-                                $rawSupportedTypes = $product->supported_product_types ?? null;
-                                if (is_string($rawSupportedTypes)) {
-                                    $supportedTypeIds = json_decode($rawSupportedTypes, true);
-                                } elseif (is_array($rawSupportedTypes)) {
-                                    $supportedTypeIds = $rawSupportedTypes;
-                                } else {
-                                    $supportedTypeIds = [];
-                                }
-
-                                $powerTypesQuery = \App\Models\PowerType::where('is_active', 1);
-                                if (!empty($supportedTypeIds) && is_array($supportedTypeIds)) {
-                                    $powerTypesQuery->whereIn('id', $supportedTypeIds);
-                                }
-                                $powerTypesMaster = $powerTypesQuery->get();
+                                // FIX: PowerType is the prescription modality (Single Vision, Bifocal, Progressive).
+                                // Do NOT filter with supported_product_types (which are ProductTypeMaster IDs).
+                                // Load all active PowerTypes so Step 2 always renders properly.
+                                $powerTypesMaster = \App\Models\PowerType::where('is_active', 1)->get();
                             @endphp
                             @foreach($powerTypesMaster as $pt)
                             <div class="lens-type-card" onclick="selectLensType(this, 3)" data-power-type-id="{{ $pt->id }}">
@@ -3958,11 +3948,26 @@
             
             $('.lens-package-card').each(function() {
                 const card = $(this);
-                const cardPowerTypes = card.data('power-types') ? String(card.data('power-types')).split(',') : [];
-                const cardTags = card.data('tags') ? String(card.data('tags')).split(',') : [];
+                const rawPt = card.data('power-types');
+                const rawTags = card.data('tags');
                 
-                const matchesPowerType = selectedPowerTypeId ? cardPowerTypes.includes(String(selectedPowerTypeId)) : true;
-                const matchesTag = (activeTag === 'all') ? true : cardTags.includes(activeTag);
+                // Parse and strip empty strings
+                const cardPowerTypes = rawPt !== undefined && rawPt !== null
+                    ? String(rawPt).split(',').map(s => s.trim()).filter(Boolean)
+                    : [];
+                const cardTags = rawTags !== undefined && rawTags !== null
+                    ? String(rawTags).split(',').map(s => s.trim()).filter(Boolean)
+                    : [];
+                
+                // If package has no specific power-type restrictions, it is universal (valid for all power types)
+                const matchesPowerType = (!selectedPowerTypeId || cardPowerTypes.length === 0)
+                    ? true
+                    : cardPowerTypes.includes(String(selectedPowerTypeId));
+
+                // Tag filter (All Lenses vs specific tag)
+                const matchesTag = (activeTag === 'all')
+                    ? true
+                    : cardTags.includes(activeTag);
                 
                 if (matchesPowerType && matchesTag) {
                     card.show();
