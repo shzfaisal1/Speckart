@@ -21,6 +21,29 @@ class ProductController extends Controller
                   ->orWhere('promotion_tag', 'LIKE', '%Buy 1 Get 1%')
                   ->orWhereNull('promotion_tag')
                   ->orWhere('promotion_tag', '');
+            })
+            // Strictly exclude Contact Lenses, Solutions, and Accessories from BOGO catalog listing
+            ->where(function($q) {
+                $q->whereNull('product_type')
+                  ->orWhere(function($sub) {
+                      $sub->where('product_type', 'NOT LIKE', '%contact%')
+                          ->where('product_type', 'NOT LIKE', '%solution%')
+                          ->where('product_type', 'NOT LIKE', '%accessory%')
+                          ->where('product_type', 'NOT LIKE', '%accessories%')
+                          ->where('product_type', '!=', 'Lens')
+                          ->where('product_type', '!=', 'other');
+                  });
+            })
+            ->where(function($q) {
+                $q->whereNull('Type')
+                  ->orWhere(function($sub) {
+                      $sub->where('Type', 'NOT LIKE', '%contact%')
+                          ->where('Type', 'NOT LIKE', '%solution%')
+                          ->where('Type', 'NOT LIKE', '%accessory%')
+                          ->where('Type', 'NOT LIKE', '%accessories%')
+                          ->where('Type', '!=', 'Lens')
+                          ->where('Type', '!=', 'other');
+                  });
             });
         }
 
