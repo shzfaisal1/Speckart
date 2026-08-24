@@ -2047,18 +2047,30 @@
         });
 
         // Remove Item
+        // Remove Cart Item
         $(document).on('click', '.remove-cart-item', function() {
             const key = $(this).data('key');
-            if (confirm('Are you sure you want to remove this item from your cart?')) {
-                $.ajax({
-                    url: "{{ route('cart.remove') }}",
-                    type: "POST",
-                    data: { _token: csrfToken, cart_key: key },
-                    success: function(res) {
-                        window.location.reload();
-                    }
-                });
-            }
+            Swal.fire({
+                title: 'Remove item?',
+                text: 'Are you sure you want to remove this item from your cart?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, remove it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('cart.remove') }}",
+                        type: "POST",
+                        data: { _token: csrfToken, cart_key: key },
+                        success: function(res) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            });
         });
 
         // Quick Apply Available Coupon Chip Click
@@ -2072,7 +2084,12 @@
         $('#apply-coupon-btn').click(function() {
             const code = $('#coupon-code-input').val().trim();
             if (!code) {
-                alert('Please enter a coupon code.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Coupon Required',
+                    text: 'Please enter a coupon code.',
+                    confirmButtonColor: '#00a297'
+                });
                 return;
             }
 
@@ -2081,11 +2098,22 @@
                 type: "POST",
                 data: { _token: csrfToken, coupon_code: code },
                 success: function(res) {
-                    alert(res.message);
-                    window.location.reload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: res.message || 'Coupon applied successfully.',
+                        confirmButtonColor: '#00a297'
+                    }).then(() => {
+                        window.location.reload();
+                    });
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'Invalid coupon code.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Coupon',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Invalid coupon code.',
+                        confirmButtonColor: '#00a297'
+                    });
                 }
             });
         });
@@ -2113,7 +2141,12 @@
         $('#apply-voucher-btn').click(function() {
             const code = $('#voucher-code-input').val().trim();
             if (!code) {
-                alert('Please enter a voucher code.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Voucher Required',
+                    text: 'Please enter a voucher code.',
+                    confirmButtonColor: '#00a297'
+                });
                 return;
             }
             const $btn = $(this);
@@ -2127,7 +2160,12 @@
                     window.location.reload();
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'Invalid or expired voucher code.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Voucher',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Invalid or expired voucher code.',
+                        confirmButtonColor: '#00a297'
+                    });
                     $btn.text('APPLY').prop('disabled', false);
                 }
             });
@@ -2172,7 +2210,12 @@
                     window.location.reload();
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'Could not add membership. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Membership Error',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Could not add membership. Please try again.',
+                        confirmButtonColor: '#00a297'
+                    });
                     $('#btn-add-membership-text').text('Add Gold');
                     $('#btn-add-membership-spinner').addClass('d-none');
                     $('#btn-add-membership, #btn-add-membership-arrow').prop('disabled', false);
@@ -2192,7 +2235,12 @@
                     window.location.reload();
                 },
                 error: function(xhr) {
-                    alert('Failed to update loyalty points. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Loyalty Points Error',
+                        text: 'Failed to update loyalty points. Please try again.',
+                        confirmButtonColor: '#00a297'
+                    });
                 }
             });
         });

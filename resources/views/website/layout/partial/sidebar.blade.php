@@ -113,10 +113,72 @@
         /* ===== End Loyalty Points Styles ===== */
 
         /* =========================================================
-           PREMIUM MEGA MENU WITH VERTICAL TABS & 3x3 PRODUCT GRID
+           TOP NAV LINKS: CLEAN ACTIVE TAB HIGHLIGHT & ACCENT BAR
         ========================================================= */
+        .header .nav-links {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 55px !important;
+            line-height: 55px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none !important;
+        }
+
         .header .nav-links li {
-            position: static;
+            position: static !important;
+            height: 55px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            list-style: none !important;
+        }
+
+        .header .nav-links li > a.desktop-item {
+            position: relative !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 55px !important;
+            line-height: 55px !important;
+            padding: 0 16px !important;
+            color: #334155 !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+            text-decoration: none !important;
+            transition: color 0.2s ease !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Hover & Open States on Top Tabs */
+        .header .nav-links li:hover > a.desktop-item,
+        .header .nav-links li.active > a.desktop-item {
+            color: #00a297 !important;
+        }
+
+        /* Active Teal Bottom Accent Bar */
+        .header .nav-links li > a.desktop-item::after {
+            content: '' !important;
+            position: absolute !important;
+            bottom: 0px !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 3px !important;
+            background: #00a297 !important;
+            border-radius: 3px 3px 0 0 !important;
+            transform: scaleX(0) !important;
+            transition: transform 0.2s ease, opacity 0.2s ease !important;
+            opacity: 0 !important;
+        }
+
+        .header .nav-links li:hover > a.desktop-item::after,
+        .header .nav-links li.active > a.desktop-item::after {
+            transform: scaleX(1) !important;
+            opacity: 1 !important;
         }
 
         .header .mega-box {
@@ -1868,7 +1930,7 @@
                         <div class="col-12 px-0 text-center">
                             <input type="radio" name="slider" id="menu-btn">
                             <input type="radio" name="slider" id="close-btn">
-                            <ul class="nav-links gap-3">
+                            <ul class="nav-links">
                                 <label for="close-btn" class="btn close-btn"><i class="fas fa-times"></i></label>
 
                                 <!-- 1. EYEGLASSES (VERTICAL TABS: MEN, WOMEN, KIDS -> RIGHT 3x3 GRID) -->

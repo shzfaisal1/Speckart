@@ -760,7 +760,7 @@
 
                         <div class="order-action-btns">
                             @if($dataStatus === 'processing' || $dataStatus === 'transit')
-                                <form action="{{ route('my-orders.cancel', $orderId) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel order #{{ $orderNo }}?');">
+                                <form action="{{ route('my-orders.cancel', $orderId) }}" method="POST" class="cancel-order-form" data-order-no="{{ $orderNo }}">
                                     @csrf
                                     <button type="submit" class="btn-order-cancel">
                                         <i class="bi bi-x-lg"></i> Cancel Order
@@ -863,6 +863,28 @@
                 applyFilters();
             });
         }
+
+        // Cancel order confirmation with SweetAlert2
+        document.querySelectorAll('.cancel-order-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const orderNo = this.dataset.orderNo || '';
+                Swal.fire({
+                    title: 'Cancel Order?',
+                    text: 'Are you sure you want to cancel order #' + orderNo + '?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, cancel order',
+                    cancelButtonText: 'No, keep order'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
     });
 </script>
 @endsection

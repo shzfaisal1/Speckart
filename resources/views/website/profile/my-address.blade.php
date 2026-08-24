@@ -629,10 +629,10 @@
 
                                     @if(isset($address->id))
                                         <li>
-                                            <form method="POST" action="{{ route('delete_address', $address->id) }}">
+                                            <form method="POST" action="{{ route('delete_address', $address->id) }}" class="delete-address-form">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="addr-dropdown-item item-delete" onclick="return confirm('Delete this saved address?')">
+                                                <button type="submit" class="addr-dropdown-item item-delete">
                                                     <i class="bi bi-trash3-fill text-danger"></i> Delete
                                                 </button>
                                             </form>
@@ -847,6 +847,25 @@ function resetForm() {
     document.getElementById('add_type_home').checked = true;
     document.getElementById('add_is_default').checked = false;
 }
+
+$(document).on('submit', '.delete-address-form', function(e) {
+    e.preventDefault();
+    const form = this;
+    Swal.fire({
+        title: 'Delete Address?',
+        text: 'Are you sure you want to delete this saved address?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+});
 </script>
 
 @if ($errors->any())
