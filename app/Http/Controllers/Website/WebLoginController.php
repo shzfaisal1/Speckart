@@ -332,6 +332,98 @@ class WebLoginController extends Controller
     }
 
     /**
+     * Handle AJAX User Registration from the Auth Modal.
+     */
+    public function register_ajax(Request $request)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'name'                  => 'required|string|max:255',
+            'phone'                 => 'required|string|max:20|unique:users,phone',
+            'email'                 => 'required|string|email|max:255|unique:users,email',
+            'password'              => 'required|string|min:6',
+            'password_confirmation' => 'required|same:password',
+        ], [
+            'name.required'                  => 'Please enter your full name.',
+            'phone.required'                 => 'Please enter your mobile number.',
+            'phone.unique'                   => 'This mobile number is already registered.',
+            'email.required'                 => 'Please enter your email address.',
+            'email.unique'                   => 'This email address is already registered.',
+            'password.required'              => 'Please enter a password.',
+            'password.min'                   => 'Password must be at least 6 characters.',
+            'password_confirmation.required' => 'Please confirm your password.',
+            'password_confirmation.same'     => 'Passwords do not match.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'errors'  => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $user = User::create([
+            'staff_id'  => (string) rand(10000000, 99999999),
+            'name'      => trim($request->name),
+            'email'     => trim($request->email),
+            'phone'     => trim($request->phone),
+            'password'  => Hash::make($request->password),
+            'user_type' => 'B2C',
+            'status'    => 1,
+        ]);
+
+        if (method_exists($user, 'assignRole')) {
+            try {
+                $user->assignRole('Customer');
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            $client_unique_id = 'C' . rand(11, 99) . $user->id . time();
+            \DB::table('tbl_client')->insert([
+                'user_id'          => $user->id,
+                'client_type'      => 'Customer',
+                'client_unique_id' => substr($client_unique_id, 0, 15),
+                'client_name'      => $request->name,
+                'email_id'         => $request->email,
+                'mobile_no'        => $request->phone,
+                'password'         => Hash::make($request->password),
+                'status'           => '1',
+            ]);
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
+                $exists = \DB::table('tbl_customer')->where('contact_no', $request->phone)->orWhere('email_id', $request->email)->first();
+                if (!$exists) {
+                    \DB::table('tbl_customer')->insert([
+                        'cust_unique_id' => 'C' . rand(100000, 999999),
+                        'cust_type'      => 'Customer',
+                        'cust_name'      => $request->name,
+                        'contact_no'     => $request->phone,
+                        'email_id'       => $request->email,
+                        'cust_category'  => 'B2C Online',
+                        'store_id'       => 0,
+                        'added_by'       => $user->id,
+                        'created_at'     => \Carbon\Carbon::now(),
+                        'updated_at'     => \Carbon\Carbon::now(),
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        $guestSessionId = session()->getId();
+        Auth::login($user);
+        try {
+            app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'   => 'success',
+            'message'  => 'Account created successfully!',
+            'userName' => $user->name ?: 'Customer',
+        ]);
+    }
+
+    /**
      * Logout the web user.
      */
     public function logout(Request $request)

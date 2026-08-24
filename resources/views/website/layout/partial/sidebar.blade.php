@@ -523,69 +523,197 @@
             transform: translateX(2px);
         }
 
-        /* Contact Lenses Grid */
-        .lenskart-cl-grid {
+        /* =========================================================
+           LENSKART HORIZONTAL ROW-WISE CONTACT LENSES MEGA MENU
+        ========================================================= */
+        .lenskart-cl-horizontal-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            padding: 22px 26px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px 24px 16px;
+            background: #ffffff;
         }
 
-        .lenskart-cl-col {
-            background: #fafbfc;
-            border: 1px solid #f1f5f9;
-            border-radius: 12px;
-            padding: 14px 16px;
-        }
-
-        .lenskart-cl-col header {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid rgba(7, 72, 74, 0.12);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .lenskart-cl-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        .lenskart-cl-column {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
         }
 
-        .lenskart-cl-list li a {
+        .lenskart-cl-header-card {
+            background: linear-gradient(135deg, #eef8fb 0%, #e2f2f7 100%);
+            border-radius: 14px;
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 8px;
-            border-radius: 6px;
-            color: #334155 !important;
-            font-size: 12.5px !important;
+            text-decoration: none !important;
+            border: 1px solid #d4ebf3;
+            transition: all 0.22s ease;
+            margin-bottom: 8px;
+            min-height: 68px;
+        }
+
+        .lenskart-cl-header-card:hover {
+            background: linear-gradient(135deg, #e5f4f8 0%, #d5edf5 100%);
+            border-color: #0284c755;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.12);
+        }
+
+        .lenskart-cl-header-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .lenskart-cl-header-title {
+            font-size: 15.5px !important;
+            color: #0f172a !important;
             font-weight: 500 !important;
-            text-decoration: none;
-            transition: all 0.18s ease;
+            margin: 0 !important;
+            line-height: 1.25 !important;
+            letter-spacing: -0.2px;
             text-transform: none !important;
         }
 
-        .lenskart-cl-list li a:hover {
-            background: #ffffff;
-            color: #07484a !important;
-            transform: translateX(3px);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        .lenskart-cl-header-title strong {
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            text-transform: uppercase;
         }
 
-        .lenskart-cl-color-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
+        .lenskart-cl-gold-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11.5px !important;
+            font-weight: 700 !important;
+            color: #0284c7 !important;
+            margin-top: 3px;
+            line-height: 1;
+        }
+
+        .lenskart-cl-gold-badge i {
+            font-size: 12px;
+            color: #0284c7;
+        }
+
+        .lenskart-cl-header-img {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+        }
+
+        .lenskart-cl-rows-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .lenskart-cl-row-item {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+            background: #ffffff !important;
+            border: 1px solid transparent !important;
+            text-decoration: none !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .lenskart-cl-row-item:hover {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            transform: translateX(3px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        .lenskart-cl-row-left {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            min-width: 0 !important;
+            flex: 1 !important;
+        }
+
+        .lenskart-cl-thumb {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 10px !important;
+            background: #f8fafc !important;
+            border: 1px solid #eef2f6 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+            transition: all 0.2s ease !important;
+            padding: 4px !important;
+        }
+
+        .lenskart-cl-row-item:hover .lenskart-cl-thumb {
+            background: #ffffff !important;
+            border-color: rgba(7, 72, 74, 0.25) !important;
+            transform: scale(1.05) !important;
+        }
+
+        .lenskart-cl-row-info {
+            display: flex !important;
+            flex-direction: column !important;
+            min-width: 0 !important;
+            text-align: left !important;
+            flex: 1 !important;
+        }
+
+        .lenskart-cl-item-name {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #1e293b !important;
+            line-height: 1.25 !important;
+            text-transform: none !important;
+            transition: color 0.2s ease !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .lenskart-cl-row-item:hover .lenskart-cl-item-name {
+            color: #07484a !important;
+        }
+
+        .lenskart-cl-item-price {
+            font-size: 11.5px !important;
+            font-weight: 500 !important;
+            color: #64748b !important;
+            margin-top: 1px !important;
+            line-height: 1.2 !important;
+            text-transform: none !important;
+        }
+
+        .lenskart-cl-item-price strong {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            font-size: 12px !important;
+        }
+
+        .lenskart-cl-row-item:hover .lenskart-cl-item-price strong {
+            color: #07484a !important;
+        }
+
+        .lenskart-cl-chevron {
+            font-size: 11px !important;
+            color: #0f172a !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+            margin-left: 6px !important;
+        }
+
+        .lenskart-cl-row-item:hover .lenskart-cl-chevron {
+            color: #07484a !important;
+            transform: translateX(3px) !important;
         }
 
         /* Home Eye-Test & Store locator custom cards */
@@ -863,6 +991,10 @@
         /* =========================================================
            PREMIUM MOBILE & TABLET DRAWER (OFFCANVAS)
         ========================================================= */
+        .offcanvas-backdrop {
+            z-index: 1040 !important;
+        }
+
         #mobileSidebar.offcanvas {
             width: 320px !important;
             max-width: 86vw !important;
@@ -878,7 +1010,7 @@
             bottom: 0 !important;
             right: 0 !important;
             border-radius: 0 !important;
-            z-index: 100000 !important;
+            z-index: 1045 !important;
         }
 
         @media (min-width: 576px) and (max-width: 991px) {
@@ -1489,10 +1621,40 @@
                 font-size: 11.5px !important;
             }
 
-            .lenskart-cl-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
+            .lenskart-cl-horizontal-grid {
                 gap: 12px !important;
-                padding: 14px !important;
+                padding: 14px 16px !important;
+            }
+
+            .lenskart-cl-header-card {
+                padding: 8px 12px !important;
+                min-height: 60px !important;
+            }
+
+            .lenskart-cl-header-title {
+                font-size: 13.5px !important;
+            }
+
+            .lenskart-cl-gold-badge {
+                font-size: 10.5px !important;
+            }
+
+            .lenskart-cl-header-img svg {
+                width: 50px !important;
+                height: 34px !important;
+            }
+
+            .lenskart-cl-thumb {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .lenskart-cl-item-name {
+                font-size: 11.5px !important;
+            }
+
+            .lenskart-cl-item-price {
+                font-size: 10.5px !important;
             }
 
             .lenskart-cities-grid {
@@ -1508,7 +1670,6 @@
     <!-- Sticky Main Header Wrapper (Logo, Search, User Profile, Mega Menu Navigation) -->
     <header class="site-header-sticky">
         <!-- navbar -->
-        @include('website.layout.partial.login-modal')
         <section class="header" data-is-logged-in="{{ auth()->check() ? 'true' : 'false' }}">
             <div class="container header-container">
                 <div class="row mb-0">
@@ -1631,7 +1792,7 @@
 
                                     <li class="dropdown pe-0 user-profile-nav-item">
                                         @guest
-                                            <a href="{{ route('login.web') }}">
+                                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#speckartLoginModal" style="cursor:pointer;">
                                                 <p>
                                                     <img src="{{ asset('website/assets/img/icon/Signup.png') }}"
                                                         alt="Login">
@@ -3199,133 +3360,454 @@
                                     </div>
                                 </li>
 
-                                <!-- 5. CONTACT LENSES -->
-                                <li>
+                                <!-- 5. CONTACT LENSES (VERTICAL TABS: CLEAR, COLOR, ACCESSORIES -> RIGHT 3x2 GRID) -->
+                                <li class="lenskart-nav-parent">
                                     <a href="{{ route('products') }}?type=Contact%20Lens"
                                         class="desktop-item">Contact Lenses</a>
                                     <input type="checkbox" id="showMegaCL">
                                     <label for="showMegaCL" class="mobile-item">Contact Lenses</label>
                                     <div class="mega-box">
                                         <div class="lenskart-mega-container">
-                                            <div class="lenskart-cl-grid">
-                                                <!-- Column 1: Brands -->
-                                                <div class="lenskart-cl-col">
-                                                    <header>Popular Brands</header>
-                                                    <ul class="lenskart-cl-list">
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Aqualens"><span>Aqualens</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Bausch%20Lomb"><span>Bausch
-                                                                    & Lomb</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Soflens"><span>Soflens</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Acuvue"><span>Acuvue</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Alcon"><span>Alcon</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&brand=Iconnect"><span>Iconnect</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    </ul>
+                                            <div class="lenskart-vlayout">
+                                                <!-- LEFT: Vertical Tabs for Contact Lenses -->
+                                                <div class="lenskart-vtabs">
+                                                    <!-- Tab 1: Clear Contacts -->
+                                                    <div class="lenskart-vtab-item active"
+                                                        data-vtarget="#cl-pane-clear">
+                                                        <div class="lenskart-vtab-left">
+                                                            <div class="lenskart-vtab-avatar d-flex align-items-center justify-content-center" style="background:#e0f2fe; border: 2px solid #bae6fd;">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                                    <ellipse cx="12" cy="12" rx="9" ry="6" fill="#38bdf8" fill-opacity="0.6" stroke="#0284c7" stroke-width="1.5"/>
+                                                                    <ellipse cx="10.5" cy="10.5" rx="5" ry="3" fill="#ffffff" fill-opacity="0.8"/>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">CLEAR Contacts</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-patch-check-fill"></i> 10% OFF with Gold</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
+
+                                                    <!-- Tab 2: Color Contacts -->
+                                                    <div class="lenskart-vtab-item" data-vtarget="#cl-pane-color">
+                                                        <div class="lenskart-vtab-left">
+                                                            <div class="lenskart-vtab-avatar d-flex align-items-center justify-content-center" style="background:#fef3c7; border: 2px solid #fde68a;">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                                    <circle cx="12" cy="12" r="9" fill="#f59e0b" fill-opacity="0.5" stroke="#d97706" stroke-width="1.5"/>
+                                                                    <circle cx="12" cy="12" r="5" fill="#78350f" stroke="#451a03" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                    <circle cx="12" cy="12" r="2.5" fill="#0f172a"/>
+                                                                    <circle cx="10" cy="10" r="1" fill="#ffffff"/>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">COLOR Contacts</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-patch-check-fill"></i> 10% OFF with Gold</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
+
+                                                    <!-- Tab 3: Solution & Accessories -->
+                                                    <div class="lenskart-vtab-item" data-vtarget="#cl-pane-accessories">
+                                                        <div class="lenskart-vtab-left">
+                                                            <div class="lenskart-vtab-avatar d-flex align-items-center justify-content-center" style="background:#ccfbf1; border: 2px solid #99f6e4;">
+                                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                                    <rect x="5" y="7" width="7" height="13" rx="2" fill="#0d9488" stroke="#115e59" stroke-width="1.2"/>
+                                                                    <rect x="7" y="4" width="3" height="3" rx="1" fill="#2dd4bf" stroke="#115e59" stroke-width="0.8"/>
+                                                                    <rect x="13" y="11" width="9" height="7" rx="3.5" fill="#bae6fd" stroke="#0284c7" stroke-width="1.2"/>
+                                                                </svg>
+                                                            </div>
+                                                            <div class="lenskart-vtab-info">
+                                                                <span class="lenskart-vtab-title">Solution &amp; Care</span>
+                                                                <span class="lenskart-vtab-badge"><i
+                                                                        class="bi bi-patch-check-fill"></i> 10% OFF with Gold</span>
+                                                            </div>
+                                                        </div>
+                                                        <i class="bi bi-chevron-right lenskart-vtab-arrow"></i>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Column 2: Modality -->
-                                                <div class="lenskart-cl-col">
-                                                    <header>By Disposability</header>
-                                                    <ul class="lenskart-cl-list">
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Daily"><span>Daily
-                                                                    Disposable</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Monthly"><span>Monthly
-                                                                    Disposable</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Day%20%26%20Night"><span>Day
-                                                                    & Night</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Yearly"><span>Yearly
-                                                                    Disposable</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&modality=Bi-weekly"><span>Bi-Weekly</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                    </ul>
-                                                </div>
+                                                <!-- RIGHT: Active Tab Content (3x2 Products Grid) -->
+                                                <div class="lenskart-vcontent">
+                                                    <!-- PANE 1: CLEAR CONTACTS -->
+                                                    <div class="lenskart-vpane active" id="cl-pane-clear">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>CLEAR</span> Contacts Collection</h5>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=clear"
+                                                                class="view-more-link">
+                                                                View All Clear Contacts <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&power_type=distance"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+                                                                            <ellipse cx="15" cy="12" rx="12" ry="8" fill="#E0F2FE" stroke="#38BDF8" stroke-width="1.5"/>
+                                                                            <ellipse cx="14" cy="11" rx="7" ry="4.5" fill="#BAE6FD" stroke="#0284C7" stroke-width="1"/>
+                                                                            <circle cx="12" cy="9" r="2" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Distance power (-ve)</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹319</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&power_type=toric"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+                                                                            <ellipse cx="15" cy="12" rx="12" ry="8" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
+                                                                            <ellipse cx="15" cy="12" rx="7" ry="4.5" fill="#BAE6FD" stroke="#0284C7" stroke-width="1"/>
+                                                                            <line x1="3" y1="12" x2="6" y2="12" stroke="#0284C7" stroke-width="1.8" stroke-linecap="round"/>
+                                                                            <line x1="24" y1="12" x2="27" y2="12" stroke="#0284C7" stroke-width="1.8" stroke-linecap="round"/>
+                                                                            <circle cx="13" cy="10" r="1.8" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Toric/Cylindrical</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹379</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&power_type=multifocal"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+                                                                            <ellipse cx="15" cy="12" rx="12" ry="8" fill="#E0F2FE" stroke="#0369A1" stroke-width="1.5"/>
+                                                                            <ellipse cx="15" cy="12" rx="8" ry="5.2" fill="#BAE6FD" stroke="#0284C7" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                            <ellipse cx="15" cy="12" rx="4.5" ry="2.8" fill="#7DD3FC" stroke="#0369A1" stroke-width="1"/>
+                                                                            <circle cx="13" cy="10" r="1.5" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Multi-Focal Power</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹2599</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&modality=Daily"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+                                                                            <rect x="3" y="3" width="24" height="18" rx="4" fill="#F0F9FF" stroke="#0284C7" stroke-width="1.5"/>
+                                                                            <text x="7" y="16" font-size="9" font-weight="bold" fill="#0284C7">1-DAY</text>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Daily Disposable</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹399</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&modality=Monthly"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+                                                                            <rect x="3" y="3" width="24" height="18" rx="4" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5"/>
+                                                                            <text x="6" y="16" font-size="8" font-weight="bold" fill="#16A34A">MONTH</text>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Monthly Disposable</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹499</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=clear"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="30" height="24" viewBox="0 0 30 24" fill="none">
+                                                                            <ellipse cx="15" cy="12" rx="13" ry="8.5" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
+                                                                            <path d="M10 12L13.5 15.5L20 9" stroke="#0284C7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Clear Contacts</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹319</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
 
-                                                <!-- Column 3: Power -->
-                                                <div class="lenskart-cl-col">
-                                                    <header>By Power Type</header>
-                                                    <ul class="lenskart-cl-list">
-                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Spherical
-                                                                    - (CYL 0.5)</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Spherical
-                                                                    + (CYL 0.5)</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Cylindrical
-                                                                    Power (>0.75)</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Toric
-                                                                    Power Lenses</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
+                                                    <!-- PANE 2: COLOR CONTACTS -->
+                                                    <div class="lenskart-vpane" id="cl-pane-color">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>COLOR</span> Contacts Collection</h5>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=color"
+                                                                class="view-more-link">
+                                                                View All Color Contacts <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&power=zero"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                                                                            <circle cx="13" cy="13" r="10" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+                                                                            <circle cx="13" cy="13" r="6.5" fill="#B45309" stroke="#92400E" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                            <circle cx="13" cy="13" r="3" fill="#0F172A"/>
+                                                                            <circle cx="11.5" cy="11" r="1" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Zero Power Color</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹189</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&power=with-power"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                                                                            <circle cx="13" cy="13" r="10" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>
+                                                                            <circle cx="13" cy="13" r="6.5" fill="#0369A1" stroke="#075985" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                            <circle cx="13" cy="13" r="3" fill="#0F172A"/>
+                                                                            <circle cx="11.5" cy="11" r="1" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">With Power Color</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹199</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&offer=combo"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
+                                                                            <rect x="2" y="4" width="10" height="16" rx="2" fill="#38BDF8" fill-opacity="0.9" stroke="#0284C7" stroke-width="1"/>
+                                                                            <rect x="8" y="2" width="10" height="16" rx="2" fill="#34D399" fill-opacity="0.9" stroke="#059669" stroke-width="1"/>
+                                                                            <rect x="14" y="0.5" width="10" height="16" rx="2" fill="#FBBF24" fill-opacity="0.9" stroke="#D97706" stroke-width="1"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Color Combos</span>
+                                                                        <span class="lenskart-item-price text-primary" style="color:#0284c7 !important; font-weight:700;">Buy 4 @ Price of 3!</span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&color=Green"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                                                                            <circle cx="13" cy="13" r="10" fill="#D1FAE5" stroke="#059669" stroke-width="1.5"/>
+                                                                            <circle cx="13" cy="13" r="6.5" fill="#047857" stroke="#064E3B" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                            <circle cx="13" cy="13" r="3" fill="#0F172A"/>
+                                                                            <circle cx="11.5" cy="11" r="1" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Emerald Green</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹199</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&color=Brown"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                                                                            <circle cx="13" cy="13" r="10" fill="#FEF3C7" stroke="#92400E" stroke-width="1.5"/>
+                                                                            <circle cx="13" cy="13" r="6.5" fill="#78350F" stroke="#451A03" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                            <circle cx="13" cy="13" r="3" fill="#0F172A"/>
+                                                                            <circle cx="11.5" cy="11" r="1" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Hazel &amp; Brown</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹199</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&color=Turquoise"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                                                                            <circle cx="13" cy="13" r="10" fill="#CFFAFE" stroke="#0891B2" stroke-width="1.5"/>
+                                                                            <circle cx="13" cy="13" r="6.5" fill="#0E7490" stroke="#155E75" stroke-width="1" stroke-dasharray="1.5 1.5"/>
+                                                                            <circle cx="13" cy="13" r="3" fill="#0F172A"/>
+                                                                            <circle cx="11.5" cy="11" r="1" fill="#FFFFFF"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Turquoise &amp; Aqua</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹199</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
 
-                                                <!-- Column 4: Color & Solutions -->
-                                                <div class="lenskart-cl-col">
-                                                    <header>Color Lenses & Care</header>
-                                                    <ul class="lenskart-cl-list">
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Green"><span><span
-                                                                        class="lenskart-cl-color-dot"
-                                                                        style="background:#10b981;"></span>Green</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Blue"><span><span
-                                                                        class="lenskart-cl-color-dot"
-                                                                        style="background:#3b82f6;"></span>Blue</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Brown"><span><span
-                                                                        class="lenskart-cl-color-dot"
-                                                                        style="background:#92400e;"></span>Hazel &
-                                                                    Brown</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                        <li><a
-                                                                href="{{ route('products') }}?type=Contact%20Lens&color=Turquoise"><span><span
-                                                                        class="lenskart-cl-color-dot"
-                                                                        style="background:#06b6d4;"></span>Turquoise</span>
-                                                                <i class="bi bi-chevron-right text-muted"></i></a></li>
-                                                        <li><a href="{{ route('products') }}?type=Contact%20Lens"><span>Lens
-                                                                    Cleaning Solutions</span> <i
-                                                                    class="bi bi-chevron-right text-muted"></i></a>
-                                                        </li>
-                                                    </ul>
+                                                    <!-- PANE 3: SOLUTION & ACCESSORIES -->
+                                                    <div class="lenskart-vpane" id="cl-pane-accessories">
+                                                        <div class="lenskart-pane-header">
+                                                            <h5><span>SOLUTION &amp; ACCESSORIES</span> Collection</h5>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=accessories"
+                                                                class="view-more-link">
+                                                                View All Solutions <i
+                                                                    class="bi bi-arrow-right"></i>
+                                                            </a>
+                                                        </div>
+                                                        <div class="lenskart-products-grid">
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=solution"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="24" height="28" viewBox="0 0 24 28" fill="none">
+                                                                            <rect x="5" y="9" width="14" height="17" rx="3" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.5"/>
+                                                                            <rect x="8" y="4" width="8" height="5" rx="1.5" fill="#2DD4BF" stroke="#0D9488" stroke-width="1"/>
+                                                                            <circle cx="12" cy="18" r="3.5" fill="#0D9488" fill-opacity="0.2"/>
+                                                                            <path d="M12 15.5C12 15.5 10 18 10 19C10 20.1 10.9 21 12 21C13.1 21 14 20.1 14 19C14 18 12 15.5 12 15.5Z" fill="#0D9488"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Contact Lens Solution</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹149</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=accessories"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
+                                                                            <rect x="2" y="6" width="24" height="14" rx="7" fill="#E0F2FE" stroke="#4F46E5" stroke-width="1.5"/>
+                                                                            <circle cx="9" cy="13" r="4.5" fill="#818CF8" stroke="#4F46E5" stroke-width="1"/>
+                                                                            <circle cx="19" cy="13" r="4.5" fill="#C7D2FE" stroke="#4F46E5" stroke-width="1"/>
+                                                                            <text x="7.5" y="15.5" font-size="6.5" font-weight="bold" fill="#FFFFFF">L</text>
+                                                                            <text x="17.5" y="15.5" font-size="6.5" font-weight="bold" fill="#312E81">R</text>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Travel Cases &amp; Kits</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹159</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=solution"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="24" height="28" viewBox="0 0 24 28" fill="none">
+                                                                            <rect x="6" y="8" width="12" height="18" rx="2.5" fill="#F0FDFA" stroke="#0D9488" stroke-width="1.4"/>
+                                                                            <path d="M4 8H20" stroke="#0D9488" stroke-width="1.4"/>
+                                                                            <rect x="9" y="3" width="6" height="5" rx="1.5" fill="#2DD4BF" stroke="#0D9488" stroke-width="1"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Cleaning Sprays</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹199</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=accessories"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="24" height="28" viewBox="0 0 24 28" fill="none">
+                                                                            <rect x="7" y="10" width="10" height="15" rx="3" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.4"/>
+                                                                            <path d="M12 4C12 4 10 7 10 8.5C10 9.6 10.9 10.5 12 10.5C13.1 10.5 14 9.6 14 8.5C14 7 12 4 12 4Z" fill="#3B82F6"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Comfort Eye Drops</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹129</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=accessories"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
+                                                                            <rect x="3" y="4" width="10" height="16" rx="2" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.2"/>
+                                                                            <rect x="15" y="8" width="10" height="12" rx="4" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.2"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">Combo Care Packs</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹299</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                            <a href="{{ route('products') }}?type=Contact%20Lens&category=accessories"
+                                                                class="lenskart-item-card">
+                                                                <div class="lenskart-item-card-left">
+                                                                    <div class="lenskart-item-thumb">
+                                                                        <svg width="28" height="24" viewBox="0 0 28 24" fill="none">
+                                                                            <ellipse cx="14" cy="12" rx="12" ry="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="1.4"/>
+                                                                            <path d="M10 12L13 15L18 9" stroke="#07484A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                    <div class="lenskart-item-info">
+                                                                        <span class="lenskart-item-title">All Accessories &amp; Care</span>
+                                                                        <span class="lenskart-item-price">Starts at
+                                                                            <strong>₹149</strong></span>
+                                                                    </div>
+                                                                </div>
+                                                                <i class="bi bi-chevron-right lenskart-item-chevron"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             <div class="lenskart-mega-footer">
                                                 <div class="lenskart-footer-perks">
                                                     <div class="lenskart-perk"><i
-                                                            class="bi bi-droplet-fill text-info"></i> High Moisture &
+                                                            class="bi bi-droplet-fill text-info"></i> High Moisture &amp;
                                                         Oxygen</div>
                                                     <div class="lenskart-perk"><i
                                                             class="bi bi-patch-check-fill text-success"></i> 100%
@@ -3336,7 +3818,7 @@
                                                 </div>
                                                 <a href="{{ route('products') }}?type=Contact%20Lens"
                                                     class="lenskart-footer-link">
-                                                    View All Contact Lenses <i class="bi bi-arrow-right"></i>
+                                                    Explore All Contact Lenses <i class="bi bi-arrow-right"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -3487,7 +3969,7 @@
                 <div class="mobile-guest-card">
                     <h5>Welcome to Speckarts</h5>
                     <p>Sign in to view saved frames, orders & prescriptions</p>
-                    <a href="{{ route('login.web') }}" class="btn-mobile-login">
+                    <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#speckartLoginModal" class="btn-mobile-login" style="cursor:pointer;">
                         <i class="bi bi-box-arrow-in-right"></i>
                         <span>Sign In / Register</span>
                     </a>
