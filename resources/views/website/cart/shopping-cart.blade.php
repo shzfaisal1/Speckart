@@ -1467,7 +1467,43 @@
                                                 <div class="sc-lens-pill my-0 flex-grow-1" style="margin-top:0 !important;">
                                                     <span class="sc-lens-name">
                                                         <i class="bi bi-layers-fill"></i>
-                                                        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $item['lens_name'] }}</span>
+                                                        @php
+                                                            // FIX: Show contextual prescription info for Reading Glasses & Contact Lenses
+                                                            // instead of always showing the generic "Basic / Frame Only" lens_name.
+                                                            $rxRaw = $item['prescription_data'] ?? null;
+                                                            $rx    = is_string($rxRaw) ? json_decode($rxRaw, true) : (is_array($rxRaw) ? $rxRaw : null);
+                                                            $rxType = $rx['type'] ?? null;
+                                                        @endphp
+
+                                                        @if($rxType === 'contact_lens_manual' && isset($rx['right'], $rx['left']))
+                                                            {{-- Contact Lens: show eye-by-eye SPH & box breakdown --}}
+                                                            <span class="d-inline-flex flex-wrap gap-1" style="white-space:normal;">
+                                                                @if(!empty($rx['right']['sph']) && $rx['right']['boxes'] > 0)
+                                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;">
+                                                                        R: {{ $rx['right']['sph'] }} ({{ $rx['right']['boxes'] }} Box)
+                                                                    </span>
+                                                                @endif
+                                                                @if(!empty($rx['left']['sph']) && $rx['left']['boxes'] > 0)
+                                                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:10px;">
+                                                                        L: {{ $rx['left']['sph'] }} ({{ $rx['left']['boxes'] }} Box)
+                                                                    </span>
+                                                                @endif
+                                                            </span>
+                                                        @elseif($rxType === 'contact_lens_later')
+                                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;color:#999;">
+                                                                Power to be submitted later
+                                                            </span>
+                                                        @elseif(!empty($rx['reading_power']))
+                                                            {{-- Reading Glasses: show selected power chip --}}
+                                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size:11px;">
+                                                                Reading Power: {{ $rx['reading_power'] }}
+                                                            </span>
+                                                        @else
+                                                            {{-- Standard / Powered eyeglass lens package --}}
+                                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                                {{ $item['lens_name'] }}
+                                                            </span>
+                                                        @endif
                                                     </span>
                                                     <span class="sc-lens-price">
                                                         {{ $item['lens_price'] > 0 ? '+₹' . number_format($item['lens_price'], 0) : 'Included' }}

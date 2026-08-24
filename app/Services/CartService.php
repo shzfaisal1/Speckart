@@ -12,7 +12,7 @@ class CartService
     /**
      * Add Frame + Lens Package to Cart session
      */
-    public function addToCart($frameId, $lensPackageId = null, $quantity = 1, $prescriptionData = null)
+    public function addToCart($frameId, $lensPackageId = null, $quantity = 1, $prescriptionData = null, $lensType = null)
     {
         $frame = DB::table('tbl_product_code')->where('id', $frameId)->first();
         if (!$frame) {
@@ -40,9 +40,20 @@ class CartService
         $cartKey = 'frame_' . $frame->id . '_lens_' . $lensIdKey . '_rx_' . substr($rxKey, 0, 6);
 
         $lensPrice = 0;
-        $lensName  = 'Basic / Frame Only';
         $lensDetails = 'Standard Lenses';
         $isFreeLens = true;
+
+        // FIX: Derive a meaningful lens_name based on lens_type context
+        // when no lens package is selected (Reading, Zero Power, Contact Lens, Frame Only)
+        $lensNameMap = [
+            'Reading Glasses' => 'Reading Power Lenses',
+            'Zero Power'      => 'Zero Power - Blue Cut',
+            'Contact Lens'    => 'Contact Lens',
+            'Frame Only'      => 'Frame Only',
+        ];
+        $lensName = $lensType && isset($lensNameMap[$lensType])
+            ? $lensNameMap[$lensType]
+            : 'Basic / Frame Only';
 
         if ($lens) {
             $isFreeLens = isset($lens->is_free_lens) ? !empty($lens->is_free_lens) : (isset($lens->lens_price) && (float) $lens->lens_price == 0);

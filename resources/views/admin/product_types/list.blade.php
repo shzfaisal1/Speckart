@@ -173,6 +173,26 @@
                         <input type="hidden" id="selected_powers" name="default_powers" value="[]">
                     </div>
 
+                    {{-- ── Default Lens Package (for Zero Power / Screen Glass auto-bundle) ── --}}
+                    <div class="form-group" id="defaultPackageSection">
+                        <label class="form-label fw-medium">
+                            Default Lens Package
+                            <span class="text-muted" style="font-size:11px;">(auto-bundled on BUY NOW for Zero Power / non-powered types)</span>
+                        </label>
+                        <select class="form-control" id="default_lens_package_id" name="default_lens_package_id">
+                            <option value="">— None (customer selects manually) —</option>
+                            @foreach(\App\Models\LensPackage::where('is_active', 1)->orderBy('name')->get() as $lp)
+                                <option value="{{ $lp->id }}">{{ $lp->name }}
+                                    @if($lp->current_price == 0) (Free) @else (₹{{ number_format($lp->current_price,0) }}) @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">
+                            <i class="fa fa-info-circle"></i>
+                            Set this for <strong>Zero Power</strong> and <strong>Screen Glass</strong> types so the correct Blue-Cut lens is automatically added to cart.
+                        </small>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label fw-medium d-block">Status</label>
                         <div class="toggle-btn">
@@ -367,6 +387,9 @@ $(document).ready(function () {
             $('#type_icon').val(data.icon);
             $('#has_power').val(data.has_power ? '1' : '0').trigger('change');
             $('#type_status').prop('checked', data.is_active == 1);
+
+            // FIX: Pre-fill Default Lens Package dropdown on edit
+            $('#default_lens_package_id').val(data.default_lens_package_id ?? '');
 
             // Clean up custom chips first
             $('.power-chip:not(.predefined-chip)').remove();
@@ -577,17 +600,20 @@ function resetForm() {
     document.getElementById('productTypeForm').reset();
     document.getElementById('record_id').value = '';
     document.getElementById('powerSection').classList.add('d-none');
-    
+
+    // FIX: Reset Default Lens Package dropdown
+    document.getElementById('default_lens_package_id').value = '';
+
     // Remove all dynamically added custom chips
     $('.power-chip:not(.predefined-chip)').remove();
-    
+
     document.querySelectorAll('.power-chip').forEach(c => {
         c.classList.remove('chip-selected');
         c.style.background = '#f1f1f1';
         c.style.color      = '#333';
         c.style.borderColor = '#ccc';
     });
-    
+
     // Reset tabs
     $('#positive-tab').tab('show');
     $('#custom_power_val').val('');

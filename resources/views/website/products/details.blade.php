@@ -603,17 +603,35 @@
 
                 @php
                     $catLower  = strtolower($categoryName ?? '');
-                    $typeLower = strtolower($product->product_type ?? '');
+                    $typeLower = strtolower(trim($product->product_type ?? ''));
+
+                    // ── Classify specific non-frame product types first ──────────────────
                     $isContactLens = str_contains($catLower, 'contact')
                                      || str_contains($typeLower, 'contact')
                                      || ($typeLower === 'lens')
                                      || !empty($product->Modality);
-                    $isSolution = str_contains($catLower, 'solution') || ($typeLower === 'solution');
-                    $isAccessory = str_contains($catLower, 'accessory') || ($typeLower === 'accessory') || ($typeLower === 'other');
-                    $isSunglass = str_contains($catLower, 'sunglass') || ($typeLower === 'sunglass') || !empty($product->polarized);
-                    $isReading  = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
-                    // $isFrame = true ONLY for pure eyeglasses — NOT sunglasses, reading glasses, accessories or contact lenses
-                    $isFrame = !$isContactLens && !$isSolution && !$isAccessory && !$isSunglass && !$isReading;
+
+                    $isSolution    = str_contains($catLower, 'solution') || ($typeLower === 'solution');
+
+                    $isAccessory   = str_contains($catLower, 'accessory')
+                                     || ($typeLower === 'accessory')
+                                     || ($typeLower === 'other');
+
+                    $isSunglass    = str_contains($catLower, 'sunglass')
+                                     || ($typeLower === 'sunglass')
+                                     || !empty($product->polarized);
+
+                    // ── Positive classification for Eyeglass Frames ──────────────────────
+                    // FIX: Old negative check ($isFrame = !$isReading && ...) was breaking
+                    // "Computer Glasses" and "Reading Frames" categories — those ARE frames
+                    // and must show the Product Type tabs.
+                    $isEyeglassFrame = !$isContactLens && !$isSolution && !$isAccessory && !$isSunglass;
+
+                    // Backward-compat alias used in other sections of this file
+                    $isFrame = $isEyeglassFrame;
+
+                    // isReading flag now only controls CTA button text (not tab visibility)
+                    $isReading = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
                 @endphp
 
                 <!-- Size & Variant Options -->
@@ -687,16 +705,27 @@
                 </div>
 
                 @php
+                    // Normalize supported_product_types (stored as JSON string or array)
                     $supportedTypeIds = $product->supported_product_types ?? [];
                     if (is_string($supportedTypeIds)) {
                         $supportedTypeIds = json_decode($supportedTypeIds, true) ?? [];
                     }
+                    $supportedTypeIds = is_array($supportedTypeIds) ? array_filter(array_map('intval', $supportedTypeIds)) : [];
 
-                    if (!empty($supportedTypeIds) && $isFrame) {
-                        $productTypes = \App\Models\ProductType::where('is_active', 1)
-                            ->whereIn('id', $supportedTypeIds)
-                            ->get();
+                    if ($isEyeglassFrame) {
+                        $ptQuery = \App\Models\ProductType::where('is_active', 1);
+
+                        if (!empty($supportedTypeIds)) {
+                            // Admin assigned specific types for this frame → use them
+                            $ptQuery->whereIn('id', $supportedTypeIds);
+                        }
+                        // FIX: If admin left supported_product_types BLANK, load ALL active
+                        // types as a safe fallback so tabs never disappear on a frame product.
+
+                        $productTypes = $ptQuery->orderBy('sort_order', 'asc')->get();
                     } else {
+                        // Non-frame products (Contact Lens, Sunglass, Solution, Accessory)
+                        // never show Product Type tabs
                         $productTypes = collect([]);
                     }
                 @endphp
@@ -707,10 +736,17 @@
                     <p class="option-label mb-2">Product Type :</p>
                     <div class="product-type-tabs d-flex gap-2 p-1">
                         @foreach($productTypes as $index => $ptype)
+                        @php
+                            $ptypeSlug = strtolower(trim($ptype->name));
+                            $ptypeSlug = str_replace(' ', '_', $ptypeSlug); // e.g. "reading_glasses", "zero_power", "powered_eyeglass"
+                            $defaultZeroPackageId = ($ptypeSlug === 'zero_power') ? ($ptype->default_lens_package_id ?? '') : '';
+                        @endphp
                         <div class="ptype-tab {{ $index === 0 ? 'active' : '' }}"
                             data-type-id="{{ $ptype->id }}"
+                            data-type-slug="{{ $ptypeSlug }}"
                             data-has-power="{{ $ptype->has_power ? '1' : '0' }}"
                             data-powers="{{ json_encode($ptype->default_powers ?: []) }}"
+                            data-zero-package-id="{{ $defaultZeroPackageId }}"
                             onclick="selectProductType(this)">
                             <span class="ptype-name">{{ $ptype->name }}</span>
                             <span class="ptype-sub">{{ $ptype->subtitle }}</span>
@@ -2774,31 +2810,54 @@
         // Helper for Contact Lens Direct Buy with Power Submission
         function submitContactLensCart() {
             const isManual = $('input[name="power_submission"]:checked').val() === 'manual';
-            let rxData = null;
+            let rxData     = null;
+            let totalBoxes = 1; // default
 
             if (isManual) {
-                const rightSph = $('#check-right').is(':checked') ? ($('#cl-right-sph').val() || 'Plano (0.00)') : null;
-                const rightBoxes = $('#check-right').is(':checked') ? $('#cl-right-boxes').val() : 1;
-                const leftSph = $('#check-left').is(':checked') ? ($('#cl-left-sph').val() || 'Plano (0.00)') : null;
-                const leftBoxes = $('#check-left').is(':checked') ? $('#cl-left-boxes').val() : 1;
+                const isRight = $('#check-right').is(':checked');
+                const isLeft  = $('#check-left').is(':checked');
+
+                // Validation: at least one eye must be selected
+                if (!isRight && !isLeft) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.warning('Please select at least one eye (Right or Left) before adding to cart.');
+                    } else {
+                        alert('Please select at least one eye (Right or Left).');
+                    }
+                    return;
+                }
+
+                const rightSph   = isRight ? ($('#cl-right-sph').val()   || '0.00') : null;
+                const leftSph    = isLeft  ? ($('#cl-left-sph').val()    || '0.00') : null;
+                const rightBoxes = isRight ? (parseInt($('#cl-right-boxes').val()) || 1) : 0;
+                const leftBoxes  = isLeft  ? (parseInt($('#cl-left-boxes').val())  || 1) : 0;
+
+                // FIX: Sum right + left boxes as total quantity so pricing is correct
+                totalBoxes = rightBoxes + leftBoxes;
+                if (totalBoxes < 1) totalBoxes = 1;
 
                 rxData = JSON.stringify({
-                    type: 'contact_lens_manual',
-                    right: { sph: rightSph, boxes: rightBoxes },
-                    left: { sph: leftSph, boxes: leftBoxes }
+                    type        : 'contact_lens_manual',
+                    right       : { sph: rightSph,  boxes: isRight ? rightBoxes : 0 },
+                    left        : { sph: leftSph,   boxes: isLeft  ? leftBoxes  : 0 },
+                    total_boxes : totalBoxes
                 });
             } else {
+                // "I will submit power later" — still add 1 unit
                 rxData = JSON.stringify({
-                    type: 'contact_lens_later',
-                    later: true
+                    type  : 'contact_lens_later',
+                    later : true
                 });
+                totalBoxes = 1;
             }
 
-            addToCartAjax('Contact Lens', null, rxData, null);
+            // Pass totalBoxes as quantity to addToCartAjax
+            addToCartAjax('Contact Lens', null, rxData, null, totalBoxes);
         }
 
         // Cart Submission helper via AJAX
-        function addToCartAjax(lensType, lensPackageId, prescriptionData, prescriptionFile) {
+        // quantity param: defaults to 1. Contact Lens passes total_boxes as quantity.
+        function addToCartAjax(lensType, lensPackageId, prescriptionData, prescriptionFile, quantity = 1) {
             const frameId = currentVariantId || '{{ $product->id }}';
             if (!frameId) {
                 if (typeof toastr !== 'undefined') toastr.error('Please select a valid frame product.');
@@ -2808,7 +2867,7 @@
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('frame_id', frameId);
-            formData.append('quantity', 1);
+            formData.append('quantity', quantity > 0 ? quantity : 1); // FIX: use passed quantity
             if (lensPackageId) {
                 formData.append('lens_package_id', lensPackageId);
             }
@@ -3141,14 +3200,25 @@
         /* ── Product Type pill tabs ── */
         .product-type-tabs {
             gap: 10px !important;
+            /* FIX: Mobile horizontal scroll — tabs should never wrap or overflow */
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;  /* smooth momentum scroll on iOS */
+            scroll-behavior: smooth;
+            padding-bottom: 4px;               /* space for scroll indicator if any */
         }
+
+        /* Hide scrollbar (cosmetic) but keep scroll functional */
+        .product-type-tabs::-webkit-scrollbar { display: none; }
+        .product-type-tabs { -ms-overflow-style: none; scrollbar-width: none; }
 
         .ptype-tab {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            /* min-width: 100px; */
+            flex: 0 0 auto;             /* FIX: Never shrink — each tab keeps its natural size */
             white-space: nowrap;
             padding: 10px 14px;
             border: 1.5px solid #d0d0d0;
@@ -3520,57 +3590,120 @@
         /* ══════════════════════════════
                            PRODUCT TYPE TAB SWITCHER
                         ══════════════════════════════ */
+        // Tracks the reading power the customer selected on the PDP
+        window.selectedReadingPower = null;
+
         function selectProductType(el) {
-    document.querySelectorAll('.ptype-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
+            // ── 1. Activate tab ──
+            document.querySelectorAll('.ptype-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
 
-    // Center active tab in scroll container
-    const container = el.closest('.product-type-tabs');
+            // Center active tab in scroll container
+            const container = el.closest('.product-type-tabs');
+            const scrollLeft = el.offsetLeft - (container.offsetWidth / 2) + (el.offsetWidth / 2);
+            container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
 
-    const scrollLeft =
-        el.offsetLeft -
-        (container.offsetWidth / 2) +
-        (el.offsetWidth / 2);
+            // ── 2. Read data attributes ──
+            const typeId         = el.dataset.typeId;
+            const typeSlug       = (el.dataset.typeSlug || '').trim();          // e.g. "reading_glasses"
+            const hasPower       = el.dataset.hasPower === '1';
+            const zeroPackageId  = el.dataset.zeroPackageId || '';
 
-    container.scrollTo({
-        left: scrollLeft,
-        behavior: 'smooth'
-    });
+            // ── 3. Determine flow mode from slug ──
+            //   powered_eyeglass  → open 3-step lens selection modal
+            //   reading_glasses   → inline power chips → direct BUY NOW
+            //   zero_power        → direct BUY NOW with bundled package
+            const isPoweredEyeglass = typeSlug.includes('powered');
+            const isReadingGlasses  = typeSlug.includes('reading');
+            const isZeroPower       = typeSlug.includes('zero');
 
-    const typeId = el.dataset.typeId;
-    const hasPower = el.dataset.hasPower === '1';
+            // Reset reading power whenever tab changes
+            window.selectedReadingPower = null;
 
-    document.querySelectorAll('.power-chips-wrap').forEach(p => p.classList.add('d-none'));
-
-    if (hasPower) {
-        const panel = document.getElementById('powers-' + typeId);
-        if (panel) panel.classList.remove('d-none');
-    }
-
-    const btn = document.getElementById('main-action-btn');
-    if (btn) {
-        if (hasPower) {
-            btn.textContent = 'Select Lenses';
-            btn.classList.add('select-lenses-mode');
-            btn.dataset.hasPower = '1';
-        } else {
-            btn.textContent = 'BUY NOW';
-            btn.classList.remove('select-lenses-mode');
-            btn.dataset.hasPower = '0';
-        }
-    }
-}
-
-        // main-action-btn click: eyeglasses open lens drawer; all others handled by onclick directly
-        $('#main-action-btn').on('click', function() {
-            const hasPower = this.dataset.hasPower === '1';
-            if (hasPower) {
-                const lensModal = new bootstrap.Modal(
-                    document.getElementById('lensModal')
-                );
-                lensModal.show();
+            // ── 4. Show / hide inline power chips ──
+            document.querySelectorAll('.power-chips-wrap').forEach(p => p.classList.add('d-none'));
+            if (hasPower && !isPoweredEyeglass) {
+                // Show chips for reading glasses (or any custom type with default_powers)
+                const panel = document.getElementById('powers-' + typeId);
+                if (panel) panel.classList.remove('d-none');
             }
-            // hasPower===0 branches already have onclick handlers (addToCartAjax / submitContactLensCart)
+
+            // ── 5. Update CTA button based on flow mode ──
+            const btn = document.getElementById('main-action-btn');
+            if (!btn) return;
+
+            // Store the determined flow mode on the button so the click handler can read it
+            btn.dataset.flowMode    = isPoweredEyeglass ? 'modal'
+                                    : isReadingGlasses  ? 'reading'
+                                    : isZeroPower       ? 'zero_power'
+                                    : 'buy_now';
+            btn.dataset.zeroPackageId = zeroPackageId;
+
+            if (isPoweredEyeglass) {
+                btn.innerHTML = '<i class="bi bi-eye me-1"></i> SELECT LENSES';
+                btn.classList.add('select-lenses-mode');
+                btn.dataset.hasPower = '1';
+            } else if (isReadingGlasses) {
+                btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> BUY NOW';
+                btn.classList.remove('select-lenses-mode');
+                btn.dataset.hasPower = '0';
+            } else if (isZeroPower) {
+                btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> BUY NOW';
+                btn.classList.remove('select-lenses-mode');
+                btn.dataset.hasPower = '0';
+            } else {
+                btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> BUY NOW';
+                btn.classList.remove('select-lenses-mode');
+                btn.dataset.hasPower = '0';
+            }
+        }
+
+        // ── Power chip selection: capture reading power value ──
+        // (delegated so it works for dynamically rendered chips too)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('power-chip')) {
+                const wrap = e.target.closest('.power-chips-wrap');
+                if (!wrap) return;
+
+                // Toggle active state
+                wrap.querySelectorAll('.power-chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Store selected reading power globally
+                window.selectedReadingPower = e.target.textContent.trim();
+            }
+        });
+
+        // ── main-action-btn click: route to correct flow based on data-flow-mode ──
+        $('#main-action-btn').on('click', function() {
+            const flowMode     = this.dataset.flowMode || 'modal';
+            const zeroPackId   = this.dataset.zeroPackageId || '';
+
+            if (flowMode === 'modal') {
+                // Powered Eyeglass → open 3-step lens selection drawer
+                const lensModal = new bootstrap.Modal(document.getElementById('lensModal'));
+                lensModal.show();
+
+            } else if (flowMode === 'reading') {
+                // Reading Glasses → direct cart add with selected power chip
+                if (!window.selectedReadingPower) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.warning('Please select a lens power before continuing.');
+                    } else {
+                        alert('Please select a lens power before continuing.');
+                    }
+                    return;
+                }
+                addToCartAjax('Reading Glasses', null, JSON.stringify({ reading_power: window.selectedReadingPower }), null);
+
+            } else if (flowMode === 'zero_power') {
+                // Zero Power → direct cart add, auto-bundle default zero power package if available
+                addToCartAjax('Zero Power', zeroPackId || null, null, null);
+
+            } else {
+                // Generic BUY NOW (Frame Only, Sunglass, etc.)
+                addToCartAjax('Frame Only', null, null, null);
+            }
         });
 
         // Sunglass: "BUY WITH POWER" button opens the standard lens modal starting at Step 2 (Power Type)
