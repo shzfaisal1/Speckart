@@ -147,6 +147,7 @@
                 {{-- <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="slide-item">In Lab / Processing</a></li> --}}
                 {{-- <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'shipped']) }}" class="slide-item">Shipped Orders</a></li> --}}
                 <li><a href="{{ route('admin.b2c-customers.index') }}" class="slide-item">Registered Customers</a></li>
+                <li><a href="{{ route('admin.home-eye-test.index') }}" class="slide-item">Home Eye Test Bookings</a></li>
             </ul>
         </li>
         
@@ -437,6 +438,7 @@
                 @if ($usr->can('Eye-Record'))
                <li><a href="{{route('admin.eye-test-record')}}" class="slide-item">Eye Test Record</a></li>
                @endif
+               <li><a href="{{route('admin.home-eye-test.index')}}" class="slide-item"><i class="bi bi-house-door me-1"></i> Home Eye Test</a></li>
             </ul>
         </li>
         @endif

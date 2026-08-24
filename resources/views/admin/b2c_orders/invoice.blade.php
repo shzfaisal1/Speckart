@@ -243,11 +243,14 @@
         <!-- Header -->
         <div class="header-grid">
             <div>
-                <div class="company-logo">{{ $store->store_name ?? $store->name ?? 'Aimbeat Technology Pvt Ltd' }}</div>
+                <div class="company-brand" style="margin-bottom: 8px;">
+                    <img src="{{ asset('website/assets/img/logo/Specskart-logo-png.png') }}" alt="Speckarts" style="height: 42px; object-fit: contain; display: block; margin-bottom: 4px;">
+                    <div style="font-size: 15px; font-weight: 800; color: #07484A; letter-spacing: -0.3px;">Speckarts</div>
+                </div>
                 <div class="company-meta">
-                    {{ $store->store_address ?? $store->address ?? 'Corporate Office' }}<br>
+                    {{ $store->store_address ?? $store->address ?? 'Corporate Office, Haware Infotech Park, Sector 30A, Vashi' }}<br>
                     @if(!empty($store->gst_no)) GSTIN: <strong>{{ $store->gst_no }}</strong><br> @endif
-                    Phone: {{ $store->contact_no ?? '+91 9876543210' }} | Email: {{ $store->email_id ?? $store->email ?? 'info@aimbeat.com' }}
+                    Phone: {{ $store->contact_no ?? '+91 9876543210' }} | Email: {{ $store->email_id ?? $store->email ?? 'support@speckart.in' }}
                 </div>
             </div>
             <div class="invoice-title-block">
@@ -376,7 +379,7 @@
 
         <!-- Terms Footer -->
         <div class="footer-terms">
-            Thank you for shopping with {{ $store->store_name ?? 'Aimbeat Technology Pvt Ltd' }}!<br>
+            Thank you for shopping with Speckarts!<br>
             All custom prescription optical lenses are precision cut. 1 Year Warranty on frame manufacturing defects.<br>
             This is a computer-generated invoice and requires no physical signature.
         </div>
