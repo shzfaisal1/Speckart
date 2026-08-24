@@ -609,11 +609,22 @@
 
         function deleteAddress(event, addressId) {
             event.stopPropagation();
-            if (confirm('Are you sure you want to delete this address?')) {
-                var deleteForm = document.getElementById('form-delete-address');
-                deleteForm.action = '/shipping-details/address/' + addressId;
-                deleteForm.submit();
-            }
+            Swal.fire({
+                title: 'Delete Address?',
+                text: 'Are you sure you want to delete this address?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var deleteForm = document.getElementById('form-delete-address');
+                    deleteForm.action = '/shipping-details/address/' + addressId;
+                    deleteForm.submit();
+                }
+            });
         }
 
         $(document).ready(function() {

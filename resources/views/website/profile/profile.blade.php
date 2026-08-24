@@ -1061,7 +1061,12 @@ function readURL(input) {
                 if (typeof toastr !== 'undefined') {
                     toastr.error(errMsg);
                 } else {
-                    alert(errMsg);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: errMsg,
+                        confirmButtonColor: '#00a297'
+                    });
                 }
             }
         });

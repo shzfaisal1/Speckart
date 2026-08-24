@@ -577,35 +577,83 @@
             background: #008f85 !important;
             border-color: #008f85 !important;
         }
-        .share-options {
+        /* ── Share Dropdown ── */
+        .dt-share-dropdown {
+            min-width: 150px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 8px 10px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+            background: #ffffff !important;
+            margin-top: 6px !important;
+        }
+        .dt-share-link {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 16px !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+        }
+        .dt-share-link.whatsapp {
+            background: #e6f9f4 !important;
+            color: #25d366 !important;
+        }
+        .dt-share-link.whatsapp:hover {
+            background: #25d366 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+        .dt-share-link.facebook {
+            background: #e0f2fe !important;
+            color: #1877f2 !important;
+        }
+        .dt-share-link.facebook:hover {
+            background: #1877f2 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+        .dt-share-link.twitter {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        .dt-share-link.twitter:hover {
+            background: #0f172a !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+
+        /* ── 360 View Badge ── */
+        .btn-360 {
             position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 6px 8px;
-            display: none;
-            gap: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            z-index: 1050;
-        }
-        .share-options a {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8fafc;
-            color: #475569;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
-        .share-options a:hover {
+            top: 14px;
+            right: 14px;
             background: #00a297;
             color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(0, 162, 151, 0.35);
+            z-index: 5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-360:hover {
+            background: #008f85;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 162, 151, 0.45);
         }
     </style>
 
@@ -632,18 +680,26 @@
                         <i class="bi {{ in_array($product->product_id ?: $product->id, $wishlistProductIds ?? []) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
                     </div>
 
-                    <div class="share position-relative">
-                        <div class="dt-action-btn" title="Share">
+                    <div class="dropdown">
+                        <button class="dt-action-btn border-0 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Share">
                             <i class="bi bi-share"></i>
-                        </div>
-                        <div class="share-options">
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end dt-share-dropdown">
                             @php
                                 $shareUrl = urlencode(url()->current());
                                 $shareText = urlencode($product->product_name ?? 'Check out this product on Speckart');
                             @endphp
-                            <a href="https://api.whatsapp.com/send?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <a href="https://api.whatsapp.com/send?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" class="dt-share-link whatsapp" title="WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" class="dt-share-link facebook" title="Facebook">
+                                    <i class="bi bi-facebook"></i>
+                                </a>
+                                <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" class="dt-share-link twitter" title="Twitter / X">
+                                    <i class="bi bi-twitter-x"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -658,7 +714,7 @@
     <!-- start 2 360 degrees -->
 
     <section class="degree mt-4">
-    <div class="container">
+    <div class="cat-container">
         <div class="row g-4">
 
             <!-- Left: Product Image & Thumbnails -->
@@ -670,7 +726,7 @@
                         <img src="{{ $product->image_url }}"
                             class="main-image" id="main-image" alt="{{ $product->product_name }}">
                          </a>
-                        <button class="btn-360">360 VIEW</button>
+                        <button class="btn-360" type="button"><i class="bi bi-arrow-clockwise"></i> 360° VIEW</button>
                     </div>
                 </div>
 
@@ -2703,11 +2759,12 @@
                     const isLeft  = $('#check-left').is(':checked');
 
                     if (!isRight && !isLeft) {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.warning('Please select at least one eye (Right or Left) before adding to cart.');
-                        } else {
-                            alert('Please select at least one eye (Right or Left).');
-                        }
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select at least one eye (Right or Left) before adding to cart.',
+                            confirmButtonColor: '#00a297'
+                        });
                         return;
                     }
 
@@ -2730,21 +2787,23 @@
                     const isLeft  = $('#check-upload-left').is(':checked');
 
                     if (!isRight && !isLeft) {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.warning('Please select at least one eye (Right or Left).');
-                        } else {
-                            alert('Please select at least one eye (Right or Left).');
-                        }
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select at least one eye (Right or Left).',
+                            confirmButtonColor: '#00a297'
+                        });
                         return;
                     }
 
                     const fileInput = document.getElementById('cl_rx_file');
                     if (!fileInput || fileInput.files.length === 0) {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.warning('Please select a prescription file to upload.');
-                        } else {
-                            alert('Please select a prescription file to upload.');
-                        }
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'File Required',
+                            text: 'Please select a prescription file to upload.',
+                            confirmButtonColor: '#00a297'
+                        });
                         return;
                     }
 
@@ -2767,11 +2826,12 @@
                     const isLeft  = $('#check-later-left').is(':checked');
 
                     if (!isRight && !isLeft) {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.warning('Please select at least one eye (Right or Left).');
-                        } else {
-                            alert('Please select at least one eye (Right or Left).');
-                        }
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select at least one eye (Right or Left).',
+                            confirmButtonColor: '#00a297'
+                        });
                         return;
                     }
 
@@ -2845,11 +2905,12 @@
                             window.location.href = "{{ route('cart') }}";
                         }, 500);
                     } else {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.error(response.message || 'Failed to add item to cart.');
-                        } else {
-                            alert(response.message || 'Failed to add item to cart.');
-                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Cart Error',
+                            text: response.message || 'Failed to add item to cart.',
+                            confirmButtonColor: '#00a297'
+                        });
                         activeBtn.prop('disabled', false).html(originalHtml);
                     }
                 },
@@ -2858,11 +2919,12 @@
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errMsg = xhr.responseJSON.message;
                     }
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error(errMsg);
-                    } else {
-                        alert(errMsg);
-                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: errMsg,
+                        confirmButtonColor: '#00a297'
+                    });
                     activeBtn.prop('disabled', false).html(originalHtml);
                 }
             });
@@ -3182,41 +3244,7 @@
     </script>
 
 
-    <!-- testimonial end -->
-    <!-- heart and share button start -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".share").forEach((shareDiv) => {
-                const shareTrigger = shareDiv.querySelector(".dt-action-btn") || shareDiv.querySelector("i.bi-share");
-                const shareOptions = shareDiv.querySelector(".share-options");
 
-                if (shareTrigger && shareOptions) {
-                    shareTrigger.addEventListener("click", (e) => {
-                        e.stopPropagation();
-
-                        // Hide all other share menus first
-                        document.querySelectorAll(".share-options").forEach((opt) => {
-                            if (opt !== shareOptions) opt.style.display = "none";
-                        });
-
-                        // Toggle current one
-                        shareOptions.style.display =
-                            shareOptions.style.display === "flex" ? "none" : "flex";
-                    });
-                }
-            });
-
-            document.addEventListener("click", (e) => {
-                if (!e.target.closest(".share")) {
-                    document.querySelectorAll(".share-options").forEach((opt) => {
-                        opt.style.display = "none";
-                    });
-                }
-            });
-        });
-    </script>
-
-    <!-- popup ens -->
     <!-- ── Product Type + Lens Modal Styles & Logic ── -->
     <style>
         /* ── Lenskart Style Prescription Grid ── */
@@ -3840,11 +3868,12 @@
             } else if (flowMode === 'reading') {
                 // Reading Glasses → direct cart add with selected power chip
                 if (!window.selectedReadingPower) {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.warning('Please select a lens power before continuing.');
-                    } else {
-                        alert('Please select a lens power before continuing.');
-                    }
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select Power',
+                        text: 'Please select a lens power before continuing.',
+                        confirmButtonColor: '#00a297'
+                    });
                     return;
                 }
                 addToCartAjax('Reading Glasses', null, JSON.stringify({ reading_power: window.selectedReadingPower }), null);
