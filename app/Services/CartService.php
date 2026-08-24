@@ -935,8 +935,18 @@ class CartService
                 'btn_action' => 'add_membership',
                 'cta_url'    => route('website.membership'),
             ];
-        } elseif (($hasMembershipInCart || $membershipBogoEnabled) && $bogoEligibleCount < 2) {
-            // State 2: Membership in cart, 1 frame in cart (bogoEligibleCount < 2) -> Prompt to add 2nd pair FREE
+        } elseif (($hasMembershipInCart || $membershipBogoEnabled) && $bogoEligibleCount == 0) {
+            // State 1.5: Gold Active BUT 0 eligible frames in cart (only contact lenses / solutions / accessories in cart)
+            $bannerState = [
+                'state'      => 2,
+                'title'      => 'Gold VIP Membership Active',
+                'subtitle'   => 'Add Eyeglasses or Sunglasses to unlock Buy 1 Get 1 Free!',
+                'btn_text'   => 'Explore Frames',
+                'btn_action' => 'choose_bogo',
+                'cta_url'    => route('products', ['bogo_eligible' => 1]),
+            ];
+        } elseif (($hasMembershipInCart || $membershipBogoEnabled) && $bogoEligibleCount == 1) {
+            // State 2: Gold active AND exactly 1 eligible frame in cart -> Prompt to add 2nd pair FREE
             $bannerState = [
                 'state'      => 2,
                 'title'      => 'Gold Max Membership added',
