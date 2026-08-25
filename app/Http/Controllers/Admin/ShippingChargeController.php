@@ -104,7 +104,8 @@ class ShippingChargeController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => "Shipping charge for pincode {$charge->pincode} created successfully.",
-            'data'    => $charge
+            'data'    => $charge,
+            'stats'   => $this->getStats()
         ]);
     }
 
@@ -150,7 +151,8 @@ class ShippingChargeController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => "Shipping charge for pincode {$charge->pincode} updated successfully.",
-            'data'    => $charge
+            'data'    => $charge,
+            'stats'   => $this->getStats()
         ]);
     }
 
@@ -169,7 +171,8 @@ class ShippingChargeController extends Controller
             'status'           => 'success',
             'message'          => "Pincode {$charge->pincode} is now {$codLabel}.",
             'is_cod_available' => $charge->is_cod_available == 1,
-            'new_cod'          => $charge->is_cod_available
+            'new_cod'          => $charge->is_cod_available,
+            'stats'            => $this->getStats()
         ]);
     }
 
@@ -182,13 +185,13 @@ class ShippingChargeController extends Controller
         $charge->status = $charge->status == 1 ? 0 : 1;
         $charge->save();
 
-        $statusLabel = $charge->status == 1 ? 'Enabled' : 'Disabled';
+        $statusLabel = $charge->status == 1 ? 'Enabled (Serviceable)' : 'Disabled (Unserviceable)';
 
         return response()->json([
-            'status'    => 'success',
-            'message'   => "Pincode {$charge->pincode} is now {$statusLabel}.",
-            'is_active' => $charge->status == 1,
-            'new_status'=> $charge->status
+            'status'     => 'success',
+            'message'    => "Pincode {$charge->pincode} is now {$statusLabel}.",
+            'new_status' => $charge->status,
+            'stats'      => $this->getStats()
         ]);
     }
 
@@ -203,7 +206,20 @@ class ShippingChargeController extends Controller
 
         return response()->json([
             'status'  => 'success',
-            'message' => "Shipping charge for pincode {$pincode} deleted successfully."
+            'message' => "Shipping charge for pincode {$pincode} deleted successfully.",
+            'stats'   => $this->getStats()
         ]);
+    }
+
+    /**
+     * Get summary counts for stats cards.
+     */
+    private function getStats()
+    {
+        return [
+            'total'    => ShippingCharge::count(),
+            'active'   => ShippingCharge::where('status', 1)->count(),
+            'disabled' => ShippingCharge::where('status', 0)->count(),
+        ];
     }
 }

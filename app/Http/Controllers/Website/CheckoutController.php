@@ -89,6 +89,8 @@ class CheckoutController extends Controller
                 ->first();
         }
 
+        $customerEmail = !empty($shipping['email']) ? $shipping['email'] : ($user->email ?? ($customer->email_id ?? ''));
+
         if (!$customer) {
             $custUniqueId = (string) rand(100000, 999999);
             $customerDbId = DB::table('tbl_customer')->insertGetId([
@@ -96,7 +98,7 @@ class CheckoutController extends Controller
                 'cust_type'      => 'B2C',
                 'cust_name'      => $shipping['full_name'],
                 'contact_no'     => $shipping['phone'],
-                'email_id'       => $shipping['email'] ?? null,
+                'email_id'       => $customerEmail,
                 'cust_address'   => $shipping['full_address'],
                 'pincode'        => $shipping['pincode'],
                 'added_by'       => $user->id ?? 1,
@@ -144,7 +146,7 @@ class CheckoutController extends Controller
                 'order_no'            => $orderNo,
                 'cust_name'           => $shipping['full_name'],
                 'contact_no'          => $shipping['phone'],
-                'email_id'            => $shipping['email'] ?? null,
+                'email_id'            => $customerEmail,
                 'cust_address'        => $shipping['full_address'],
                 'state_id'            => $store->state_id ?? 0,
                 'city_id'             => $store->city_id ?? 0,
