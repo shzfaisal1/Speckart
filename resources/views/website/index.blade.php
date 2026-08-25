@@ -662,6 +662,7 @@
             <div class="col-lg-8">
                 <div class="new-arrivals-section-slider">
                     <div class="wrapper">
+                        
                         <div class="trending-slider">
                             @foreach($trending_products as $p)
                             <div>
