@@ -11,7 +11,7 @@
                             <h3 class="mb-1">Shipping Charges Master</h3>
                             <p class="text-muted small mb-0">Configure delivery charges and enable/disable serviceability per pincode.</p>
                         </div>
-                        <a href="javascript:void(0)" class="btn btn-primary" onclick="openModal('add')">
+                        <a href="javascript:void(0)" class="btn btn-primary" data-toggle="modal" data-target="#shippingModal" onclick="openModal('add')">
                             <span><i class="fa fa-plus me-1"></i></span> Add Shipping Charge
                         </a>
                     </div>
@@ -163,8 +163,29 @@
 
 @endsection
 
-@push('scripts')
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@endpush
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+function openModal(mode) {
+    $('#shippingForm')[0].reset();
+    $('#record_id').val('');
+    $('#modal-error-alert').addClass('d-none').html('');
+
+    if (mode === 'add') {
+        $('#modal-title-text').text('Add Shipping Charge');
+        $('#modal-icon').removeClass('fa-edit').addClass('fa-plus-circle');
+        $('#sp_amount').val('0.00');
+        $('#sp_is_cod').prop('checked', true).trigger('change');
+        $('#sp_status').prop('checked', true).trigger('change');
+        $('#shippingModal').modal('show');
+    }
+}
+window.openModal = openModal;
+
 $(document).ready(function () {
     const baseUrl = "{{ route('admin.shipping-charges.index') }}";
 
@@ -206,22 +227,6 @@ $(document).ready(function () {
             $('#status-label-text').text('Disabled (Unserviceable)').removeClass('text-success').addClass('text-danger');
         }
     });
-
-    // Open Modal for Add or Edit
-    window.openModal = function (mode) {
-        $('#shippingForm')[0].reset();
-        $('#record_id').val('');
-        $('#modal-error-alert').addClass('d-none').html('');
-
-        if (mode === 'add') {
-            $('#modal-title-text').text('Add Shipping Charge');
-            $('#modal-icon').removeClass('fa-edit').addClass('fa-plus-circle');
-            $('#sp_amount').val('0.00');
-            $('#sp_is_cod').prop('checked', true).trigger('change');
-            $('#sp_status').prop('checked', true).trigger('change');
-            $('#shippingModal').modal('show');
-        }
-    };
 
     // Edit Shipping Charge
     $(document).on('click', '.btn-edit-shipping', function () {
@@ -374,4 +379,4 @@ $(document).ready(function () {
     });
 });
 </script>
-@endpush
+@endsection
