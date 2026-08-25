@@ -892,6 +892,19 @@
             vertical-align: middle !important;
         }
 
+        .user-nav-name {
+            display: inline-block !important;
+            max-width: 85px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            vertical-align: middle !important;
+            margin: 0 !important;
+            line-height: 1.2 !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+        }
+
         /* =========================================================
            USER PROFILE DROPDOWN MENU (LEFT ALIGNED + ICONS + HOVER FIX)
         ========================================================= */
@@ -905,7 +918,7 @@
             position: absolute;
             top: 100%;
             right: 0;
-            width: 210px;
+            width: 215px;
             background: #ffffff;
             border-radius: 16px;
             box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -918,6 +931,32 @@
             transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
             z-index: 9999;
             text-align: left !important;
+        }
+
+        .user-dropdown-header {
+            padding: 8px 10px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .user-dropdown-header-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .user-dropdown-header-email {
+            font-size: 11px;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
         }
 
         /* Invisible bridge above dropdown to guarantee smooth hover with 0 gap */
@@ -1864,15 +1903,19 @@
                                         @endguest
 
                                         @auth
-                                            <a href="javascript:void(0);" class="dropdown-toggle user-nav-toggle">
+                                            <a href="javascript:void(0);" class="dropdown-toggle user-nav-toggle" title="{{ Auth::user()->name }}">
                                                 <p>
-                                                    <img src="{{ Auth::user()->image ? Auth::user()->profile_image_url : asset('website/assets/img/icon/user.png') }}"
+                                                    <img src="{{ Auth::user()->profile_image_url }}"
                                                         alt="{{ Auth::user()->name }}" class="profile-avatar"
                                                         onerror="this.onerror=null;this.src='{{ asset('website/assets/img/icon/user.png') }}';">
                                                 </p>
-                                                <p>{{ Auth::user()->name }}</p>
+                                                <p class="user-nav-name">{{ explode(' ', trim(Auth::user()->name))[0] ?? Auth::user()->name }}</p>
                                             </a>
                                             <div class="user-profile-menu-dropdown">
+                                                <div class="user-dropdown-header">
+                                                    <div class="user-dropdown-header-name" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
+                                                    <div class="user-dropdown-header-email">{{ Auth::user()->email ?? (Auth::user()->mobile ?? '') }}</div>
+                                                </div>
                                                 <ul class="user-dropdown-list">
                                                     <li>
                                                         <a href="{{ route('profile') }}" class="user-dropdown-link">
@@ -3995,7 +4038,7 @@
             @auth
                 <div class="mobile-user-card">
                     <div class="mobile-user-top">
-                        <img src="{{ Auth::user()->image ? Auth::user()->profile_image_url : asset('website/assets/img/icon/user.png') }}"
+                        <img src="{{ Auth::user()->profile_image_url }}"
                             alt="{{ Auth::user()->name }}" class="mobile-user-avatar"
                             onerror="this.onerror=null;this.src='{{ asset('website/assets/img/icon/user.png') }}';">
                         <div class="mobile-user-info">

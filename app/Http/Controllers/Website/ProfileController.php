@@ -16,7 +16,11 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         if (!$user) {
-            return redirect()->route('login.web')->with('error', 'Please log in to view your profile.');
+            session()->put('redirect_after_login', route('profile'));
+            return redirect()->route('home', ['login' => 1])
+                ->with('open_login_modal', true)
+                ->with('redirect_after_login', route('profile'))
+                ->with('info', 'Please sign in to access your profile.');
         }
 
         // Calculate dynamic loyalty points
@@ -136,6 +140,18 @@ class ProfileController extends Controller
             $updateData['updated_at'] = Carbon::now();
             DB::table('users')->where('id', $user->id)->update($updateData);
 
+            if (Schema::hasTable('tbl_customer')) {
+                DB::table('tbl_customer')
+                    ->where(function ($q) use ($user) {
+                        if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
+                        if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
+                        if (!empty($user->email)) $q->orWhere('email_id', $user->email);
+                        $q->orWhere('customer_id', $user->id);
+                        $q->orWhere('added_by', $user->id);
+                    })
+                    ->update(['image' => $filename]);
+            }
+
             return response()->json([
                 'success'   => true,
                 'message'   => 'Profile picture updated successfully!',
@@ -150,7 +166,11 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         if (!$user) {
-            return redirect()->route('login.web')->with('error', 'Please log in to view account information.');
+            session()->put('redirect_after_login', route('account-info'));
+            return redirect()->route('home', ['login' => 1])
+                ->with('open_login_modal', true)
+                ->with('redirect_after_login', route('account-info'))
+                ->with('info', 'Please sign in to view account information.');
         }
 
         return view('website.profile.account-information', compact('user'));
@@ -160,7 +180,11 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
         if (!$user) {
-            return redirect()->route('login.web')->with('error', 'Please log in to update account information.');
+            session()->put('redirect_after_login', route('account-info'));
+            return redirect()->route('home', ['login' => 1])
+                ->with('open_login_modal', true)
+                ->with('redirect_after_login', route('account-info'))
+                ->with('error', 'Please log in to update account information.');
         }
 
         $validated = $request->validate([

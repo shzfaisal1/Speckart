@@ -811,8 +811,13 @@ body.modal-open {
                     detail: { userName: data.userName }
                 }));
 
+                var targetUrl = data.redirect_url || (window.speckartRedirectAfterLogin || null);
                 setTimeout(function() {
-                    window.location.reload();
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    } else {
+                        window.location.reload();
+                    }
                 }, 600);
 
             } else {
@@ -908,8 +913,13 @@ body.modal-open {
                     detail: { userName: data.userName }
                 }));
 
+                var targetUrl = data.redirect_url || (window.speckartRedirectAfterLogin || null);
                 setTimeout(function() {
-                    window.location.reload();
+                    if (targetUrl) {
+                        window.location.href = targetUrl;
+                    } else {
+                        window.location.reload();
+                    }
                 }, 600);
 
             } else {
@@ -958,6 +968,42 @@ body.modal-open {
         el.classList.add('d-none');
         el.textContent = '';
     }
+
+    // ── Global Helper Function to Open Login Modal From Anywhere ──
+    window.openSpeckartLoginModal = function(redirectUrl) {
+        if (redirectUrl) {
+            window.speckartRedirectAfterLogin = redirectUrl;
+        }
+        var modalEl = document.getElementById('speckartLoginModal');
+        if (modalEl) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            } else if (typeof $ !== 'undefined') {
+                $('#speckartLoginModal').modal('show');
+            }
+        }
+    };
+
+    // ── Auto-Open Modal on Page Load if Triggered ──
+    @if(Session::has('open_login_modal') || request()->has('login') || request()->has('open_login'))
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var redirectUrl = "{{ Session::get('redirect_after_login') ?? (request()->get('redirect') ?? '') }}";
+                window.openSpeckartLoginModal(redirectUrl);
+            }, 350);
+        });
+    @endif
+
+    // ── Global Click Interceptor for any login links ──
+    document.addEventListener('click', function(e) {
+        var link = e.target.closest('a[href*="login-web"], .open-login-modal');
+        if (link && !link.closest('#speckartLoginModal')) {
+            e.preventDefault();
+            var targetRedirect = link.getAttribute('data-redirect') || '';
+            window.openSpeckartLoginModal(targetRedirect);
+        }
+    });
 
     // ── Prevent Double Scrollbar on Body/HTML ────────
     var modalEl = document.getElementById('speckartLoginModal');
