@@ -9,7 +9,7 @@
                     </div>
                     <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
                         <div class="product-image">
-                            <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }}" class="img-default" loading="lazy" decoding="async" width="300" height="200" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
+                            <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }}" class="img-default" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                         </div>
                         <div class="product-info">
                         <h6 class="brand-name">{{ $product->Company ?: 'Speckart' }}</h6>

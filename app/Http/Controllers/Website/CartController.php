@@ -37,15 +37,17 @@ class CartController extends Controller
             'frame_id'          => 'required',
             'lens_package_id'   => 'nullable',
             'quantity'          => 'nullable|integer|min:1',
+            'size'              => 'nullable|string|max:50',
             'lens_type'         => 'nullable|string|max:50',
             'prescription_data' => 'nullable',
             'prescription_file' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:10240',
         ]);
 
         $frameId          = $request->input('frame_id');
-        $lensPackageId   = $request->input('lens_package_id');
-        $quantity        = $request->input('quantity', 1);
-        $lensType        = $request->input('lens_type');     // FIX: pass lens type context to CartService
+        $lensPackageId    = $request->input('lens_package_id');
+        $quantity         = $request->input('quantity', 1);
+        $size             = $request->input('size');             // FIX: capture selected frame size
+        $lensType         = $request->input('lens_type');        // FIX: pass lens type context to CartService
         $prescriptionData = $request->input('prescription_data');
 
         if ($request->hasFile('prescription_file')) {
@@ -59,7 +61,7 @@ class CartController extends Controller
             ]);
         }
 
-        $result = $this->cartService->addToCart($frameId, $lensPackageId, $quantity, $prescriptionData, $lensType);
+        $result = $this->cartService->addToCart($frameId, $lensPackageId, $quantity, $prescriptionData, $lensType, $size);
 
         if ($result['status']) {
             // Automatically remove item from wishlist if user is authenticated

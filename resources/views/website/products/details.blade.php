@@ -724,7 +724,8 @@
                     <div class="main-img-area position-relative">
                         <a href="{{ $product->image_url }}" class="image-lightbox" id="main-image-link">
                         <img src="{{ $product->image_url }}"
-                            class="main-image" id="main-image" alt="{{ $product->product_name }}">
+                            class="main-image" id="main-image" alt="{{ $product->product_name }}"
+                            onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                          </a>
                         <button class="btn-360" type="button"><i class="bi bi-arrow-clockwise"></i> 360° VIEW</button>
                     </div>
@@ -735,7 +736,8 @@
                     <div class="thumbs-container">
                         <div class="thumbs d-flex justify-content-center p-1" id="thumb-container">
                             @foreach($galleryImages as $index => $img)
-                            <img src="{{ $img }}" class="thumb {{ $index == 0 ? 'active' : '' }}" alt="">
+                            <img src="{{ $img }}" class="thumb {{ $index == 0 ? 'active' : '' }}" alt=""
+                                onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                             @endforeach
                         </div>
                     </div>
@@ -2522,9 +2524,9 @@
         const defaultPrice = {{ $calcMrp }};
         const defaultDiscountPrice = {{ $calcSellingPrice }};
 
-        let selectedColor = $('.color-box.active').data('color-label') || '';
-        let selectedSize = $('.size-btn.active').data('size') || '';
-        let currentVariantId = 2;
+        let selectedColor = $('.color-swatch.active').data('color-label') || '';
+        let selectedSize = $('.size-btn.active').data('size') || '{{ $product->Size ?: '' }}';
+        let currentVariantId = '{{ $product->id }}';
 
         let selectedLensType = 'Frame Only';
         let selectedPowerTypeId = null;
@@ -2611,7 +2613,10 @@
                     $('#display-discount-percent').hide();
                 }
             } else {
-                currentVariantId = null;
+                // FIX: don't null-out currentVariantId when productVariants array is empty
+                // (color variant navigation uses page reload, not JS swap)
+                // Keep the PHP-initialized product id so add-to-cart still works
+                currentVariantId = currentVariantId || '{{ $product->id }}';
             }
         }
 
@@ -2864,10 +2869,14 @@
                 return;
             }
 
+            // Get currently active size selection
+            const activeSize = $('.size-btn.active').data('size') || selectedSize || '{{ $product->Size ?: 'Medium' }}';
+
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('frame_id', frameId);
             formData.append('quantity', quantity > 0 ? quantity : 1); // FIX: use passed quantity
+            formData.append('size', activeSize); // FIX: pass selected size
             if (lensPackageId) {
                 formData.append('lens_package_id', lensPackageId);
             }

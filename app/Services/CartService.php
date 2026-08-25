@@ -12,7 +12,7 @@ class CartService
     /**
      * Add Frame + Lens Package to Cart session
      */
-    public function addToCart($frameId, $lensPackageId = null, $quantity = 1, $prescriptionData = null, $lensType = null)
+    public function addToCart($frameId, $lensPackageId = null, $quantity = 1, $prescriptionData = null, $lensType = null, $size = null)
     {
         $frame = DB::table('tbl_product_code')->where('id', $frameId)->first();
         if (!$frame) {
@@ -34,10 +34,11 @@ class CartService
 
         $cart = session()->get('cart', []);
 
-        // Unique cart key for frame + lens combo + prescription
+        // Unique cart key for frame + lens combo + prescription + size
         $lensIdKey = $lens ? (isset($lens->package_id) ? $lens->package_id : $lens->id) : 0;
         $rxKey = $prescriptionData ? md5(is_string($prescriptionData) ? $prescriptionData : json_encode($prescriptionData)) : '0';
-        $cartKey = 'frame_' . $frame->id . '_lens_' . $lensIdKey . '_rx_' . substr($rxKey, 0, 6);
+        $sizeKey = !empty($size) ? '_sz_' . preg_replace('/[^a-zA-Z0-9]/', '', strtolower((string)$size)) : '';
+        $cartKey = 'frame_' . $frame->id . '_lens_' . $lensIdKey . '_rx_' . substr($rxKey, 0, 6) . $sizeKey;
 
         $lensPrice = 0;
         $lensDetails = 'Standard Lenses';
@@ -93,24 +94,8 @@ class CartService
             $framePrice = $frameMrp;
         }
 
-        // Frame Image Path logic
-        $typeLower = strtolower($frame->product_type ?: 'frame');
-        $imageUrl  = asset('website/assets/img/bg/Eyeglasses7.png');
-        if (!empty($frame->main_image)) {
-            if (!empty($frame->parent_product_code)) {
-                $path = "uploads/{$typeLower}/product/{$frame->parent_product_code}/{$frame->main_image}";
-                if (file_exists(public_path($path))) {
-                    $imageUrl = asset($path);
-                }
-            } else {
-                $pathWithId = "uploads/{$typeLower}/product/{$frame->product_id}/{$frame->main_image}";
-                if (file_exists(public_path($pathWithId))) {
-                    $imageUrl = asset($pathWithId);
-                } elseif (file_exists(public_path($frame->main_image))) {
-                    $imageUrl = asset($frame->main_image);
-                }
-            }
-        }
+        // Dynamic Frame Image Path
+        $imageUrl = getProductImageUrl($frame);
 
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $quantity;
@@ -123,7 +108,7 @@ class CartService
                 'brand'             => $frame->Company ?? 'Speckart',
                 'frame_price'       => $framePrice,
                 'frame_image'       => $imageUrl,
-                'size'              => $frame->Size ?? 'Medium',
+                'size'              => $size ?: (explode(',', $frame->Size ?? 'Medium')[0]), // FIX: use customer-selected size
                 'lens_package_id'   => $lensIdKey,
                 'lens_name'         => $lensName,
                 'lens_details'      => $lensDetails,
@@ -444,24 +429,8 @@ class CartService
 
                         $fPrice = (float) ($dbItem->sale_price ?: ($dbItem->unit_price ?: 0));
 
-                        // Frame Image Path logic
-                        $typeLower = strtolower($frame->product_type ?: 'frame');
-                        $imageUrl  = asset('website/assets/img/bg/Eyeglasses7.png');
-                        if (!empty($frame->main_image)) {
-                            if (!empty($frame->parent_product_code)) {
-                                $path = "uploads/{$typeLower}/product/{$frame->parent_product_code}/{$frame->main_image}";
-                                if (file_exists(public_path($path))) {
-                                    $imageUrl = asset($path);
-                                }
-                            } else {
-                                $pathWithId = "uploads/{$typeLower}/product/{$frame->product_id}/{$frame->main_image}";
-                                if (file_exists(public_path($pathWithId))) {
-                                    $imageUrl = asset($pathWithId);
-                                } elseif (file_exists(public_path($frame->main_image))) {
-                                    $imageUrl = asset($frame->main_image);
-                                }
-                            }
-                        }
+                        // Dynamic Frame Image Path
+                        $imageUrl = getProductImageUrl($frame);
 
                         $cart[$cartKey] = [
                             'key'               => $cartKey,
@@ -588,6 +557,19 @@ class CartService
 
         // Flatten cart items & calculate first frame free savings
         foreach ($cart as $key => $item) {
+            // Dynamically refresh item image from DB to ensure always updated
+            if (!empty($item['frame_id']) && empty($item['is_membership'])) {
+                try {
+                    $frameRecord = DB::table('tbl_product_code')
+                        ->where('id', $item['frame_id'])
+                        ->orWhere('product_id', $item['frame_id'])
+                        ->first();
+                    if ($frameRecord) {
+                        $item['frame_image'] = getProductImageUrl($frameRecord);
+                    }
+                } catch (\Throwable $e) {}
+            }
+
             $qty = (int) ($item['quantity'] ?? 1);
             $fPrice = (float) $item['frame_price'];
             $lPrice = (float) $item['lens_price'];

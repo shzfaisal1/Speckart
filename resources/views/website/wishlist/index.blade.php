@@ -380,7 +380,7 @@
                                 <i class="bi bi-trash3-fill"></i>
                             </button>
                             <a href="{{ $item->product->resolved_detail_url }}" class="d-block w-100 text-center">
-                                <img src="{{ $item->product->resolved_image_url }}" alt="{{ $item->product->resolved_name }}">
+                                <img src="{{ $item->product->resolved_image_url }}" alt="{{ $item->product->resolved_name }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                             </a>
                         </div>
 

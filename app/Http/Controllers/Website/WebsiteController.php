@@ -198,26 +198,7 @@ class WebSiteController extends Controller
         // Map helper for images and URLs
         $mapProducts = function ($products, $defaultFallback) {
             return collect($products)->map(function ($p) use ($defaultFallback) {
-                $typeLower = strtolower($p->product_type ?: 'frame');
-                $p->image_url = asset($defaultFallback);
-                
-                if ($p->main_image) {
-                    if ($p->parent_product_code) {
-                        $path = "uploads/{$typeLower}/product/{$p->parent_product_code}/{$p->main_image}";
-                        if (file_exists(public_path($path))) {
-                            $p->image_url = asset($path);
-                        }
-                    } else {
-                        // Fallback 1: with product_id
-                        $pathWithId = "uploads/{$typeLower}/product/{$p->product_id}/{$p->main_image}";
-                        if (file_exists(public_path($pathWithId))) {
-                            $p->image_url = asset($pathWithId);
-                        } else if (file_exists(public_path($p->main_image))) {
-                            $p->image_url = asset($p->main_image);
-                        }
-                    }
-                }
-                
+                $p->image_url  = getProductImageUrl($p);
                 $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
                 return $p;
             });

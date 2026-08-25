@@ -344,25 +344,7 @@ class ProductController extends Controller
 
         // Map helper for images and URLs
         $productsList->getCollection()->transform(function ($p) {
-            $typeLower = strtolower($p->product_type ?: 'frame');
-            $p->image_url = asset('website/assets/img/bg/Sunglasses1.png'); // default fallback
-            
-            if ($p->main_image) {
-                if ($p->parent_product_code) {
-                    $path = "uploads/{$typeLower}/product/{$p->parent_product_code}/{$p->main_image}";
-                    if (file_exists(public_path($path))) {
-                        $p->image_url = asset($path);
-                    }
-                } else {
-                    $pathWithId = "uploads/{$typeLower}/product/{$p->product_id}/{$p->main_image}";
-                    if (file_exists(public_path($pathWithId))) {
-                        $p->image_url = asset($pathWithId);
-                    } else if (file_exists(public_path($p->main_image))) {
-                        $p->image_url = asset($p->main_image);
-                    }
-                }
-            }
-            
+            $p->image_url  = getProductImageUrl($p);
             $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
             return $p;
         });
@@ -452,45 +434,11 @@ class ProductController extends Controller
         // Fetch category name
         $categoryName = DB::table('categories')->where('id', $product->category_id)->value('name') ?: 'Products';
 
-        $typeLower = strtolower($product->product_type ?: 'frame');
-        
-        // Helper function to get image url
-        $getImageUrl = function($p, $imageName) use ($typeLower) {
-            if (!$imageName) return asset('website/assets/img/bg/Sunglasses1.png');
-            $url = asset('website/assets/img/bg/Sunglasses1.png');
-            if (!empty($p->parent_product_code)) {
-                $path = "uploads/{$typeLower}/product/{$p->parent_product_code}/{$imageName}";
-                if (file_exists(public_path($path))) {
-                    $url = asset($path);
-                }
-            } else {
-                $pathWithId = "uploads/{$typeLower}/product/{$p->product_id}/{$imageName}";
-                if (file_exists(public_path($pathWithId))) {
-                    $url = asset($pathWithId);
-                } else if (file_exists(public_path($imageName))) {
-                    $url = asset($imageName);
-                }
-            }
-            return $url;
-        };
-
         // Map main image URL
-        $product->image_url = $getImageUrl($product, $product->main_image);
+        $product->image_url = getProductImageUrl($product, $product->main_image);
         
-        // Map gallery images
-        $galleryImages = [$product->image_url];
-        if (!empty($product->product_image)) {
-            $imagesArray = json_decode($product->product_image, true);
-            if (!is_array($imagesArray)) {
-                $imagesArray = explode(',', $product->product_image);
-            }
-            foreach($imagesArray as $imgName) {
-                $imgName = trim($imgName);
-                if ($imgName && $imgName !== $product->main_image) {
-                    $galleryImages[] = $getImageUrl($product, $imgName);
-                }
-            }
-        }
+        // Map gallery images dynamically across DB and disk folders
+        $galleryImages = getProductGalleryImages($product);
         
         // Fetch color variants (siblings sharing same parent_product_code, plus current product)
         $colorVariants = collect();
@@ -500,8 +448,8 @@ class ProductController extends Controller
                 ->where('is_b2c', 1)
                 ->where('parent_product_code', $product->parent_product_code)
                 ->get()
-                ->map(function($v) use ($getImageUrl) {
-                    $v->image_url   = $getImageUrl($v, $v->main_image);
+                ->map(function($v) {
+                    $v->image_url   = getProductImageUrl($v, $v->main_image);
                     $v->detail_url  = url('/product/' . (isset($v->product_id) && $v->product_id ? $v->product_id : $v->id));
                     // Color field stores "#hex1" or "#hex1 / #hex2" (primary / secondary)
                     $colorRaw       = $v->Color ?? '';
@@ -531,8 +479,8 @@ class ProductController extends Controller
             ->where('id', '!=', $product->id)
             ->limit(10)
             ->get()
-            ->map(function ($p) use ($getImageUrl) {
-                $p->image_url = $getImageUrl($p, $p->main_image);
+            ->map(function ($p) {
+                $p->image_url = getProductImageUrl($p, $p->main_image);
                 $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
                 return $p;
             });
@@ -585,30 +533,12 @@ class ProductController extends Controller
             ->limit(6)
             ->get()
             ->map(function ($p) {
-                $typeLower = strtolower($p->product_type ?: 'frame');
-                $image_url = asset('website/assets/img/bg/Sunglasses1.png');
-                if ($p->main_image) {
-                    if ($p->parent_product_code) {
-                        $path = "uploads/{$typeLower}/product/{$p->parent_product_code}/{$p->main_image}";
-                        if (file_exists(public_path($path))) {
-                            $image_url = asset($path);
-                        }
-                    } else {
-                        $pathWithId = "uploads/{$typeLower}/product/{$p->product_id}/{$p->main_image}";
-                        if (file_exists(public_path($pathWithId))) {
-                            $image_url = asset($pathWithId);
-                        } else if (file_exists(public_path($p->main_image))) {
-                            $image_url = asset($p->main_image);
-                        }
-                    }
-                }
-
                 return [
-                    'type' => 'product',
-                    'name' => $p->product_name ?: $p->product_code,
-                    'url' => url('/product/' . ($p->product_id ?: $p->id)),
-                    'image_url' => $image_url,
-                    'price' => $p->Retail_Price
+                    'type'      => 'product',
+                    'name'      => $p->product_name ?: $p->product_code,
+                    'url'       => url('/product/' . ($p->product_id ?: $p->id)),
+                    'image_url' => getProductImageUrl($p),
+                    'price'     => $p->Retail_Price
                 ];
             });
 
