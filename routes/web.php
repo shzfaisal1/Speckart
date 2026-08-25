@@ -41,9 +41,10 @@ Route::group(['middleware' => ['web']], function ()
     Route::post('/otp-web/verify',         [\App\Http\Controllers\Website\WebLoginController::class, 'verify_otp'])->name('otp.web.post');
     Route::get('/register-web',            [\App\Http\Controllers\Website\WebLoginController::class, 'register_web'])->name('register.web');
     Route::post('/register-web',           [\App\Http\Controllers\Website\WebLoginController::class, 'store_register_web'])->name('register.web.post');
-    Route::post('/logout-web',             [\App\Http\Controllers\Website\WebLoginController::class, 'logout'])->name('logout.web');
+    Route::match(['get', 'post'], '/logout-web', [\App\Http\Controllers\Website\WebLoginController::class, 'logout'])->name('logout.web');
     Route::post('/login-web/send-otp-ajax',   [\App\Http\Controllers\Website\WebLoginController::class, 'send_otp_ajax'])->name('login.web.otp.ajax');
     Route::post('/login-web/verify-otp-ajax', [\App\Http\Controllers\Website\WebLoginController::class, 'verify_otp_ajax'])->name('login.web.verify.ajax');
+    Route::post('/register-web-ajax',         [\App\Http\Controllers\Website\WebLoginController::class, 'register_ajax'])->name('register.web.ajax');
     // Wishlist
     Route::get('/wishlist',              [\App\Http\Controllers\Website\WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/toggle',      [\App\Http\Controllers\Website\WishlistController::class, 'toggle'])->name('wishlist.toggle');

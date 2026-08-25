@@ -186,6 +186,10 @@
  @include('website.layout.partial.sidebar')
     @yield('content')
  @include('website.layout.partial.footer')
+
+<!-- Speckart AJAX Login Modal -->
+@include('website.layout.partial.login-modal')
+
 <!-- =================================================== -->
 
 @include('website.layout.partial.scripts')

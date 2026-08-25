@@ -539,12 +539,14 @@
                 if (method === 'cod') {
                     if (codConfirm && !codConfirm.checked) {
                         e.preventDefault();
-                        if (typeof toastr !== 'undefined') {
-                            toastr.warning('Please check the confirmation box to place Cash on Delivery order.', 'Confirmation Required');
-                        } else {
-                            alert('Please check the confirmation box to place Cash on Delivery order.');
-                        }
-                        codConfirm.focus();
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Confirmation Required',
+                            text: 'Please check the confirmation box to place Cash on Delivery order.',
+                            confirmButtonColor: '#00a297'
+                        }).then(() => {
+                            codConfirm.focus();
+                        });
                         return false;
                     }
                 }

@@ -465,58 +465,247 @@
             top: 8px;
         }
 
-        .benefits-list li{
-            font-size: 11px
+        /* ══════════════════════════════════════
+           CUSTOM CATALOG CONTAINER (FLUID WIDE)
+        ══════════════════════════════════════ */
+        .cat-container {
+            width: 100%;
+            max-width: 1440px;
+            padding-left: 24px;
+            padding-right: 24px;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+        @media (min-width: 1600px) {
+            .cat-container {
+                max-width: 1560px;
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+        }
+        @media (min-width: 1920px) {
+            .cat-container {
+                max-width: 1720px;
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+        }
+        @media (max-width: 767px) {
+            .cat-container {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+        }
+
+        /* ══════════════════════════════════════
+           BREADCRUMBS & ACTIONS (COMPACT & RESPONSIVE)
+        ══════════════════════════════════════ */
+        .cat-breadcrumb-wrap {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 0;
+        }
+        .cat-breadcrumb {
+            margin-bottom: 0;
+            font-size: 12.5px;
+            font-weight: 500;
+        }
+        .cat-breadcrumb a {
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .cat-breadcrumb a:hover {
+            color: #00a297;
+        }
+        .cat-breadcrumb .breadcrumb-item.active {
+            color: #0f172a;
+            font-weight: 600;
+        }
+        .dt-action-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+        }
+        .dt-action-btn:hover {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .dt-action-btn.active, .dt-action-btn .bi-heart-fill {
+            color: #ef4444 !important;
+        }
+
+        /* ── Action Buttons ── */
+        .btn-outline-custom {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1.5px solid #00a297;
+            color: #00a297;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-outline-custom:hover {
+            background: #f0fdfa;
+            color: #008f85;
+            border-color: #008f85;
+        }
+        .btn-outline-custom.active {
+            background: #00a297 !important;
+            color: #ffffff !important;
+            border-color: #00a297 !important;
+            box-shadow: 0 4px 12px rgba(0, 162, 151, 0.25);
+        }
+        .btn-outline-custom.active:hover {
+            background: #008f85 !important;
+            border-color: #008f85 !important;
+        }
+        /* ── Share Dropdown ── */
+        .dt-share-dropdown {
+            min-width: 150px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 8px 10px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+            background: #ffffff !important;
+            margin-top: 6px !important;
+        }
+        .dt-share-link {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 16px !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+        }
+        .dt-share-link.whatsapp {
+            background: #e6f9f4 !important;
+            color: #25d366 !important;
+        }
+        .dt-share-link.whatsapp:hover {
+            background: #25d366 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+        .dt-share-link.facebook {
+            background: #e0f2fe !important;
+            color: #1877f2 !important;
+        }
+        .dt-share-link.facebook:hover {
+            background: #1877f2 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+        .dt-share-link.twitter {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        .dt-share-link.twitter:hover {
+            background: #0f172a !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+
+        /* ── 360 View Badge ── */
+        .btn-360 {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: #00a297;
+            color: #ffffff;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(0, 162, 151, 0.35);
+            z-index: 5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-360:hover {
+            background: #008f85;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 162, 151, 0.45);
         }
     </style>
 
-    <section class="product breadcrumbs-section bg-white border-bottom">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8 col-9 pe-0">
-                    <ul id="breadcrumbs" class="m-0 p-0 list-unstyled d-flex align-items-center gap-2"
-                        style="font-size: 13px;">
-                        <li><a href="index.html" class="text-muted text-decoration-none">Home</a></li>
-                        <li><i class="bi bi-chevron-right text-muted" style="font-size: 10px;"></i></li>
-                        <li><a href="products.html" class="text-muted text-decoration-none">Products</a></li>
-                        <li><i class="bi bi-chevron-right text-muted" style="font-size: 10px;"></i></li>
-                        <li>
-                            <a class="fw-medium text-decoration-none">
-                                {{ $categoryName }}
-                            </a>
+    {{-- BREADCRUMBS SECTION (Matching Products Page & Fully Responsive) --}}
+    <div class="cat-breadcrumb-wrap">
+        <div class="cat-container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <nav aria-label="breadcrumb" class="flex-grow-1" style="min-width: 0;">
+                    <ol class="breadcrumb cat-breadcrumb mb-0 flex-nowrap overflow-auto text-nowrap py-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                        <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="bi bi-house-door me-1"></i>Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('products') }}">Products</a></li>
+                        @if(!empty($categoryName))
+                            <li class="breadcrumb-item"><a href="{{ route('products', ['category' => Str::slug($categoryName)]) }}">{{ $categoryName }}</a></li>
+                        @endif
+                        <li class="breadcrumb-item active text-truncate" aria-current="page" style="max-width: 280px;" title="{{ $product->Company ?? ($product->product_name ?? 'Details') }}">
+                            {{ $product->Company ?? ($product->product_name ?? 'Details') }}
                         </li>
-                        <li><i class="bi bi-chevron-right text-muted" style="font-size: 10px;"></i></li>
-                        <li>
-                            <a class="fw-medium text-decoration-none">
-                                {{ $product->Company }}
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-md-4 col-3 ps-0">
-                    <div class="right-section row align-items-center mt-md-0">
-                        <div class="wishshre position-relative d-flex align-items-center">
-                            <div class="wishlis btn-wishlist-toggle me-1" data-product-id="{{ $product->product_id ?: $product->id }}" data-wishlist-product-id="{{ $product->product_id ?: $product->id }}" style="cursor: pointer;">
-                                <i class="bi {{ in_array($product->product_id ?: $product->id, $wishlistProductIds ?? []) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
-                            </div>
+                    </ol>
+                </nav>
 
-                            <div class="share position-relative">
-                                <i class="bi bi-share"></i>
-                                <div class="share-options">
-                                    <a href="https://api.whatsapp.com/send?text=https%3A%2F%2Fexample.com%2Fproduct%2Fclassic-aviator-sunglasses" target="_blank"
-                                        title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-                                    <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fexample.com%2Fproduct%2Fclassic-aviator-sunglasses"
-                                        target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
-                                    <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fexample.com%2Fproduct%2Fclassic-aviator-sunglasses" target="_blank"
-                                        title="Twitter"><i class="bi bi-twitter-x"></i></a>
-                                </div>
+                {{-- Action buttons: Wishlist & Share --}}
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <div class="dt-action-btn wishlis btn-wishlist-toggle" data-product-id="{{ $product->product_id ?: $product->id }}" data-wishlist-product-id="{{ $product->product_id ?: $product->id }}" title="Wishlist">
+                        <i class="bi {{ in_array($product->product_id ?: $product->id, $wishlistProductIds ?? []) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="dt-action-btn border-0 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Share">
+                            <i class="bi bi-share"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end dt-share-dropdown">
+                            @php
+                                $shareUrl = urlencode(url()->current());
+                                $shareText = urlencode($product->product_name ?? 'Check out this product on Speckart');
+                            @endphp
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <a href="https://api.whatsapp.com/send?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" class="dt-share-link whatsapp" title="WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" class="dt-share-link facebook" title="Facebook">
+                                    <i class="bi bi-facebook"></i>
+                                </a>
+                                <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" class="dt-share-link twitter" title="Twitter / X">
+                                    <i class="bi bi-twitter-x"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
 
     <!-- end first one -->
@@ -525,7 +714,7 @@
     <!-- start 2 360 degrees -->
 
     <section class="degree mt-4">
-    <div class="container">
+    <div class="cat-container">
         <div class="row g-4">
 
             <!-- Left: Product Image & Thumbnails -->
@@ -538,7 +727,7 @@
                             class="main-image" id="main-image" alt="{{ $product->product_name }}"
                             onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                          </a>
-                        <button class="btn-360">360 VIEW</button>
+                        <button class="btn-360" type="button"><i class="bi bi-arrow-clockwise"></i> 360° VIEW</button>
                     </div>
                 </div>
 
@@ -775,129 +964,292 @@
 
                 @if($isContactLens)
                 <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
-                <div class="power-type-section mt-4" id="power-type-section">
+                <div class="power-type-section mt-3" id="power-type-section">
                     <div class="d-flex align-items-center gap-3 mb-2">
                         <span class="option-label mb-0" style="color: #7d879c; font-size: 14px; font-weight: 500;">Power Type</span>
-                        <div class="position-relative d-inline-block">
-                            <button type="button" class="btn text-white rounded-pill px-3 py-1 fw-medium" style="background-color: #0d1430; font-size: 14px; border: none;">
-                                With Power
-                            </button>
-                            <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 6px solid #0d1430; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);"></div>
+                        <div class="d-flex align-items-center gap-2 cl-power-pill-tabs">
+                            <!-- Pill 1: Zero Power -->
+                            <div class="position-relative d-inline-block">
+                                <button type="button" class="btn rounded-pill px-3 py-1 cl-power-pill" id="cl-pill-zero" data-type="zero">
+                                    Zero Power
+                                </button>
+                                <div class="cl-pill-arrow" id="cl-arrow-zero" style="display: none;"></div>
+                            </div>
+
+                            <!-- Pill 2: With Power (active by default) -->
+                            <div class="position-relative d-inline-block">
+                                <button type="button" class="btn rounded-pill px-3 py-1 cl-power-pill active" id="cl-pill-with-power" data-type="with_power">
+                                    With Power
+                                </button>
+                                <div class="cl-pill-arrow" id="cl-arrow-with-power"></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="p-3 rounded-4 mt-2" style="background-color: #eceff6;">
-                        <div class="bg-white rounded-4 p-3 p-md-4 shadow-sm border border-light">
-                            <!-- Option 1: Manual Power -->
-                            <div class="power-option-group">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                                    <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
-                                        <input type="radio" name="power_submission" value="manual" checked style="width: 18px; height: 18px; accent-color: #0d1430;">
-                                        <span class="fw-bold" style="color: #0d1430; font-size: 15px;">Enter power Manually</span>
-                                    </label>
+                    <!-- Outer card container -->
+                    <div class="cl-outer-container">
+                        <div class="cl-card-inner">
 
-                                    <!-- Eye Checkboxes -->
-                                    <div class="d-flex align-items-center gap-3">
-                                        <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 13px; font-weight: 600; color: #0d1430;">
-                                            <input type="checkbox" id="check-right" checked style="accent-color: #0d1430;"> RIGHT
-                                        </label>
-                                        <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 13px; font-weight: 600; color: #0d1430;">
-                                            <input type="checkbox" id="check-left" checked style="accent-color: #0d1430;"> LEFT
-                                        </label>
+                            <!-- ════════ VIEW 1: ZERO POWER ════════ -->
+                            <div id="cl-zero-power-view" style="display: none;">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2">
+                                    <div>
+                                        <span class="fw-bold" style="color: #0d1430; font-size: 14.5px;">No. of Boxes</span>
+                                        <div class="text-muted" style="font-size: 12px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</div>
                                     </div>
-                                </div>
-
-                                <!-- Power Dropdowns Grid -->
-                                <div class="bg-white rounded-3 p-3 mb-3" style="background-color: #f8fafc; border: 1px solid #f1f5f9;">
-                                    <div class="row g-3">
-                                        <!-- Spherical (SPH) -->
-                                        <div class="col-md-4 d-flex flex-column justify-content-center">
-                                            <span class="fw-bold" style="color: #0d1430; font-size: 14px;">Spherical</span>
-                                            <span class="text-muted" style="font-size: 11px;">SPH</span>
-                                        </div>
-                                        <div class="col-6 col-md-4">
-                                            <select id="cl-right-sph" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option value="" selected>Right SPH</option>
-                                                <option value="0.00">0.00 (Plano)</option>
-                                                @for($p = -0.50; $p >= -12.00; $p -= 0.25)
-                                                    <option value="{{ number_format($p, 2) }}">{{ number_format($p, 2) }}</option>
-                                                @endfor
-                                                @for($p = 0.50; $p <= 6.00; $p += 0.25)
-                                                    <option value="+{{ number_format($p, 2) }}">+{{ number_format($p, 2) }}</option>
-                                                @endfor
-                                            </select>
-                                        </div>
-                                        <div class="col-6 col-md-4">
-                                            <select id="cl-left-sph" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option value="" selected>Left SPH</option>
-                                                <option value="0.00">0.00 (Plano)</option>
-                                                @for($p = -0.50; $p >= -12.00; $p -= 0.25)
-                                                    <option value="{{ number_format($p, 2) }}">{{ number_format($p, 2) }}</option>
-                                                @endfor
-                                                @for($p = 0.50; $p <= 6.00; $p += 0.25)
-                                                    <option value="+{{ number_format($p, 2) }}">+{{ number_format($p, 2) }}</option>
-                                                @endfor
-                                            </select>
-                                        </div>
-
-                                        <!-- No. of Boxes -->
-                                        <div class="col-md-4 d-flex flex-column justify-content-center">
-                                            <span class="fw-bold" style="color: #0d1430; font-size: 14px;">No. of Boxes</span>
-                                            <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '30 lens/box') }}</span>
-                                        </div>
-                                        <div class="col-6 col-md-4">
-                                            <select id="cl-right-boxes" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option value="1" selected>1 Box</option>
-                                                <option value="2">2 Boxes</option>
-                                                <option value="3">3 Boxes</option>
-                                                <option value="4">4 Boxes</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-6 col-md-4">
-                                            <select id="cl-left-boxes" class="form-select border-light-subtle rounded-3 py-2 text-muted" style="font-size: 13px;">
-                                                <option value="1" selected>1 Box</option>
-                                                <option value="2">2 Boxes</option>
-                                                <option value="3">3 Boxes</option>
-                                                <option value="4">4 Boxes</option>
-                                            </select>
-                                        </div>
+                                    <div style="min-width: 110px;">
+                                        <select id="cl-zero-boxes" class="form-select border-light-subtle rounded-3 py-1.5 text-center" style="font-size: 14px; font-weight:600; border-color: #cbd5e1;">
+                                            @for($b = 1; $b <= 10; $b++)
+                                                <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }}</option>
+                                            @endfor
+                                        </select>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Option 2: Submit power later -->
-                            <div class="power-option-group">
-                                <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
-                                    <input type="radio" name="power_submission" value="later" style="width: 18px; height: 18px; accent-color: #0d1430;">
-                                    <span class="fw-bold" style="color: #0d1430; font-size: 15px;">I will submit power later</span>
-                                </label>
-                            </div>
+                            <!-- ════════ VIEW 2: WITH POWER ════════ -->
+                            <div id="cl-with-power-view">
+
+                                <!-- Option 1: Manual Power -->
+                                <div class="cl-sub-option-box active" id="cl-box-manual">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                            <input type="radio" name="power_submission" value="manual" checked style="width: 17px; height: 17px; accent-color: #00a297;">
+                                            <span class="fw-bold" style="color: #0d1430; font-size: 14px;">Enter power Manually</span>
+                                        </label>
+
+                                        <!-- Eye Checkboxes -->
+                                        <div class="cl-eye-checks">
+                                            <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 12px; font-weight: 700; color: #0d1430;">
+                                                <input type="checkbox" id="check-right" checked style="accent-color: #00a297;"> RIGHT
+                                            </label>
+                                            <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 12px; font-weight: 700; color: #0d1430;">
+                                                <input type="checkbox" id="check-left" checked style="accent-color: #00a297;"> LEFT
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Power Dropdowns Grid -->
+                                    <div class="cl-sub-details">
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <!-- Spherical (SPH) -->
+                                            <div class="col-4 d-flex flex-column justify-content-center">
+                                                <span class="fw-bold" style="color: #0d1430; font-size: 13px;">Spherical</span>
+                                                <span class="text-muted" style="font-size: 11px;">SPH</span>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-right-sph" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="" selected>Right SPH</option>
+                                                    <option value="0.00">0.00 (Plano)</option>
+                                                    @for($p = -0.50; $p >= -12.00; $p -= 0.25)
+                                                        <option value="{{ number_format($p, 2) }}">{{ number_format($p, 2) }}</option>
+                                                    @endfor
+                                                    @for($p = 0.50; $p <= 6.00; $p += 0.25)
+                                                        <option value="+{{ number_format($p, 2) }}">+{{ number_format($p, 2) }}</option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-left-sph" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="" selected>Left SPH</option>
+                                                    <option value="0.00">0.00 (Plano)</option>
+                                                    @for($p = -0.50; $p >= -12.00; $p -= 0.25)
+                                                        <option value="{{ number_format($p, 2) }}">{{ number_format($p, 2) }}</option>
+                                                    @endfor
+                                                    @for($p = 0.50; $p <= 6.00; $p += 0.25)
+                                                        <option value="+{{ number_format($p, 2) }}">+{{ number_format($p, 2) }}</option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+
+                                            <!-- No. of Boxes -->
+                                            <div class="col-4 d-flex flex-column justify-content-center">
+                                                <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="1" selected>1 Box</option>
+                                                    <option value="2">2 Boxes</option>
+                                                    <option value="3">3 Boxes</option>
+                                                    <option value="4">4 Boxes</option>
+                                                    <option value="5">5 Boxes</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="1" selected>1 Box</option>
+                                                    <option value="2">2 Boxes</option>
+                                                    <option value="3">3 Boxes</option>
+                                                    <option value="4">4 Boxes</option>
+                                                    <option value="5">5 Boxes</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Option 2: Upload Prescription -->
+                                <div class="cl-sub-option-box" id="cl-box-upload">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                            <input type="radio" name="power_submission" value="upload" style="width: 17px; height: 17px; accent-color: #00a297;">
+                                            <span class="fw-bold" style="color: #0d1430; font-size: 14px;">Upload prescription</span>
+                                        </label>
+
+                                        <!-- Eye Checkboxes for Upload -->
+                                        <div class="cl-eye-checks">
+                                            <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 12px; font-weight: 700; color: #0d1430;">
+                                                <input type="checkbox" id="check-upload-right" checked style="accent-color: #00a297;"> RIGHT
+                                            </label>
+                                            <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 12px; font-weight: 700; color: #0d1430;">
+                                                <input type="checkbox" id="check-upload-left" checked style="accent-color: #00a297;"> LEFT
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Upload Details -->
+                                    <div class="cl-sub-details">
+                                        <!-- Boxes row -->
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <div class="col-4 d-flex flex-column justify-content-center">
+                                                <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-upload-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="1" selected>1 Box</option>
+                                                    <option value="2">2 Boxes</option>
+                                                    <option value="3">3 Boxes</option>
+                                                    <option value="4">4 Boxes</option>
+                                                    <option value="5">5 Boxes</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-upload-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="1" selected>1 Box</option>
+                                                    <option value="2">2 Boxes</option>
+                                                    <option value="3">3 Boxes</option>
+                                                    <option value="4">4 Boxes</option>
+                                                    <option value="5">5 Boxes</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Upload Dropzone & Preview Box -->
+                                        <input type="file" id="cl_rx_file" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+
+                                        <div id="cl-upload-dropzone" class="p-3 text-center rounded-2" style="border: 1.5px dashed #cbd5e1; background: #f8fafc; cursor: pointer; transition: all 0.2s ease;" onclick="$('#cl_rx_file').click();">
+                                            <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 24px;"></i>
+                                            <div class="fw-bold mt-1" style="color: #0d1430; font-size: 13px;">Click to Upload Prescription</div>
+                                            <div class="text-muted" style="font-size: 11px;">JPG, PNG, or PDF (Max 5MB)</div>
+                                        </div>
+
+                                        <!-- Uploaded file preview card -->
+                                        <div id="cl-upload-preview" class="p-2.5 rounded-2 border mt-2 align-items-center justify-content-between flex-wrap gap-2" style="display: none; background: #fdfdfd; border-color: #cbd5e1 !important;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div style="width: 36px; height: 36px; border-radius: 6px; background: #edeafb; display: flex; align-items: center; justify-content: center; color: #4338ca; font-size: 18px;">
+                                                    <i class="bi bi-file-earmark-medical-fill"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-truncate" id="cl-file-name" style="color: #0d1430; font-size: 12.5px; max-width: 160px;">Prescription.jpg</div>
+                                                    <span class="badge" style="background: #059669; font-size: 10px;">{{ date('d M Y') }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <button type="button" class="btn btn-sm text-primary p-0 d-flex align-items-center gap-1" id="cl-btn-view-file" style="font-size: 12px; font-weight: 600; text-decoration: underline;">
+                                                    <i class="bi bi-arrows-fullscreen"></i> View
+                                                </button>
+                                                <button type="button" class="btn btn-sm text-dark p-0 d-flex align-items-center gap-1" onclick="$('#cl_rx_file').click();" style="font-size: 12px; font-weight: 600; text-decoration: underline;">
+                                                    <i class="bi bi-pencil"></i> Replace
+                                                </button>
+                                                <button type="button" class="btn btn-sm text-danger p-0 d-flex align-items-center gap-1" id="cl-btn-delete-file" style="font-size: 12px; font-weight: 600; text-decoration: underline;">
+                                                    <i class="bi bi-trash3"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Option 3: Submit power later -->
+                                <div class="cl-sub-option-box" id="cl-box-later">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <label class="d-flex align-items-center gap-2 cursor-pointer mb-0">
+                                            <input type="radio" name="power_submission" value="later" style="width: 17px; height: 17px; accent-color: #00a297;">
+                                            <span class="fw-bold" style="color: #0d1430; font-size: 14px;">I will submit power later</span>
+                                        </label>
+
+                                        <!-- Eye Checkboxes for Later -->
+                                        <div class="cl-eye-checks">
+                                            <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 12px; font-weight: 700; color: #0d1430;">
+                                                <input type="checkbox" id="check-later-right" checked style="accent-color: #00a297;"> RIGHT
+                                            </label>
+                                            <label class="d-flex align-items-center gap-1 cursor-pointer mb-0" style="font-size: 12px; font-weight: 700; color: #0d1430;">
+                                                <input type="checkbox" id="check-later-left" checked style="accent-color: #00a297;"> LEFT
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Later Details -->
+                                    <div class="cl-sub-details">
+                                        <!-- Boxes row -->
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <div class="col-4 d-flex flex-column justify-content-center">
+                                                <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-later-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="1" selected>1 Box</option>
+                                                    <option value="2">2 Boxes</option>
+                                                    <option value="3">3 Boxes</option>
+                                                    <option value="4">4 Boxes</option>
+                                                    <option value="5">5 Boxes</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <select id="cl-later-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
+                                                    <option value="1" selected>1 Box</option>
+                                                    <option value="2">2 Boxes</option>
+                                                    <option value="3">3 Boxes</option>
+                                                    <option value="4">4 Boxes</option>
+                                                    <option value="5">5 Boxes</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-muted p-2 rounded-2" style="background-color: #f8fafc; font-size: 12px; border: 1px solid #f1f5f9;">
+                                            <i class="bi bi-info-circle me-1 text-primary"></i> You can provide your power details via WhatsApp, Email, or upload in your account after completing your order.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                   
                         </div>
                     </div>
                 </div>
 
                 <!-- Lenses per Pack Section -->
-                <div class="lenses-pack-section mt-4" id="lenses-pack-section">
-                    <h6 class="fw-bold mb-3" style="color: #0d1430; font-size: 16px;">Lenses per Pack</h6>
-                    <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #0d1430; width: 140px; background: #fff;">
-                        <div class="px-3 py-1 text-start fw-medium" style="background-color: #edeafb; font-size: 13px; color: #0d1430;">
+                <div class="lenses-pack-section mt-3" id="lenses-pack-section">
+                    <h6 class="fw-bold mb-2" style="color: #0d1430; font-size: 14px;">Lenses per Pack</h6>
+                    <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #00a297; width: 140px; background: #fff;">
+                        <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: #edeafb; font-size: 12.5px; color: #0d1430;">
                             {{ $product->Packing_Type ?? ($product->pack_size ?? '30 Lenses / Box') }}
                         </div>
-                        <div class="p-2 text-start">
+                        <div class="p-2 px-3 text-start">
                             @if($hasDiscount)
-                            <div class="text-muted text-decoration-line-through" style="font-size: 12px; color: #94a3b8;">₹{{ number_format($calcMrp, 0) }}</div>
+                            <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($calcMrp, 0) }}</div>
                             @endif
-                            <div class="fw-bold" style="color: #0d1430; font-size: 18px;">₹{{ number_format($calcSellingPrice, 0) }}</div>
+                            <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($calcSellingPrice, 0) }}</div>
                         </div>
                     </div>
                 </div>
                 @endif
 
                 <!-- Action Buttons -->
-                <div class="d-flex flex-wrap gap-3 mt-4">
+                <div class="d-flex flex-wrap align-items-center gap-3 mt-4" style="gap: 14px !important;">
                     @if($isSolution || $isAccessory)
                         {{-- Direct purchase — no lenses or power involved --}}
-                        <button id="main-action-btn"
+                        <button id="direct-buy-btn"
                             class="btn btn-outline-custom active"
                             data-has-power="0"
                             data-default-text="BUY NOW"
@@ -906,7 +1258,7 @@
                         </button>
                     @elseif($isContactLens)
                         {{-- Contact lenses — power grid handles details --}}
-                        <button id="main-action-btn"
+                        <button id="contact-lens-buy-btn"
                             class="btn btn-outline-custom active"
                             data-has-power="0"
                             data-default-text="BUY NOW"
@@ -915,7 +1267,7 @@
                         </button>
                     @elseif($isSunglass)
                         {{-- Sunglasses: 1-click BUY NOW for standard, BUY WITH POWER for Rx tint --}}
-                        <button id="main-action-btn"
+                        <button id="sunglass-buy-btn"
                             class="btn btn-outline-custom active"
                             data-has-power="0"
                             data-default-text="BUY NOW"
@@ -1306,7 +1658,7 @@
                     <div id="collapsefour" class="accordion-collapse collapse" aria-labelledby="headingfour"
                         data-bs-parent="#productAccordion">
                         <div class="accordion-body">
-                            <div class="testimonial-section container">
+                            <div class="testimonial-section">
                                 <div class="testimonial-slider">
                                     <div class="testimonial-track">
                                         <!-- ===== Cards (duplicated for seamless loop) ===== -->
@@ -1391,7 +1743,7 @@
     @if($relatedProducts && $relatedProducts->count() > 0)
     <!-- similar-products-section -->
     <section class="new-arrivals-section mt-5 mb-5">
-        <div class="container-fluid">
+        <div class="container">
             <div class="row">
                 <div class="col-lg-12">
                     <div class="d-flex justify-content-between align-items-center px-2 mb-4">
@@ -1816,675 +2168,150 @@
                         </div>
 
                         <!-- Manual entry form -->
+                        <!-- Manual entry form (Lenskart style) -->
                         <div id="manual-power-form" style="display:none;">
+                            <div class="prescription-card p-3 p-md-4">
 
-    <div class="prescription-card">
+                                <!-- Top Checkboxes (Lenskart style) -->
+                                <div class="lenskart-rx-checkboxes mb-4 text-start">
+                                    <div class="form-check custom-lenskart-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="rx_same_power">
+                                        <label class="form-check-label fw-semibold" for="rx_same_power" style="color: #1e293b; font-size: 14px; cursor: pointer;">
+                                            I have same power for both eyes
+                                        </label>
+                                    </div>
+                                    <div class="form-check custom-lenskart-check">
+                                        <input class="form-check-input" type="checkbox" id="rx_has_cyl">
+                                        <label class="form-check-label fw-semibold" for="rx_has_cyl" style="color: #1e293b; font-size: 14px; cursor: pointer;">
+                                            I have cylindrical power
+                                        </label>
+                                    </div>
+                                </div>
 
-        <div class="text-center mb-4">
-            <div class="rx-icon">
-                <i class="bi bi-eye"></i>
-            </div>
+                                <!-- Lenskart 3-Column Grid (Power | Right | Left) -->
+                                <div class="lenskart-rx-grid-wrapper mb-4">
+                                    <div class="row align-items-center mb-3 pb-2 text-start" style="color: #475569; font-weight: 700; font-size: 14px;">
+                                        <div class="col-3 col-sm-2 text-start">Power</div>
+                                        <div class="col-4 col-sm-5 text-center">Right</div>
+                                        <div class="col-5 col-sm-5 text-center">Left</div>
+                                    </div>
 
-            <h5 class="fw-bold mb-2">Enter Prescription Details</h5>
+                                    <!-- Row 1: SPH -->
+                                    <div class="row align-items-center mb-3">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
+                                            SPH
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_sph">
+                                                <option value="0.00" selected>0.00</option>
+                                                @for($p = -12.00; $p <= -0.25; $p += 0.25)
+                                                    <option value="{{ sprintf('%.2f', $p) }}">{{ sprintf('%.2f', $p) }}</option>
+                                                @endfor
+                                                @for($p = 0.25; $p <= 6.00; $p += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $p) }}">{{ sprintf('+%.2f', $p) }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_sph">
+                                                <option value="0.00" selected>0.00</option>
+                                                @for($p = -12.00; $p <= -0.25; $p += 0.25)
+                                                    <option value="{{ sprintf('%.2f', $p) }}">{{ sprintf('%.2f', $p) }}</option>
+                                                @endfor
+                                                @for($p = 0.25; $p <= 6.00; $p += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $p) }}">{{ sprintf('+%.2f', $p) }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
 
-            <!-- <p class="text-muted mb-0">
-                Fill in your eye prescription values below.
-            </p> -->
-        </div>
+                                    <!-- Row 2: CYL (Hidden by default until "I have cylindrical power" is checked) -->
+                                    <div class="row align-items-center mb-3 rx-cyl-row" style="display:none;">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
+                                            CYL
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_cyl">
+                                                <option value="0.00" selected>0.00</option>
+                                                @for($c = -4.00; $c <= -0.25; $c += 0.25)
+                                                    <option value="{{ sprintf('%.2f', $c) }}">{{ sprintf('%.2f', $c) }}</option>
+                                                @endfor
+                                                @for($c = 0.25; $c <= 4.00; $c += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $c) }}">{{ sprintf('+%.2f', $c) }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_cyl">
+                                                <option value="0.00" selected>0.00</option>
+                                                @for($c = -4.00; $c <= -0.25; $c += 0.25)
+                                                    <option value="{{ sprintf('%.2f', $c) }}">{{ sprintf('%.2f', $c) }}</option>
+                                                @endfor
+                                                @for($c = 0.25; $c <= 4.00; $c += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $c) }}">{{ sprintf('+%.2f', $c) }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
 
-        <div class="row g-3">
+                                    <!-- Row 3: Axis (Hidden by default until "I have cylindrical power" is checked) -->
+                                    <div class="row align-items-center mb-3 rx-axis-row" style="display:none;">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
+                                            Axis
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input rx-axis-field text-center"
+                                                   id="rx_right_axis"
+                                                   placeholder="1 - 180"
+                                                   maxlength="3"
+                                                   inputmode="numeric">
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input rx-axis-field text-center"
+                                                   id="rx_left_axis"
+                                                   placeholder="1 - 180"
+                                                   maxlength="3"
+                                                   inputmode="numeric">
+                                        </div>
+                                    </div>
+                                </div>
 
-            <!-- Right Eye -->
-            <div class="col-md-6">
-                <div class="eye-card">
-                    <div class="eye-title">
-                        <i class="bi bi-eye-fill"></i>
-                        Right Eye (OD)
-                    </div>
+                                <!-- Pupillary Distance (PD) -->
+                                {{-- <div class="pd-section p-3 rounded-3 mb-4" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-start">
+                                        <label for="rx_pd" class="form-label fw-bold mb-0" style="color:#07484A; font-size:13.5px;">
+                                            <i class="bi bi-arrows-expand me-1"></i> Pupillary Distance (PD)
+                                        </label>
+                                        <div style="min-width: 140px;">
+                                            <select class="form-select custom-lenskart-select" id="rx_pd" style="height:40px;">
+                                                @for($pd = 50; $pd <= 80; $pd++)
+                                                    <option value="{{ $pd }}" {{ $pd == 63 ? 'selected' : '' }}>{{ $pd }} mm</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div> --}}
 
-                    <div class="mb-3">
-                        <label class="form-label">SPH (Spherical)</label>
-                        <select class="form-select" id="rx_right_sph">
-                                                        <option value="0.00">0.00</option>
-                            <option value="-6.00">
-                                -6.00
-                            </option>
-                            <option value="-5.75">
-                                -5.75
-                            </option>
-                            <option value="-5.50">
-                                -5.50
-                            </option>
-                            <option value="-5.25">
-                                -5.25
-                            </option>
-                            <option value="-5.00">
-                                -5.00
-                            </option>
-                            <option value="-4.75">
-                                -4.75
-                            </option>
-                            <option value="-4.50">
-                                -4.50
-                            </option>
-                            <option value="-4.25">
-                                -4.25
-                            </option>
-                            <option value="-4.00">
-                                -4.00
-                            </option>
-                            <option value="-3.75">
-                                -3.75
-                            </option>
-                            <option value="-3.50">
-                                -3.50
-                            </option>
-                            <option value="-3.25">
-                                -3.25
-                            </option>
-                            <option value="-3.00">
-                                -3.00
-                            </option>
-                            <option value="-2.75">
-                                -2.75
-                            </option>
-                            <option value="-2.50">
-                                -2.50
-                            </option>
-                            <option value="-2.25">
-                                -2.25
-                            </option>
-                            <option value="-2.00">
-                                -2.00
-                            </option>
-                            <option value="-1.75">
-                                -1.75
-                            </option>
-                            <option value="-1.50">
-                                -1.50
-                            </option>
-                            <option value="-1.25">
-                                -1.25
-                            </option>
-                            <option value="-1.00">
-                                -1.00
-                            </option>
-                            <option value="-0.75">
-                                -0.75
-                            </option>
-                            <option value="-0.50">
-                                -0.50
-                            </option>
-                            <option value="-0.25">
-                                -0.25
-                            </option>
-                            <option value="+0.25">
-                                +0.25
-                            </option>
-                            <option value="+0.50">
-                                +0.50
-                            </option>
-                            <option value="+0.75">
-                                +0.75
-                            </option>
-                            <option value="+1.00">
-                                +1.00
-                            </option>
-                            <option value="+1.25">
-                                +1.25
-                            </option>
-                            <option value="+1.50">
-                                +1.50
-                            </option>
-                            <option value="+1.75">
-                                +1.75
-                            </option>
-                            <option value="+2.00">
-                                +2.00
-                            </option>
-                            <option value="+2.25">
-                                +2.25
-                            </option>
-                            <option value="+2.50">
-                                +2.50
-                            </option>
-                            <option value="+2.75">
-                                +2.75
-                            </option>
-                            <option value="+3.00">
-                                +3.00
-                            </option>
-                            <option value="+3.25">
-                                +3.25
-                            </option>
-                            <option value="+3.50">
-                                +3.50
-                            </option>
-                            <option value="+3.75">
-                                +3.75
-                            </option>
-                            <option value="+4.00">
-                                +4.00
-                            </option>
-                            <option value="+4.25">
-                                +4.25
-                            </option>
-                            <option value="+4.50">
-                                +4.50
-                            </option>
-                            <option value="+4.75">
-                                +4.75
-                            </option>
-                            <option value="+5.00">
-                                +5.00
-                            </option>
-                            <option value="+5.25">
-                                +5.25
-                            </option>
-                            <option value="+5.50">
-                                +5.50
-                            </option>
-                            <option value="+5.75">
-                                +5.75
-                            </option>
-                            <option value="+6.00">
-                                +6.00
-                            </option>
-                        </select>
-                    </div>
+                                <div class="d-flex gap-2 justify-content-end mt-4 action-buttons">
+                                    <button type="button"
+                                        class="btn btn-outline-secondary px-4 fw-semibold"
+                                        style="border-radius:10px; height:46px;"
+                                        onclick="backToPowerOptions()">
+                                        Back
+                                    </button>
 
-                    <div>
-                        <label class="form-label">CYL (Cylindrical)</label>
-                        <select class="form-select" id="rx_right_cyl">
-                                                        <option value="0.00">0.00</option>
-                            <option value="-4.00">
-                                -4.00
-                            </option>
-                            <option value="-3.75">
-                                -3.75
-                            </option>
-                            <option value="-3.50">
-                                -3.50
-                            </option>
-                            <option value="-3.25">
-                                -3.25
-                            </option>
-                            <option value="-3.00">
-                                -3.00
-                            </option>
-                            <option value="-2.75">
-                                -2.75
-                            </option>
-                            <option value="-2.50">
-                                -2.50
-                            </option>
-                            <option value="-2.25">
-                                -2.25
-                            </option>
-                            <option value="-2.00">
-                                -2.00
-                            </option>
-                            <option value="-1.75">
-                                -1.75
-                            </option>
-                            <option value="-1.50">
-                                -1.50
-                            </option>
-                            <option value="-1.25">
-                                -1.25
-                            </option>
-                            <option value="-1.00">
-                                -1.00
-                            </option>
-                            <option value="-0.75">
-                                -0.75
-                            </option>
-                            <option value="-0.50">
-                                -0.50
-                            </option>
-                            <option value="-0.25">
-                                -0.25
-                            </option>
-                            <option value="+0.25">
-                                +0.25
-                            </option>
-                            <option value="+0.50">
-                                +0.50
-                            </option>
-                            <option value="+0.75">
-                                +0.75
-                            </option>
-                            <option value="+1.00">
-                                +1.00
-                            </option>
-                            <option value="+1.25">
-                                +1.25
-                            </option>
-                            <option value="+1.50">
-                                +1.50
-                            </option>
-                            <option value="+1.75">
-                                +1.75
-                            </option>
-                            <option value="+2.00">
-                                +2.00
-                            </option>
-                            <option value="+2.25">
-                                +2.25
-                            </option>
-                            <option value="+2.50">
-                                +2.50
-                            </option>
-                            <option value="+2.75">
-                                +2.75
-                            </option>
-                            <option value="+3.00">
-                                +3.00
-                            </option>
-                            <option value="+3.25">
-                                +3.25
-                            </option>
-                            <option value="+3.50">
-                                +3.50
-                            </option>
-                            <option value="+3.75">
-                                +3.75
-                            </option>
-                            <option value="+4.00">
-                                +4.00
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+                                    <button type="button"
+                                        class="btn btn-primary px-4 fw-bold shadow-sm"
+                                        style="border-radius:10px; height:46px; background:#07484A; border-color:#07484A;"
+                                        onclick="submitManualPrescription()">
+                                        Add to Cart & Checkout <i class="bi bi-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
 
-            <!-- Left Eye -->
-            <div class="col-md-6">
-                <div class="eye-card">
-                    <div class="eye-title">
-                        <i class="bi bi-eye-fill"></i>
-                        Left Eye (OS)
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">SPH (Spherical)</label>
-                        <select class="form-select" id="rx_left_sph">
-                                                        <option value="0.00">0.00</option>
-                            <option value="-6.00">
-                                -6.00
-                            </option>
-                            <option value="-5.75">
-                                -5.75
-                            </option>
-                            <option value="-5.50">
-                                -5.50
-                            </option>
-                            <option value="-5.25">
-                                -5.25
-                            </option>
-                            <option value="-5.00">
-                                -5.00
-                            </option>
-                            <option value="-4.75">
-                                -4.75
-                            </option>
-                            <option value="-4.50">
-                                -4.50
-                            </option>
-                            <option value="-4.25">
-                                -4.25
-                            </option>
-                            <option value="-4.00">
-                                -4.00
-                            </option>
-                            <option value="-3.75">
-                                -3.75
-                            </option>
-                            <option value="-3.50">
-                                -3.50
-                            </option>
-                            <option value="-3.25">
-                                -3.25
-                            </option>
-                            <option value="-3.00">
-                                -3.00
-                            </option>
-                            <option value="-2.75">
-                                -2.75
-                            </option>
-                            <option value="-2.50">
-                                -2.50
-                            </option>
-                            <option value="-2.25">
-                                -2.25
-                            </option>
-                            <option value="-2.00">
-                                -2.00
-                            </option>
-                            <option value="-1.75">
-                                -1.75
-                            </option>
-                            <option value="-1.50">
-                                -1.50
-                            </option>
-                            <option value="-1.25">
-                                -1.25
-                            </option>
-                            <option value="-1.00">
-                                -1.00
-                            </option>
-                            <option value="-0.75">
-                                -0.75
-                            </option>
-                            <option value="-0.50">
-                                -0.50
-                            </option>
-                            <option value="-0.25">
-                                -0.25
-                            </option>
-                            <option value="+0.25">
-                                +0.25
-                            </option>
-                            <option value="+0.50">
-                                +0.50
-                            </option>
-                            <option value="+0.75">
-                                +0.75
-                            </option>
-                            <option value="+1.00">
-                                +1.00
-                            </option>
-                            <option value="+1.25">
-                                +1.25
-                            </option>
-                            <option value="+1.50">
-                                +1.50
-                            </option>
-                            <option value="+1.75">
-                                +1.75
-                            </option>
-                            <option value="+2.00">
-                                +2.00
-                            </option>
-                            <option value="+2.25">
-                                +2.25
-                            </option>
-                            <option value="+2.50">
-                                +2.50
-                            </option>
-                            <option value="+2.75">
-                                +2.75
-                            </option>
-                            <option value="+3.00">
-                                +3.00
-                            </option>
-                            <option value="+3.25">
-                                +3.25
-                            </option>
-                            <option value="+3.50">
-                                +3.50
-                            </option>
-                            <option value="+3.75">
-                                +3.75
-                            </option>
-                            <option value="+4.00">
-                                +4.00
-                            </option>
-                            <option value="+4.25">
-                                +4.25
-                            </option>
-                            <option value="+4.50">
-                                +4.50
-                            </option>
-                            <option value="+4.75">
-                                +4.75
-                            </option>
-                            <option value="+5.00">
-                                +5.00
-                            </option>
-                            <option value="+5.25">
-                                +5.25
-                            </option>
-                            <option value="+5.50">
-                                +5.50
-                            </option>
-                            <option value="+5.75">
-                                +5.75
-                            </option>
-                            <option value="+6.00">
-                                +6.00
-                            </option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="form-label">CYL (Cylindrical)</label>
-                        <select class="form-select" id="rx_left_cyl">
-                                                        <option value="0.00">0.00</option>
-                            <option value="-4.00">
-                                -4.00
-                            </option>
-                            <option value="-3.75">
-                                -3.75
-                            </option>
-                            <option value="-3.50">
-                                -3.50
-                            </option>
-                            <option value="-3.25">
-                                -3.25
-                            </option>
-                            <option value="-3.00">
-                                -3.00
-                            </option>
-                            <option value="-2.75">
-                                -2.75
-                            </option>
-                            <option value="-2.50">
-                                -2.50
-                            </option>
-                            <option value="-2.25">
-                                -2.25
-                            </option>
-                            <option value="-2.00">
-                                -2.00
-                            </option>
-                            <option value="-1.75">
-                                -1.75
-                            </option>
-                            <option value="-1.50">
-                                -1.50
-                            </option>
-                            <option value="-1.25">
-                                -1.25
-                            </option>
-                            <option value="-1.00">
-                                -1.00
-                            </option>
-                            <option value="-0.75">
-                                -0.75
-                            </option>
-                            <option value="-0.50">
-                                -0.50
-                            </option>
-                            <option value="-0.25">
-                                -0.25
-                            </option>
-                            <option value="+0.25">
-                                +0.25
-                            </option>
-                            <option value="+0.50">
-                                +0.50
-                            </option>
-                            <option value="+0.75">
-                                +0.75
-                            </option>
-                            <option value="+1.00">
-                                +1.00
-                            </option>
-                            <option value="+1.25">
-                                +1.25
-                            </option>
-                            <option value="+1.50">
-                                +1.50
-                            </option>
-                            <option value="+1.75">
-                                +1.75
-                            </option>
-                            <option value="+2.00">
-                                +2.00
-                            </option>
-                            <option value="+2.25">
-                                +2.25
-                            </option>
-                            <option value="+2.50">
-                                +2.50
-                            </option>
-                            <option value="+2.75">
-                                +2.75
-                            </option>
-                            <option value="+3.00">
-                                +3.00
-                            </option>
-                            <option value="+3.25">
-                                +3.25
-                            </option>
-                            <option value="+3.50">
-                                +3.50
-                            </option>
-                            <option value="+3.75">
-                                +3.75
-                            </option>
-                            <option value="+4.00">
-                                +4.00
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PD -->
-            <div class="col-12">
-                <div class="pd-card">
-                    <label class="form-label fw-semibold">
-                        Pupillary Distance (PD)
-                    </label>
-
-                    <select class="form-select" id="rx_pd">
-                                                <option value="50">
-                            50 mm
-                        </option>
-                        <option value="51">
-                            51 mm
-                        </option>
-                        <option value="52">
-                            52 mm
-                        </option>
-                        <option value="53">
-                            53 mm
-                        </option>
-                        <option value="54">
-                            54 mm
-                        </option>
-                        <option value="55">
-                            55 mm
-                        </option>
-                        <option value="56">
-                            56 mm
-                        </option>
-                        <option value="57">
-                            57 mm
-                        </option>
-                        <option value="58">
-                            58 mm
-                        </option>
-                        <option value="59">
-                            59 mm
-                        </option>
-                        <option value="60">
-                            60 mm
-                        </option>
-                        <option value="61">
-                            61 mm
-                        </option>
-                        <option value="62">
-                            62 mm
-                        </option>
-                        <option value="63" selected>
-                            63 mm
-                        </option>
-                        <option value="64">
-                            64 mm
-                        </option>
-                        <option value="65">
-                            65 mm
-                        </option>
-                        <option value="66">
-                            66 mm
-                        </option>
-                        <option value="67">
-                            67 mm
-                        </option>
-                        <option value="68">
-                            68 mm
-                        </option>
-                        <option value="69">
-                            69 mm
-                        </option>
-                        <option value="70">
-                            70 mm
-                        </option>
-                        <option value="71">
-                            71 mm
-                        </option>
-                        <option value="72">
-                            72 mm
-                        </option>
-                        <option value="73">
-                            73 mm
-                        </option>
-                        <option value="74">
-                            74 mm
-                        </option>
-                        <option value="75">
-                            75 mm
-                        </option>
-                        <option value="76">
-                            76 mm
-                        </option>
-                        <option value="77">
-                            77 mm
-                        </option>
-                        <option value="78">
-                            78 mm
-                        </option>
-                        <option value="79">
-                            79 mm
-                        </option>
-                        <option value="80">
-                            80 mm
-                        </option>
-                    </select>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="d-flex gap-2 justify-content-end mt-4 action-buttons">
-            <button type="button"
-                class="btn btn-outline-secondary px-4"
-                onclick="backToPowerOptions()">
-                Back
-            </button>
-
-            <button type="button"
-                class="btn btn-primary px-4"
-                onclick="submitManualPrescription()">
-                Add to Cart & Checkout
-            </button>
-        </div>
-
-    </div>
-</div>
+                            </div>
+                        </div>
 
                         <!-- Upload form -->
                         <div id="upload-power-form" style="display:none;">
@@ -2793,52 +2620,244 @@
             }
         }
 
+        // ── Contact Lens Power Tabs & Price Logic ──
+        let clPowerType = 'with_power'; // default
+        const clUnitPrice = {{ $calcSellingPrice ?? 0 }};
+        let clSelectedFile = null;
+
+        function updateClPrices() {
+            let totalBoxes = 1;
+            if (clPowerType === 'zero') {
+                totalBoxes = parseInt($('#cl-zero-boxes').val()) || 1;
+            } else {
+                const submissionType = $('input[name="power_submission"]:checked').val() || 'manual';
+
+                if (submissionType === 'manual') {
+                    const isRight = $('#check-right').is(':checked');
+                    const isLeft  = $('#check-left').is(':checked');
+                    const rBoxes  = isRight ? (parseInt($('#cl-right-boxes').val()) || 1) : 0;
+                    const lBoxes  = isLeft  ? (parseInt($('#cl-left-boxes').val())  || 1) : 0;
+                    totalBoxes = rBoxes + lBoxes || 1;
+                } else if (submissionType === 'upload') {
+                    const isRight = $('#check-upload-right').is(':checked');
+                    const isLeft  = $('#check-upload-left').is(':checked');
+                    const rBoxes  = isRight ? (parseInt($('#cl-upload-right-boxes').val()) || 1) : 0;
+                    const lBoxes  = isLeft  ? (parseInt($('#cl-upload-left-boxes').val())  || 1) : 0;
+                    totalBoxes = rBoxes + lBoxes || 1;
+                } else if (submissionType === 'later') {
+                    const isRight = $('#check-later-right').is(':checked');
+                    const isLeft  = $('#check-later-left').is(':checked');
+                    const rBoxes  = isRight ? (parseInt($('#cl-later-right-boxes').val()) || 1) : 0;
+                    const lBoxes  = isLeft  ? (parseInt($('#cl-later-left-boxes').val())  || 1) : 0;
+                    totalBoxes = rBoxes + lBoxes || 1;
+                }
+            }
+
+            const total = totalBoxes * clUnitPrice;
+            $('#cl-total-price').text('Total ₹' + total.toLocaleString());
+            $('#cl-price-breakdown').text(totalBoxes + ' x ₹' + clUnitPrice.toLocaleString() + ' per box');
+        }
+
+        // Contact lens power pill toggle (Zero Power vs With Power)
+        $(document).on('click', '.cl-power-pill', function() {
+            const type = $(this).data('type');
+            clPowerType = type;
+
+            $('.cl-power-pill').removeClass('active');
+            $('.cl-pill-arrow').hide();
+
+            $(this).addClass('active');
+            $('#cl-arrow-' + type).show();
+
+            if (type === 'zero') {
+                $('#cl-zero-power-view').show();
+                $('#cl-with-power-view').hide();
+            } else {
+                $('#cl-zero-power-view').hide();
+                $('#cl-with-power-view').show();
+            }
+            updateClPrices();
+        });
+
+        // Toggle With Power Sub-options (Manual vs Upload vs Later)
+        $(document).on('change', 'input[name="power_submission"]', function() {
+            const val = $(this).val();
+            $('.cl-sub-option-box').removeClass('active');
+
+            if (val === 'manual') {
+                $('#cl-box-manual').addClass('active');
+            } else if (val === 'upload') {
+                $('#cl-box-upload').addClass('active');
+            } else if (val === 'later') {
+                $('#cl-box-later').addClass('active');
+            }
+            updateClPrices();
+        });
+
+        // Contact lens box quantity & eye check changes
+        $(document).on('change', '#cl-zero-boxes, #cl-right-boxes, #cl-left-boxes, #check-right, #check-left, #check-upload-right, #check-upload-left, #cl-upload-right-boxes, #cl-upload-left-boxes, #check-later-right, #check-later-left, #cl-later-right-boxes, #cl-later-left-boxes', function() {
+            // Manual eye inputs
+            const isRight = $('#check-right').is(':checked');
+            const isLeft  = $('#check-left').is(':checked');
+            $('#cl-right-sph, #cl-right-boxes').prop('disabled', !isRight);
+            $('#cl-left-sph, #cl-left-boxes').prop('disabled', !isLeft);
+
+            // Upload eye inputs
+            const isUpRight = $('#check-upload-right').is(':checked');
+            const isUpLeft  = $('#check-upload-left').is(':checked');
+            $('#cl-upload-right-boxes').prop('disabled', !isUpRight);
+            $('#cl-upload-left-boxes').prop('disabled', !isUpLeft);
+
+            // Later eye inputs
+            const isLtRight = $('#check-later-right').is(':checked');
+            const isLtLeft  = $('#check-later-left').is(':checked');
+            $('#cl-later-right-boxes').prop('disabled', !isLtRight);
+            $('#cl-later-left-boxes').prop('disabled', !isLtLeft);
+
+            updateClPrices();
+        });
+
+        // Contact Lens Prescription File Upload Handlers
+        $(document).on('change', '#cl_rx_file', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                clSelectedFile = file;
+                $('#cl-file-name').text(file.name);
+                $('#cl-upload-dropzone').hide();
+                $('#cl-upload-preview').css('display', 'flex');
+            }
+        });
+
+        $(document).on('click', '#cl-btn-delete-file', function(e) {
+            e.stopPropagation();
+            $('#cl_rx_file').val('');
+            clSelectedFile = null;
+            $('#cl-upload-preview').hide();
+            $('#cl-upload-dropzone').show();
+        });
+
+        $(document).on('click', '#cl-btn-view-file', function(e) {
+            e.stopPropagation();
+            if (clSelectedFile) {
+                const fileUrl = URL.createObjectURL(clSelectedFile);
+                window.open(fileUrl, '_blank');
+            }
+        });
+
         // Helper for Contact Lens Direct Buy with Power Submission
         function submitContactLensCart() {
-            const isManual = $('input[name="power_submission"]:checked').val() === 'manual';
             let rxData     = null;
-            let totalBoxes = 1; // default
+            let totalBoxes = 1;
+            let fileToSend = null;
 
-            if (isManual) {
-                const isRight = $('#check-right').is(':checked');
-                const isLeft  = $('#check-left').is(':checked');
-
-                // Validation: at least one eye must be selected
-                if (!isRight && !isLeft) {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.warning('Please select at least one eye (Right or Left) before adding to cart.');
-                    } else {
-                        alert('Please select at least one eye (Right or Left).');
-                    }
-                    return;
-                }
-
-                const rightSph   = isRight ? ($('#cl-right-sph').val()   || '0.00') : null;
-                const leftSph    = isLeft  ? ($('#cl-left-sph').val()    || '0.00') : null;
-                const rightBoxes = isRight ? (parseInt($('#cl-right-boxes').val()) || 1) : 0;
-                const leftBoxes  = isLeft  ? (parseInt($('#cl-left-boxes').val())  || 1) : 0;
-
-                // FIX: Sum right + left boxes as total quantity so pricing is correct
-                totalBoxes = rightBoxes + leftBoxes;
-                if (totalBoxes < 1) totalBoxes = 1;
-
+            if (clPowerType === 'zero') {
+                totalBoxes = parseInt($('#cl-zero-boxes').val()) || 1;
                 rxData = JSON.stringify({
-                    type        : 'contact_lens_manual',
-                    right       : { sph: rightSph,  boxes: isRight ? rightBoxes : 0 },
-                    left        : { sph: leftSph,   boxes: isLeft  ? leftBoxes  : 0 },
+                    type        : 'contact_lens_zero',
                     total_boxes : totalBoxes
                 });
             } else {
-                // "I will submit power later" — still add 1 unit
-                rxData = JSON.stringify({
-                    type  : 'contact_lens_later',
-                    later : true
-                });
-                totalBoxes = 1;
+                const submissionType = $('input[name="power_submission"]:checked').val() || 'manual';
+
+                if (submissionType === 'manual') {
+                    const isRight = $('#check-right').is(':checked');
+                    const isLeft  = $('#check-left').is(':checked');
+
+                    if (!isRight && !isLeft) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select at least one eye (Right or Left) before adding to cart.',
+                            confirmButtonColor: '#00a297'
+                        });
+                        return;
+                    }
+
+                    const rightSph   = isRight ? ($('#cl-right-sph').val()   || '0.00') : null;
+                    const leftSph    = isLeft  ? ($('#cl-left-sph').val()    || '0.00') : null;
+                    const rightBoxes = isRight ? (parseInt($('#cl-right-boxes').val()) || 1) : 0;
+                    const leftBoxes  = isLeft  ? (parseInt($('#cl-left-boxes').val())  || 1) : 0;
+
+                    totalBoxes = rightBoxes + leftBoxes;
+                    if (totalBoxes < 1) totalBoxes = 1;
+
+                    rxData = JSON.stringify({
+                        type        : 'contact_lens_manual',
+                        right       : { sph: rightSph,  boxes: isRight ? rightBoxes : 0 },
+                        left        : { sph: leftSph,   boxes: isLeft  ? leftBoxes  : 0 },
+                        total_boxes : totalBoxes
+                    });
+                } else if (submissionType === 'upload') {
+                    const isRight = $('#check-upload-right').is(':checked');
+                    const isLeft  = $('#check-upload-left').is(':checked');
+
+                    if (!isRight && !isLeft) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select at least one eye (Right or Left).',
+                            confirmButtonColor: '#00a297'
+                        });
+                        return;
+                    }
+
+                    const fileInput = document.getElementById('cl_rx_file');
+                    if (!fileInput || fileInput.files.length === 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'File Required',
+                            text: 'Please select a prescription file to upload.',
+                            confirmButtonColor: '#00a297'
+                        });
+                        return;
+                    }
+
+                    fileToSend = fileInput.files[0];
+                    const rightBoxes = isRight ? (parseInt($('#cl-upload-right-boxes').val()) || 1) : 0;
+                    const leftBoxes  = isLeft  ? (parseInt($('#cl-upload-left-boxes').val())  || 1) : 0;
+
+                    totalBoxes = rightBoxes + leftBoxes;
+                    if (totalBoxes < 1) totalBoxes = 1;
+
+                    rxData = JSON.stringify({
+                        type        : 'contact_lens_upload',
+                        right_boxes : isRight ? rightBoxes : 0,
+                        left_boxes  : isLeft  ? leftBoxes  : 0,
+                        total_boxes : totalBoxes
+                    });
+                } else {
+                    // "I will submit power later"
+                    const isRight = $('#check-later-right').is(':checked');
+                    const isLeft  = $('#check-later-left').is(':checked');
+
+                    if (!isRight && !isLeft) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select at least one eye (Right or Left).',
+                            confirmButtonColor: '#00a297'
+                        });
+                        return;
+                    }
+
+                    const rightBoxes = isRight ? (parseInt($('#cl-later-right-boxes').val()) || 1) : 0;
+                    const leftBoxes  = isLeft  ? (parseInt($('#cl-later-left-boxes').val())  || 1) : 0;
+
+                    totalBoxes = rightBoxes + leftBoxes;
+                    if (totalBoxes < 1) totalBoxes = 1;
+
+                    rxData = JSON.stringify({
+                        type        : 'contact_lens_later',
+                        later       : true,
+                        right_boxes : isRight ? rightBoxes : 0,
+                        left_boxes  : isLeft  ? leftBoxes  : 0,
+                        total_boxes : totalBoxes
+                    });
+                }
             }
 
             // Pass totalBoxes as quantity to addToCartAjax
-            addToCartAjax('Contact Lens', null, rxData, null, totalBoxes);
+            addToCartAjax('Contact Lens', null, rxData, fileToSend, totalBoxes);
         }
 
         // Cart Submission helper via AJAX
@@ -2872,9 +2891,9 @@
             }
 
             // Disable checkout buttons to prevent double click
-            const activeBtn = $('#main-action-btn');
-            const originalText = activeBtn.text();
-            activeBtn.prop('disabled', true).text('Adding...');
+            const activeBtn = $('#main-action-btn, #contact-lens-buy-btn, #direct-buy-btn, #sunglass-buy-btn');
+            const originalHtml = activeBtn.html();
+            activeBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Adding...');
 
             $.ajax({
                 url: "{{ route('cart.add') }}",
@@ -2895,12 +2914,13 @@
                             window.location.href = "{{ route('cart') }}";
                         }, 500);
                     } else {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.error(response.message || 'Failed to add item to cart.');
-                        } else {
-                            alert(response.message || 'Failed to add item to cart.');
-                        }
-                        activeBtn.prop('disabled', false).text(originalText);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Cart Error',
+                            text: response.message || 'Failed to add item to cart.',
+                            confirmButtonColor: '#00a297'
+                        });
+                        activeBtn.prop('disabled', false).html(originalHtml);
                     }
                 },
                 error: function(xhr) {
@@ -2908,12 +2928,13 @@
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errMsg = xhr.responseJSON.message;
                     }
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error(errMsg);
-                    } else {
-                        alert(errMsg);
-                    }
-                    activeBtn.prop('disabled', false).text(originalText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: errMsg,
+                        confirmButtonColor: '#00a297'
+                    });
+                    activeBtn.prop('disabled', false).html(originalHtml);
                 }
             });
         }
@@ -2944,19 +2965,110 @@
         }
 
         function submitManualPrescription() {
+            const hasCyl = $('#rx_has_cyl').is(':checked');
+            const isSame = $('#rx_same_power').is(':checked');
+
+            let rightSph = $('#rx_right_sph').val() || '0.00';
+            let leftSph  = isSame ? rightSph : ($('#rx_left_sph').val() || '0.00');
+
+            let rightCyl = hasCyl ? ($('#rx_right_cyl').val() || '0.00') : '0.00';
+            let leftCyl  = hasCyl ? (isSame ? rightCyl : ($('#rx_left_cyl').val() || '0.00')) : '0.00';
+
+            let rightAxis = hasCyl ? ($('#rx_right_axis').val() || '').trim() : '';
+            let leftAxis  = hasCyl ? (isSame ? rightAxis : ($('#rx_left_axis').val() || '').trim()) : '';
+
+            // Axis Validation: If CYL is selected (> 0.00 or < 0.00), Axis is mandatory (1 - 180)
+            if (hasCyl) {
+                if (rightCyl !== '0.00' && rightCyl !== '') {
+                    let rAxisNum = parseInt(rightAxis, 10);
+                    if (isNaN(rAxisNum) || rAxisNum < 1 || rAxisNum > 180) {
+                        toastr.warning('Please enter a valid Axis (1 to 180) for the Right Eye.');
+                        $('#rx_right_axis').focus();
+                        return;
+                    }
+                }
+                if (leftCyl !== '0.00' && leftCyl !== '') {
+                    let lAxisNum = parseInt(leftAxis, 10);
+                    if (isNaN(lAxisNum) || lAxisNum < 1 || lAxisNum > 180) {
+                        toastr.warning('Please enter a valid Axis (1 to 180) for the Left Eye.');
+                        $('#rx_left_axis').focus();
+                        return;
+                    }
+                }
+            }
+
             const rxData = {
-                right_eye_sph: $('#rx_right_sph').val(),
-                right_eye_cyl: $('#rx_right_cyl').val(),
-                right_eye_axis: 0,
+                right_eye_sph: rightSph,
+                right_eye_cyl: rightCyl,
+                right_eye_axis: rightAxis ? parseInt(rightAxis, 10) : 0,
                 right_eye_ap: '',
-                left_eye_sph: $('#rx_left_sph').val(),
-                left_eye_cyl: $('#rx_left_cyl').val(),
-                left_eye_axis: 0,
+                left_eye_sph: leftSph,
+                left_eye_cyl: leftCyl,
+                left_eye_axis: leftAxis ? parseInt(leftAxis, 10) : 0,
                 left_eye_ap: '',
-                pd: $('#rx_pd').val()
+                pd: $('#rx_pd').val() || '63'
             };
+
             addToCartAjax(selectedLensType, selectedLensPackageId, JSON.stringify(rxData), null);
         }
+
+        // ── Lenskart Prescription Interactive Handlers ──
+        $(document).ready(function() {
+            // Axis field: numbers only & max 180 validation
+            $(document).on('input', '.rx-axis-field', function() {
+                let val = $(this).val().replace(/\D/g, ''); // numbers only
+                if (val !== '') {
+                    let num = parseInt(val, 10);
+                    if (num > 180) {
+                        val = '180';
+                    }
+                }
+                $(this).val(val);
+
+                // If same power is active, sync right to left
+                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_axis') {
+                    $('#rx_left_axis').val(val);
+                }
+            });
+
+            // Same power checkbox toggle
+            $(document).on('change', '#rx_same_power', function() {
+                const isSame = $(this).is(':checked');
+                if (isSame) {
+                    $('#rx_left_sph').val($('#rx_right_sph').val());
+                    $('#rx_left_cyl').val($('#rx_right_cyl').val());
+                    $('#rx_left_axis').val($('#rx_right_axis').val());
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis').prop('disabled', true).addClass('bg-light');
+                } else {
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis').prop('disabled', false).removeClass('bg-light');
+                }
+            });
+
+            // Sync right eye changes to left eye when same power is checked
+            $(document).on('change', '#rx_right_sph', function() {
+                if ($('#rx_same_power').is(':checked')) {
+                    $('#rx_left_sph').val($(this).val());
+                }
+            });
+
+            $(document).on('change', '#rx_right_cyl', function() {
+                if ($('#rx_same_power').is(':checked')) {
+                    $('#rx_left_cyl').val($(this).val());
+                }
+            });
+
+            // Has Cylindrical power checkbox toggle
+            $(document).on('change', '#rx_has_cyl', function() {
+                const hasCyl = $(this).is(':checked');
+                if (hasCyl) {
+                    $('.rx-cyl-row, .rx-axis-row').show();
+                } else {
+                    $('.rx-cyl-row, .rx-axis-row').hide();
+                    $('#rx_right_cyl, #rx_left_cyl').val('0.00');
+                    $('#rx_right_axis, #rx_left_axis').val('');
+                }
+            });
+        });
 
         function submitUploadedPrescription() {
             const fileInput = document.getElementById('rx_file');
@@ -3141,41 +3253,123 @@
     </script>
 
 
-    <!-- testimonial end -->
-    <!-- heart and share button start -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".share").forEach((shareDiv) => {
-                const shareIcon = shareDiv.querySelector("i.bi-share");
-                const shareOptions = shareDiv.querySelector(".share-options");
 
-                shareIcon.addEventListener("click", (e) => {
-                    e.stopPropagation();
-
-                    // Hide all other share menus first
-                    document.querySelectorAll(".share-options").forEach((opt) => {
-                        if (opt !== shareOptions) opt.style.display = "none";
-                    });
-
-                    // Toggle current one
-                    shareOptions.style.display =
-                        shareOptions.style.display === "flex" ? "none" : "flex";
-                });
-            });
-
-            document.addEventListener("click", (e) => {
-                if (!e.target.closest(".share")) {
-                    document.querySelectorAll(".share-options").forEach((opt) => {
-                        opt.style.display = "none";
-                    });
-                }
-            });
-        });
-    </script>
-
-    <!-- popup ens -->
     <!-- ── Product Type + Lens Modal Styles & Logic ── -->
     <style>
+        /* ── Lenskart Style Prescription Grid ── */
+        .custom-lenskart-check .form-check-input {
+            width: 19px;
+            height: 19px;
+            border-radius: 5px;
+            border: 2px solid #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-lenskart-check .form-check-input:checked {
+            background-color: #07484A;
+            border-color: #07484A;
+        }
+        .custom-lenskart-select, .custom-lenskart-input {
+            height: 48px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #0f172a;
+            font-weight: 600;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .custom-lenskart-select:focus, .custom-lenskart-input:focus {
+            border-color: #00B9B9;
+            box-shadow: 0 0 0 3px rgba(0, 185, 185, 0.15);
+            background-color: #ffffff;
+        }
+        .custom-lenskart-select:disabled, .custom-lenskart-input:disabled {
+            background-color: #f1f5f9 !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+        }
+
+        /* ── Contact Lens Power Tabs ── */
+        .cl-power-pill {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            padding: 6px 18px !important;
+            border-radius: 50rem !important;
+            border: 1.5px solid #cbd5e1 !important;
+            background-color: #ffffff !important;
+            color: #475569 !important;
+            transition: all 0.2s ease !important;
+        }
+        .cl-power-pill:hover {
+            color: #0f172a !important;
+            border-color: #94a3b8 !important;
+        }
+        .cl-power-pill.active {
+            background-color: #00a297 !important;
+            border-color: #00a297 !important;
+            color: #ffffff !important;
+        }
+        .cl-pill-arrow {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #00a297;
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* ── Contact Lens Options Box & Toggle ── */
+        .cl-outer-container {
+            background-color: #eceff6;
+            padding: 14px;
+            border-radius: 16px;
+            margin-top: 10px;
+        }
+        .cl-card-inner {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .cl-sub-option-box {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            padding: 11px 14px;
+            background: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .cl-sub-option-box:last-child {
+            margin-bottom: 0;
+        }
+        .cl-sub-option-box.active {
+            border-color: #00a297 !important;
+            box-shadow: 0 0 0 1px rgba(0, 162, 151, 0.15);
+        }
+        .cl-eye-checks {
+            display: none !important;
+            align-items: center;
+            gap: 12px;
+        }
+        .cl-sub-option-box.active .cl-eye-checks {
+            display: flex !important;
+        }
+        .cl-sub-details {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .cl-sub-option-box.active .cl-sub-details {
+            display: block;
+        }
+
         /* ── Option label ── */
         .option-label {
             font-size: 13px;
@@ -3670,7 +3864,7 @@
             }
         });
 
-        // ── main-action-btn click: route to correct flow based on data-flow-mode ──
+        @if(!$isContactLens && !$isSolution && !$isAccessory && !$isSunglass)
         $('#main-action-btn').on('click', function() {
             const flowMode     = this.dataset.flowMode || 'modal';
             const zeroPackId   = this.dataset.zeroPackageId || '';
@@ -3683,11 +3877,12 @@
             } else if (flowMode === 'reading') {
                 // Reading Glasses → direct cart add with selected power chip
                 if (!window.selectedReadingPower) {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.warning('Please select a lens power before continuing.');
-                    } else {
-                        alert('Please select a lens power before continuing.');
-                    }
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select Power',
+                        text: 'Please select a lens power before continuing.',
+                        confirmButtonColor: '#00a297'
+                    });
                     return;
                 }
                 addToCartAjax('Reading Glasses', null, JSON.stringify({ reading_power: window.selectedReadingPower }), null);
@@ -3697,10 +3892,11 @@
                 addToCartAjax('Zero Power', zeroPackId || null, null, null);
 
             } else {
-                // Generic BUY NOW (Frame Only, Sunglass, etc.)
+                // Generic BUY NOW (Frame Only, etc.)
                 addToCartAjax('Frame Only', null, null, null);
             }
         });
+        @endif
 
         // Sunglass: "BUY WITH POWER" button opens the standard lens modal starting at Step 2 (Power Type)
         function openLensModal() {
