@@ -399,9 +399,9 @@
 .gender-pill:hover { border-color: var(--cat-primary); color: var(--cat-primary); background: var(--cat-primary-soft); }
 .gender-pill.active-filter { border-color: var(--cat-primary); background: var(--cat-primary-soft); color: var(--cat-primary-dark); font-weight: 700; }
 
-/* Offcanvas Backdrop & Layering Fix (Stops header from rendering over drawer) */
+/* Offcanvas Backdrop & Layering (Correctly below drawers and above header) */
 .offcanvas-backdrop.show {
-    z-index: 1090 !important;
+    z-index: 1040 !important;
     opacity: 0.5 !important;
 }
 
@@ -453,7 +453,7 @@
     width: 85% !important;
     max-width: 360px !important;
     border-radius: 0 16px 16px 0 !important;
-    z-index: 1100 !important;
+    z-index: 1045 !important;
     overflow-x: hidden !important;
     border: none !important;
 }

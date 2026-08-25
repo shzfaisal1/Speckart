@@ -1490,20 +1490,24 @@
                                                         @if($rxType === 'contact_lens_manual' && isset($rx['right'], $rx['left']))
                                                             {{-- Contact Lens: show eye-by-eye SPH & box breakdown --}}
                                                             <span class="d-inline-flex flex-wrap gap-1" style="white-space:normal;">
-                                                                @if(!empty($rx['right']['sph']) && $rx['right']['boxes'] > 0)
+                                                                @if(!empty($rx['right']['sph']) && ($rx['right']['boxes'] ?? 0) > 0)
                                                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;">
                                                                         R: {{ $rx['right']['sph'] }} ({{ $rx['right']['boxes'] }} Box)
                                                                     </span>
                                                                 @endif
-                                                                @if(!empty($rx['left']['sph']) && $rx['left']['boxes'] > 0)
+                                                                @if(!empty($rx['left']['sph']) && ($rx['left']['boxes'] ?? 0) > 0)
                                                                     <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:10px;">
                                                                         L: {{ $rx['left']['sph'] }} ({{ $rx['left']['boxes'] }} Box)
                                                                     </span>
                                                                 @endif
                                                             </span>
+                                                        @elseif($rxType === 'contact_lens_zero')
+                                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size:10px;">
+                                                                Zero Power ({{ $rx['total_boxes'] ?? $item['quantity'] }} Box)
+                                                            </span>
                                                         @elseif($rxType === 'contact_lens_later')
-                                                            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;color:#999;">
-                                                                Power to be submitted later
+                                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:10px;">
+                                                                Power Later ({{ $rx['total_boxes'] ?? $item['quantity'] }} Box)
                                                             </span>
                                                         @elseif(!empty($rx['reading_power']))
                                                             {{-- Reading Glasses: show selected power chip --}}
@@ -1566,47 +1570,111 @@
                                                         <span class="sc-rx-toggle">View <i class="bi bi-chevron-down"></i></span>
                                                     </div>
                                                     <div class="collapse show" id="sc-rx-{{ $loop->index }}">
-                                                        @if(isset($rx['type']) && $rx['type'] === 'upload')
-                                                            <div class="sc-rx-upload">
-                                                                <i class="bi bi-file-earmark-medical-fill"></i>
-                                                                <div>
-                                                                    <div class="fw-semibold" style="font-size:12px; color:var(--sc-text);">Uploaded Prescription</div>
-                                                                    @if(!empty($rx['file']))
-                                                                        <a href="{{ asset($rx['file']) }}" target="_blank" style="font-size:11px; color:var(--sc-blue);">
-                                                                            <i class="bi bi-box-arrow-up-right"></i> View File
-                                                                        </a>
-                                                                    @endif
+                                                        @if(isset($rx['type']) && ($rx['type'] === 'upload' || $rx['type'] === 'contact_lens_upload'))
+                                                            @php
+                                                                $filePath = $rx['file'] ?? ($item['prescription_file'] ?? null);
+                                                                $fileName = !empty($filePath) ? basename($filePath) : 'Prescription Document';
+                                                                $fileExt  = !empty($filePath) ? strtoupper(pathinfo($filePath, PATHINFO_EXTENSION)) : 'FILE';
+                                                                $isClUpload = $rx['type'] === 'contact_lens_upload';
+                                                            @endphp
+                                                            <div class="p-2.5 m-2 rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #ffffff; border-color: #e2e8f0 !important;">
+                                                                <div class="d-flex align-items-center gap-2.5">
+                                                                    <div style="width: 36px; height: 36px; border-radius: 8px; background: #e6f9f4; color: #00a297; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                                                                        <i class="bi bi-file-earmark-medical-fill"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                                                            <span class="fw-bold" style="font-size: 12.5px; color: #0d1430;">Prescription Attached</span>
+                                                                            @if(!empty($fileExt) && $fileExt !== 'FILE')
+                                                                                <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 9.5px; font-weight: 600; padding: 2px 6px;">{{ $fileExt }}</span>
+                                                                            @endif
+                                                                        </div>
+                                                                        <div class="text-muted text-truncate" style="font-size: 11px; max-width: 220px;" title="{{ $fileName }}">
+                                                                            {{ $fileName }}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
+                                                                @if(!empty($filePath))
+                                                                    <a href="{{ asset($filePath) }}" target="_blank" class="btn btn-sm d-inline-flex align-items-center gap-1.5 px-3 py-1 rounded-2 shadow-none" style="background: #00a297; color: #ffffff; font-size: 11.5px; font-weight: 600; text-decoration: none; border: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                                                        <i class="bi bi-eye-fill"></i> View Prescription
+                                                                    </a>
+                                                                @else
+                                                                    <span class="badge bg-light text-muted" style="font-size: 10.5px;">File uploaded</span>
+                                                                @endif
                                                             </div>
+
+                                                            @if($isClUpload && (!empty($rx['right']['boxes']) || !empty($rx['left']['boxes'])))
+                                                                <div class="px-3 pb-2.5">
+                                                                    <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 11.5px;">
+                                                                        @if(!empty($rx['right']['boxes']))
+                                                                            <span><strong style="color: #0d1430;">Right Eye:</strong> {{ $rx['right']['boxes'] }} Box(es)</span>
+                                                                        @endif
+                                                                        @if(!empty($rx['left']['boxes']))
+                                                                            <span><strong style="color: #0d1430;">Left Eye:</strong> {{ $rx['left']['boxes'] }} Box(es)</span>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            @endif
                                                         @else
                                                             <div style="padding: 4px;">
-                                                                <table class="sc-rx-table">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>EYE</th>
-                                                                            <th>SPH</th>
-                                                                            <th>CYL</th>
-                                                                            <th>AXIS</th>
-                                                                            <th>ADD</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <tr>
-                                                                            <td>R</td>
-                                                                            <td>{{ !empty($rx['right_eye_sph']) ? $rx['right_eye_sph'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['right_eye_cyl']) ? $rx['right_eye_cyl'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['right_eye_axis']) && $rx['right_eye_axis'] != '0' ? $rx['right_eye_axis'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['right_eye_ap']) ? $rx['right_eye_ap'] : '-' }}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>L</td>
-                                                                            <td>{{ !empty($rx['left_eye_sph']) ? $rx['left_eye_sph'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['left_eye_cyl']) ? $rx['left_eye_cyl'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['left_eye_axis']) && $rx['left_eye_axis'] != '0' ? $rx['left_eye_axis'] : '-' }}</td>
-                                                                            <td>{{ !empty($rx['left_eye_ap']) ? $rx['left_eye_ap'] : '-' }}</td>
-                                                                        </tr>
-                                                                    </tbody>
-                                                                </table>
+                                                                @php
+                                                                    $isClManual = isset($rx['type']) && $rx['type'] === 'contact_lens_manual';
+                                                                    $isClZero   = isset($rx['type']) && $rx['type'] === 'contact_lens_zero';
+                                                                    $isClLater  = isset($rx['type']) && $rx['type'] === 'contact_lens_later';
+
+                                                                    $rSph = $isClManual ? ($rx['right']['sph'] ?? '-') : ($isClZero ? '0.00' : ($rx['right_eye_sph'] ?? '-'));
+                                                                    $lSph = $isClManual ? ($rx['left']['sph'] ?? '-') : ($isClZero ? '0.00' : ($rx['left_eye_sph'] ?? '-'));
+
+                                                                    $rBoxes = $isClManual ? ($rx['right']['boxes'] ?? 0) : ($isClZero ? ($rx['total_boxes'] ?? $item['quantity']) : '-');
+                                                                    $lBoxes = $isClManual ? ($rx['left']['boxes'] ?? 0) : ($isClZero ? '-' : '-');
+
+                                                                    $hasCylPower = (!$isClManual && !$isClZero) && (
+                                                                        (!empty($rx['right_eye_cyl']) && $rx['right_eye_cyl'] !== '0.00' && $rx['right_eye_cyl'] !== '0') ||
+                                                                        (!empty($rx['left_eye_cyl']) && $rx['left_eye_cyl'] !== '0.00' && $rx['left_eye_cyl'] !== '0') ||
+                                                                        (!empty($rx['right_eye_axis']) && $rx['right_eye_axis'] != '0') ||
+                                                                        (!empty($rx['left_eye_axis']) && $rx['left_eye_axis'] != '0')
+                                                                    );
+                                                                @endphp
+
+                                                                @if($isClLater)
+                                                                    <div class="text-muted p-2" style="font-size:12px; font-style:italic;">
+                                                                        <i class="bi bi-clock-history me-1"></i> Power will be submitted later
+                                                                    </div>
+                                                                @else
+                                                                    <table class="sc-rx-table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>EYE</th>
+                                                                                <th>SPH</th>
+                                                                                @if($hasCylPower)
+                                                                                    <th>CYL</th>
+                                                                                    <th>AXIS</th>
+                                                                                @endif
+                                                                                <th>Boxes</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td>R</td>
+                                                                                <td>{{ $rSph ?: '-' }}</td>
+                                                                                @if($hasCylPower)
+                                                                                    <td>{{ !empty($rx['right_eye_cyl']) ? $rx['right_eye_cyl'] : '-' }}</td>
+                                                                                    <td>{{ !empty($rx['right_eye_axis']) && $rx['right_eye_axis'] != '0' ? $rx['right_eye_axis'] : '-' }}</td>
+                                                                                @endif
+                                                                                <td>{{ $rBoxes !== null && $rBoxes !== '' ? $rBoxes : '-' }}</td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>L</td>
+                                                                                <td>{{ $lSph ?: '-' }}</td>
+                                                                                @if($hasCylPower)
+                                                                                    <td>{{ !empty($rx['left_eye_cyl']) ? $rx['left_eye_cyl'] : '-' }}</td>
+                                                                                    <td>{{ !empty($rx['left_eye_axis']) && $rx['left_eye_axis'] != '0' ? $rx['left_eye_axis'] : '-' }}</td>
+                                                                                @endif
+                                                                                <td>{{ $lBoxes !== null && $lBoxes !== '' ? $lBoxes : '-' }}</td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                @endif
                                                             </div>
                                                         @endif
                                                     </div>
@@ -1979,18 +2047,30 @@
         });
 
         // Remove Item
+        // Remove Cart Item
         $(document).on('click', '.remove-cart-item', function() {
             const key = $(this).data('key');
-            if (confirm('Are you sure you want to remove this item from your cart?')) {
-                $.ajax({
-                    url: "{{ route('cart.remove') }}",
-                    type: "POST",
-                    data: { _token: csrfToken, cart_key: key },
-                    success: function(res) {
-                        window.location.reload();
-                    }
-                });
-            }
+            Swal.fire({
+                title: 'Remove item?',
+                text: 'Are you sure you want to remove this item from your cart?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, remove it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('cart.remove') }}",
+                        type: "POST",
+                        data: { _token: csrfToken, cart_key: key },
+                        success: function(res) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            });
         });
 
         // Quick Apply Available Coupon Chip Click
@@ -2004,7 +2084,12 @@
         $('#apply-coupon-btn').click(function() {
             const code = $('#coupon-code-input').val().trim();
             if (!code) {
-                alert('Please enter a coupon code.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Coupon Required',
+                    text: 'Please enter a coupon code.',
+                    confirmButtonColor: '#00a297'
+                });
                 return;
             }
 
@@ -2013,11 +2098,22 @@
                 type: "POST",
                 data: { _token: csrfToken, coupon_code: code },
                 success: function(res) {
-                    alert(res.message);
-                    window.location.reload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: res.message || 'Coupon applied successfully.',
+                        confirmButtonColor: '#00a297'
+                    }).then(() => {
+                        window.location.reload();
+                    });
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'Invalid coupon code.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Coupon',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Invalid coupon code.',
+                        confirmButtonColor: '#00a297'
+                    });
                 }
             });
         });
@@ -2045,7 +2141,12 @@
         $('#apply-voucher-btn').click(function() {
             const code = $('#voucher-code-input').val().trim();
             if (!code) {
-                alert('Please enter a voucher code.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Voucher Required',
+                    text: 'Please enter a voucher code.',
+                    confirmButtonColor: '#00a297'
+                });
                 return;
             }
             const $btn = $(this);
@@ -2059,7 +2160,12 @@
                     window.location.reload();
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'Invalid or expired voucher code.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Voucher',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Invalid or expired voucher code.',
+                        confirmButtonColor: '#00a297'
+                    });
                     $btn.text('APPLY').prop('disabled', false);
                 }
             });
@@ -2104,7 +2210,12 @@
                     window.location.reload();
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON ? xhr.responseJSON.message : 'Could not add membership. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Membership Error',
+                        text: xhr.responseJSON ? xhr.responseJSON.message : 'Could not add membership. Please try again.',
+                        confirmButtonColor: '#00a297'
+                    });
                     $('#btn-add-membership-text').text('Add Gold');
                     $('#btn-add-membership-spinner').addClass('d-none');
                     $('#btn-add-membership, #btn-add-membership-arrow').prop('disabled', false);
@@ -2124,7 +2235,12 @@
                     window.location.reload();
                 },
                 error: function(xhr) {
-                    alert('Failed to update loyalty points. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Loyalty Points Error',
+                        text: 'Failed to update loyalty points. Please try again.',
+                        confirmButtonColor: '#00a297'
+                    });
                 }
             });
         });
