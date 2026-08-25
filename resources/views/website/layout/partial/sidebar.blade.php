@@ -1616,18 +1616,18 @@
         html,
         body {
             max-width: 100%;
-            overflow-x: hidden;
+            overflow-x: clip;
         }
 
         .site-header-sticky {
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-            width: 100%;
-            max-width: 100%;
-            background: #07484a;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            overflow: visible;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1020 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            background: #07484a !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+            overflow: visible !important;
         }
 
         .site-header-sticky .header {
