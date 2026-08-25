@@ -11,9 +11,17 @@
                             <h3 class="mb-1">Shipping Charges Master</h3>
                             <p class="text-muted small mb-0">Manage delivery charges, COD availability, and serviceable pincodes.</p>
                         </div>
-                        <a href="javascript:void(0)" class="btn btn-primary" data-toggle="modal" data-target="#shippingModal" onclick="openModal('add')">
-                            <i class="fa fa-plus me-1"></i> Add Shipping Charge
-                        </a>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a href="{{ route('admin.shipping-charges.sample-excel') }}" class="btn btn-outline-secondary" title="Download Sample Excel File">
+                                <i class="fa fa-download me-1"></i> Sample Template
+                            </a>
+                            <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#importShippingModal">
+                                <i class="fa fa-file-excel me-1"></i> Import Excel
+                            </button>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#shippingModal" onclick="openModal('add')">
+                                <i class="fa fa-plus me-1"></i> Add Shipping Charge
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -70,6 +78,69 @@
         </div>
     </div>
 </section>
+
+{{-- ══════════════════════════════════════════════
+     IMPORT EXCEL MODAL
+════════════════════════════════════════════════ --}}
+<div class="modal fade" data-backdrop="static" id="importShippingModal" tabindex="-1" role="dialog" aria-labelledby="importShippingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 460px;">
+        <div class="modal-content border-0 shadow-sm">
+
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold mb-0" id="importShippingModalLabel">
+                    <i class="fa fa-file-excel text-success me-2"></i> Import Shipping Charges
+                </h5>
+                <button type="button" class="close btn-close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <form id="importShippingForm" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-4">
+                    {{-- Error alert --}}
+                    <div class="alert alert-danger d-none py-2 px-3 small" id="import-error-alert"></div>
+
+                    {{-- Sample template note --}}
+                    <div class="alert alert-info py-2 px-3 small d-flex justify-content-between align-items-center mb-3">
+                        <span><i class="fa fa-info-circle me-1"></i> Need sample format?</span>
+                        <a href="{{ route('admin.shipping-charges.sample-excel') }}" class="fw-bold text-primary text-decoration-underline">
+                            Download Template
+                        </a>
+                    </div>
+
+                    {{-- File Input --}}
+                    <div class="form-group mb-3">
+                        <label class="form-label fw-medium mb-1" for="import_file">
+                            Select File (.xlsx, .xls, .csv) <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" class="form-control" id="import_file" name="file"
+                               accept=".xlsx,.xls,.csv" required>
+                        <div class="form-text text-muted small mt-1">
+                            Columns: <code>pincode</code>, <code>amount</code>, <code>is_cod_available</code>, <code>status</code>
+                        </div>
+                    </div>
+
+                    {{-- Update Existing Option --}}
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="update_existing" name="update_existing" value="1" checked>
+                        <label class="form-check-label small" for="update_existing">
+                            Update existing pincodes if already present in database
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4" id="btn-import-submit">
+                        <i class="fa fa-upload me-1"></i> Upload & Import
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
 
 {{-- ══════════════════════════════════════════════
      ADD / EDIT MODAL (CLEAN & SIMPLE DESIGN)
@@ -287,6 +358,64 @@ $(document).ready(function () {
                 } else {
                     var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'An error occurred while saving.';
                     $('#modal-error-alert').removeClass('d-none').text(msg);
+                }
+            }
+        });
+    });
+
+    // Import Form Submission (Excel / CSV)
+    $('#importShippingForm').on('submit', function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var submitBtn = $('#btn-import-submit');
+
+        submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i> Importing...');
+        $('#import-error-alert').addClass('d-none').html('');
+
+        $.ajax({
+            url: "{{ route('admin.shipping-charges.import') }}",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                submitBtn.prop('disabled', false).html('<i class="fa fa-upload me-1"></i> Upload & Import');
+                if (res.status === 'success') {
+                    $('#importShippingModal').modal('hide');
+                    $('#importShippingForm')[0].reset();
+
+                    Toast.fire({
+                        icon: 'success',
+                        title: res.message
+                    });
+
+                    table.ajax.reload(null, false);
+                    updateStats(res.stats);
+
+                    if (res.errors && res.errors.length > 0) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Import Completed with Notes',
+                            html: '<div class="text-start small" style="max-height: 200px; overflow-y: auto;">' +
+                                  'Some rows were skipped:<ul class="mb-0 ps-3">' +
+                                  res.errors.map(function(e){ return '<li>' + e + '</li>'; }).join('') +
+                                  '</ul></div>'
+                        });
+                    }
+                }
+            },
+            error: function (xhr) {
+                submitBtn.prop('disabled', false).html('<i class="fa fa-upload me-1"></i> Upload & Import');
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errorHtml = '<ul class="mb-0 ps-3">';
+                    $.each(xhr.responseJSON.errors, function (key, errArr) {
+                        errorHtml += `<li>${errArr[0]}</li>`;
+                    });
+                    errorHtml += '</ul>';
+                    $('#import-error-alert').removeClass('d-none').html(errorHtml);
+                } else {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'An error occurred during import.';
+                    $('#import-error-alert').removeClass('d-none').text(msg);
                 }
             }
         });

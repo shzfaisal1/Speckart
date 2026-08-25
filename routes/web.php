@@ -589,6 +589,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
          Route::get('/',                'index')        ->name('index');
          Route::get('/data',            'data')         ->name('data');
          Route::post('/',               'store')        ->name('store');
+         Route::get('/sample-excel',    'sampleExcel')  ->name('sample-excel');
+         Route::post('/import',         'import')       ->name('import');
          Route::get('/{id}',            'show')         ->name('show');
          Route::post('/{id}',           'update')       ->name('update');
          Route::patch('/{id}/toggle',   'toggleStatus') ->name('toggle');

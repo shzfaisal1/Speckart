@@ -212,6 +212,60 @@ class ShippingChargeController extends Controller
     }
 
     /**
+     * Import shipping charges from Excel or CSV file.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file'            => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
+            'update_existing' => 'nullable|in:0,1',
+        ], [
+            'file.required' => 'Please select an Excel or CSV file to import.',
+            'file.mimes'    => 'The file must be a valid Excel (.xlsx, .xls) or CSV (.csv) file.',
+            'file.max'      => 'The file size cannot exceed 10 MB.',
+        ]);
+
+        $updateExisting = $request->boolean('update_existing');
+        $import = new \App\Imports\ShippingChargesImport($updateExisting);
+
+        try {
+            \Maatwebsite\Excel\Facades\Excel::import($import, $request->file('file'));
+
+            $msg = "Import completed: {$import->importedCount} added, {$import->updatedCount} updated.";
+            if ($import->skippedCount > 0) {
+                $msg .= " ({$import->skippedCount} skipped)";
+            }
+
+            return response()->json([
+                'status'         => 'success',
+                'message'        => $msg,
+                'imported_count' => $import->importedCount,
+                'updated_count'  => $import->updatedCount,
+                'skipped_count'  => $import->skippedCount,
+                'errors'         => $import->errors,
+                'stats'          => $this->getStats()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Shipping charges import failed: ' . $e->getMessage());
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Import failed: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    /**
+     * Download sample Excel template for shipping charges import.
+     */
+    public function sampleExcel()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\ShippingChargesSampleExport,
+            'shipping_charges_sample.xlsx'
+        );
+    }
+
+    /**
      * Get summary counts for stats cards.
      */
     private function getStats()
