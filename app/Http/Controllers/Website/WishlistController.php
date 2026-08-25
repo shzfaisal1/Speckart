@@ -33,30 +33,7 @@ class WishlistController extends Controller
                               ->first();
 
             if ($product) {
-                $typeLower = strtolower($product->product_type ?: 'frame');
-                $imageUrl  = asset($defaultFallback);
-
-                if ($product->main_image) {
-                    if ($product->parent_product_code) {
-                        $path = "uploads/{$typeLower}/product/{$product->parent_product_code}/{$product->main_image}";
-                        if (file_exists(public_path($path))) {
-                            $imageUrl = asset($path);
-                        }
-                    } else {
-                        $pathWithId = "uploads/{$typeLower}/product/{$product->product_id}/{$product->main_image}";
-                        if (file_exists(public_path($pathWithId))) {
-                            $imageUrl = asset($pathWithId);
-                        } else if (file_exists(public_path($product->main_image))) {
-                            $imageUrl = asset($product->main_image);
-                        }
-                    }
-                } else if ($product->product_image) {
-                    if (file_exists(public_path($product->product_image))) {
-                        $imageUrl = asset($product->product_image);
-                    }
-                }
-
-                $product->resolved_image_url  = $imageUrl;
+                $product->resolved_image_url  = getProductImageUrl($product);
                 $product->resolved_name       = $product->product_name ?: ($product->product_code ?: 'Product #' . $product->id);
                 $product->resolved_brand      = $product->Company ?: 'Speckarts';
                 $product->resolved_price      = floatval($product->Retail_Price ?: ($product->discount_price ?: 0));

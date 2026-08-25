@@ -535,7 +535,8 @@
                     <div class="main-img-area position-relative">
                         <a href="{{ $product->image_url }}" class="image-lightbox" id="main-image-link">
                         <img src="{{ $product->image_url }}"
-                            class="main-image" id="main-image" alt="{{ $product->product_name }}">
+                            class="main-image" id="main-image" alt="{{ $product->product_name }}"
+                            onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                          </a>
                         <button class="btn-360">360 VIEW</button>
                     </div>
@@ -546,7 +547,8 @@
                     <div class="thumbs-container">
                         <div class="thumbs d-flex justify-content-center p-1" id="thumb-container">
                             @foreach($galleryImages as $index => $img)
-                            <img src="{{ $img }}" class="thumb {{ $index == 0 ? 'active' : '' }}" alt="">
+                            <img src="{{ $img }}" class="thumb {{ $index == 0 ? 'active' : '' }}" alt=""
+                                onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                             @endforeach
                         </div>
                     </div>

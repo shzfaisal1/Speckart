@@ -1383,7 +1383,7 @@
                                                 <i class="bi bi-award-fill text-warning" style="font-size:28px;"></i>
                                             @endif
                                         @else
-                                            <img src="{{ $item['frame_image'] }}" alt="{{ $item['frame_name'] }}">
+                                            <img src="{{ $item['frame_image'] }}" alt="{{ $item['frame_name'] }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                                         @endif
                                     </div>
 

@@ -213,7 +213,7 @@
                                 <a href="{{ $p->detail_url }}">
                                 <div class="sunglasses-slider-card">
                                     <div class="sunglasses-slider-card-img">
-                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}">
+                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                                     </div>
                                     <h4>{{ $p->product_name }}</h4>
                                     <p>Starting at Rs.{{ number_format($p->Retail_Price, 0) }}</p>
@@ -245,7 +245,7 @@
                                 <a href="{{ $p->detail_url }}">
                                 <div class="sunglasses-slider-card">
                                     <div class="sunglasses-slider-card-img">
-                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}">
+                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                                     </div>
                                     <h4>{{ $p->product_name }}</h4>
                                     <p>Starting at Rs.{{ number_format($p->Retail_Price, 0) }}</p>
@@ -291,7 +291,7 @@
                                 <a href="{{ $p->detail_url }}">
                                 <div class="sunglasses-slider-card">
                                     <div class="sunglasses-slider-card-img">
-                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}">
+                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Eyeglasses7.png') }}';">
                                     </div>
                                     <h4>{{ $p->product_name }}</h4>
                                     <p>Starting at Rs.{{ number_format($p->Retail_Price, 0) }}</p>
@@ -356,7 +356,7 @@
                                 <a href="{{ $p->detail_url }}">
                                 <div class="arrivals-slider-card">
                                     <div class="arrivals-slider-card-img">
-                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}">
+                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                                     </div>
                                     <h4>{{ $p->product_name }}</h4>
                                     <p>Starting at Rs.{{ number_format($p->Retail_Price, 0) }}</p>
@@ -668,7 +668,7 @@
                                 <a href="{{ $p->detail_url }}">
                                 <div class="arrivals-slider-card">
                                     <div class="arrivals-slider-card-img">
-                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}">
+                                        <img src="{{ $p->image_url }}" alt="{{ $p->product_name }}" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
                                     </div>
                                     <h4>{{ $p->product_name }}</h4>
                                     <p>Starting at Rs.{{ number_format($p->Retail_Price, 0) }}</p>
