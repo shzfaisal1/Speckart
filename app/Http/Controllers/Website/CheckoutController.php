@@ -43,6 +43,15 @@ class CheckoutController extends Controller
             return redirect()->route('shipping-details')->with('error', 'Please fill in your shipping address.');
         }
 
+        // Pincode serviceability & COD validation
+        $pincodeCheck = \App\Models\ShippingCharge::getChargeForPincode($shipping['pincode'] ?? null);
+        if (!$pincodeCheck['is_serviceable']) {
+            return redirect()->route('shipping-details')->with('error', $pincodeCheck['message']);
+        }
+        if (strtolower((string)$paymentMethod) === 'cod' && empty($pincodeCheck['is_cod_available'])) {
+            return redirect()->route('payment')->with('error', 'Cash on Delivery is not available for your delivery pincode. Please choose an online payment method.');
+        }
+
         // 3. Get cart calculations
         $appliedCoupon = session()->get('applied_coupon', null);
         $cartData = $this->cartService->getCartCalculations($appliedCoupon);
@@ -146,6 +155,7 @@ class CheckoutController extends Controller
                 'total_item_price'    => $totalItemPrice,
                 'total_discount'      => $totalDiscount,
                 'bogo_discount'       => $bogoDiscount,
+                'shipping_fee'        => (float)($cartData['shipping_charge'] ?? 0.00),
                 'coupon_amount'       => $couponAmount,
                 'loyalty_point_amount'=> $loyaltyAmount,
                 'loyalty_point_apply' => ($loyaltyAmount > 0) ? (int)($cartData['points_used'] ?? 0) : 0,

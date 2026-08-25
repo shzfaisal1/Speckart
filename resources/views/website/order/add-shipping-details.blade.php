@@ -491,7 +491,8 @@
                                 <div class="row">
 
                                     <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control @error('pincode') is-invalid @enderror" placeholder="6-Digit Pincode *" name="pincode" value="{{ $shippingData['pincode'] ?? old('pincode') }}" maxlength="6" pattern="[0-9]{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                                        <input type="text" class="form-control @error('pincode') is-invalid @enderror" id="shipping_pincode_input" placeholder="6-Digit Pincode *" name="pincode" value="{{ $shippingData['pincode'] ?? old('pincode') }}" maxlength="6" pattern="[0-9]{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                                        <div id="pincode-status-msg" class="small mt-1" style="display:none;"></div>
                                         @error('pincode')
                                             <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
                                         @enderror
@@ -626,6 +627,40 @@
                 $('#address-form-wrapper').addClass('d-none');
                 $('#saved-addresses-wrapper').removeClass('d-none');
             });
+
+            // Live Pincode Serviceability Check
+            $('#shipping_pincode_input').on('keyup input', function () {
+                var val = $(this).val().trim();
+                var msgEl = $('#pincode-status-msg');
+                if (val.length === 6) {
+                    msgEl.show().html('<span class="text-muted"><i class="bi bi-arrow-repeat spin me-1"></i> Checking delivery...</span>');
+                    $.ajax({
+                        url: "{{ route('shipping.check-pincode') }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            pincode: val
+                        },
+                        success: function (res) {
+                            if (res.is_serviceable) {
+                                msgEl.html(`<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i> ${res.message}</span>`);
+                            } else {
+                                msgEl.html(`<span class="text-danger fw-semibold"><i class="bi bi-x-circle-fill me-1"></i> ${res.message}</span>`);
+                            }
+                        },
+                        error: function () {
+                            msgEl.hide();
+                        }
+                    });
+                } else {
+                    msgEl.hide();
+                }
+            });
+
+            // Trigger on page load if pincode already filled
+            if ($('#shipping_pincode_input').val().trim().length === 6) {
+                $('#shipping_pincode_input').trigger('input');
+            }
         });
     </script>
 @endsection

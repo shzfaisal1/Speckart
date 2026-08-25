@@ -1825,6 +1825,12 @@
                                         <span class="sc-bill-value amber">-₹{{ number_format($cartData['loyalty_discount'], 2) }}</span>
                                     </div>
                                 @endif
+                                @if(isset($cartData['shipping_charge']) && $cartData['shipping_charge'] > 0)
+                                    <div class="sc-bill-line">
+                                        <span class="sc-bill-label"><i class="bi bi-truck me-1"></i>Shipping Charges</span>
+                                        <span class="sc-bill-value fw-bold text-dark">+₹{{ number_format($cartData['shipping_charge'], 2) }}</span>
+                                    </div>
+                                @endif
 
                                 <div class="sc-bill-divider"></div>
 

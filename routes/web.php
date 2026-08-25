@@ -84,11 +84,12 @@ Route::group(['middleware' => ['web']], function ()
     Route::delete('/wishlist/{id}',        [\App\Http\Controllers\Website\WishlistController::class, 'destroy'])->name('wishlist.destroy');
     Route::get('/wishlist/count',          [\App\Http\Controllers\Website\WishlistController::class, 'count'])->name('wishlist.count');
 
-   // Shipping & Checkout Orders
+    // Shipping & Checkout Orders
     Route::get('/shipping-details',               [\App\Http\Controllers\Website\OrderController::class, 'add_shipping_details'])->name('shipping-details');
     Route::post('/shipping-details/save',         [\App\Http\Controllers\Website\OrderController::class, 'save_shipping_details'])->name('shipping.save');
     Route::post('/shipping-details/select',       [\App\Http\Controllers\Website\OrderController::class, 'select_saved_address'])->name('shipping.select');
     Route::delete('/shipping-details/address/{id}', [\App\Http\Controllers\Website\OrderController::class, 'delete_address'])->name('shipping.address.delete');
+    Route::post('/shipping/check-pincode',        [\App\Http\Controllers\Website\OrderController::class, 'check_pincode'])->name('shipping.check-pincode');
     Route::get('/payment',                 [\App\Http\Controllers\Website\OrderController::class, 'payment_page'])->name('payment');
     Route::post('/checkout/complete',      [\App\Http\Controllers\Website\CheckoutController::class, 'completeCheckout'])->name('checkout.complete');
     Route::get('/my-orders',               [\App\Http\Controllers\Website\OrderController::class, 'my_order'])->name('my-orders');
@@ -576,6 +577,21 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
          Route::get('/{id}',          'show')         ->name('show');
          Route::post('/{id}/status',  'updateStatus') ->name('update-status');
          Route::post('/{id}/delete',  'destroy')      ->name('delete');
+     });
+
+    // ── SHIPPING CHARGES ADMIN MODULE ──
+    Route::controller(\App\Http\Controllers\Admin\ShippingChargeController::class)
+     ->prefix('shipping-charges')
+     ->name('shipping-charges.')
+     ->group(function () {
+         Route::get('/',                'index')        ->name('index');
+         Route::get('/data',            'data')         ->name('data');
+         Route::post('/',               'store')        ->name('store');
+         Route::get('/{id}',            'show')         ->name('show');
+         Route::post('/{id}',           'update')       ->name('update');
+         Route::patch('/{id}/toggle',   'toggleStatus') ->name('toggle');
+         Route::patch('/{id}/toggle-cod', 'toggleCod')  ->name('toggle-cod');
+         Route::delete('/{id}',         'destroy')      ->name('destroy');
      });
 
 });
