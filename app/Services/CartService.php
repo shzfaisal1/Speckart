@@ -856,8 +856,21 @@ class CartService
             }
         }
 
-        // Final Grand Total after Loyalty Points Discount
-        $grandTotal = max(0, $preliminaryTotal - $loyaltyDiscount);
+        // ── Dynamic Pincode Shipping Charge ──
+        $shippingPincode = null;
+        if (session()->has('checkout_shipping')) {
+            $sessShip = session()->get('checkout_shipping');
+            $shippingPincode = $sessShip['pincode'] ?? null;
+        }
+
+        $shippingInfo = \App\Models\ShippingCharge::getChargeForPincode($shippingPincode);
+        $shippingChargeAmount = (float)($shippingInfo['amount'] ?? 0.00);
+        $isShippingServiceable = (bool)($shippingInfo['is_serviceable'] ?? true);
+        $isCodAvailable = (bool)($shippingInfo['is_cod_available'] ?? true);
+        $shippingMessage = $shippingInfo['message'] ?? 'Free Delivery';
+
+        // Final Grand Total after Loyalty Points Discount + Shipping Charge
+        $grandTotal = max(0, $preliminaryTotal - $loyaltyDiscount + $shippingChargeAmount);
 
         // Dynamic Earning Calculation from Admin Auto-Generate Rules (tbl_loyalty id=2)
         // Only override $cashbackPercent from auto rules when auto_status = 1 (Enabled in Admin panel)
@@ -1003,6 +1016,11 @@ class CartService
             'total_quantity'            => array_sum(array_column($cart, 'quantity')) + ($hasMembershipInCart ? 1 : 0),
             'frame_subtotal'            => $frameSubtotal,
             'lens_subtotal'             => $lensSubtotal,
+            'shipping_charge'           => $shippingChargeAmount,
+            'shipping_pincode'          => $shippingPincode,
+            'is_shipping_serviceable'   => $isShippingServiceable,
+            'is_cod_available'          => $isCodAvailable,
+            'shipping_message'          => $shippingMessage,
             'bogo_savings'              => $bogoSavings,
             'third_item_savings'        => $thirdItemSavings,
             'bogo_extra_discount'       => $bogoExtraDiscount,

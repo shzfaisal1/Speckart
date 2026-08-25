@@ -78,6 +78,12 @@ class OrderController extends Controller
             return redirect()->route('shipping-details')->with('error', 'Selected address not found.');
         }
 
+        // Validate pincode serviceability
+        $pincodeCheck = \App\Models\ShippingCharge::getChargeForPincode($address->pincode ?? null);
+        if (!$pincodeCheck['is_serviceable']) {
+            return redirect()->route('shipping-details')->with('error', $pincodeCheck['message']);
+        }
+
         // Set as checkout shipping in session
         session()->put('checkout_shipping', [
             'address_id'    => $address->id,
@@ -115,6 +121,12 @@ class OrderController extends Controller
             'pincode.required' => 'Please enter your pincode.',
             'pincode.digits' => 'Pincode must be exactly 6 digits.',
         ]);
+
+        // Validate pincode serviceability
+        $pincodeCheck = \App\Models\ShippingCharge::getChargeForPincode($validated['pincode']);
+        if (!$pincodeCheck['is_serviceable']) {
+            return redirect()->route('shipping-details')->withInput()->with('error', $pincodeCheck['message']);
+        }
 
         $addressType = $validated['address_type'] ?? 'Home';
 
@@ -345,5 +357,23 @@ class OrderController extends Controller
         }
 
         return back()->with('error', 'Order items not found.');
+    }
+
+    /**
+     * Ajax endpoint to check pincode serviceability and shipping fee
+     */
+    public function check_pincode(Request $request)
+    {
+        $pincode = $request->input('pincode');
+        $result = \App\Models\ShippingCharge::getChargeForPincode($pincode);
+
+        return response()->json([
+            'status'           => 'success',
+            'is_serviceable'   => $result['is_serviceable'],
+            'amount'           => $result['amount'],
+            'amount_text'      => $result['amount'] > 0 ? ('₹' . number_format($result['amount'], 2)) : 'FREE Delivery',
+            'is_cod_available' => (bool) ($result['is_cod_available'] ?? true),
+            'message'          => $result['message'],
+        ]);
     }
 }

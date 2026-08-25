@@ -108,29 +108,42 @@
                             </label>
 
                             {{-- Option 2: Cash on Delivery --}}
-                            <label class="pay-option" for="pay_cod">
-                                <input type="radio" name="payment_method" id="pay_cod" value="cod">
-                                <div class="pay-option-row">
-                                    <span class="pay-option-radio"></span>
-                                    <span class="pay-option-icon">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/>
-                                        </svg>
-                                    </span>
-                                    <span class="pay-option-text">
-                                        <span class="pay-option-title">Cash on Delivery (COD)</span>
-                                        <span class="pay-option-sub">Pay in cash when your order arrives</span>
-                                    </span>
-                                </div>
-                                <div class="pay-option-detail">
-                                    <div class="form-check my-2">
-                                        <input class="form-check-input" type="checkbox" id="codConfirm" name="cod_confirm">
-                                        <label class="form-check-label text-dark fw-medium" for="codConfirm" style="font-size: 13.5px;">
-                                            I agree to pay <strong class="text-teal" style="color: #07484A;">₹{{ number_format($grandTotal, 0) }}</strong> in cash at the time of delivery.
-                                        </label>
+                            @php
+                                $isCodAvailable = (bool)($cartData['is_cod_available'] ?? true);
+                            @endphp
+                            @if($isCodAvailable)
+                                <label class="pay-option" for="pay_cod">
+                                    <input type="radio" name="payment_method" id="pay_cod" value="cod">
+                                    <div class="pay-option-row">
+                                        <span class="pay-option-radio"></span>
+                                        <span class="pay-option-icon">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/>
+                                            </svg>
+                                        </span>
+                                        <span class="pay-option-text">
+                                            <span class="pay-option-title">Cash on Delivery (COD)</span>
+                                            <span class="pay-option-sub">Pay in cash when your order arrives</span>
+                                        </span>
+                                    </div>
+                                    <div class="pay-option-detail">
+                                        <div class="form-check my-2">
+                                            <input class="form-check-input" type="checkbox" id="codConfirm" name="cod_confirm">
+                                            <label class="form-check-label text-dark fw-medium" for="codConfirm" style="font-size: 13.5px;">
+                                                I agree to pay <strong class="text-teal" style="color: #07484A;">₹{{ number_format($grandTotal, 0) }}</strong> in cash at the time of delivery.
+                                            </label>
+                                        </div>
+                                    </div>
+                                </label>
+                            @else
+                                <div class="p-3 mb-2 rounded-3 border bg-light text-muted d-flex align-items-center gap-2" style="font-size: 13px; opacity: 0.85;">
+                                    <i class="bi bi-info-circle text-secondary fs-5"></i>
+                                    <div>
+                                        <strong class="d-block text-dark">Cash on Delivery (COD) Unavailable</strong>
+                                        COD is not available for delivery pincode <strong>{{ $shippingData['pincode'] ?? '' }}</strong>. Please complete payment online.
                                     </div>
                                 </div>
-                            </label>
+                            @endif
 
                         </div>
 
@@ -207,8 +220,12 @@
                         {{-- Shipping Fee --}}
                         <div class="order-summary-row">
                             <span class="order-summary-label">Shipping Charges</span>
-                            <span class="order-summary-value text-success fw-semibold">
-                                FREE
+                            <span class="order-summary-value {{ ($cartData['shipping_charge'] ?? 0) > 0 ? 'fw-bold text-dark' : 'text-success fw-semibold' }}">
+                                @if(($cartData['shipping_charge'] ?? 0) > 0)
+                                    + ₹{{ number_format($cartData['shipping_charge'], 2) }}
+                                @else
+                                    FREE
+                                @endif
                             </span>
                         </div>
 
