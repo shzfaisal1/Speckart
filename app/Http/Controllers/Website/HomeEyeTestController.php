@@ -138,10 +138,15 @@ class HomeEyeTestController extends Controller
         return view('website.home-eye-test.confirmation', compact('appointment'));
     }
 
-    public function myAppointments()
+    // home eye test
+	public function myAppointments()
     {
         if (!auth()->check()) {
-            return redirect()->route('login.web');
+            session()->put('redirect_after_login', route('home-eye-test.my-appointments'));
+            return redirect()->route('home', ['login' => 1])
+                ->with('open_login_modal', true)
+                ->with('redirect_after_login', route('home-eye-test.my-appointments'))
+                ->with('info', 'Please sign in to view your appointments.');
         }
 
         $appointments = HomeEyeTestAppointment::where('user_id', auth()->id())

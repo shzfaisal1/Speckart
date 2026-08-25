@@ -16,8 +16,11 @@ class WishlistController extends Controller
     public function index()
     {
         if (!Auth::check()) {
-            return redirect()->route('login.web')
-                             ->with('info', 'Please login to view your wishlist.');
+            session()->put('redirect_after_login', route('wishlist'));
+            return redirect()->route('home', ['login' => 1])
+                             ->with('open_login_modal', true)
+                             ->with('redirect_after_login', route('wishlist'))
+                             ->with('info', 'Please sign in to view your wishlist.');
         }
 
         $wishlistItems = Wishlist::where('user_id', Auth::id())
