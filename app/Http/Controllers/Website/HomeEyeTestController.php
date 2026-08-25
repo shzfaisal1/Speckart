@@ -6,13 +6,44 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\HomeEyeTestAppointment;
 use App\Models\UserAddress;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class HomeEyeTestController extends Controller
 {
+    private function ensureTableExists()
+    {
+        if (!Schema::hasTable('home_eye_test_appointments')) {
+            Schema::create('home_eye_test_appointments', function (Blueprint $table) {
+                $table->id();
+                $table->string('booking_id', 50)->unique();
+                $table->unsignedBigInteger('user_id')->nullable();
+                $table->string('name', 100);
+                $table->string('phone', 20);
+                $table->string('email', 100)->nullable();
+                $table->string('pincode', 10);
+                $table->string('city', 100);
+                $table->string('state', 100)->nullable();
+                $table->text('address');
+                $table->string('landmark', 255)->nullable();
+                $table->date('appointment_date');
+                $table->string('time_slot', 50);
+                $table->integer('people_count')->default(1);
+                $table->decimal('fee', 10, 2)->default(99.00);
+                $table->string('payment_method', 50)->default('pay_on_visit');
+                $table->string('payment_status', 50)->default('pending');
+                $table->string('status', 50)->default('confirmed');
+                $table->text('notes')->nullable();
+                $table->timestamps();
+            });
+        }
+    }
+
     public function index()
     {
+        $this->ensureTableExists();
         $user = auth()->user();
         $savedAddresses = [];
         if ($user) {
@@ -45,6 +76,7 @@ class HomeEyeTestController extends Controller
 
     public function book(Request $request)
     {
+        $this->ensureTableExists();
         $request->validate([
             'name' => 'required|string|max:100',
             'phone' => 'required|string|max:20',

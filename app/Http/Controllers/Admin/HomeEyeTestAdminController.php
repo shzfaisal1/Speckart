@@ -5,16 +5,48 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\HomeEyeTestAppointment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class HomeEyeTestAdminController extends Controller
 {
+    private function ensureTableExists()
+    {
+        if (!Schema::hasTable('home_eye_test_appointments')) {
+            Schema::create('home_eye_test_appointments', function (Blueprint $table) {
+                $table->id();
+                $table->string('booking_id', 50)->unique();
+                $table->unsignedBigInteger('user_id')->nullable();
+                $table->string('name', 100);
+                $table->string('phone', 20);
+                $table->string('email', 100)->nullable();
+                $table->string('pincode', 10);
+                $table->string('city', 100);
+                $table->string('state', 100)->nullable();
+                $table->text('address');
+                $table->string('landmark', 255)->nullable();
+                $table->date('appointment_date');
+                $table->string('time_slot', 50);
+                $table->integer('people_count')->default(1);
+                $table->decimal('fee', 10, 2)->default(99.00);
+                $table->string('payment_method', 50)->default('pay_on_visit');
+                $table->string('payment_status', 50)->default('pending');
+                $table->string('status', 50)->default('confirmed');
+                $table->text('notes')->nullable();
+                $table->timestamps();
+            });
+        }
+    }
+
     /**
      * Display a listing of Home Eye Test appointments in the Admin Panel.
      */
     public function index(Request $request)
     {
+        $this->ensureTableExists();
+
         $page_title  = 'Home Eye Test Appointments';
         $breadcrumbs = [
             ['link' => route('index'), 'name' => 'Home'],

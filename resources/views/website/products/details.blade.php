@@ -2695,9 +2695,9 @@
         const defaultPrice = {{ $calcMrp }};
         const defaultDiscountPrice = {{ $calcSellingPrice }};
 
-        let selectedColor = $('.color-box.active').data('color-label') || '';
-        let selectedSize = $('.size-btn.active').data('size') || '';
-        let currentVariantId = 2;
+        let selectedColor = $('.color-swatch.active').data('color-label') || '';
+        let selectedSize = $('.size-btn.active').data('size') || '{{ $product->Size ?: '' }}';
+        let currentVariantId = '{{ $product->id }}';
 
         let selectedLensType = 'Frame Only';
         let selectedPowerTypeId = null;
@@ -2784,7 +2784,10 @@
                     $('#display-discount-percent').hide();
                 }
             } else {
-                currentVariantId = null;
+                // FIX: don't null-out currentVariantId when productVariants array is empty
+                // (color variant navigation uses page reload, not JS swap)
+                // Keep the PHP-initialized product id so add-to-cart still works
+                currentVariantId = currentVariantId || '{{ $product->id }}';
             }
         }
 
@@ -2845,10 +2848,14 @@
                 return;
             }
 
+            // Get currently active size selection
+            const activeSize = $('.size-btn.active').data('size') || selectedSize || '{{ $product->Size ?: 'Medium' }}';
+
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('frame_id', frameId);
             formData.append('quantity', quantity > 0 ? quantity : 1); // FIX: use passed quantity
+            formData.append('size', activeSize); // FIX: pass selected size
             if (lensPackageId) {
                 formData.append('lens_package_id', lensPackageId);
             }

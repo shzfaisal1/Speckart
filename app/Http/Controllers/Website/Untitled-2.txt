@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Http\Controllers\Website;
+
+use App\Http\Controllers\Controller;
+use App\Services\CartService;
+use Illuminate\Http\Request;
+
+class OrderController extends Controller
+{
+    protected $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
+    /**
+     * Step 1: Show Shipping Details form with dynamic cart summary
+     */
+    public function add_shipping_details()
+    {
+        $appliedCoupon = session()->get('applied_coupon', null);
+        $cartData = $this->cartService->getCartCalculations($appliedCoupon);
+
+        // Redirect to cart if empty
+        if (empty($cartData['items'])) {
+            return redirect()->route('cart')->with('error', 'Your cart is empty.');
+        }
+
+        // Pre-fill from session if user went back
+        $shippingData = session()->get('checkout_shipping', []);
+
+        return view('website.order.add-shipping-details', compact('cartData', 'shippingData'));
+    }
+
+    /**
+     * Step 1.5: Validate & save shipping address to session, redirect to payment
+     */
+    public function save_shipping_details(Request $request)
+    {
+        $validated = $request->validate([
+            'full_name'     => 'required|string|max:255',
+            'phone'         => 'required|string|max:15',
+            'pincode'       => 'required|string|max:10',
+            'house_no'      => 'required|string|max:500',
+            'road_area'     => 'required|string|max:500',
+            'landmark'      => 'nullable|string|max:255',
+            'email'         => 'nullable|email|max:255',
+            'address_type'  => 'nullable|string|max:50',
+        ]);
+
+        // Build full address string
+        $fullAddress = $validated['house_no'] . ', ' . $validated['road_area'];
+        if (!empty($validated['landmark'])) {
+            $fullAddress .= ', Near ' . $validated['landmark'];
+        }
+        $fullAddress .= ' - ' . $validated['pincode'];
+
+        $validated['full_address'] = $fullAddress;
+
+        session()->put('checkout_shipping', $validated);
+
+        return redirect()->route('payment');
+    }
+
+    /**
+     * Step 2: Show Payment page with dynamic cart summary
+     */
+    public function payment_page()
+    {
+        $appliedCoupon = session()->get('applied_coupon', null);
+        $cartData = $this->cartService->getCartCalculations($appliedCoupon);
+
+        // Redirect to cart if empty
+        if (empty($cartData['items'])) {
+            return redirect()->route('cart')->with('error', 'Your cart is empty.');
+        }
+
+        // Redirect to shipping if address not yet filled
+        $shippingData = session()->get('checkout_shipping', null);
+        if (!$shippingData) {
+            return redirect()->route('shipping-details')->with('error', 'Please fill in your shipping address first.');
+        }
+
+        return view('website.order.payment-page', compact('cartData', 'shippingData'));
+    }
+
+    /**
+     * Step 3: My Orders page
+     */
+    public function my_order()
+    {
+        return view('website.order.my-order');
+    }
+}

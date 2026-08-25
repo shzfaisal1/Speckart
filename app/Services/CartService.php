@@ -12,7 +12,7 @@ class CartService
     /**
      * Add Frame + Lens Package to Cart session
      */
-    public function addToCart($frameId, $lensPackageId = null, $quantity = 1, $prescriptionData = null, $lensType = null)
+    public function addToCart($frameId, $lensPackageId = null, $quantity = 1, $prescriptionData = null, $lensType = null, $size = null)
     {
         $frame = DB::table('tbl_product_code')->where('id', $frameId)->first();
         if (!$frame) {
@@ -123,7 +123,7 @@ class CartService
                 'brand'             => $frame->Company ?? 'Speckart',
                 'frame_price'       => $framePrice,
                 'frame_image'       => $imageUrl,
-                'size'              => $frame->Size ?? 'Medium',
+                'size'              => $size ?: (explode(',', $frame->Size ?? 'Medium')[0]), // FIX: use customer-selected size
                 'lens_package_id'   => $lensIdKey,
                 'lens_name'         => $lensName,
                 'lens_details'      => $lensDetails,
