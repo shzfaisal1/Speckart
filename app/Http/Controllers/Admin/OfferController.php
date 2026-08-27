@@ -168,23 +168,27 @@ class OfferController extends Controller
             'banner_position'        => 'nullable|string|max:100',
             'banner_image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             // BOGO fields
-            'bogo_buy_qty'           => 'nullable|integer|min:1',
-            'bogo_get_qty'           => 'nullable|integer|min:1',
-            'bogo_free_discount'     => 'nullable|numeric|min:1|max:100',
-            'bogo_extra_enabled'     => 'nullable|boolean',
-            'bogo_extra_discount'    => 'nullable|numeric|min:1|max:99',
+            'bogo_buy_qty'              => 'nullable|integer|min:1',
+            'bogo_get_qty'              => 'nullable|integer|min:1',
+            'bogo_free_discount'        => 'nullable|numeric|min:1|max:100',
+            'bogo_extra_enabled'        => 'nullable|boolean',
+            'bogo_extra_discount'       => 'nullable|numeric|min:1|max:99',
+            'bogo_third_apply_on'       => 'nullable|in:same_as_bogo,specific_brand,specific_category,specific_products',
+            'bogo_third_brands'         => 'nullable|array',
+            'bogo_third_categories'     => 'nullable|array',
+            'bogo_third_products'       => 'nullable|array',
             // Voucher fields
-            'voucher_value'          => 'nullable|numeric|min:1',
-            'voucher_validity_days'  => 'nullable|integer|min:1',
+            'voucher_value'             => 'nullable|numeric|min:1',
+            'voucher_validity_days'     => 'nullable|integer|min:1',
             // Membership Bundle fields
-            'linked_product_id'      => 'nullable|integer',
-            'membership_mrp'         => 'nullable|numeric|min:0',
-            'membership_sale_price'  => 'nullable|numeric|min:0',
-            'entitlement_type'       => 'nullable|string|max:100',
-            'entitlement_scope'      => 'nullable|string|max:255',
-            'cashback_percent'       => 'nullable|numeric|min:0|max:100',
-            'cashback_delay_days'    => 'nullable|integer|min:0',
-            'stack_with_coupons'     => 'nullable|boolean',
+            'linked_product_id'         => 'nullable|integer',
+            'membership_mrp'            => 'nullable|numeric|min:0',
+            'membership_sale_price'     => 'nullable|numeric|min:0',
+            'entitlement_type'          => 'nullable|string|max:100',
+            'entitlement_scope'         => 'nullable|string|max:255',
+            'cashback_percent'          => 'nullable|numeric|min:0|max:100',
+            'cashback_delay_days'       => 'nullable|integer|min:0',
+            'stack_with_coupons'        => 'nullable|boolean',
         ]);
 
         // Clean coupon code
@@ -200,13 +204,23 @@ class OfferController extends Controller
         $validated['brand_ids']    = ($request->apply_on === 'specific_brand'    && $request->has('brands'))     ? $request->input('brands')     : null;
         $validated['product_ids']  = ($request->apply_on === 'specific_products' && $request->has('products'))   ? $request->input('products')   : null;
 
+        // 3rd Item Bonus Scope fields
+        $validated['bogo_third_apply_on']     = $request->input('bogo_third_apply_on', 'same_as_bogo');
+        $validated['bogo_third_brand_ids']    = ($request->bogo_third_apply_on === 'specific_brand'    && $request->has('bogo_third_brands'))     ? $request->input('bogo_third_brands')     : null;
+        $validated['bogo_third_category_ids'] = ($request->bogo_third_apply_on === 'specific_category' && $request->has('bogo_third_categories')) ? $request->input('bogo_third_categories') : null;
+        $validated['bogo_third_product_ids']  = ($request->bogo_third_apply_on === 'specific_products' && $request->has('bogo_third_products'))   ? $request->input('bogo_third_products')   : null;
+
         $validated['show_as_banner']      = $request->boolean('show_as_banner', false);
         $validated['bogo_extra_enabled']  = $request->boolean('bogo_extra_enabled', false);
         $validated['stack_with_coupons']  = $request->boolean('stack_with_coupons', true);
 
         // Clear bonus tier discount if toggle is off
         if (!$validated['bogo_extra_enabled']) {
-            $validated['bogo_extra_discount'] = null;
+            $validated['bogo_extra_discount']     = null;
+            $validated['bogo_third_apply_on']     = 'same_as_bogo';
+            $validated['bogo_third_brand_ids']    = null;
+            $validated['bogo_third_category_ids'] = null;
+            $validated['bogo_third_product_ids']  = null;
         }
 
         // Set fallbacks for discount_value & discount_type for Gift Vouchers & BOGO
@@ -226,6 +240,9 @@ class OfferController extends Controller
         }
 
         $offer = Offer::create($validated);
+
+        // Invalidate BOGO extra discount cache
+        \Illuminate\Support\Facades\Cache::forget('active_bogo_extra_discount');
 
         return response()->json([
             'success' => true,
@@ -250,6 +267,21 @@ class OfferController extends Controller
         $setting['selected_products'] = [];
         if ($offer->apply_on === 'specific_products' && is_array($offer->product_ids)) {
             $setting['selected_products'] = Product::whereIn('id', $offer->product_ids)
+                ->where('status', 1)
+                ->get([
+                    'id',
+                    'product_name',
+                    'product_code',
+                    'Company',
+                    'product_type',
+                    'Retail_Price',
+                    'product_image'
+                ]);
+        }
+
+        $setting['selected_bogo_third_products'] = [];
+        if ($offer->bogo_third_apply_on === 'specific_products' && is_array($offer->bogo_third_product_ids)) {
+            $setting['selected_bogo_third_products'] = Product::whereIn('id', $offer->bogo_third_product_ids)
                 ->where('status', 1)
                 ->get([
                     'id',
@@ -306,11 +338,15 @@ class OfferController extends Controller
             'banner_position'        => 'nullable|string|max:100',
             'banner_image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             // BOGO fields
-            'bogo_buy_qty'           => 'nullable|integer|min:1',
-            'bogo_get_qty'           => 'nullable|integer|min:1',
-            'bogo_free_discount'     => 'nullable|numeric|min:1|max:100',
-            'bogo_extra_enabled'     => 'nullable|boolean',
-            'bogo_extra_discount'    => 'nullable|numeric|min:1|max:99',
+            'bogo_buy_qty'              => 'nullable|integer|min:1',
+            'bogo_get_qty'              => 'nullable|integer|min:1',
+            'bogo_free_discount'        => 'nullable|numeric|min:1|max:100',
+            'bogo_extra_enabled'        => 'nullable|boolean',
+            'bogo_extra_discount'       => 'nullable|numeric|min:1|max:99',
+            'bogo_third_apply_on'       => 'nullable|in:same_as_bogo,specific_brand,specific_category,specific_products',
+            'bogo_third_brands'         => 'nullable|array',
+            'bogo_third_categories'     => 'nullable|array',
+            'bogo_third_products'       => 'nullable|array',
             // Voucher fields
             'voucher_value'          => 'nullable|numeric|min:1',
             'voucher_validity_days'  => 'nullable|integer|min:1',
@@ -335,13 +371,23 @@ class OfferController extends Controller
         $validated['brand_ids']    = ($request->apply_on === 'specific_brand'    && $request->has('brands'))     ? $request->input('brands')     : null;
         $validated['product_ids']  = ($request->apply_on === 'specific_products' && $request->has('products'))   ? $request->input('products')   : null;
 
+        // 3rd Item Bonus Scope fields
+        $validated['bogo_third_apply_on']     = $request->input('bogo_third_apply_on', 'same_as_bogo');
+        $validated['bogo_third_brand_ids']    = ($request->bogo_third_apply_on === 'specific_brand'    && $request->has('bogo_third_brands'))     ? $request->input('bogo_third_brands')     : null;
+        $validated['bogo_third_category_ids'] = ($request->bogo_third_apply_on === 'specific_category' && $request->has('bogo_third_categories')) ? $request->input('bogo_third_categories') : null;
+        $validated['bogo_third_product_ids']  = ($request->bogo_third_apply_on === 'specific_products' && $request->has('bogo_third_products'))   ? $request->input('bogo_third_products')   : null;
+
         $validated['show_as_banner']     = $request->boolean('show_as_banner', false);
         $validated['bogo_extra_enabled'] = $request->boolean('bogo_extra_enabled', false);
-        $validated['stack_with_coupons']  = $request->boolean('stack_with_coupons', true);
+        $validated['stack_with_coupons'] = $request->boolean('stack_with_coupons', true);
 
         // Clear bonus tier discount if toggle is off
         if (!$validated['bogo_extra_enabled']) {
-            $validated['bogo_extra_discount'] = null;
+            $validated['bogo_extra_discount']     = null;
+            $validated['bogo_third_apply_on']     = 'same_as_bogo';
+            $validated['bogo_third_brand_ids']    = null;
+            $validated['bogo_third_category_ids'] = null;
+            $validated['bogo_third_product_ids']  = null;
         }
 
         // Set fallbacks for discount_value & discount_type for Gift Vouchers & BOGO
@@ -364,6 +410,9 @@ class OfferController extends Controller
         }
 
         $offer->update($validated);
+
+        // Invalidate BOGO extra discount cache
+        \Illuminate\Support\Facades\Cache::forget('active_bogo_extra_discount');
 
         return response()->json([
             'success' => true,
@@ -441,6 +490,8 @@ class OfferController extends Controller
         $offer->status = $newStatus;
         $offer->save();
 
+        \Illuminate\Support\Facades\Cache::forget('active_bogo_extra_discount');
+
         return response()->json([
             'success' => true,
             'message' => 'Offer status updated to <strong>' . ucfirst($newStatus) . '</strong>.',
@@ -454,7 +505,14 @@ class OfferController extends Controller
     public function destroy($id)
     {
         $offer = Offer::findOrFail($id);
+
+        if ($offer->banner_image && file_exists(public_path($offer->banner_image))) {
+            @unlink(public_path($offer->banner_image));
+        }
+
         $offer->delete();
+
+        \Illuminate\Support\Facades\Cache::forget('active_bogo_extra_discount');
 
         return response()->json([
             'success' => true,

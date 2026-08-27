@@ -1021,8 +1021,94 @@
                                                     <strong>How it works:</strong><br>
                                                     Item 1 → Full price<br>
                                                     Item 2 → <strong>FREE</strong> (BOGO)<br>
-                                                    Item 3 → <strong>{{ $offer->bogo_extra_discount ?? 60 }}% OFF</strong> (Bonus)
+                                                    Item 3 → <strong><span id="preview_bonus_pct">{{ $offer->bogo_extra_discount ?? 60 }}</span>% OFF</strong> (Bonus)
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ── 3rd Product Scope Targeting ── -->
+                                    <div class="mt-3 pt-3" style="border-top: 1px dashed #fde68a;">
+                                        <label class="fw-semibold mb-2" style="font-size:12.5px;color:#92400e;">
+                                            <i class="fa fa-bullseye me-1"></i> Which products are eligible for this 3rd Item Discount?
+                                        </label>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6 col-md-3">
+                                                <label class="radio-card-label {{ (!isset($offer) || empty($offer->bogo_third_apply_on) || $offer->bogo_third_apply_on === 'same_as_bogo') ? 'active' : '' }}" for="bogo_third_same" style="font-size:12px;padding:8px 10px;cursor:pointer;">
+                                                    <input type="radio" name="bogo_third_apply_on" id="bogo_third_same" value="same_as_bogo"
+                                                           {{ (!isset($offer) || empty($offer->bogo_third_apply_on) || $offer->bogo_third_apply_on === 'same_as_bogo') ? 'checked' : '' }} style="margin-right:6px;">
+                                                    <span>Same as BOGO</span>
+                                                </label>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <label class="radio-card-label {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_brand') ? 'active' : '' }}" for="bogo_third_brand" style="font-size:12px;padding:8px 10px;cursor:pointer;">
+                                                    <input type="radio" name="bogo_third_apply_on" id="bogo_third_brand" value="specific_brand"
+                                                           {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_brand') ? 'checked' : '' }} style="margin-right:6px;">
+                                                    <span>Specific Brand</span>
+                                                </label>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <label class="radio-card-label {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_category') ? 'active' : '' }}" for="bogo_third_category" style="font-size:12px;padding:8px 10px;cursor:pointer;">
+                                                    <input type="radio" name="bogo_third_apply_on" id="bogo_third_category" value="specific_category"
+                                                           {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_category') ? 'checked' : '' }} style="margin-right:6px;">
+                                                    <span>Specific Category</span>
+                                                </label>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <label class="radio-card-label {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_products') ? 'active' : '' }}" for="bogo_third_products" style="font-size:12px;padding:8px 10px;cursor:pointer;">
+                                                    <input type="radio" name="bogo_third_apply_on" id="bogo_third_products" value="specific_products"
+                                                           {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_products') ? 'checked' : '' }} style="margin-right:6px;">
+                                                    <span>Specific Products</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- 3rd Item Brand Selector -->
+                                        <div id="panel-bogo-third-brand" class="mt-2" style="display: {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_brand') ? 'block' : 'none' }};">
+                                            <label style="font-size:12px;font-weight:600;color:#374151;">Select Brands for 3rd Item <span class="required">*</span></label>
+                                            <select class="form-control" id="select_bogo_third_brand" name="bogo_third_brands[]" multiple>
+                                                @foreach($brands as $brand)
+                                                    <option value="{{ $brand->brand_id }}" {{ (isset($offer) && is_array($offer->bogo_third_brand_ids) && in_array($brand->brand_id, $offer->bogo_third_brand_ids)) ? 'selected' : '' }}>{{ $brand->brand_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- 3rd Item Category Selector -->
+                                        <div id="panel-bogo-third-category" class="mt-2" style="display: {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_category') ? 'block' : 'none' }};">
+                                            <label style="font-size:12px;font-weight:600;color:#374151;">Select Categories for 3rd Item <span class="required">*</span></label>
+                                            <select class="form-control" id="select_bogo_third_category" name="bogo_third_categories[]" multiple>
+                                                @foreach($categories as $cat)
+                                                    <option value="{{ $cat->id }}" {{ (isset($offer) && is_array($offer->bogo_third_category_ids) && in_array($cat->id, $offer->bogo_third_category_ids)) ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <!-- 3rd Item Product Search & Table -->
+                                        <div id="panel-bogo-third-products" class="mt-2" style="display: {{ (isset($offer) && $offer->bogo_third_apply_on === 'specific_products') ? 'block' : 'none' }};">
+                                            <div class="product-search-box mb-2">
+                                                <span class="search-icon"><i class="fa fa-search"></i></span>
+                                                <input type="text" class="form-control" id="bogoThirdProductSearchInput"
+                                                       placeholder="Search products for 3rd item discount...">
+                                            </div>
+                                            <div class="product-table-wrap" style="max-height:220px;overflow-y:auto;">
+                                                <table class="table table-sm" id="bogoThirdProductTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:36px"><input type="checkbox" class="form-check-input" id="selectAllBogoThirdProducts"></th>
+                                                            <th style="width:40px">Image</th>
+                                                            <th>Product Name</th>
+                                                            <th>SKU</th>
+                                                            <th>Brand</th>
+                                                            <th>Price</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="bogoThirdProductTableBody">
+                                                        <tr><td colspan="6" class="text-center text-muted py-3">Type above to search products for 3rd item...</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="selected-count-badge" id="bogoThirdSelectedBadge" style="display:none;margin-top:6px;">
+                                                <i class="fa fa-check-circle"></i> <span id="bogoThirdSelectedCount">0</span> products selected for 3rd item
                                             </div>
                                         </div>
                                     </div>
@@ -1446,6 +1532,8 @@ const Toast = Swal.mixin({
 
 let selectedProducts = new Set();
 let productSearchTimer = null;
+let selectedBogoThirdProducts = new Set();
+let bogoThirdProductSearchTimer = null;
 
 /* ═══════════════════════════════════════════
    OFFER TYPE — STATE & CONFIG MAP
@@ -1526,18 +1614,30 @@ function validateForm() {
     }
 
     if (cfg.group === 'bogo') {
-        const subType = document.querySelector('input[name="bogo_sub_type"]:checked')?.value || 'standard';
-        if (subType === 'nth_item') {
-            const pos = document.getElementById('nth_item_position').value;
-            const pct = document.getElementById('nth_item_discount_pct').value;
-            if (!pos || parseInt(pos) < 2) {
-                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter a valid product position (e.g. 3 for 3rd product).', confirmButtonColor: '#07484A' });
-                document.getElementById('nth_item_position').focus();
+        const bonusEnabled = document.getElementById('bogo_bonus_enabled')?.checked;
+        if (bonusEnabled) {
+            const extraDisc = document.getElementById('bogo_extra_discount')?.value;
+            if (!extraDisc || parseFloat(extraDisc) <= 0 || parseFloat(extraDisc) > 99) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter a valid 3rd item discount percentage (1-99%).', confirmButtonColor: '#07484A' });
+                document.getElementById('bogo_extra_discount').focus();
                 return false;
             }
-            if (!pct || parseFloat(pct) <= 0 || parseFloat(pct) > 100) {
-                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter a valid discount percentage (1-100%).', confirmButtonColor: '#07484A' });
-                document.getElementById('nth_item_discount_pct').focus();
+
+            const thirdScope = document.querySelector('input[name="bogo_third_apply_on"]:checked')?.value || 'same_as_bogo';
+            if (thirdScope === 'specific_brand') {
+                const sel = document.getElementById('select_bogo_third_brand');
+                if (!sel.selectedOptions.length) {
+                    Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select at least one brand for the 3rd item discount.', confirmButtonColor: '#07484A' });
+                    return false;
+                }
+            } else if (thirdScope === 'specific_category') {
+                const sel = document.getElementById('select_bogo_third_category');
+                if (!sel.selectedOptions.length) {
+                    Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select at least one category for the 3rd item discount.', confirmButtonColor: '#07484A' });
+                    return false;
+                }
+            } else if (thirdScope === 'specific_products' && selectedBogoThirdProducts.size === 0) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please select at least one product for the 3rd item discount.', confirmButtonColor: '#07484A' });
                 return false;
             }
         }
@@ -1671,7 +1771,7 @@ function updateApplyInfo() {
 }
 
 /* ═══════════════════════════════════════════
-   PRODUCT SEARCH (AJAX)
+   PRODUCT SEARCH (AJAX) — Base Products
    ═══════════════════════════════════════════ */
 
 document.getElementById('productSearchInput').addEventListener('input', function () {
@@ -1776,6 +1876,99 @@ function updateProductCount() {
 }
 
 /* ═══════════════════════════════════════════
+   3RD PRODUCT BOGO SEARCH (AJAX)
+   ═══════════════════════════════════════════ */
+
+const bogoThirdSearchInput = document.getElementById('bogoThirdProductSearchInput');
+if (bogoThirdSearchInput) {
+    bogoThirdSearchInput.addEventListener('input', function () {
+        clearTimeout(bogoThirdProductSearchTimer);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            document.getElementById('bogoThirdProductTableBody').innerHTML = `
+                <tr><td colspan="6" class="text-center text-muted py-3">
+                    Type at least 2 characters to search products...
+                </td></tr>`;
+            return;
+        }
+
+        bogoThirdProductSearchTimer = setTimeout(() => {
+            $.ajax({
+                url: "{{ url(config('app.admin_path').'/offers/search-products') }}",
+                data: { search: query },
+                success: function (products) {
+                    renderBogoThirdProductTable(products);
+                },
+                error: function () {
+                    document.getElementById('bogoThirdProductTableBody').innerHTML = `
+                        <tr><td colspan="6" class="text-center text-danger py-3">Error loading products</td></tr>`;
+                }
+            });
+        }, 400);
+    });
+}
+
+function renderBogoThirdProductTable(products) {
+    const tbody = document.getElementById('bogoThirdProductTableBody');
+    if (!tbody) return;
+
+    if (!products.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">No products found</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = products.map(p => {
+        const checked = selectedBogoThirdProducts.has(p.id) ? 'checked' : '';
+        const imgSrc  = p.product_image
+            ? '{{ asset("") }}' + p.product_image
+            : '{{ asset("assets/images/speckart-Icons/Dashboard.png") }}';
+        return `
+            <tr>
+                <td>
+                    <input type="checkbox" class="form-check-input bogo-third-product-checkbox"
+                           value="${p.id}" ${checked}>
+                </td>
+                <td><img src="${imgSrc}" class="product-thumb" style="width:28px;height:28px;" alt=""></td>
+                <td><strong>${escapeHtml(p.product_name || '—')}</strong></td>
+                <td><code>${escapeHtml(p.product_code || '—')}</code></td>
+                <td>${escapeHtml(p.Company || '—')}</td>
+                <td>₹${numberFormat(p.Retail_Price || 0)}</td>
+            </tr>`;
+    }).join('');
+
+    document.querySelectorAll('.bogo-third-product-checkbox').forEach(cb => {
+        cb.addEventListener('change', function () {
+            const id = parseInt(this.value);
+            if (this.checked) selectedBogoThirdProducts.add(id);
+            else selectedBogoThirdProducts.delete(id);
+            updateBogoThirdProductCount();
+        });
+    });
+}
+
+const selectAllBogoThird = document.getElementById('selectAllBogoThirdProducts');
+if (selectAllBogoThird) {
+    selectAllBogoThird.addEventListener('change', function () {
+        document.querySelectorAll('.bogo-third-product-checkbox').forEach(cb => {
+            cb.checked = this.checked;
+            const id = parseInt(cb.value);
+            if (this.checked) selectedBogoThirdProducts.add(id);
+            else selectedBogoThirdProducts.delete(id);
+        });
+        updateBogoThirdProductCount();
+    });
+}
+
+function updateBogoThirdProductCount() {
+    const count = selectedBogoThirdProducts.size;
+    const badge = document.getElementById('bogoThirdSelectedBadge');
+    const span = document.getElementById('bogoThirdSelectedCount');
+    if (span) span.textContent = count;
+    if (badge) badge.style.display = count > 0 ? 'inline-flex' : 'none';
+}
+
+/* ═══════════════════════════════════════════
    LIVE PREVIEW (RIGHT PANEL)
    ═══════════════════════════════════════════ */
 
@@ -1806,6 +1999,9 @@ function updateLivePreview() {
     } else if (cfg.group === 'bogo') {
         const bonusEnabled = document.getElementById('bogo_bonus_enabled')?.checked;
         const bonusPct     = document.getElementById('bogo_extra_discount')?.value || '60';
+        const previewBonusSpan = document.getElementById('preview_bonus_pct');
+        if (previewBonusSpan) previewBonusSpan.textContent = bonusPct;
+
         if (bonusEnabled) {
             document.getElementById('live_discount').textContent = 'Buy 1 Get 1 Free + ' + bonusPct + '% OFF on 3rd';
         } else {
@@ -1860,9 +2056,15 @@ function submitOffer(status) {
     const couponEl = document.getElementById('coupon_code');
     if (couponEl) formData.set('coupon_code', couponEl.value.toUpperCase());
 
-    // Append selected product IDs
+    // Append selected base product IDs
     if (document.querySelector('input[name="apply_on"]:checked').value === 'specific_products') {
         selectedProducts.forEach(id => formData.append('products[]', id));
+    }
+
+    // Append selected 3rd item product IDs if specific_products chosen
+    const thirdScope = document.querySelector('input[name="bogo_third_apply_on"]:checked')?.value;
+    if (thirdScope === 'specific_products') {
+        selectedBogoThirdProducts.forEach(id => formData.append('bogo_third_products[]', id));
     }
 
     const btns = document.querySelectorAll('.wizard-actions .btn');
@@ -1956,6 +2158,15 @@ document.addEventListener('DOMContentLoaded', function () {
             renderProductTable(preloadedProducts);
             updateProductCount();
         @endif
+
+        @if($offer->bogo_third_apply_on === 'specific_products' && isset($selected_bogo_third_products))
+            @foreach($offer->bogo_third_product_ids as $pId)
+                selectedBogoThirdProducts.add({{ $pId }});
+            @endforeach
+            const preloadedBogoThird = @json($selected_bogo_third_products);
+            renderBogoThirdProductTable(preloadedBogoThird);
+            updateBogoThirdProductCount();
+        @endif
     @endif
 
     // Pre-activate discount type radio visual
@@ -1974,9 +2185,28 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // 3rd Item Scope radio change listener
+    document.querySelectorAll('input[name="bogo_third_apply_on"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            document.querySelectorAll('input[name="bogo_third_apply_on"]').forEach(r => {
+                const lbl = r.closest('.radio-card-label');
+                if (lbl) lbl.classList.remove('active');
+            });
+            const activeLbl = this.closest('.radio-card-label');
+            if (activeLbl) activeLbl.classList.add('active');
+
+            document.getElementById('panel-bogo-third-brand').style.display    = (this.value === 'specific_brand') ? 'block' : 'none';
+            document.getElementById('panel-bogo-third-category').style.display = (this.value === 'specific_category') ? 'block' : 'none';
+            document.getElementById('panel-bogo-third-products').style.display = (this.value === 'specific_products') ? 'block' : 'none';
+        });
+    });
+
     // Initialize Select2 for Categories & Brands
     $('#select_category').select2({ placeholder: "Select categories...", allowClear: true, width: '100%' });
     $('#select_brand').select2({    placeholder: "Select brands...",     allowClear: true, width: '100%' });
+    $('#select_bogo_third_brand').select2({    placeholder: "Select brands for 3rd item...",     allowClear: true, width: '100%' });
+    $('#select_bogo_third_category').select2({ placeholder: "Select categories for 3rd item...", allowClear: true, width: '100%' });
+
     $('#select_category, #select_brand').on('change', function () { updateLivePreview(); });
 
     // Generate SPECKART Coupon Code click handler

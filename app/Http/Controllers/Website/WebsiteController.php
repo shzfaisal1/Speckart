@@ -20,6 +20,12 @@ class WebSiteController extends Controller
             ->where('show_as_banner', 1)
             ->whereNotNull('banner_image')
             ->where('banner_image', '!=', '')
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
             ->orderBy('id', 'desc')
             ->get();
 
