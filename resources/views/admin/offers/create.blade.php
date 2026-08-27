@@ -854,7 +854,7 @@
                             <span class="ot-icon"><i class="fa fa-plus"></i></span>
                             <span class="ot-label">Buy 1 Get 1 Free</span>
                         </div>
-                        <div class="offer-type-card {{ (isset($offer) && in_array($offer->offer_type, ['cashback','gift_voucher'])) ? 'active' : '' }}"
+                        <div class="offer-type-card d-none {{ (isset($offer) && in_array($offer->offer_type, ['cashback','gift_voucher'])) ? 'active' : '' }}"
                              data-type="gift_voucher" data-group="voucher">
                             <span class="ot-icon"><i class="fa fa-ticket"></i></span>
                             <span class="ot-label">Gift Voucher</span>
