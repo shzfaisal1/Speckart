@@ -634,10 +634,10 @@ class CartService
             $frameSubtotal += (float) ($cartMembership['price'] ?? 600);
         }
 
-        // Check if there is an active BOGO offer or membership BOGO with extra 3rd item discount (cached & date-validated)
+        // Check if there is an active BOGO offer with extra 3rd item discount & product targeting
         $now = \Carbon\Carbon::now()->toDateString();
-        $bogoExtraDiscount = \Illuminate\Support\Facades\Cache::remember('active_bogo_extra_discount', 300, function () use ($now) {
-            $offer = DB::table('offers')
+        $activeBogoOffer = \Illuminate\Support\Facades\Cache::remember('active_bogo_extra_discount', 300, function () use ($now) {
+            return DB::table('offers')
                 ->where('offer_type', 'buy1get1')
                 ->where('status', 'active')
                 ->where(function ($q) use ($now) {
@@ -646,12 +646,25 @@ class CartService
                 ->where(function ($q) use ($now) {
                     $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
                 })
+                ->orderByDesc('id')
                 ->first();
-            if ($offer && !empty($offer->bogo_extra_enabled) && !empty($offer->bogo_extra_discount)) {
-                return (float) $offer->bogo_extra_discount;
-            }
-            return 60.0;
         });
+
+        $bogoExtraDiscount      = 60.0;
+        $bogoThirdApplyOn       = 'same_as_bogo';
+        $bogoThirdBrandIds      = [];
+        $bogoThirdCategoryIds   = [];
+        $bogoThirdProductIds    = [];
+
+        if ($activeBogoOffer) {
+            if (!empty($activeBogoOffer->bogo_extra_enabled) && !empty($activeBogoOffer->bogo_extra_discount)) {
+                $bogoExtraDiscount = (float) $activeBogoOffer->bogo_extra_discount;
+            }
+            $bogoThirdApplyOn     = $activeBogoOffer->bogo_third_apply_on ?? 'same_as_bogo';
+            $bogoThirdBrandIds    = json_decode($activeBogoOffer->bogo_third_brand_ids ?? '[]', true) ?: [];
+            $bogoThirdCategoryIds = json_decode($activeBogoOffer->bogo_third_category_ids ?? '[]', true) ?: [];
+            $bogoThirdProductIds  = json_decode($activeBogoOffer->bogo_third_product_ids ?? '[]', true) ?: [];
+        }
 
         $thirdItemSavings = 0;
 
@@ -695,7 +708,7 @@ class CartService
             }
 
             // Every 2nd frame in sorted list is 100% FREE (BOGO Pair - Lower Value Frame)
-            // Every 3rd frame (unmatched 3rd item in a set) gets 60% OFF!
+            // Every 3rd frame (unmatched 3rd item in a set) gets 60% OFF if eligible!
             for ($i = 1; $i < count($frameUnits); $i++) {
                 $key = $frameUnits[$i]['key'];
                 if ($i % 2 == 1) {
@@ -717,12 +730,38 @@ class CartService
                 } else {
                     // Unmatched 3rd item of a set (indices 2, 4, 6... when it is the last item in array)
                     if ($i == count($frameUnits) - 1) {
-                        $thirdDiscountAmount = ($frameUnits[$i]['price'] * $bogoExtraDiscount) / 100;
-                        $thirdItemSavings += $thirdDiscountAmount;
-                        $items[$key]['is_bogo_third_discount'] = true;
-                        $items[$key]['bogo_third_discount_percent'] = $bogoExtraDiscount;
-                        $items[$key]['bogo_third_savings'] = $thirdDiscountAmount;
-                        $items[$key]['item_bogo_discount'] = ($items[$key]['item_bogo_discount'] ?? 0) + $thirdDiscountAmount;
+                        $thirdItem = $items[$key];
+                        $isThirdEligible = true;
+
+                        // Check 3rd item targeting scope
+                        if ($bogoThirdApplyOn === 'specific_brand') {
+                            $brandId = $thirdItem['brand_id'] ?? null;
+                            $company = $thirdItem['Company'] ?? $thirdItem['brand'] ?? '';
+                            $isThirdEligible = (!empty($brandId) && in_array($brandId, $bogoThirdBrandIds));
+                            if (!$isThirdEligible && !empty($company)) {
+                                // Match brand by company name if brand_id not mapped directly
+                                $matchedBrand = DB::table('tbl_brand')->where('brand_name', $company)->whereIn('brand_id', $bogoThirdBrandIds)->exists();
+                                if ($matchedBrand) $isThirdEligible = true;
+                            }
+                        } elseif ($bogoThirdApplyOn === 'specific_category') {
+                            $catId = $thirdItem['category_id'] ?? null;
+                            $isThirdEligible = (!empty($catId) && in_array($catId, $bogoThirdCategoryIds));
+                        } elseif ($bogoThirdApplyOn === 'specific_products') {
+                            $prodId = $thirdItem['db_product_id'] ?? $thirdItem['frame_id'] ?? null;
+                            $isThirdEligible = (!empty($prodId) && in_array($prodId, $bogoThirdProductIds));
+                        }
+
+                        if ($isThirdEligible) {
+                            $thirdDiscountAmount = ($frameUnits[$i]['price'] * $bogoExtraDiscount) / 100;
+                            $thirdItemSavings += $thirdDiscountAmount;
+                            $items[$key]['is_bogo_third_discount'] = true;
+                            $items[$key]['bogo_third_discount_percent'] = $bogoExtraDiscount;
+                            $items[$key]['bogo_third_savings'] = $thirdDiscountAmount;
+                            $items[$key]['item_bogo_discount'] = ($items[$key]['item_bogo_discount'] ?? 0) + $thirdDiscountAmount;
+                        } else {
+                            $items[$key]['is_bogo_third_discount'] = false;
+                            $bogoFallbackMessage = "Add an eligible 3rd pair to unlock {$bogoExtraDiscount}% OFF on the 3rd item!";
+                        }
                     }
                 }
             }
