@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\GiftVoucher;
 use App\Models\Category;
 use App\Models\Brand;
-use App\Models\Product;
+use App\Models\product\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Yajra\DataTables\Facades\DataTables;
 
 class GiftVoucherController extends Controller
 {
