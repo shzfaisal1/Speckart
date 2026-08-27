@@ -1036,7 +1036,7 @@ class CartService
             $rawName      = trim($activeVoucher->name ?? '');
             $offerLabel   = (strlen($rawName) >= 3 && !preg_match('/^(test|demo|sample|temp|xxx)/i', $rawName))
                             ? $rawName
-                            : '🎁 Gift Voucher Perk';
+                            : 'Gift Voucher Perk';
 
             $giftVoucherPerk = [
                 'id'            => $activeVoucher->id,

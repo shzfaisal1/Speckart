@@ -365,7 +365,7 @@
                                     <option value="">-- Choose Membership Plan --</option>
                                     @foreach($memberships as $card)
                                         <option value="{{ $card->card_id }}" {{ (isset($voucher) && $voucher->membership_card_id == $card->card_id) ? 'selected' : '' }}>
-                                            👑 {{ $card->card_name }} (₹{{ number_format($card->price, 0) }} / {{ $card->validity_days ?? 365 }} Days)
+                                            {{ $card->card_name }} (₹{{ number_format($card->price, 0) }} / {{ $card->validity_days ?? 365 }} Days)
                                         </option>
                                     @endforeach
                                 </select>
@@ -554,7 +554,7 @@
                                 </li>
                                 <li class="d-flex justify-content-between">
                                     <span>BOGO Stacking:</span>
-                                    <strong id="sum_bogo_stack" class="text-danger">Blocked 🚫</strong>
+                                    <strong id="sum_bogo_stack" class="text-danger">Blocked <i class="fa fa-ban text-danger ms-1"></i></strong>
                                 </li>
                             </ul>
                         </div>
@@ -745,9 +745,9 @@ function updateLivePreview() {
     $('#sum_scope').text(scopeLabels[applyOn] || 'All Products');
 
     if (bogoStack) {
-        $('#sum_bogo_stack').removeClass('text-danger').addClass('text-success').text('Allowed ✅');
+        $('#sum_bogo_stack').removeClass('text-danger').addClass('text-success').html('Allowed <i class="fa fa-check text-success ms-1"></i>');
     } else {
-        $('#sum_bogo_stack').removeClass('text-success').addClass('text-danger').text('Blocked 🚫');
+        $('#sum_bogo_stack').removeClass('text-success').addClass('text-danger').html('Blocked <i class="fa fa-ban text-danger ms-1"></i>');
     }
 }
 
