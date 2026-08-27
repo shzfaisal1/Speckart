@@ -3087,8 +3087,8 @@
 
             console.log('Selected Package ID:', selectedLensPackageId, 'Type:', selectedLensType);
 
-            if (selectedLensType === 'Zero Power') {
-                addToCartAjax(selectedLensType, selectedLensPackageId, null, null);
+            if (selectedLensType === 'Zero Power' || (selectedLensType && selectedLensType.toLowerCase().includes('zero'))) {
+                addToCartAjax('Zero Power', selectedLensPackageId, null, null);
             } else {
                 showLensStep(4);
             }
@@ -3815,21 +3815,17 @@
             if (!btn) return;
 
             // Store the determined flow mode on the button so the click handler can read it
-            btn.dataset.flowMode    = isPoweredEyeglass ? 'modal'
+            btn.dataset.flowMode    = (isPoweredEyeglass || isZeroPower) ? 'modal'
                                     : isReadingGlasses  ? 'reading'
-                                    : isZeroPower       ? 'zero_power'
                                     : 'buy_now';
+            btn.dataset.isZeroPower = isZeroPower ? '1' : '0';
             btn.dataset.zeroPackageId = zeroPackageId;
 
-            if (isPoweredEyeglass) {
+            if (isPoweredEyeglass || isZeroPower) {
                 btn.innerHTML = '<i class="bi bi-eye me-1"></i> SELECT LENSES';
                 btn.classList.add('select-lenses-mode');
-                btn.dataset.hasPower = '1';
+                btn.dataset.hasPower = isPoweredEyeglass ? '1' : '0';
             } else if (isReadingGlasses) {
-                btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> BUY NOW';
-                btn.classList.remove('select-lenses-mode');
-                btn.dataset.hasPower = '0';
-            } else if (isZeroPower) {
                 btn.innerHTML = '<i class="bi bi-bag-check me-1"></i> BUY NOW';
                 btn.classList.remove('select-lenses-mode');
                 btn.dataset.hasPower = '0';
@@ -3867,11 +3863,44 @@
         @if(!$isContactLens && !$isSolution && !$isAccessory && !$isSunglass)
         $('#main-action-btn').on('click', function() {
             const flowMode     = this.dataset.flowMode || 'modal';
+            const isZeroPwr    = this.dataset.isZeroPower === '1';
             const zeroPackId   = this.dataset.zeroPackageId || '';
 
             if (flowMode === 'modal') {
-                // Powered Eyeglass → open 3-step lens selection drawer
-                const lensModal = new bootstrap.Modal(document.getElementById('lensModal'));
+                const lensModalEl = document.getElementById('lensModal');
+                const lensModal = bootstrap.Modal.getInstance(lensModalEl) || new bootstrap.Modal(lensModalEl);
+
+                if (isZeroPwr) {
+                    window.initialModalStep = 3;
+
+                    // Auto-select Zero Power card from Step 2 if available
+                    let zeroCard = null;
+                    document.querySelectorAll('.lens-type-card').forEach(card => {
+                        const name = (card.querySelector('.lens-type-name')?.textContent || '').toLowerCase();
+                        if (name.includes('zero')) {
+                            zeroCard = card;
+                        }
+                    });
+
+                    if (zeroCard) {
+                        selectedPowerTypeId = $(zeroCard).data('power-type-id');
+                        selectedLensType = 'Zero Power';
+                        document.querySelectorAll('.lens-type-card').forEach(c => c.classList.remove('active'));
+                        zeroCard.classList.add('active');
+                    } else {
+                        selectedLensType = 'Zero Power';
+                        selectedPowerTypeId = null;
+                    }
+
+                    $('.lens-steps-indicator #dot4').addClass('d-none');
+                    filterLensPackages();
+                    showLensStep(3);
+                } else {
+                    window.initialModalStep = 1;
+                    $('.lens-steps-indicator #dot4').removeClass('d-none');
+                    showLensStep(1);
+                }
+
                 lensModal.show();
 
             } else if (flowMode === 'reading') {
@@ -3886,10 +3915,6 @@
                     return;
                 }
                 addToCartAjax('Reading Glasses', null, JSON.stringify({ reading_power: window.selectedReadingPower }), null);
-
-            } else if (flowMode === 'zero_power') {
-                // Zero Power → direct cart add, auto-bundle default zero power package if available
-                addToCartAjax('Zero Power', zeroPackId || null, null, null);
 
             } else {
                 // Generic BUY NOW (Frame Only, etc.)
@@ -4196,7 +4221,12 @@
             if (!lensModal) return;
 
             lensModal.addEventListener('show.bs.modal', () => {
-                showLensStep(1);
+                if (window.initialModalStep && window.initialModalStep > 1) {
+                    showLensStep(window.initialModalStep);
+                    window.initialModalStep = null;
+                } else {
+                    showLensStep(1);
+                }
                 backToPowerOptions();
             });
             lensModal.addEventListener('hidden.bs.modal', () => {

@@ -26,9 +26,9 @@ class CartService
         // Fetch Lens Package if selected
         $lens = null;
         if ($lensPackageId) {
-            $lens = DB::table('tbl_lens_package')->where('package_id', $lensPackageId)->first();
+            $lens = DB::table('lens_packages')->where('id', $lensPackageId)->first();
             if (!$lens) {
-                $lens = DB::table('lens_packages')->where('id', $lensPackageId)->first();
+                $lens = DB::table('tbl_lens_package')->where('package_id', $lensPackageId)->first();
             }
         }
 
@@ -110,6 +110,7 @@ class CartService
                 'frame_image'       => $imageUrl,
                 'size'              => $size ?: (explode(',', $frame->Size ?? 'Medium')[0]), // FIX: use customer-selected size
                 'lens_package_id'   => $lensIdKey,
+                'lens_type'         => $lensType,
                 'lens_name'         => $lensName,
                 'lens_details'      => $lensDetails,
                 'lens_price'        => $lensPrice,
