@@ -89,10 +89,16 @@ class OrderController extends Controller
             'address_id'    => $address->id,
             'address_type'  => $address->address_type ?? 'Home',
             'full_name'     => $address->full_name,
+            'first_name'    => $address->first_name,
+            'last_name'     => $address->last_name,
             'phone'         => $address->phone,
             'pincode'       => $address->pincode,
             'house_no'      => $address->house_no,
+            'address_line_1'=> $address->address_line_1 ?? $address->house_no,
             'road_area'     => $address->road_area,
+            'address_line_2'=> $address->address_line_2 ?? $address->road_area,
+            'city'          => $address->city,
+            'state'         => $address->state,
             'landmark'      => $address->landmark,
             'email'         => $address->email,
             'full_address'  => $address->full_address,
@@ -107,19 +113,26 @@ class OrderController extends Controller
     public function save_shipping_details(Request $request)
     {
         $validated = $request->validate([
-            'full_name'     => 'required|string|max:255',
+            'full_name'     => 'nullable|string|max:255',
+            'first_name'    => 'nullable|string|max:255',
+            'last_name'     => 'nullable|string|max:255',
             'phone'         => 'required|digits:10',
             'pincode'       => 'required|digits:6',
-            'house_no'      => 'required|string|max:500',
-            'road_area'     => 'required|string|max:500',
+            'house_no'      => 'nullable|string|max:500',
+            'address_line_1'=> 'nullable|string|max:500',
+            'road_area'     => 'nullable|string|max:500',
+            'address_line_2'=> 'nullable|string|max:500',
+            'city'          => 'nullable|string|max:255',
+            'state'         => 'nullable|string|max:255',
             'landmark'      => 'nullable|string|max:255',
             'email'         => 'nullable|email|max:255',
             'address_type'  => 'nullable|string|max:50',
+            'is_default'    => 'nullable|boolean',
         ], [
-            'phone.required' => 'Please enter your mobile number.',
-            'phone.digits'   => 'Mobile number must be exactly 10 digits.',
+            'phone.required'   => 'Please enter your mobile number.',
+            'phone.digits'     => 'Mobile number must be exactly 10 digits.',
             'pincode.required' => 'Please enter your pincode.',
-            'pincode.digits' => 'Pincode must be exactly 6 digits.',
+            'pincode.digits'   => 'Pincode must be exactly 6 digits.',
         ]);
 
         // Validate pincode serviceability
@@ -128,31 +141,78 @@ class OrderController extends Controller
             return redirect()->route('shipping-details')->withInput()->with('error', $pincodeCheck['message']);
         }
 
-        $addressType = $validated['address_type'] ?? 'Home';
+        $firstName = $validated['first_name'] ?? '';
+        $lastName  = $validated['last_name'] ?? '';
+        $fullName  = $validated['full_name'] ?? trim($firstName . ' ' . $lastName);
+        if (empty($fullName)) {
+            $fullName = auth()->user()->name ?? 'Customer';
+        }
+        if (empty($firstName)) {
+            $parts = explode(' ', $fullName);
+            $firstName = $parts[0] ?? '';
+            $lastName  = count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : '';
+        }
+
+        $addressLine1 = $validated['address_line_1'] ?? ($validated['house_no'] ?? '');
+        $addressLine2 = $validated['address_line_2'] ?? ($validated['road_area'] ?? '');
+        $houseNo      = $addressLine1;
+        $roadArea     = $addressLine2;
+        $city         = $validated['city'] ?? '';
+        $state        = $validated['state'] ?? '';
+        $addressType  = $validated['address_type'] ?? 'Home';
 
         // Build full address string
-        $fullAddress = $validated['house_no'] . ', ' . $validated['road_area'];
+        $fullAddress = $houseNo;
+        if (!empty($roadArea)) {
+            $fullAddress .= ', ' . $roadArea;
+        }
         if (!empty($validated['landmark'])) {
             $fullAddress .= ', Near ' . $validated['landmark'];
         }
+        if (!empty($city)) {
+            $fullAddress .= ', ' . $city;
+        }
+        if (!empty($state)) {
+            $fullAddress .= ', ' . $state;
+        }
         $fullAddress .= ' - ' . $validated['pincode'];
 
-        $validated['full_address'] = $fullAddress;
+        $validated['full_name']      = $fullName;
+        $validated['first_name']     = $firstName;
+        $validated['last_name']      = $lastName;
+        $validated['house_no']       = $houseNo;
+        $validated['address_line_1'] = $addressLine1;
+        $validated['road_area']      = $roadArea;
+        $validated['address_line_2'] = $addressLine2;
+        $validated['city']           = $city;
+        $validated['state']          = $state;
+        $validated['address_type']   = $addressType;
+        $validated['full_address']   = $fullAddress;
 
         // Save to DB if logged in
         if (auth()->check()) {
+            if (!empty($validated['is_default'])) {
+                \App\Models\UserAddress::where('user_id', auth()->id())->update(['is_default' => false]);
+            }
+
             $savedRecord = \App\Models\UserAddress::create([
-                'user_id'      => auth()->id(),
-                'address_type' => $addressType,
-                'full_name'    => $validated['full_name'],
-                'phone'        => $validated['phone'],
-                'pincode'      => $validated['pincode'],
-                'house_no'     => $validated['house_no'],
-                'road_area'    => $validated['road_area'],
-                'landmark'     => $validated['landmark'] ?? null,
-                'email'        => $validated['email'] ?? null,
-                'full_address' => $fullAddress,
-                'is_default'   => true,
+                'user_id'        => auth()->id(),
+                'address_type'   => $addressType,
+                'full_name'      => $fullName,
+                'first_name'     => $firstName,
+                'last_name'      => $lastName,
+                'phone'          => $validated['phone'],
+                'pincode'        => $validated['pincode'],
+                'house_no'       => $houseNo,
+                'address_line_1' => $addressLine1,
+                'road_area'      => $roadArea,
+                'address_line_2' => $addressLine2,
+                'city'           => $city,
+                'state'          => $state,
+                'landmark'       => $validated['landmark'] ?? null,
+                'email'          => $validated['email'] ?? null,
+                'full_address'   => $fullAddress,
+                'is_default'     => !empty($validated['is_default']),
             ]);
             $validated['address_id'] = $savedRecord->id;
         } else {
@@ -165,9 +225,7 @@ class OrderController extends Controller
             session()->put('saved_addresses', $sessionList);
         }
 
-        session()->put('checkout_shipping', $validated);
-
-        return redirect()->route('payment');
+        return redirect()->route('shipping-details')->with('success', 'Address saved successfully! Click "Deliver to This Address" to continue to payment.');
     }
 
     /**

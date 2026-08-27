@@ -1911,7 +1911,7 @@
                                 </div>
 
                                 {{-- Desktop Checkout Button --}}
-                                <div class="sc-desktop-checkout">
+                                <div class="sc-desktop-checkout py-2">
                                     @if(auth()->check())
                                         <a href="{{ route('shipping-details') }}" class="sc-btn-checkout">
                                             <span>Proceed to Checkout</span>
@@ -1944,12 +1944,12 @@
                                 </div>
 
                                 {{-- Cashback Teaser --}}
-                                @if(isset($cartData['pending_cashback']) && $cartData['pending_cashback'] > 0)
+                                {{-- @if(isset($cartData['pending_cashback']) && $cartData['pending_cashback'] > 0)
                                     <div class="sc-cashback">
                                         <i class="bi bi-gift-fill"></i>
                                         🎉 Earn {{ number_format($cartData['pending_cashback'], 0) }} pts · {{ (int)$cartData['cashback_percent'] }}% cashback
                                     </div>
-                                @endif
+                                @endif --}}
 
                                 {{-- Trust Badges --}}
                                 <div class="sc-trust">
