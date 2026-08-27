@@ -425,10 +425,8 @@ class CartController extends Controller
         $code = strtoupper(trim($request->voucher_code));
         $now  = \Carbon\Carbon::now()->toDateString();
 
-        // Search offers table for a gift_voucher with this coupon_code
-        $offer = DB::table('offers')
-            ->where('offer_type', 'gift_voucher')
-            ->where('coupon_code', $code)
+        // 1. Search in dedicated tbl_gift_vouchers table first
+        $giftVoucher = \App\Models\GiftVoucher::where('code', $code)
             ->where('status', 'active')
             ->where(function ($q) use ($now) {
                 $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
@@ -438,30 +436,120 @@ class CartController extends Controller
             })
             ->first();
 
-        if (!$offer || empty($offer->voucher_value)) {
+        // Fallback to legacy offers table if not found in tbl_gift_vouchers
+        $legacyOffer = null;
+        if (!$giftVoucher) {
+            $legacyOffer = DB::table('offers')
+                ->where('offer_type', 'gift_voucher')
+                ->where('coupon_code', $code)
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+                })
+                ->first();
+        }
+
+        if (!$giftVoucher && !$legacyOffer) {
             return response()->json(['status' => 'error', 'message' => 'Invalid or expired gift voucher code.'], 400);
         }
 
-        // Check minimum cart amount
+        $voucherValue     = $giftVoucher ? (float) $giftVoucher->voucher_value : (float) $legacyOffer->voucher_value;
+        $minCartAmount    = $giftVoucher ? (float) ($giftVoucher->min_cart_amount ?? 0) : (float) ($legacyOffer->min_cart_amount ?? 0);
+        $allowBogoStack   = $giftVoucher ? (bool) $giftVoucher->allow_bogo_stacking : false;
+        $membershipScope  = $giftVoucher ? $giftVoucher->membership_scope : 'all_users';
+        $requiredCardId   = $giftVoucher ? $giftVoucher->membership_card_id : null;
+        $validityDays     = $giftVoucher ? (int) ($giftVoucher->validity_days ?? 30) : (int) ($legacyOffer->voucher_validity_days ?? 30);
+        $voucherDesc      = $giftVoucher ? ($giftVoucher->description ?? $giftVoucher->name) : ($legacyOffer->description ?? $legacyOffer->name);
+
         $currentCalc = $this->cartService->getCartCalculations();
-        $subtotal = ($currentCalc['frame_subtotal'] ?? 0) + ($currentCalc['lens_subtotal'] ?? 0);
-        if (!empty($offer->min_cart_amount) && $subtotal < (float) $offer->min_cart_amount) {
+
+        // 2. Membership Eligibility Check
+        $user = Auth::user();
+        $hasActiveMembership = session()->get('membership_bogo_active', false) 
+            || session()->has('cart_membership')
+            || ($user && !empty($user->is_membership_active));
+
+        $userCardId = null;
+        if (session()->has('cart_membership')) {
+            $userCardId = session()->get('cart_membership')['card_id'] ?? null;
+        } elseif (session()->has('active_membership')) {
+            $userCardId = session()->get('active_membership')['card_id'] ?? null;
+        } elseif ($user && !empty($user->membership_card_id)) {
+            $userCardId = $user->membership_card_id;
+        }
+
+        if ($membershipScope === 'any_membership' && !$hasActiveMembership) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Minimum cart value of ₹' . number_format($offer->min_cart_amount) . ' is required to use this voucher.'
+                'message' => 'This gift voucher is exclusively available for active Gold/VIP Club members.'
             ], 400);
         }
 
+        if ($membershipScope === 'specific_membership' && $requiredCardId) {
+            $cardMatched = ($hasActiveMembership && $userCardId == $requiredCardId);
+            if (!$cardMatched) {
+                $targetCard = DB::table('tbl_membership_card')->where('card_id', $requiredCardId)->first();
+                $cardName = $targetCard ? $targetCard->card_name : 'specified membership';
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "This voucher is exclusive to '{$cardName}' members."
+                ], 400);
+            }
+        }
+
+        // 3. Anti-Stacking Guard (Prevents ₹0 free carts with BOGO)
+        if (!$allowBogoStack && ($currentCalc['bogo_savings'] ?? 0) > 0) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gift vouchers cannot be combined with Buy 1 Get 1 Free frame offers.'
+            ], 400);
+        }
+
+        // 4. Net Cart Amount Validation (Post-BOGO discount)
+        $netSubtotal = max(0, 
+            ($currentCalc['frame_subtotal'] ?? 0) 
+            - ($currentCalc['bogo_savings'] ?? 0) 
+            - ($currentCalc['third_item_savings'] ?? 0) 
+            + ($currentCalc['lens_subtotal'] ?? 0)
+        );
+
+        if ($minCartAmount > 0 && $netSubtotal < $minCartAmount) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Minimum net order value of ₹' . number_format($minCartAmount) . ' (after frame discounts) is required to use this voucher.'
+            ], 400);
+        }
+
+        // 5. Product/Category/Brand Scope Matching (for dedicated gift vouchers)
+        if ($giftVoucher && $giftVoucher->apply_on !== 'all_products') {
+            $hasEligibleProduct = false;
+            foreach ($currentCalc['items'] as $cartItem) {
+                if (empty($cartItem['is_membership']) && $giftVoucher->isProductEligible($cartItem)) {
+                    $hasEligibleProduct = true;
+                    break;
+                }
+            }
+            if (!$hasEligibleProduct) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'This voucher is not applicable to any products currently in your cart.'
+                ], 400);
+            }
+        }
+
         $voucherData = [
-            'code'           => $code,
-            'voucher_value'  => (float) $offer->voucher_value,
-            'validity_days'  => (int) ($offer->voucher_validity_days ?? 30),
-            'discount_type'  => 'fixed',
-            'discount_amount'=> (float) $offer->voucher_value,
-            'amount_applied' => (float) $offer->voucher_value,
+            'code'              => $code,
+            'voucher_value'     => $voucherValue,
+            'validity_days'     => $validityDays,
+            'discount_type'     => 'fixed',
+            'discount_amount'   => $voucherValue,
+            'amount_applied'    => $voucherValue,
             'remaining_balance' => 0,
-            'description'    => $offer->description ?? $offer->name,
-            'offer_id'       => $offer->id,
+            'description'       => $voucherDesc,
+            'voucher_id'        => $giftVoucher ? $giftVoucher->id : ($legacyOffer->id ?? null),
         ];
 
         session()->put('applied_voucher', $voucherData);
@@ -470,12 +558,12 @@ class CartController extends Controller
         $couponData = [
             'code'             => $code,
             'discount_type'    => 'fixed',
-            'discount_value'   => (float) $offer->voucher_value,
+            'discount_value'   => $voucherValue,
             'discount_percent' => 0,
-            'discount_amount'  => (float) $offer->voucher_value,
-            'min_cart_amount'  => (float) ($offer->min_cart_amount ?? 0),
+            'discount_amount'  => $voucherValue,
+            'min_cart_amount'  => $minCartAmount,
             'max_discount'     => 0,
-            'description'      => $offer->description ?? $offer->name,
+            'description'      => $voucherDesc,
             'is_gift_voucher'  => true,
         ];
         session()->put('applied_coupon', $couponData);
@@ -484,7 +572,7 @@ class CartController extends Controller
 
         return response()->json([
             'status'   => 'success',
-            'message'  => "Gift Voucher '{$code}' applied! ₹" . number_format($offer->voucher_value, 2) . " discount added.",
+            'message'  => "Gift Voucher '{$code}' applied! ₹" . number_format($voucherValue, 2) . " discount added.",
             'cartData' => $cartData
         ]);
     }

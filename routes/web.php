@@ -523,6 +523,20 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
         Route::get('/{id}',            'show')           ->name('show');
           Route::patch('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
      });
+
+    // ── GIFT VOUCHERS MODULE ──
+    Route::controller(\App\Http\Controllers\Admin\GiftVoucherController::class)
+     ->prefix('gift-vouchers')
+     ->name('gift-vouchers.')
+     ->group(function () {
+         Route::get('/',                     'index')        ->name('index');
+         Route::get('/create',               'create')       ->name('create');
+         Route::post('/',                    'store')        ->name('store');
+         Route::get('/{id}/edit',            'edit')         ->name('edit');
+         Route::put('/{id}',                 'update')       ->name('update');
+         Route::post('/{id}/toggle-status',  'toggleStatus') ->name('toggle-status');
+         Route::delete('/{id}',              'destroy')      ->name('destroy');
+     });
      
       Route::get('/products/subcategories',     [ProductController::class, 'getSubcategories'])->name('products.subcategories');
         Route::post('/products/check-sku',        [ProductController::class, 'checkSku'])->name('products.check-sku');

@@ -184,6 +184,7 @@
             <ul class="slide-menu">
                 <li><a href="{{ url(config('app.admin_path').'/offers/create') }}" class="slide-item">Create Offer</a></li>
                 <li><a href="{{ url(config('app.admin_path').'/offers') }}" class="slide-item">Offer List</a></li>
+                <li><a href="{{ url(config('app.admin_path').'/gift-vouchers') }}" class="slide-item">Gift Vouchers</a></li>
             </ul>
         </li>
 
