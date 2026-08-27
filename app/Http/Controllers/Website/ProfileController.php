@@ -282,14 +282,25 @@ class ProfileController extends Controller
             'is_default'    => 'nullable|boolean',
         ]);
 
-        $fullName = $validated['full_name'] ?? trim(($validated['first_name'] ?? '') . ' ' . ($validated['last_name'] ?? ''));
+        $firstName = $validated['first_name'] ?? '';
+        $lastName  = $validated['last_name'] ?? '';
+        $fullName  = $validated['full_name'] ?? trim($firstName . ' ' . $lastName);
         if (empty($fullName)) {
             $fullName = auth()->user()->name ?? 'Customer';
         }
+        if (empty($firstName)) {
+            $parts = explode(' ', $fullName);
+            $firstName = $parts[0] ?? '';
+            $lastName  = count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : '';
+        }
 
-        $houseNo  = $validated['house_no'] ?? ($validated['address_line_1'] ?? '');
-        $roadArea = $validated['road_area'] ?? ($validated['address_line_2'] ?? ($validated['city'] ?? ''));
-        $addressType = $validated['address_type'] ?? ($validated['type'] ?? 'Home');
+        $addressLine1 = $validated['address_line_1'] ?? ($validated['house_no'] ?? '');
+        $addressLine2 = $validated['address_line_2'] ?? ($validated['road_area'] ?? '');
+        $houseNo      = $addressLine1;
+        $roadArea     = $addressLine2;
+        $city         = $validated['city'] ?? '';
+        $state        = $validated['state'] ?? '';
+        $addressType  = $validated['address_type'] ?? ($validated['type'] ?? 'Home');
 
         $fullAddress = $houseNo;
         if (!empty($roadArea)) {
@@ -298,11 +309,11 @@ class ProfileController extends Controller
         if (!empty($validated['landmark'])) {
             $fullAddress .= ', Near ' . $validated['landmark'];
         }
-        if (!empty($validated['city'])) {
-            $fullAddress .= ', ' . $validated['city'];
+        if (!empty($city)) {
+            $fullAddress .= ', ' . $city;
         }
-        if (!empty($validated['state'])) {
-            $fullAddress .= ', ' . $validated['state'];
+        if (!empty($state)) {
+            $fullAddress .= ', ' . $state;
         }
         $fullAddress .= ' - ' . $validated['pincode'];
 
@@ -314,23 +325,35 @@ class ProfileController extends Controller
             }
 
             UserAddress::create([
-                'user_id'      => $user->id,
-                'address_type' => $addressType,
-                'full_name'    => $fullName,
-                'phone'        => $validated['phone'],
-                'pincode'      => $validated['pincode'],
-                'house_no'     => $houseNo,
-                'road_area'    => $roadArea,
-                'landmark'     => $validated['landmark'] ?? null,
-                'email'        => $validated['email'] ?? null,
-                'full_address' => $fullAddress,
-                'is_default'   => !empty($validated['is_default']),
+                'user_id'        => $user->id,
+                'address_type'   => $addressType,
+                'full_name'      => $fullName,
+                'first_name'     => $firstName,
+                'last_name'      => $lastName,
+                'phone'          => $validated['phone'],
+                'pincode'        => $validated['pincode'],
+                'house_no'       => $houseNo,
+                'address_line_1' => $addressLine1,
+                'road_area'      => $roadArea,
+                'address_line_2' => $addressLine2,
+                'city'           => $city,
+                'state'          => $state,
+                'landmark'       => $validated['landmark'] ?? null,
+                'email'          => $validated['email'] ?? null,
+                'full_address'   => $fullAddress,
+                'is_default'     => !empty($validated['is_default']),
             ]);
         } else {
             $sessionList = session()->get('saved_addresses', []);
             $tempId = 'guest_' . time();
             $validated['id'] = $tempId;
             $validated['full_name'] = $fullName;
+            $validated['first_name'] = $firstName;
+            $validated['last_name'] = $lastName;
+            $validated['address_line_1'] = $addressLine1;
+            $validated['address_line_2'] = $addressLine2;
+            $validated['city'] = $city;
+            $validated['state'] = $state;
             $validated['full_address'] = $fullAddress;
             $validated['address_type'] = $addressType;
             $sessionList[] = $validated;
@@ -384,14 +407,25 @@ class ProfileController extends Controller
             'is_default'    => 'nullable|boolean',
         ]);
 
-        $fullName = $validated['full_name'] ?? trim(($validated['first_name'] ?? '') . ' ' . ($validated['last_name'] ?? ''));
+        $firstName = $validated['first_name'] ?? '';
+        $lastName  = $validated['last_name'] ?? '';
+        $fullName  = $validated['full_name'] ?? trim($firstName . ' ' . $lastName);
         if (empty($fullName)) {
             $fullName = auth()->user()->name ?? 'Customer';
         }
+        if (empty($firstName)) {
+            $parts = explode(' ', $fullName);
+            $firstName = $parts[0] ?? '';
+            $lastName  = count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : '';
+        }
 
-        $houseNo  = $validated['house_no'] ?? ($validated['address_line_1'] ?? '');
-        $roadArea = $validated['road_area'] ?? ($validated['address_line_2'] ?? ($validated['city'] ?? ''));
-        $addressType = $validated['address_type'] ?? ($validated['type'] ?? 'Home');
+        $addressLine1 = $validated['address_line_1'] ?? ($validated['house_no'] ?? '');
+        $addressLine2 = $validated['address_line_2'] ?? ($validated['road_area'] ?? '');
+        $houseNo      = $addressLine1;
+        $roadArea     = $addressLine2;
+        $city         = $validated['city'] ?? '';
+        $state        = $validated['state'] ?? '';
+        $addressType  = $validated['address_type'] ?? ($validated['type'] ?? 'Home');
 
         $fullAddress = $houseNo;
         if (!empty($roadArea)) {
@@ -400,11 +434,11 @@ class ProfileController extends Controller
         if (!empty($validated['landmark'])) {
             $fullAddress .= ', Near ' . $validated['landmark'];
         }
-        if (!empty($validated['city'])) {
-            $fullAddress .= ', ' . $validated['city'];
+        if (!empty($city)) {
+            $fullAddress .= ', ' . $city;
         }
-        if (!empty($validated['state'])) {
-            $fullAddress .= ', ' . $validated['state'];
+        if (!empty($state)) {
+            $fullAddress .= ', ' . $state;
         }
         $fullAddress .= ' - ' . $validated['pincode'];
 
@@ -418,21 +452,27 @@ class ProfileController extends Controller
                 }
 
                 $addr->update([
-                    'address_type' => $addressType,
-                    'full_name'    => $fullName,
-                    'phone'        => $validated['phone'],
-                    'pincode'      => $validated['pincode'],
-                    'house_no'     => $houseNo,
-                    'road_area'    => $roadArea,
-                    'landmark'     => $validated['landmark'] ?? null,
-                    'email'        => $validated['email'] ?? null,
-                    'full_address' => $fullAddress,
-                    'is_default'   => !empty($validated['is_default']),
+                    'address_type'   => $addressType,
+                    'full_name'      => $fullName,
+                    'first_name'     => $firstName,
+                    'last_name'      => $lastName,
+                    'phone'          => $validated['phone'],
+                    'pincode'        => $validated['pincode'],
+                    'house_no'       => $houseNo,
+                    'address_line_1' => $addressLine1,
+                    'road_area'      => $roadArea,
+                    'address_line_2' => $addressLine2,
+                    'city'           => $city,
+                    'state'          => $state,
+                    'landmark'       => $validated['landmark'] ?? null,
+                    'email'          => $validated['email'] ?? null,
+                    'full_address'   => $fullAddress,
+                    'is_default'     => !empty($validated['is_default']),
                 ]);
             }
         }
 
-        return redirect()->route('my-addresses')->with('success', 'Address updated successfully!');
+        return redirect()->back()->with('success', 'Address updated successfully!');
     }
 
     public function delete_address($id)
