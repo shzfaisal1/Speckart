@@ -146,7 +146,7 @@
                 {{-- <li><a href="{{ route('admin.b2c-orders.index', ['rx_status' => 'pending_review']) }}" class="slide-item">Pending Rx Verification</a></li> --}}
                 {{-- <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'processing']) }}" class="slide-item">In Lab / Processing</a></li> --}}
                 {{-- <li><a href="{{ route('admin.b2c-orders.index', ['order_status' => 'shipped']) }}" class="slide-item">Shipped Orders</a></li> --}}
-                <li><a href="{{ route('admin.b2c-customers.index') }}" class="slide-item">Registered Customers</a></li>
+                <!-- <li><a href="{{ route('admin.b2c-customers.index') }}" class="slide-item">Registered Customers</a></li> -->
                 <li><a href="{{ route('admin.home-eye-test.index') }}" class="slide-item">Home Eye Test Bookings</a></li>
                 <li><a href="{{ route('admin.shipping-charges.index') }}" class="slide-item">Shipping Charges</a></li>
             </ul>
