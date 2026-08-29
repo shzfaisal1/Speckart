@@ -177,6 +177,15 @@ class CartController extends Controller
         $code = strtoupper(trim($request->coupon_code));
         $now  = \Carbon\Carbon::now()->toDateString();
 
+        // 0. If code is a Gift Voucher from tbl_gift_vouchers, delegate directly to applyVoucher
+        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_gift_vouchers')) {
+            $isVoucher = \App\Models\GiftVoucher::where('code', $code)->exists();
+            if ($isVoucher) {
+                $request->merge(['voucher_code' => $code]);
+                return $this->applyVoucher($request);
+            }
+        }
+
         // 1. Search offers table
         $offer = DB::table('offers')
             ->where('coupon_code', $code)
@@ -298,11 +307,12 @@ class CartController extends Controller
     public function removeCoupon()
     {
         session()->forget('applied_coupon');
+        session()->forget('applied_voucher');
         $cartData = $this->cartService->getCartCalculations(null);
 
         return response()->json([
             'status'   => 'success',
-            'message'  => 'Coupon removed successfully.',
+            'message'  => 'Offer/Voucher removed successfully.',
             'cartData' => $cartData
         ]);
     }
@@ -456,6 +466,29 @@ class CartController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Invalid or expired gift voucher code.'], 400);
         }
 
+        // Validate customer-bound voucher ownership if user_id or contact_no is specified
+        $user = Auth::user();
+        if ($giftVoucher && (!empty($giftVoucher->user_id) || !empty($giftVoucher->contact_no))) {
+            $matched = false;
+            if ($user && !empty($giftVoucher->user_id) && $giftVoucher->user_id == $user->id) {
+                $matched = true;
+            }
+            $userPhone = $user->phone ?? ($user->mobile ?? ($user->contact_no ?? session('checkout_shipping.phone')));
+            if (!empty($userPhone) && !empty($giftVoucher->contact_no)) {
+                $cleanU = preg_replace('/[^0-9]/', '', (string)$userPhone);
+                $cleanV = preg_replace('/[^0-9]/', '', (string)$giftVoucher->contact_no);
+                if ($cleanU === $cleanV || (strlen($cleanU) >= 10 && str_ends_with($cleanV, substr($cleanU, -10)))) {
+                    $matched = true;
+                }
+            }
+            if (!$matched && $user && !empty($giftVoucher->user_id) && $giftVoucher->user_id != $user->id) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'This gift voucher is assigned to a specific customer account.'
+                ], 400);
+            }
+        }
+
         $voucherValue     = $giftVoucher ? (float) $giftVoucher->voucher_value : (float) $legacyOffer->voucher_value;
         $minCartAmount    = $giftVoucher ? (float) ($giftVoucher->min_cart_amount ?? 0) : (float) ($legacyOffer->min_cart_amount ?? 0);
         $allowBogoStack   = $giftVoucher ? (bool) $giftVoucher->allow_bogo_stacking : false;
@@ -467,7 +500,6 @@ class CartController extends Controller
         $currentCalc = $this->cartService->getCartCalculations();
 
         // 2. Membership Eligibility Check
-        $user = Auth::user();
         $hasActiveMembership = session()->get('membership_bogo_active', false) 
             || session()->has('cart_membership')
             || ($user && !empty($user->is_membership_active));
@@ -550,6 +582,8 @@ class CartController extends Controller
             'remaining_balance' => 0,
             'description'       => $voucherDesc,
             'voucher_id'        => $giftVoucher ? $giftVoucher->id : ($legacyOffer->id ?? null),
+            'voucher_type'      => $giftVoucher ? ($giftVoucher->voucher_type ?? 'promotional') : 'legacy',
+            'is_single_use'     => $giftVoucher ? (bool)($giftVoucher->is_single_use ?? true) : false,
         ];
 
         session()->put('applied_voucher', $voucherData);

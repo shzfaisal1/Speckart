@@ -491,6 +491,106 @@
     letter-spacing: 0.5px;
 }
 
+/* ── Gold Max Benefit Voucher Card ── */
+.pf-gold-voucher-card {
+    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f3e8ff 100%);
+    border: 1.5px solid #d8b4fe;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(147, 51, 234, 0.08);
+}
+.pf-gold-voucher-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, #d97706 0%, #f59e0b 50%, #9333ea 100%);
+}
+.pf-voucher-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+.pf-voucher-value-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #581c87;
+    margin-bottom: 2px;
+    font-family: 'Poppins', sans-serif;
+}
+.pf-voucher-benefit-tag {
+    font-size: 13px;
+    font-weight: 600;
+    color: #9333ea;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.pf-voucher-status-badge {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.pf-voucher-meta {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed #d8b4fe;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.pf-voucher-validity {
+    font-size: 12px;
+    color: #6b21a8;
+    font-weight: 500;
+}
+.pf-voucher-code-pill {
+    background: #ffffff;
+    border: 1px dashed #9333ea;
+    color: #581c87;
+    font-family: monospace;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-redeem-gold {
+    background: linear-gradient(135deg, #7e22ce 0%, #9333ea 100%);
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 22px;
+    border-radius: 10px;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(126, 34, 206, 0.25);
+    transition: all 0.2s ease;
+}
+.btn-redeem-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(126, 34, 206, 0.35);
+    color: #ffffff !important;
+}
+
 /* ── Friendly Support Strip ── */
 .pf-support-strip {
     background: linear-gradient(135deg, #07484A 0%, #0a5658 100%);
@@ -597,11 +697,27 @@
 </style>
 
 @php
-    // Fetch active gift vouchers for this user from session + offers table
+    // Fetch active gift vouchers for this user from session + tbl_gift_vouchers + offers table
     $profileVoucher = session()->get('applied_voucher', null);
-
-    // Also get available manual-code vouchers from offers table
     $now = \Carbon\Carbon::now()->toDateString();
+
+    // 1. Customer-bound Gift Vouchers from tbl_gift_vouchers (Auto-generated Gold deferred vouchers, etc.)
+    $customerVouchers = collect();
+    if (\Illuminate\Support\Facades\Schema::hasTable('tbl_gift_vouchers') && $user) {
+        $userPhone = $user->phone ?? ($user->mobile ?? ($user->contact_no ?? null));
+        $customerVouchers = \App\Models\GiftVoucher::where('status', 'active')
+            ->forCustomer($user->id, $userPhone)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+            })
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    // 2. Available general manual-code vouchers from offers table
     $profileAvailableVouchers = DB::table('offers')
         ->where('offer_type', 'gift_voucher')
         ->whereNotNull('coupon_code')
@@ -845,7 +961,7 @@
                         <!-- 5. Voucher Balance -->
                         @php
                             $sessionVoucher = session()->get('applied_voucher', null);
-                            $hasManualVouchers = $profileAvailableVouchers->count() > 0;
+                            $totalAvailableCount = $customerVouchers->count() + $profileAvailableVouchers->count();
                         @endphp
                         <a href="{{ route('cart') }}" class="pf-service-card">
                             <div class="pf-service-icon-box icon-box-voucher">
@@ -854,8 +970,8 @@
                             <span class="pf-service-title">Gift Vouchers</span>
                             @if($sessionVoucher)
                                 <span class="pf-service-badge text-success" style="background:#ecfdf5;">₹{{ number_format($sessionVoucher['amount_applied'] ?? 0) }} Applied</span>
-                            @elseif($hasManualVouchers)
-                                <span class="pf-service-badge" style="background:#f5f3ff; color:#7c3aed;">{{ $profileAvailableVouchers->count() }} Available</span>
+                            @elseif($totalAvailableCount > 0)
+                                <span class="pf-service-badge" style="background:#f5f3ff; color:#7c3aed;">{{ $totalAvailableCount }} Available</span>
                             @else
                                 {{-- <span class="pf-service-badge text-muted" style="background:#f1f5f9;">Cart Rewards</span> --}}
                             @endif
@@ -880,14 +996,14 @@
                 </div>
 
                 <!-- ── Active Vouchers Widget ── -->
-                @if($sessionVoucher || $hasManualVouchers)
+                @if($sessionVoucher || $customerVouchers->count() > 0 || $profileAvailableVouchers->count() > 0)
                     <div class="pf-vouchers-widget">
                         <div class="pf-vouchers-header">
                             <div class="pf-vouchers-title">
                                 <div class="pf-vouchers-icon"><i class="bi bi-gift-fill"></i></div>
                                 <div>
-                                    <h6 class="mb-0 fw-bold" style="color:#5b21b6; font-size:14.5px;">Your Active Gift Vouchers</h6>
-                                    <small class="text-muted" style="font-size:11.5px;">Ready to apply during your next checkout</small>
+                                    <h6 class="mb-0 fw-bold" style="color:#5b21b6; font-size:14.5px;">Your Benefits / Gift Vouchers</h6>
+                                    <small class="text-muted" style="font-size:11.5px;">Exclusive member benefits ready to redeem</small>
                                 </div>
                             </div>
                             <a href="{{ route('cart') }}" class="btn btn-sm fw-bold px-3"
@@ -915,8 +1031,43 @@
                             </div>
                         @endif
 
-                        {{-- Available Offers Table Vouchers --}}
-                        @if($hasManualVouchers)
+                        {{-- Customer-Bound Gold Max Benefit Vouchers (Auto-Generated from Order #1) --}}
+                        @if($customerVouchers->count() > 0)
+                            @foreach($customerVouchers as $cv)
+                                <div class="pf-gold-voucher-card">
+                                    <div class="pf-voucher-head">
+                                        <div>
+                                            <div class="pf-voucher-value-title">₹{{ number_format($cv->voucher_value, 0) }} Gift Voucher</div>
+                                            <div class="pf-voucher-benefit-tag">
+                                                <i class="bi bi-award-fill text-warning"></i> {{ $cv->name ?: 'Gold Max Benefit' }}
+                                            </div>
+                                        </div>
+                                        <span class="pf-voucher-status-badge">
+                                            <i class="bi bi-check-circle-fill me-1"></i> AVAILABLE
+                                        </span>
+                                    </div>
+                                    <div class="pf-voucher-meta">
+                                        <div>
+                                            <div class="pf-voucher-validity">
+                                                <i class="bi bi-clock-history me-1"></i>
+                                                Valid till: <strong>{{ $cv->end_date ? \Carbon\Carbon::parse($cv->end_date)->format('d M Y') : '30 days' }}</strong>
+                                            </div>
+                                            <div class="mt-1">
+                                                <span class="pf-voucher-code-pill" title="Click to copy code" onclick="navigator.clipboard.writeText('{{ $cv->code }}'); alert('Voucher code {{ $cv->code }} copied!');" style="cursor:pointer;">
+                                                    <i class="bi bi-copy"></i> {{ $cv->code }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('products') }}" class="btn-redeem-gold">
+                                            REDEEM NOW <i class="bi bi-arrow-right-short fs-5"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+
+                        {{-- Available General Offers Table Vouchers --}}
+                        @if($profileAvailableVouchers->count() > 0)
                             @foreach($profileAvailableVouchers as $pv)
                                 <div class="pf-voucher-item">
                                     <div>

@@ -1047,12 +1047,12 @@ class CartService
                 'cta_url'    => route('products', ['bogo_eligible' => 1]),
             ];
         } elseif (($hasMembershipInCart || $membershipBogoEnabled) && $bogoEligibleCount == 1) {
-            // State 2: Gold active AND exactly 1 eligible frame in cart -> Prompt to add 2nd pair FREE
+            // State 2: Gold active AND exactly 1 eligible frame in cart -> Choice: Add 2nd pair FREE now OR ₹2,600 Voucher Later
             $bannerState = [
                 'state'      => 2,
-                'title'      => 'Gold Max Membership added',
-                'subtitle'   => 'Add 2nd Pair for Free',
-                'btn_text'   => 'Choose Now',
+                'title'      => 'Gold Max Member Perk: Buy 1 Get 1 Free',
+                'subtitle'   => 'Add a 2nd pair to get it FREE now, or complete this order to get a ₹2,600 Gift Voucher for later!',
+                'btn_text'   => 'Add 2nd Pair Free',
                 'btn_action' => 'choose_bogo',
                 'cta_url'    => route('products', ['bogo_eligible' => 1]),
             ];
@@ -1159,34 +1159,100 @@ class CartService
     }
 
     /**
-     * Get active Gift Vouchers from offers table (with a coupon_code set)
+     * Get active Gift Vouchers from tbl_gift_vouchers & offers table (including customer-bound vouchers)
      */
     public function getAvailableVouchers()
     {
         $now = \Carbon\Carbon::now()->toDateString();
-
-        $rows = DB::table('offers')
-            ->where('offer_type', 'gift_voucher')
-            ->whereNotNull('coupon_code')
-            ->where('coupon_code', '!=', '')
-            ->where('status', 'active')
-            ->where(function ($q) use ($now) {
-                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
-            })
-            ->where(function ($q) use ($now) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
-            })
-            ->get();
-
+        $user = auth()->user() ?? null;
         $vouchers = [];
-        foreach ($rows as $r) {
-            $vouchers[] = [
-                'code'        => strtoupper($r->coupon_code),
-                'balance'     => (float) ($r->voucher_value ?? 0),
-                'expires_at'  => $r->end_date ? \Carbon\Carbon::parse($r->end_date)->format('d M Y') : null,
-                'description' => $r->description ?? $r->name,
-            ];
+        $addedCodes = [];
+
+        // 1. Fetch from tbl_gift_vouchers (Customer-bound & General)
+        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_gift_vouchers')) {
+            $gvQuery = DB::table('tbl_gift_vouchers')
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+                });
+
+            // If user is logged in or phone is in session, fetch user-specific + public vouchers
+            $userPhone = $user->phone ?? ($user->mobile ?? ($user->contact_no ?? session('checkout_shipping.phone')));
+            $userId = $user->id ?? null;
+
+            if ($userId || $userPhone) {
+                $gvQuery->where(function ($q) use ($userId, $userPhone) {
+                    $q->where(function ($sq) {
+                        $sq->whereNull('user_id')->whereNull('contact_no');
+                    });
+                    if ($userId) {
+                        $q->orWhere('user_id', $userId);
+                    }
+                    if ($userPhone) {
+                        $clean = preg_replace('/[^0-9]/', '', (string)$userPhone);
+                        $last10 = strlen($clean) >= 10 ? substr($clean, -10) : $clean;
+                        $q->orWhere('contact_no', $userPhone)
+                          ->orWhere('contact_no', $clean)
+                          ->orWhere('contact_no', 'LIKE', '%' . $last10);
+                    }
+                });
+            } else {
+                // Guest without phone in session: only show general unassigned vouchers
+                $gvQuery->whereNull('user_id')->whereNull('contact_no');
+            }
+
+            $gvRows = $gvQuery->orderByDesc('id')->get();
+            foreach ($gvRows as $gv) {
+                $code = strtoupper(trim($gv->code));
+                if (!in_array($code, $addedCodes)) {
+                    $addedCodes[] = $code;
+                    $isGold = ($gv->voucher_type ?? '') === 'gold_deferred';
+                    $vouchers[] = [
+                        'code'         => $code,
+                        'balance'      => (float) ($gv->voucher_value ?? 0),
+                        'expires_at'   => $gv->end_date ? \Carbon\Carbon::parse($gv->end_date)->format('d M Y') : null,
+                        'description'  => $gv->description ?? $gv->name,
+                        'voucher_type' => $gv->voucher_type ?? 'promotional',
+                        'is_gold'      => $isGold,
+                    ];
+                }
+            }
         }
+
+        // 2. Fetch from legacy offers table
+        if (\Illuminate\Support\Facades\Schema::hasTable('offers')) {
+            $rows = DB::table('offers')
+                ->where('offer_type', 'gift_voucher')
+                ->whereNotNull('coupon_code')
+                ->where('coupon_code', '!=', '')
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+                })
+                ->get();
+
+            foreach ($rows as $r) {
+                $code = strtoupper(trim($r->coupon_code));
+                if (!in_array($code, $addedCodes)) {
+                    $addedCodes[] = $code;
+                    $vouchers[] = [
+                        'code'         => $code,
+                        'balance'      => (float) ($r->voucher_value ?? 0),
+                        'expires_at'   => $r->end_date ? \Carbon\Carbon::parse($r->end_date)->format('d M Y') : null,
+                        'description'  => $r->description ?? $r->name,
+                        'voucher_type' => 'legacy',
+                        'is_gold'      => false,
+                    ];
+                }
+            }
+        }
+
         return $vouchers;
     }
 

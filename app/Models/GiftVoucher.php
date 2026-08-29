@@ -33,6 +33,12 @@ class GiftVoucher extends Model
         'total_used',
         'status',
         'added_by',
+        'user_id',
+        'contact_no',
+        'source_order_no',
+        'redeemed_order_no',
+        'voucher_type',
+        'is_single_use',
     ];
 
     protected $casts = [
@@ -48,6 +54,7 @@ class GiftVoucher extends Model
         'product_ids'            => 'array',
         'usage_limit_per_user'   => 'integer',
         'total_used'             => 'integer',
+        'is_single_use'          => 'boolean',
     ];
 
     /* ── Relationships ── */
@@ -69,6 +76,29 @@ class GiftVoucher extends Model
             ->where(function ($q) use ($now) {
                 $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
             });
+    }
+
+    public function scopeForCustomer($query, $userId = null, $phone = null)
+    {
+        return $query->where(function ($q) use ($userId, $phone) {
+            $matched = false;
+            if (!empty($userId)) {
+                $q->orWhere('user_id', $userId);
+                $matched = true;
+            }
+            if (!empty($phone)) {
+                $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+                $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
+                $q->orWhere('contact_no', $phone)
+                  ->orWhere('contact_no', $cleanPhone)
+                  ->orWhere('contact_no', 'LIKE', '%' . $last10);
+                $matched = true;
+            }
+            if (!$matched) {
+                // If neither user nor phone provided, match general vouchers with no customer binding
+                $q->whereNull('user_id')->whereNull('contact_no');
+            }
+        });
     }
 
     /**

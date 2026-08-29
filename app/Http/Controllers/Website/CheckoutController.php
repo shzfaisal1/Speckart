@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\sale\Sale;
 use App\Models\sale\SalePayment;
 use App\Models\sale\SaleProduct;
+use App\Models\GiftVoucher;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class CheckoutController extends Controller
@@ -328,9 +330,87 @@ class CheckoutController extends Controller
                 }
             }
 
+            // 12. Redeem / Burn Applied Gift Voucher (Single-Use, Burn-in-Full)
+            $appliedVoucher = session()->get('applied_voucher', null);
+            $appliedCoupon  = session()->get('applied_coupon', null);
+            $voucherCodeToBurn = $appliedVoucher['code'] ?? (!empty($appliedCoupon['is_gift_voucher']) ? ($appliedCoupon['code'] ?? null) : null);
+
+            if (!empty($voucherCodeToBurn)) {
+                $cleanCode = strtoupper(trim($voucherCodeToBurn));
+                $dbVoucher = GiftVoucher::where('code', $cleanCode)->first();
+                if ($dbVoucher) {
+                    $dbVoucher->total_used = ($dbVoucher->total_used ?? 0) + 1;
+                    if ($dbVoucher->is_single_use || $dbVoucher->voucher_type === 'gold_deferred') {
+                        $dbVoucher->status = 'redeemed';
+                        $dbVoucher->redeemed_order_no = $orderNo;
+                    }
+                    $dbVoucher->save();
+                } else {
+                    DB::table('offers')
+                        ->where('offer_type', 'gift_voucher')
+                        ->where('coupon_code', $cleanCode)
+                        ->increment('total_used', 1);
+                }
+            }
+
+            // 13. Auto-Generate Deferred Gift Voucher (₹2,600 for 2nd Pair) for Gold Members
+            // Triggered when a Gold/Gold Max member buys 1 frame without BOGO and didn't just redeem a deferred voucher
+            $isGoldMember = !empty($membershipPurchased)
+                || ($customer && !empty($customer->membership_card_id) && !empty($customer->membership_expiry) && Carbon::parse($customer->membership_expiry)->isFuture())
+                || session()->has('active_membership');
+
+            $appliedVoucherType = $appliedVoucher['voucher_type'] ?? '';
+            $redeemedGoldVoucher = ($appliedVoucherType === 'gold_deferred');
+
+            $eligibleFrameCount = 0;
+            foreach ($cartData['items'] as $chkItem) {
+                if (empty($chkItem['is_membership']) && !empty($chkItem['is_bogo_eligible'])) {
+                    $eligibleFrameCount += (int)($chkItem['quantity'] ?? 1);
+                }
+            }
+
+            $generatedVoucher = null;
+            if ($isGoldMember && $eligibleFrameCount >= 1 && $bogoDiscount <= 0 && !$redeemedGoldVoucher) {
+                $cardId = $membershipPurchased['card_id'] ?? ($customer->membership_card_id ?? 1);
+                $cardDb = DB::table('tbl_membership_card')->where('card_id', $cardId)->first();
+                $cardName = $cardDb->card_name ?? 'Gold Max Benefit';
+                $voucherDays = !empty($cardDb->voucher_validity_days) ? (int)$cardDb->voucher_validity_days : 30;
+                $voucherValue = 2600.00;
+
+                $uniqueCode = 'GV2600-' . strtoupper(Str::random(6));
+                while (GiftVoucher::where('code', $uniqueCode)->exists()) {
+                    $uniqueCode = 'GV2600-' . strtoupper(Str::random(6));
+                }
+
+                $generatedVoucher = GiftVoucher::create([
+                    'name'                  => '₹' . number_format($voucherValue, 0) . ' ' . $cardName . ' Voucher',
+                    'code'                  => $uniqueCode,
+                    'voucher_value'         => $voucherValue,
+                    'min_cart_amount'       => 0.00,
+                    'start_date'            => Carbon::now()->toDateString(),
+                    'end_date'              => Carbon::now()->addDays($voucherDays)->toDateString(),
+                    'validity_days'         => $voucherDays,
+                    'membership_scope'      => 'any_membership',
+                    'membership_card_id'    => $cardId,
+                    'allow_bogo_stacking'   => false,
+                    'allow_coupon_stacking' => false,
+                    'apply_on'              => 'all_products',
+                    'description'           => '₹' . number_format($voucherValue, 0) . ' Gift Voucher from Order #' . $orderNo . ' (' . $cardName . '). Valid for ' . $voucherDays . ' days.',
+                    'usage_limit_per_user'  => 1,
+                    'total_used'            => 0,
+                    'status'                => 'active',
+                    'added_by'              => $addedBy,
+                    'user_id'               => $custId,
+                    'contact_no'            => $shipping['phone'] ?? ($customer->contact_no ?? null),
+                    'source_order_no'       => $orderNo,
+                    'voucher_type'          => 'gold_deferred',
+                    'is_single_use'         => true,
+                ]);
+            }
+
             DB::commit();
 
-            // 12. Completely clear cart from session AND database (inside try, after commit)
+            // 14. Completely clear cart from session AND database (inside try, after commit)
             $this->cartService->clearCart();
 
         } catch (\Exception $e) {
@@ -340,7 +420,9 @@ class CheckoutController extends Controller
         }
 
         $successMessage = 'Order ' . $orderNo . ' placed successfully!';
-        if ($membershipPurchased) {
+        if ($generatedVoucher) {
+            $successMessage .= ' 🎉 Your ₹' . number_format($generatedVoucher->voucher_value, 0) . ' Gold Benefit Gift Voucher (' . $generatedVoucher->code . ') is now active in My Account!';
+        } elseif ($membershipPurchased) {
             $successMessage .= ' Your ' . $membershipPurchased['card_name'] . ' is now active!';
         }
         if ($paymentMethod === 'cod') {

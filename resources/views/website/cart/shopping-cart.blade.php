@@ -1786,6 +1786,35 @@
                                         </div>
                                     @endif
 
+                                    {{-- Highlight Gold Benefits Vouchers --}}
+                                    @php
+                                        $goldVouchers = array_filter($savedVouchers, function($item) {
+                                            return !empty($item['is_gold']);
+                                        });
+                                    @endphp
+
+                                    @if(!empty($goldVouchers) && !$appliedCode)
+                                        <div class="sc-gold-benefit-box my-2" style="background: linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%); border: 1.5px dashed #c084fc; border-radius: 12px; padding: 12px 14px;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <div class="fw-bold" style="color: #6b21a8; font-size: 13px;">
+                                                    <i class="bi bi-gift-fill text-warning me-1"></i> Your Benefits
+                                                </div>
+                                                <span class="badge" style="background:#8b5cf6; color:#fff; font-size:10px; border-radius:20px;">GOLD BENEFIT</span>
+                                            </div>
+                                            @foreach($goldVouchers as $gv)
+                                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top: 1px dashed #e9d5ff;">
+                                                    <div>
+                                                        <div class="fw-bold" style="color:#581c87; font-size:14px;">₹{{ number_format($gv['balance'], 0) }} Gift Voucher</div>
+                                                        <small class="text-muted" style="font-size:11px;">Single-use · 2nd Pair Benefit</small>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm fw-bold px-3 py-1 apply-quick-coupon" data-code="{{ $gv['code'] }}" style="background:#7c3aed; color:#fff; border-radius:8px; font-size:12px; box-shadow:0 2px 6px rgba(124,58,237,0.3);">
+                                                        APPLY
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
                                     @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
                                         <div class="sc-available-list">
                                             <div class="sc-available-label">
