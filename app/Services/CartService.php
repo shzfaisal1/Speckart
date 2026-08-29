@@ -1179,29 +1179,36 @@ class CartService
                     $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
                 });
 
+            $hasUserCol  = \Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'user_id');
+            $hasPhoneCol = \Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'contact_no');
+
             // If user is logged in or phone is in session, fetch user-specific + public vouchers
             $userPhone = $user->phone ?? ($user->mobile ?? ($user->contact_no ?? session('checkout_shipping.phone')));
             $userId = $user->id ?? null;
 
-            if ($userId || $userPhone) {
-                $gvQuery->where(function ($q) use ($userId, $userPhone) {
-                    $q->where(function ($sq) {
-                        $sq->whereNull('user_id')->whereNull('contact_no');
+            if ($hasUserCol || $hasPhoneCol) {
+                if ($userId || $userPhone) {
+                    $gvQuery->where(function ($q) use ($userId, $userPhone, $hasUserCol, $hasPhoneCol) {
+                        $q->where(function ($sq) use ($hasUserCol, $hasPhoneCol) {
+                            if ($hasUserCol) $sq->whereNull('user_id');
+                            if ($hasPhoneCol) $sq->whereNull('contact_no');
+                        });
+                        if ($hasUserCol && $userId) {
+                            $q->orWhere('user_id', $userId);
+                        }
+                        if ($hasPhoneCol && $userPhone) {
+                            $clean = preg_replace('/[^0-9]/', '', (string)$userPhone);
+                            $last10 = strlen($clean) >= 10 ? substr($clean, -10) : $clean;
+                            $q->orWhere('contact_no', $userPhone)
+                              ->orWhere('contact_no', $clean)
+                              ->orWhere('contact_no', 'LIKE', '%' . $last10);
+                        }
                     });
-                    if ($userId) {
-                        $q->orWhere('user_id', $userId);
-                    }
-                    if ($userPhone) {
-                        $clean = preg_replace('/[^0-9]/', '', (string)$userPhone);
-                        $last10 = strlen($clean) >= 10 ? substr($clean, -10) : $clean;
-                        $q->orWhere('contact_no', $userPhone)
-                          ->orWhere('contact_no', $clean)
-                          ->orWhere('contact_no', 'LIKE', '%' . $last10);
-                    }
-                });
-            } else {
-                // Guest without phone in session: only show general unassigned vouchers
-                $gvQuery->whereNull('user_id')->whereNull('contact_no');
+                } else {
+                    // Guest without phone in session: only show general unassigned vouchers
+                    if ($hasUserCol) $gvQuery->whereNull('user_id');
+                    if ($hasPhoneCol) $gvQuery->whereNull('contact_no');
+                }
             }
 
             $gvRows = $gvQuery->orderByDesc('id')->get();
