@@ -704,6 +704,9 @@ class CartService
         // Check if there is an active BOGO offer with extra 3rd item discount & product targeting
         $now = \Carbon\Carbon::now()->toDateString();
         $activeBogoOffer = \Illuminate\Support\Facades\Cache::remember('active_bogo_extra_discount', 300, function () use ($now) {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('offers')) {
+                return null;
+            }
             return DB::table('offers')
                 ->where('offer_type', 'buy1get1')
                 ->where('status', 'active')
@@ -1080,19 +1083,22 @@ class CartService
 
         // Fetch dynamic active Gift Voucher perk for cart
         $cartTotalForVoucher = $frameSubtotal + $lensSubtotal;
-        $activeVoucher = DB::table('offers')
-            ->where('offer_type', 'gift_voucher')
-            ->where('status', 'active')
-            ->where(function ($q) use ($now) {
-                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
-            })
-            ->where(function ($q) use ($now) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
-            })
-            ->where(function ($q) use ($cartTotalForVoucher) {
-                $q->whereNull('min_cart_amount')->orWhere('min_cart_amount', '<=', $cartTotalForVoucher);
-            })
-            ->first();
+        $activeVoucher = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('offers')) {
+            $activeVoucher = DB::table('offers')
+                ->where('offer_type', 'gift_voucher')
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+                })
+                ->where(function ($q) use ($cartTotalForVoucher) {
+                    $q->whereNull('min_cart_amount')->orWhere('min_cart_amount', '<=', $cartTotalForVoucher);
+                })
+                ->first();
+        }
 
         $giftVoucherPerk = null;
         if ($activeVoucher) {
@@ -1272,34 +1278,36 @@ class CartService
         $coupons = [];
 
         // 1. Fetch from offers table (where coupon_code is set)
-        $offerCoupons = DB::table('offers')
-            ->whereNotNull('coupon_code')
-            ->where('coupon_code', '!=', '')
-            ->where('status', 'active')
-            ->where(function ($q) use ($now) {
-                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
-            })
-            ->where(function ($q) use ($now) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
-            })
-            ->get();
+        if (\Illuminate\Support\Facades\Schema::hasTable('offers')) {
+            $offerCoupons = DB::table('offers')
+                ->whereNotNull('coupon_code')
+                ->where('coupon_code', '!=', '')
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+                })
+                ->get();
 
-        foreach ($offerCoupons as $o) {
-            $title = ($o->discount_type === 'fixed') ? ('₹' . (int)$o->discount_value . ' OFF') : ((int)$o->discount_value . '% OFF');
-            if ($o->offer_type === 'gift_voucher' && !empty($o->voucher_value)) {
-                $title = '₹' . (int)$o->voucher_value . ' GIFT VOUCHER';
+            foreach ($offerCoupons as $o) {
+                $title = ($o->discount_type === 'fixed') ? ('₹' . (int)$o->discount_value . ' OFF') : ((int)$o->discount_value . '% OFF');
+                if ($o->offer_type === 'gift_voucher' && !empty($o->voucher_value)) {
+                    $title = '₹' . (int)$o->voucher_value . ' GIFT VOUCHER';
+                }
+
+                $coupons[] = [
+                    'code'            => strtoupper($o->coupon_code),
+                    'discount_type'   => $o->discount_type ?? 'percentage',
+                    'discount_value'  => (float) ($o->offer_type === 'gift_voucher' ? $o->voucher_value : $o->discount_value),
+                    'min_cart_amount' => (float) ($o->min_cart_amount ?? 0),
+                    'max_discount'    => (float) ($o->max_discount ?? 0),
+                    'description'     => $o->description ?? ($o->name ?? ''),
+                    'title'           => $title,
+                    'is_gift_voucher' => ($o->offer_type === 'gift_voucher'),
+                ];
             }
-
-            $coupons[] = [
-                'code'            => strtoupper($o->coupon_code),
-                'discount_type'   => $o->discount_type ?? 'percentage',
-                'discount_value'  => (float) ($o->offer_type === 'gift_voucher' ? $o->voucher_value : $o->discount_value),
-                'min_cart_amount' => (float) ($o->min_cart_amount ?? 0),
-                'max_discount'    => (float) ($o->max_discount ?? 0),
-                'description'     => $o->description ?? ($o->name ?? ''),
-                'title'           => $title,
-                'is_gift_voucher' => ($o->offer_type === 'gift_voucher'),
-            ];
         }
 
         // 2. Fetch from coupons table
@@ -1332,14 +1340,15 @@ class CartService
 
         // 3. Fallback SINGLE default coupon if no DB coupons found
         if (empty($coupons)) {
+            $singleDisc = (float) config('vouchers.single_pair_instant_discount', 1500.00);
             $coupons[] = [
                 'code'            => 'SINGLE',
-                'discount_type'   => 'percentage',
-                'discount_value'  => 25,
+                'discount_type'   => 'fixed',
+                'discount_value'  => $singleDisc,
                 'min_cart_amount' => 0,
                 'max_discount'    => 0,
-                'description'     => '25% off frame price',
-                'title'           => '25% OFF',
+                'description'     => 'Extra ₹' . number_format($singleDisc, 0) . ' Off on one pair',
+                'title'           => '₹' . (int)$singleDisc . ' OFF',
             ];
         }
 

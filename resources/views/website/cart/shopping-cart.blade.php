@@ -1788,26 +1788,69 @@
 
                                     {{-- Highlight Gold Benefits Vouchers --}}
                                     @php
+                                        $isGoldUser = !empty($cartData['has_membership_in_cart']) || !empty($cartData['membership_bogo_enabled']) || session()->has('active_membership');
+                                        $eligibleFrames = 0;
+                                        foreach (($cartData['items'] ?? []) as $it) {
+                                            if (empty($it['is_membership']) && !empty($it['is_bogo_eligible'])) {
+                                                $eligibleFrames += (int)($it['quantity'] ?? 1);
+                                            }
+                                        }
                                         $goldVouchers = array_filter($savedVouchers, function($item) {
                                             return !empty($item['is_gold']);
                                         });
                                     @endphp
 
+                                    {{-- Lenskart-Style 3-Way Choice: Gold 1-Frame Dual Offer Cards --}}
+                                    @if($isGoldUser && $eligibleFrames === 1 && !$appliedCode)
+                                        <div class="sc-gold-offers-stack my-2" style="display:flex; flex-direction:column; gap:10px;">
+                                            {{-- Offer 1: Instant Single-Pair Discount --}}
+                                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;">
+                                                <div>
+                                                    <div class="fw-bold" style="color:#0f172a; font-size:13.5px;">
+                                                        <i class="bi bi-tag-fill text-primary me-1"></i> Extra ₹{{ number_format(config('vouchers.single_pair_instant_discount', 1500), 0) }} Off on one pair
+                                                    </div>
+                                                    <small class="text-muted" style="font-size:11px; display:block; margin-top:2px;">
+                                                        • Use Coupon <strong style="color:#0f172a;">SINGLE</strong> · Instant discount today
+                                                    </small>
+                                                </div>
+                                                <button type="button" class="btn btn-sm fw-bold px-3 py-1 apply-quick-coupon" data-code="SINGLE" style="background:#0284c7; color:#fff; border-radius:8px; font-size:12px; border:none;">
+                                                    APPLY
+                                                </button>
+                                            </div>
+
+                                            {{-- Offer 2: Deferred ₹2,600 Gift Voucher (Default Gold Max Benefit) --}}
+                                            <div style="background:linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%); border:1.5px solid #d8b4fe; border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; position:relative;">
+                                                <div>
+                                                    <div class="fw-bold" style="color:#581c87; font-size:13.5px;">
+                                                        <i class="bi bi-gift-fill text-warning me-1"></i> Get ₹{{ number_format(config('vouchers.gold_deferred_voucher_value', 2600), 0) }} Gift Voucher
+                                                    </div>
+                                                    <small class="text-muted" style="font-size:11px; display:block; margin-top:2px;">
+                                                        • GOLD Max Member Benefit · Redeem for a Free pair within 30 days
+                                                    </small>
+                                                </div>
+                                                <span class="badge" style="background:#7c3aed; color:#fff; font-size:10px; border-radius:6px; padding:4px 8px;">
+                                                    AUTO-ISSUED
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- Customer-Bound Active Vouchers Ready to Redeem --}}
                                     @if(!empty($goldVouchers) && !$appliedCode)
                                         <div class="sc-gold-benefit-box my-2" style="background: linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%); border: 1.5px dashed #c084fc; border-radius: 12px; padding: 12px 14px;">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
                                                 <div class="fw-bold" style="color: #6b21a8; font-size: 13px;">
-                                                    <i class="bi bi-gift-fill text-warning me-1"></i> Your Benefits
+                                                    <i class="bi bi-gift-fill text-warning me-1"></i> Your Saved Benefits
                                                 </div>
-                                                <span class="badge" style="background:#8b5cf6; color:#fff; font-size:10px; border-radius:20px;">GOLD BENEFIT</span>
+                                                <span class="badge" style="background:#8b5cf6; color:#fff; font-size:10px; border-radius:20px;">READY TO REDEEM</span>
                                             </div>
                                             @foreach($goldVouchers as $gv)
                                                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top: 1px dashed #e9d5ff;">
                                                     <div>
                                                         <div class="fw-bold" style="color:#581c87; font-size:14px;">₹{{ number_format($gv['balance'], 0) }} Gift Voucher</div>
-                                                        <small class="text-muted" style="font-size:11px;">Single-use · 2nd Pair Benefit</small>
+                                                        <small class="text-muted" style="font-size:11px;">Code: <strong>{{ $gv['code'] }}</strong> · Valid till {{ $gv['expires_at'] ?? '30 days' }}</small>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm fw-bold px-3 py-1 apply-quick-coupon" data-code="{{ $gv['code'] }}" style="background:#7c3aed; color:#fff; border-radius:8px; font-size:12px; box-shadow:0 2px 6px rgba(124,58,237,0.3);">
+                                                    <button type="button" class="btn btn-sm fw-bold px-3 py-1 apply-quick-coupon" data-code="{{ $gv['code'] }}" style="background:#7c3aed; color:#fff; border-radius:8px; font-size:12px; box-shadow:0 2px 6px rgba(124,58,237,0.3); border:none;">
                                                         APPLY
                                                     </button>
                                                 </div>
@@ -1815,26 +1858,31 @@
                                         </div>
                                     @endif
 
+                                    {{-- General Available Offers --}}
                                     @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
                                         <div class="sc-available-list">
                                             <div class="sc-available-label">
-                                                <i class="bi bi-stars text-warning"></i> Available offers
+                                                <i class="bi bi-stars text-warning"></i> Available promo codes
                                             </div>
                                             @foreach($savedVouchers as $v)
-                                                <button type="button" class="sc-available-chip voucher apply-quick-coupon" data-code="{{ $v['code'] }}">
-                                                    <span class="sc-chip-code" style="color:#5b21b6;">
-                                                        <i class="bi bi-gift-fill"></i> {{ $v['code'] }}
-                                                    </span>
-                                                    <span class="sc-chip-tag" style="background:var(--sc-purple);">₹{{ number_format($v['balance'], 0) }}</span>
-                                                </button>
+                                                @if(empty($v['is_gold']))
+                                                    <button type="button" class="sc-available-chip voucher apply-quick-coupon" data-code="{{ $v['code'] }}">
+                                                        <span class="sc-chip-code" style="color:#5b21b6;">
+                                                            <i class="bi bi-gift-fill"></i> {{ $v['code'] }}
+                                                        </span>
+                                                        <span class="sc-chip-tag" style="background:var(--sc-purple);">₹{{ number_format($v['balance'], 0) }}</span>
+                                                    </button>
+                                                @endif
                                             @endforeach
                                             @foreach($availableCoupons as $ac)
-                                                <button type="button" class="sc-available-chip apply-quick-coupon" data-code="{{ $ac['code'] }}">
-                                                    <span class="sc-chip-code" style="color:var(--sc-primary);">
-                                                        <i class="bi bi-ticket-fill"></i> {{ $ac['code'] }}
-                                                    </span>
-                                                    <span class="sc-chip-tag" style="background:var(--sc-primary);">{{ $ac['title'] }}</span>
-                                                </button>
+                                                @if($ac['code'] !== 'SINGLE' || !$isGoldUser)
+                                                    <button type="button" class="sc-available-chip apply-quick-coupon" data-code="{{ $ac['code'] }}">
+                                                        <span class="sc-chip-code" style="color:var(--sc-primary);">
+                                                            <i class="bi bi-ticket-fill"></i> {{ $ac['code'] }}
+                                                        </span>
+                                                        <span class="sc-chip-tag" style="background:var(--sc-primary);">{{ $ac['title'] }}</span>
+                                                    </button>
+                                                @endif
                                             @endforeach
                                         </div>
                                     @endif
