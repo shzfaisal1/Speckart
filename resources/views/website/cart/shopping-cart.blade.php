@@ -602,6 +602,80 @@
     background: #6d28d9;
 }
 
+/* Lenskart Dual-Offer Stack in Cart */
+.sc-offers-stack {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.sc-offer-card {
+    background: #ffffff;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+.sc-offer-card.gold-benefit {
+    background: linear-gradient(135deg, #fdf4ff 0%, #faf5ff 100%);
+    border-color: #c084fc;
+}
+.sc-offer-card.coupon-benefit {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+.sc-offer-card:hover {
+    border-color: var(--sc-primary);
+    box-shadow: 0 4px 12px rgba(0, 162, 151, 0.08);
+}
+.sc-offer-card.applied {
+    border-color: #10b981;
+    border-style: solid;
+    background: #f0fdf4;
+}
+.sc-offer-card-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+}
+.sc-offer-card-icon {
+    font-size: 18px;
+    margin-top: 1px;
+}
+.sc-offer-card-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+.sc-offer-card-desc {
+    font-size: 11.5px;
+    color: #64748b;
+    line-height: 1.35;
+}
+.sc-offer-btn-apply {
+    background: #ffffff;
+    color: var(--sc-primary);
+    border: 1.5px solid var(--sc-primary);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+.sc-offer-btn-apply:hover {
+    background: var(--sc-primary);
+    color: #ffffff;
+}
+
 /* Sidebar card */
 .sc-sidebar-card {
     background: var(--sc-card);
@@ -1786,7 +1860,55 @@
                                         </div>
                                     @endif
 
-                                    {{-- Highlight Gold Benefits Vouchers --}}
+                                    {{-- Lenskart-Style Dual Offer Selection for Gold Members with 1 Frame --}}
+                                    @php
+                                        $hasGold = !empty($cartData['has_membership_in_cart']) || !empty($cartData['membership_bogo_enabled']);
+                                        $itemCount = $cartData['item_count'] ?? 0;
+                                    @endphp
+
+                                    @if($hasGold && !$cartData['is_bogo_active'])
+                                        <div class="sc-offers-stack mb-3">
+                                            {{-- Offer A: Extra ₹1100 Off (SINGLE) --}}
+                                            <div class="sc-offer-card coupon-benefit {{ $appliedCode === 'SINGLE' ? 'applied' : '' }}">
+                                                <div class="sc-offer-card-left">
+                                                    <div class="sc-offer-card-icon text-primary"><i class="bi bi-tag-fill"></i></div>
+                                                    <div>
+                                                        <div class="sc-offer-card-title">Extra ₹1100 Off on one pair</div>
+                                                        <div class="sc-offer-card-desc">
+                                                            • Use Coupon <strong>SINGLE</strong><br>
+                                                            • Instant discount for 1 pair today
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @if($appliedCode === 'SINGLE')
+                                                    <span class="badge bg-success" style="font-size:11px; padding:6px 10px;">APPLIED</span>
+                                                @else
+                                                    <button type="button" class="sc-offer-btn-apply apply-quick-coupon" data-code="SINGLE">APPLY</button>
+                                                @endif
+                                            </div>
+
+                                            {{-- Offer B: Get ₹2600 Gift Voucher (Deferred Benefit) --}}
+                                            <div class="sc-offer-card gold-benefit {{ empty($appliedCode) ? 'applied' : '' }}">
+                                                <div class="sc-offer-card-left">
+                                                    <div class="sc-offer-card-icon text-warning"><i class="bi bi-award-fill"></i></div>
+                                                    <div>
+                                                        <div class="sc-offer-card-title" style="color:#581c87;">Get ₹2600 Gift Voucher</div>
+                                                        <div class="sc-offer-card-desc">
+                                                            • GOLD Max Member Benefit<br>
+                                                            • Redeem for a Free 2nd pair within 30 days
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @if(empty($appliedCode))
+                                                    <span class="badge" style="background:#8b5cf6; color:#fff; font-size:11px; padding:6px 10px;">SELECTED</span>
+                                                @else
+                                                    <button type="button" class="sc-offer-btn-apply" onclick="$('#remove-coupon-btn').click();" style="border-color:#8b5cf6; color:#8b5cf6;">APPLY</button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- Highlight Active Saved Gold Benefits Vouchers (Order #2 Redemption) --}}
                                     @php
                                         $goldVouchers = array_filter($savedVouchers, function($item) {
                                             return !empty($item['is_gold']);
@@ -1797,15 +1919,15 @@
                                         <div class="sc-gold-benefit-box my-2" style="background: linear-gradient(135deg, #fdf4ff 0%, #f3e8ff 100%); border: 1.5px dashed #c084fc; border-radius: 12px; padding: 12px 14px;">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
                                                 <div class="fw-bold" style="color: #6b21a8; font-size: 13px;">
-                                                    <i class="bi bi-gift-fill text-warning me-1"></i> Your Benefits
+                                                    <i class="bi bi-gift-fill text-warning me-1"></i> Your Saved Benefits
                                                 </div>
-                                                <span class="badge" style="background:#8b5cf6; color:#fff; font-size:10px; border-radius:20px;">GOLD BENEFIT</span>
+                                                <span class="badge" style="background:#8b5cf6; color:#fff; font-size:10px; border-radius:20px;">READY TO REDEEM</span>
                                             </div>
                                             @foreach($goldVouchers as $gv)
                                                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2" style="border-top: 1px dashed #e9d5ff;">
                                                     <div>
                                                         <div class="fw-bold" style="color:#581c87; font-size:14px;">₹{{ number_format($gv['balance'], 0) }} Gift Voucher</div>
-                                                        <small class="text-muted" style="font-size:11px;">Single-use · 2nd Pair Benefit</small>
+                                                        <small class="text-muted" style="font-size:11px;">Single-use · Free 2nd Pair</small>
                                                     </div>
                                                     <button type="button" class="btn btn-sm fw-bold px-3 py-1 apply-quick-coupon" data-code="{{ $gv['code'] }}" style="background:#7c3aed; color:#fff; border-radius:8px; font-size:12px; box-shadow:0 2px 6px rgba(124,58,237,0.3);">
                                                         APPLY
@@ -1815,7 +1937,7 @@
                                         </div>
                                     @endif
 
-                                    @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode)
+                                    @if((!empty($availableCoupons) || !empty($savedVouchers)) && !$appliedCode && empty($hasGold))
                                         <div class="sc-available-list">
                                             <div class="sc-available-label">
                                                 <i class="bi bi-stars text-warning"></i> Available offers

@@ -377,6 +377,13 @@ class B2cOrderController extends Controller
         $order->admin_note   = ($order->admin_note ? $order->admin_note . " | " : "") . "Cancelled: " . $request->input('cancellation_reason');
         $order->save();
 
+        // Auto-void any active deferred gift vouchers generated from this order
+        if (!empty($order->order_no) && \Illuminate\Support\Facades\Schema::hasTable('tbl_gift_vouchers') && \Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'source_order_no')) {
+            \App\Models\GiftVoucher::where('source_order_no', $order->order_no)
+                ->where('status', 'active')
+                ->update(['status' => 'cancelled']);
+        }
+
         return redirect()->back()->with('success', "Order has been marked as Cancelled.");
     }
 
@@ -405,6 +412,15 @@ class B2cOrderController extends Controller
             $order->lab_notes  = "FREE LENS REMAKE: " . ($request->input('admin_notes') ?? 'Optical power adjustment');
         } else {
             $order->order_status = 'returned';
+
+            // If returning for a full refund, void any active deferred gift vouchers generated from this order
+            if ($request->input('return_type') === 'refund' && !empty($order->order_no)) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('tbl_gift_vouchers') && \Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'source_order_no')) {
+                    \App\Models\GiftVoucher::where('source_order_no', $order->order_no)
+                        ->where('status', 'active')
+                        ->update(['status' => 'cancelled']);
+                }
+            }
         }
         $order->save();
 
