@@ -349,7 +349,7 @@ class CheckoutController extends Controller
                         (float)($cartData['frame_subtotal'] ?? 0),
                         $orderNo
                     );
-                } else {
+                } elseif (\Illuminate\Support\Facades\Schema::hasTable('offers')) {
                     // Legacy offers table voucher (no lockForUpdate needed — not customer-bound)
                     DB::table('offers')
                         ->where('offer_type', 'gift_voucher')

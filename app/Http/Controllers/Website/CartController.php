@@ -187,16 +187,19 @@ class CartController extends Controller
         }
 
         // 1. Search offers table
-        $offer = DB::table('offers')
-            ->where('coupon_code', $code)
-            ->where('status', 'active')
-            ->where(function ($q) use ($now) {
-                $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
-            })
-            ->where(function ($q) use ($now) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
-            })
-            ->first();
+        $offer = null;
+        if (\Illuminate\Support\Facades\Schema::hasTable('offers')) {
+            $offer = DB::table('offers')
+                ->where('coupon_code', $code)
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
+                })
+                ->first();
+        }
 
         $couponData = null;
 
@@ -263,17 +266,18 @@ class CartController extends Controller
             }
         }
 
-        // 4. Fallback SINGLE coupon
+        // 4. Fallback SINGLE coupon (Fixed ₹1,500 Off on one pair)
         if (!$couponData && $code === 'SINGLE') {
+            $singleDisc = (float) config('vouchers.single_pair_instant_discount', 1500.00);
             $couponData = [
                 'code'             => 'SINGLE',
-                'discount_type'    => 'percentage',
-                'discount_value'   => 25,
-                'discount_percent' => 25,
-                'discount_amount'  => 0,
+                'discount_type'    => 'fixed',
+                'discount_value'   => $singleDisc,
+                'discount_percent' => 0,
+                'discount_amount'  => $singleDisc,
                 'min_cart_amount'  => 0,
                 'max_discount'     => 0,
-                'description'      => '25% off frame price',
+                'description'      => 'Extra ₹' . number_format($singleDisc, 0) . ' Off on one pair',
             ];
         }
 
@@ -448,7 +452,7 @@ class CartController extends Controller
 
         // Fallback to legacy offers table if not found in tbl_gift_vouchers
         $legacyOffer = null;
-        if (!$giftVoucher) {
+        if (!$giftVoucher && \Illuminate\Support\Facades\Schema::hasTable('offers')) {
             $legacyOffer = DB::table('offers')
                 ->where('offer_type', 'gift_voucher')
                 ->where('coupon_code', $code)

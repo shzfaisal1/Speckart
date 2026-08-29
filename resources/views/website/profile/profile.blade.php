@@ -1034,33 +1034,89 @@
                         {{-- Customer-Bound Gold Max Benefit Vouchers (Auto-Generated from Order #1) --}}
                         @if($customerVouchers->count() > 0)
                             @foreach($customerVouchers as $cv)
-                                <div class="pf-gold-voucher-card">
+                                @php
+                                    $st = strtolower($cv->status ?? 'active');
+                                    $expDate = $cv->expires_at ? \Carbon\Carbon::parse($cv->expires_at) : ($cv->end_date ? \Carbon\Carbon::parse($cv->end_date)->endOfDay() : null);
+                                    $isActuallyExpired = ($st === 'expired') || ($st === 'active' && $expDate && \Carbon\Carbon::now()->greaterThan($expDate));
+                                    if ($isActuallyExpired && $st === 'active') {
+                                        $st = 'expired';
+                                    }
+                                    $daysRemaining = ($expDate && $st === 'active') ? max(0, (int)\Carbon\Carbon::now()->diffInDays($expDate, false)) : 0;
+                                @endphp
+
+                                <div class="pf-gold-voucher-card {{ $st !== 'active' ? 'pf-voucher-muted' : '' }}" style="{{ $st !== 'active' ? 'opacity: 0.75; filter: grayscale(0.2); border-color: #cbd5e1; background: #f8fafc;' : '' }}">
                                     <div class="pf-voucher-head">
                                         <div>
-                                            <div class="pf-voucher-value-title">₹{{ number_format($cv->voucher_value, 0) }} Gift Voucher</div>
+                                            <div class="pf-voucher-value-title" style="{{ $st !== 'active' ? 'color: #475569;' : '' }}">
+                                                ₹{{ number_format($cv->voucher_value, 0) }} Gift Voucher
+                                            </div>
                                             <div class="pf-voucher-benefit-tag">
-                                                <i class="bi bi-award-fill text-warning"></i> {{ $cv->name ?: 'Gold Max Benefit' }}
+                                                <i class="bi bi-award-fill {{ $st === 'active' ? 'text-warning' : 'text-secondary' }}"></i> {{ $cv->name ?: 'Gold Max Benefit' }}
+                                                @if(!empty($cv->source_order_no))
+                                                    <span class="text-muted ms-1" style="font-size:10.5px;">(from Order #{{ $cv->source_order_no }})</span>
+                                                @endif
                                             </div>
                                         </div>
-                                        <span class="pf-voucher-status-badge">
-                                            <i class="bi bi-check-circle-fill me-1"></i> AVAILABLE
-                                        </span>
+
+                                        {{-- 4-State Status Badges --}}
+                                        @if($st === 'active')
+                                            <span class="pf-voucher-status-badge">
+                                                <i class="bi bi-check-circle-fill me-1"></i> AVAILABLE
+                                            </span>
+                                        @elseif($st === 'redeemed')
+                                            <span class="badge" style="background:#64748b; color:#fff; font-size:11px; padding:5px 10px; border-radius:6px;">
+                                                <i class="bi bi-check2-all me-1"></i> REDEEMED
+                                            </span>
+                                        @elseif($st === 'expired')
+                                            <span class="badge bg-danger text-white" style="font-size:11px; padding:5px 10px; border-radius:6px;">
+                                                <i class="bi bi-clock-history me-1"></i> EXPIRED
+                                            </span>
+                                        @elseif($st === 'cancelled')
+                                            <span class="badge bg-secondary text-white" style="font-size:11px; padding:5px 10px; border-radius:6px;">
+                                                <i class="bi bi-x-circle-fill me-1"></i> CANCELLED
+                                            </span>
+                                        @endif
                                     </div>
+
                                     <div class="pf-voucher-meta">
                                         <div>
-                                            <div class="pf-voucher-validity">
-                                                <i class="bi bi-clock-history me-1"></i>
-                                                Valid till: <strong>{{ $cv->end_date ? \Carbon\Carbon::parse($cv->end_date)->format('d M Y') : '30 days' }}</strong>
-                                            </div>
-                                            <div class="mt-1">
-                                                <span class="pf-voucher-code-pill" title="Click to copy code" onclick="navigator.clipboard.writeText('{{ $cv->code }}'); alert('Voucher code {{ $cv->code }} copied!');" style="cursor:pointer;">
-                                                    <i class="bi bi-copy"></i> {{ $cv->code }}
-                                                </span>
-                                            </div>
+                                            @if($st === 'active')
+                                                <div class="pf-voucher-validity">
+                                                    <i class="bi bi-clock-history me-1 text-primary"></i>
+                                                    Valid till: <strong>{{ $expDate ? $expDate->format('d M Y') : '30 days' }}</strong>
+                                                    <span class="badge bg-warning text-dark ms-1" style="font-size:10px;">{{ $daysRemaining }} Days Left</span>
+                                                </div>
+                                                <div class="mt-1">
+                                                    <span class="pf-voucher-code-pill" title="Click to copy code" onclick="navigator.clipboard.writeText('{{ $cv->code }}'); alert('Voucher code {{ $cv->code }} copied!');" style="cursor:pointer;">
+                                                        <i class="bi bi-copy"></i> {{ $cv->code }}
+                                                    </span>
+                                                </div>
+                                            @elseif($st === 'redeemed')
+                                                <div class="text-muted" style="font-size:12px;">
+                                                    <i class="bi bi-bag-check-fill text-success me-1"></i>
+                                                    Redeemed on Order #<strong>{{ $cv->redeemed_order_no ?? 'Completed' }}</strong>
+                                                    @if(!empty($cv->redeemed_at))
+                                                        on {{ \Carbon\Carbon::parse($cv->redeemed_at)->format('d M Y') }}
+                                                    @endif
+                                                </div>
+                                            @elseif($st === 'expired')
+                                                <div class="text-muted" style="font-size:12px;">
+                                                    <i class="bi bi-exclamation-triangle text-danger me-1"></i>
+                                                    Expired on {{ $expDate ? $expDate->format('d M Y') : 'Lapsed' }} (30-day window passed)
+                                                </div>
+                                            @elseif($st === 'cancelled')
+                                                <div class="text-muted" style="font-size:12px;">
+                                                    <i class="bi bi-dash-circle text-muted me-1"></i>
+                                                    Cancelled due to source order refund/cancellation
+                                                </div>
+                                            @endif
                                         </div>
-                                        <a href="{{ route('products') }}" class="btn-redeem-gold">
-                                            REDEEM NOW <i class="bi bi-arrow-right-short fs-5"></i>
-                                        </a>
+
+                                        @if($st === 'active')
+                                            <a href="{{ route('products') }}" class="btn-redeem-gold">
+                                                REDEEM NOW <i class="bi bi-arrow-right-short fs-5"></i>
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
