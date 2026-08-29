@@ -155,7 +155,7 @@
                 </a>
 
                 {{-- BOTTOM ON-SALE / PROMO STRIP --}}
-                @if($hasDiscount)
+                {{-- @if($hasDiscount)
                 <div class="card-bottom-banner">
                     <i class="bi bi-percent-circle-fill"></i> on sale price applied!
                 </div>
@@ -163,7 +163,7 @@
                 <div class="card-bottom-banner" style="display:none;">
                     <i class="bi bi-percent-circle-fill"></i> on sale price applied!
                 </div>
-                @endif
+                @endif --}}
             </div>
         </div>
         @endforeach
