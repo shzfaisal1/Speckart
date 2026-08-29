@@ -342,10 +342,33 @@ class ProductController extends Controller
 
         $productsList = $query->paginate(12);
 
-        // Map helper for images and URLs
-        $productsList->getCollection()->transform(function ($p) {
+        // Fetch sibling color variants for all products on current page
+        $parentCodes = $productsList->pluck('parent_product_code')->filter()->unique()->toArray();
+        $siblingsByParent = [];
+        if (!empty($parentCodes)) {
+            $allSiblings = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where('is_b2c', 1)
+                ->whereIn('parent_product_code', $parentCodes)
+                ->get();
+
+            foreach ($allSiblings as $sib) {
+                $sib->image_url  = getProductImageUrl($sib, $sib->main_image);
+                $sib->detail_url = url('/product/' . ($sib->product_id ?: $sib->id));
+                $siblingsByParent[$sib->parent_product_code][] = $sib;
+            }
+        }
+
+        // Map helper for images, URLs, and color variants
+        $productsList->getCollection()->transform(function ($p) use ($siblingsByParent) {
             $p->image_url  = getProductImageUrl($p);
             $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
+
+            if (!empty($p->parent_product_code) && isset($siblingsByParent[$p->parent_product_code])) {
+                $p->color_variants_list = $siblingsByParent[$p->parent_product_code];
+            } else {
+                $p->color_variants_list = [];
+            }
             return $p;
         });
 
@@ -492,6 +515,131 @@ class ProductController extends Controller
 
         return view('website.products.details', compact('product', 'categoryName', 'galleryImages', 'colorVariants', 'relatedProducts', 'wishlistProductIds'));
     }
+
+    public function getSimilarProducts(Request $request, $id)
+    {
+        $product = DB::table('tbl_product_code')
+            ->where('status', 1)
+            ->where('is_b2c', 1)
+            ->where(function($query) use ($id) {
+                $query->where('product_id', $id)
+                      ->orWhere('id', $id)
+                      ->orWhere('product_code', $id);
+            })
+            ->first();
+
+        if (!$product) {
+            return response()->json(['status' => 'error', 'message' => 'Product not found'], 404);
+        }
+
+        // Query similar products based on category, shape, rim type or company
+        $query = DB::table('tbl_product_code')
+            ->where('status', 1)
+            ->where('is_b2c', 1)
+            ->where('id', '!=', $product->id);
+
+        if (!empty($product->category_id)) {
+            $query->where('category_id', $product->category_id);
+        }
+
+        // Prioritize matching Shape, Rim_Type, or Company
+        $query->where(function($q) use ($product) {
+            $hasCondition = false;
+            if (!empty($product->Shape)) {
+                $q->orWhere('Shape', $product->Shape);
+                $hasCondition = true;
+            }
+            if (!empty($product->Rim_Type)) {
+                $q->orWhere('Rim_Type', $product->Rim_Type);
+                $hasCondition = true;
+            }
+            if (!empty($product->Company)) {
+                $q->orWhere('Company', $product->Company);
+                $hasCondition = true;
+            }
+            if (!$hasCondition) {
+                $q->where('status', 1);
+            }
+        });
+
+        // Ensure products with images appear first
+        $similarProducts = $query
+            ->orderByRaw('CASE WHEN main_image IS NOT NULL AND main_image != "" THEN 0 ELSE 1 END')
+            ->orderBy('id', 'desc')
+            ->limit(12)
+            ->get()
+            ->map(function ($p) {
+                $p->image_url  = getProductImageUrl($p, $p->main_image);
+                $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
+                return $p;
+            });
+
+        // Fallback: If not enough similar products found, get latest products from same category or catalog
+        if ($similarProducts->count() < 4) {
+            $existingIds = $similarProducts->pluck('id')->push($product->id)->toArray();
+            $fallback = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where('is_b2c', 1)
+                ->whereNotIn('id', $existingIds)
+                ->when(!empty($product->category_id), function($q) use ($product) {
+                    return $q->where('category_id', $product->category_id);
+                })
+                ->orderByRaw('CASE WHEN main_image IS NOT NULL AND main_image != "" THEN 0 ELSE 1 END')
+                ->orderBy('id', 'desc')
+                ->limit(12 - $similarProducts->count())
+                ->get()
+                ->map(function ($p) {
+                    $p->image_url  = getProductImageUrl($p, $p->main_image);
+                    $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
+                    return $p;
+                });
+
+            $similarProducts = $similarProducts->concat($fallback);
+        }
+
+        // Fetch sibling color variants for similar products
+        $parentCodes = $similarProducts->pluck('parent_product_code')->filter()->unique()->toArray();
+        $siblingsByParent = [];
+        if (!empty($parentCodes)) {
+            $allSiblings = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where('is_b2c', 1)
+                ->whereIn('parent_product_code', $parentCodes)
+                ->get();
+
+            foreach ($allSiblings as $sib) {
+                $sib->image_url  = getProductImageUrl($sib, $sib->main_image);
+                $sib->detail_url = url('/product/' . ($sib->product_id ?: $sib->id));
+                $siblingsByParent[$sib->parent_product_code][] = $sib;
+            }
+        }
+
+        $similarProducts = $similarProducts->map(function ($p) use ($siblingsByParent) {
+            if (!empty($p->parent_product_code) && isset($siblingsByParent[$p->parent_product_code])) {
+                $p->color_variants_list = $siblingsByParent[$p->parent_product_code];
+            } else {
+                $p->color_variants_list = [];
+            }
+            return $p;
+        });
+
+        $wishlistProductIds = [];
+        if (\Auth::check()) {
+            $wishlistProductIds = DB::table('wishlists')->where('user_id', \Auth::id())->pluck('product_id')->toArray();
+        }
+
+        $productName = $product->product_name ?: $product->product_code;
+        $html = view('website.products.similar_modal_grid', compact('similarProducts', 'product', 'wishlistProductIds'))->render();
+
+        return response()->json([
+            'status' => 'success',
+            'product_name' => $productName,
+            'product_brand' => $product->Company ?: 'Speckart',
+            'count' => $similarProducts->count(),
+            'html' => $html
+        ]);
+    }
+
     public function ajaxSearch(Request $request)
     {
         $search = $request->input('search');

@@ -57,6 +57,7 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/products',                [\App\Http\Controllers\Website\ProductController::class, 'products'])->name('products');
     Route::get('/ajax-search',             [\App\Http\Controllers\Website\ProductController::class, 'ajaxSearch'])->name('ajax.search');
     Route::get('/product/{slug}',          [\App\Http\Controllers\Website\ProductController::class, 'details'])->name('product.detail');
+    Route::get('/product/{id}/similar',    [\App\Http\Controllers\Website\ProductController::class, 'getSimilarProducts'])->name('product.similar');
 
     // Home Eye-Test Appointment Booking
     Route::get('/home-eye-test',                           [\App\Http\Controllers\Website\HomeEyeTestController::class, 'index'])->name('home-eye-test');
