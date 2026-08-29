@@ -3,37 +3,181 @@
         @foreach($productsList as $product)
         <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-4 col-xxl-3">
             <div class="product-card">
-                    <div class="wishlist-btn btn-wishlist-toggle" data-product-id="{{ $product->product_id ?: $product->id }}" data-wishlist-product-id="{{ $product->product_id ?: $product->id }}">
-                        <i
-                            class="bi {{ in_array($product->product_id ?: $product->id, $wishlistProductIds ?? []) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
+                {{-- TOP OVERLAY: Rating Badge (Left) & Wishlist Button (Right) --}}
+                <div class="card-top-overlay">
+                    <div class="card-rating-pill">
+                        <i class="bi bi-star-fill"></i> 4.5
                     </div>
-                    <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
-                        <div class="product-image">
-                            <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }}" class="img-default" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
-                        </div>
-                        <div class="product-info">
-                        <h6 class="brand-name">{{ $product->Company ?: 'Speckart' }}</h6>
-                        <p class="product-title">{{ $product->product_name ?: $product->product_code }}</p>
+                    <div class="wishlist-btn btn-wishlist-toggle" data-product-id="{{ $product->product_id ?: $product->id }}" data-wishlist-product-id="{{ $product->product_id ?: $product->id }}" title="Save to wishlist">
+                        <i class="bi {{ in_array($product->product_id ?: $product->id, $wishlistProductIds ?? []) ? 'bi-heart-fill text-danger' : 'bi-heart' }}"></i>
+                    </div>
+                </div>
 
-                        <div class="size-rating">
-                            <span class="size-text">Size : <span>{{ $product->Size ?: 'Medium' }}</span></span>
-                            <div class="rating">
-                                <span><i class="bi bi-star-fill"></i></span> 4.5 (210)
-                            </div>
+                {{-- PRODUCT LINK & IMAGE --}}
+                <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
+                    <div class="product-image">
+                        <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }}" class="img-default" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
+                    </div>
+                </a>
+
+                {{-- SUB-IMAGE UTILITY BAR: View Similar & Color Options --}}
+                <div class="sub-image-bar">
+                    <button type="button" class="view-similar-btn btn-open-similar-modal" data-product-id="{{ $product->product_id ?: $product->id }}" data-product-name="{{ $product->product_name ?: $product->product_code }}" data-product-brand="{{ $product->Company ?: 'Speckart' }}" title="View Similar Products">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="6 5 12 10"
+                            fill="none"
+                            >
+                            <path
+                                d="M15.0002 13.5L15.4684 13.5425C15.7496 13.5973 16.0193 13.4051 16.0591 13.1213L16.8179 7.72263C16.8573 7.44197 16.6558 7.18466 16.3739 7.15567L15.2502 7M9.00024 13.5L8.42739 13.5557C8.14925 13.6036 7.88656 13.412 7.84728 13.1325L7.08697 7.72263C7.04752 7.44197 7.24901 7.18466 7.53094 7.15567L8.75024 7M10.5001 14H13.5001C13.7763 14 14.0001 13.7761 14.0001 13.5V6.5C14.0001 6.22386 13.7763 6 13.5001 6H10.5001C10.224 6 10.0001 6.22386 10.0001 6.5V13.5C10.0001 13.7761 10.224 14 10.5001 14Z"
+                                stroke="#333368"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            </svg> View Similar
+                    </button>
+
+                    @php
+                        $cardColorPalette = [
+                            'Black' => '#111827', 'Charcoal' => '#374151', 'Grey' => '#6B7280', 'Gray' => '#6B7280',
+                            'Silver' => '#CBD5E1', 'White' => '#FFFFFF', 'Maroon' => '#7F1D1D', 'Red' => '#DC2626',
+                            'Rose' => '#FB7185', 'Pink' => '#EC4899', 'Purple' => '#7C3AED', 'Navy Blue' => '#1E3A8A',
+                            'Blue' => '#2563EB', 'Cyan' => '#06B6D4', 'Teal' => '#0D9488', 'Turquoise' => '#21E3C6',
+                            'Green' => '#16A34A', 'Olive' => '#84CC16', 'Lime' => '#A3E635', 'Gold' => '#D97706',
+                            'Yellow' => '#EAB308', 'Orange' => '#EA580C', 'Brown' => '#78350F', 'Tortoise' => '#B45309',
+                        ];
+
+                        $resolveSwatchBg = function($colorStr) use ($cardColorPalette) {
+                            $c = trim($colorStr ?? '');
+                            if (empty($c)) return '#111827';
+                            if (strpos($c, '/') !== false) {
+                                $parts = array_map('trim', explode('/', $c));
+                                $p1 = $parts[0] ?? '#111827';
+                                $p2 = $parts[1] ?? $p1;
+                                $c1 = str_starts_with($p1, '#') ? $p1 : ($cardColorPalette[ucfirst(strtolower($p1))] ?? '#111827');
+                                $c2 = str_starts_with($p2, '#') ? $p2 : ($cardColorPalette[ucfirst(strtolower($p2))] ?? '#6B7280');
+                                return "linear-gradient(135deg, {$c1} 50%, {$c2} 50%)";
+                            }
+                            if (str_starts_with($c, '#')) return $c;
+                            return $cardColorPalette[ucfirst(strtolower($c))] ?? '#111827';
+                        };
+
+                        $variantsToDisplay = [];
+                        $rawList = (!empty($product->color_variants_list) && count($product->color_variants_list) > 0)
+                            ? $product->color_variants_list
+                            : [$product];
+
+                        foreach ($rawList as $varObj) {
+                            $variantsToDisplay[] = [
+                                'id'             => $varObj->id,
+                                'product_id'     => $varObj->product_id ?: $varObj->id,
+                                'color'          => $varObj->Color ?? '',
+                                'swatch_bg'      => $resolveSwatchBg($varObj->Color ?? ''),
+                                'image_url'      => $varObj->image_url ?? $product->image_url,
+                                'detail_url'     => $varObj->detail_url ?? $product->detail_url,
+                                'name'           => $varObj->product_name ?: $varObj->product_code,
+                                'brand'          => $varObj->Company ?: 'Speckart',
+                                'size'           => $varObj->Size ?: 'Medium',
+                                'retail_price'   => (float)($varObj->Retail_Price ?? 0),
+                                'purchase_price' => (float)($varObj->Purchase_Price ?? 0),
+                                'discount_price' => (float)($varObj->discount_price ?? 0),
+                                'is_current'     => ($varObj->id == $product->id),
+                            ];
+                        }
+
+                        $displayVariants = array_slice($variantsToDisplay, 0, 4);
+                        $remainingVariantCount = count($variantsToDisplay) - 4;
+                    @endphp
+
+                    <div class="color-options-wrap">
+                        @foreach($displayVariants as $vItem)
+                            <span class="card-color-dot {{ $vItem['is_current'] ? 'active' : '' }}"
+                                  style="background: {{ $vItem['swatch_bg'] }};"
+                                  data-image-url="{{ $vItem['image_url'] }}"
+                                  data-detail-url="{{ $vItem['detail_url'] }}"
+                                  data-product-id="{{ $vItem['product_id'] }}"
+                                  data-product-name="{{ $vItem['name'] }}"
+                                  data-product-brand="{{ $vItem['brand'] }}"
+                                  data-size="{{ $vItem['size'] }}"
+                                  data-retail-price="{{ $vItem['retail_price'] }}"
+                                  data-purchase-price="{{ $vItem['purchase_price'] }}"
+                                  data-discount-price="{{ $vItem['discount_price'] }}"
+                                  title="{{ $vItem['color'] ?: 'Color option' }}">
+                            </span>
+                        @endforeach
+                        @if($remainingVariantCount > 0)
+                            <span class="color-more-count">+{{ $remainingVariantCount }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- PRODUCT DETAILS --}}
+                <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
+                    <div class="product-info">
+                        <div class="brand-name">{{ $product->Company ?: 'Speckart' }}</div>
+                        <h6 class="product-title">{{ $product->product_name ?: $product->product_code }}</h6>
+
+                        <div class="size-display-row">
+                            <span class="size-label">Size : </span><span class="size-val">{{ $product->Size ?: 'Medium' }}</span>
                         </div>
+
+                        @php
+                            $p1 = (float)($product->Retail_Price ?? 0);
+                            $p2 = (float)($product->Purchase_Price ?? 0);
+                            $dPrice = (float)($product->discount_price ?? 0);
+
+                            if ($dPrice > 0 && $p1 > 0 && $dPrice < $p1) {
+                                $calcSellingPrice = $dPrice;
+                                $calcMrp = $p1;
+                            } else {
+                                if ($p1 > 0 && $p2 > 0) {
+                                    $calcMrp = max($p1, $p2);
+                                    $calcSellingPrice = min($p1, $p2);
+                                } else {
+                                    $calcMrp = max($p1, $p2);
+                                    $calcSellingPrice = $calcMrp;
+                                }
+                            }
+
+                            $hasDiscount = ($calcMrp > $calcSellingPrice && $calcSellingPrice > 0);
+                            $discountPercent = 0;
+                            if ($hasDiscount) {
+                                $discountPercent = round((($calcMrp - $calcSellingPrice) / $calcMrp) * 100);
+                            }
+                        @endphp
 
                         <div class="price-section">
-                            @if(!empty($product->discount_price) && $product->discount_price < $product->Retail_Price)
-                                <span class="price">₹{{ number_format($product->discount_price, 2) }}</span>
-                                <span class="text-muted text-decoration-line-through ms-2" style="font-size: 13px; font-weight: 500;">₹{{ number_format($product->Retail_Price, 2) }}</span>
+                            <div class="price-main-row">
+                                <span class="current-price">₹{{ number_format($calcSellingPrice, 0) }}</span>
+                            </div>
+                            @if($hasDiscount)
+                            <div class="price-strike-row">
+                                <span class="original-price">₹{{ number_format($calcMrp, 0) }}</span>
+                                <span class="discount-percent">({{ $discountPercent }}% OFF)</span>
+                            </div>
                             @else
-                                <span class="price">₹{{ number_format($product->Retail_Price, 2) }}</span>
+                            <div class="price-strike-row" style="display:none;">
+                                <span class="original-price"></span>
+                                <span class="discount-percent"></span>
+                            </div>
                             @endif
-                            <button class="try-btn">Try on you</button>
                         </div>
                     </div>
-                    </a>
+                </a>
+
+                {{-- BOTTOM ON-SALE / PROMO STRIP --}}
+                {{-- @if($hasDiscount)
+                <div class="card-bottom-banner">
+                    <i class="bi bi-percent-circle-fill"></i> on sale price applied!
                 </div>
+                @else
+                <div class="card-bottom-banner" style="display:none;">
+                    <i class="bi bi-percent-circle-fill"></i> on sale price applied!
+                </div>
+                @endif --}}
+            </div>
         </div>
         @endforeach
 

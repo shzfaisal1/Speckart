@@ -530,7 +530,7 @@
 }
 
 /* ══════════════════════════════════════
-   PRODUCT CARDS (Smooth Premium Hover)
+   PRODUCT CARDS (Lenskart Structure · Speckart Identity)
 ══════════════════════════════════════ */
 .product-card {
     position: relative;
@@ -541,198 +541,270 @@
     transition: transform 0.22s cubic-bezier(0.165, 0.84, 0.44, 1), 
                 box-shadow 0.22s cubic-bezier(0.165, 0.84, 0.44, 1), 
                 border-color 0.2s ease;
-    /* height: 100%; */
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 .product-card:hover {
-    /* transform: translateY(-0px); */
-    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(50, 154, 154, 0.05);
+    box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(50, 154, 154, 0.06);
     border-color: #329a9a;
 }
 
 .product-card-link {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
+    display: block;
     text-decoration: none !important;
     color: inherit;
-    flex-grow: 1;
+}
+
+/* Top Overlays: Rating (Left) & Wishlist (Right) */
+.card-top-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.card-rating-pill {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    padding: 2.5px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+.card-rating-pill i {
+    color: #f59e0b;
+    font-size: 10.5px;
 }
 
 .wishlist-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+    pointer-events: auto;
     width: 30px;
     height: 30px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(4px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 5;
-    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.2s ease;
     border: 1px solid rgba(229, 231, 235, 0.8);
 }
 .wishlist-btn:hover {
     transform: scale(1.08);
     background: #ffffff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
-.wishlist-btn i { font-size: 14px; color: #9ca3af; transition: color 0.2s ease; }
+.wishlist-btn i { font-size: 14px; color: #94a3b8; transition: color 0.2s ease; }
 .wishlist-btn:hover i { color: #ef4444; }
 .wishlist-btn i.bi-heart-fill { color: #ef4444 !important; }
 
-/* Pure White Clean Background for Image so Product Photos Blend Seamlessly! */
+/* Product Image Area */
 .product-image {
     position: relative;
     background: #ffffff;
-    padding: 8px 12px 2px 12px;
+    padding: 26px 10px 4px 10px;
     text-align: center;
-    height: 130px;
+    height: 142px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    flex-shrink: 0;
 }
-/* Prevent duplicate img-hover fading from external.css */
 .product-card .img-default {
     opacity: 1 !important;
 }
 .product-card .img-hover {
-
     display: none !important;
 }
-
 .product-image img {
     max-height: 110px;
     width: auto;
     max-width: 100%;
     object-fit: contain;
-    transition: transform 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 .product-card:hover .product-image img {
-    transform: translateY(-4px) scale(1.04);
+    transform: translateY(-2px) scale(1.02);
 }
 
+/* Sub-Image Bar (View Similar & Color dots) */
+.sub-image-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 12px 6px 12px;
+    background: #ffffff;
+}
+
+.view-similar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    padding: 3px 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+.view-similar-btn:hover {
+    color: #329a9a;
+    background: #eef8f8;
+    border-color: #329a9a;
+}
+.view-similar-btn i {
+    font-size: 11.5px;
+}
+
+.color-options-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.card-color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1;
+    display: inline-block;
+    box-shadow: inset 0 0 1px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-color-dot.active {
+    box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 3px #329a9a;
+}
+.card-color-dot:hover {
+    transform: scale(1.15);
+}
+.color-more-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-left: 2px;
+}
+
+/* Product Info */
 .product-info {
-    padding: 6px 12px 0px 12px;
+    padding: 4px 12px 12px 12px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     background: #ffffff;
 }
 .brand-name {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.9px;
+    letter-spacing: 0.5px;
     color: #329a9a;
     margin-bottom: 2px;
 }
 .product-title {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
-    color: #111827;
+    color: #1e293b;
     line-height: 1.3;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    min-height: 20px;
     transition: color 0.2s ease;
-    min-height: 34px;
 }
 .product-card:hover .product-title {
     color: #277878;
 }
 
-.size-rating {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #6b7280;
+/* Size Display Row */
+.size-display-row {
+    font-size: 12px;
     margin-bottom: 6px;
+    line-height: 1.35;
 }
-.size-text span {
-    font-weight: 600;
-    color: #374151;
+.size-label {
+    color: #64748b;
+    font-weight: 500;
 }
-.rating {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
+.size-val {
+    color: #1e293b;
     font-weight: 700;
-    font-size: 10.5px;
-    color: #1f2937;
-    background: #fffbeb;
-    border: 1px solid #fef3c7;
-    padding: 1.5px 6px;
-    border-radius: 20px;
 }
-.rating i { color: #f59e0b; font-size: 10.5px; }
 
+/* Price Section */
 .price-section {
+    margin-top: auto;
+    padding-top: 2px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.price-main-row {
+    display: inline-flex;
+    align-items: baseline;
+}
+.current-price {
+    font-size: 17.5px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+    line-height: 1;
+}
+.price-suffix {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #64748b;
+    margin-left: 4px;
+}
+
+.price-strike-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+}
+.original-price {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+.discount-percent {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+/* Bottom Promo Strip */
+.card-bottom-banner {
+    background: #f8fafc;
+    border-top: 1px dashed #e2e8f0;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: auto;
-    padding-top: 6px;
-    border-top: 1px dashed #e5e7eb;
+    gap: 5px;
 }
-.price-section .price {
-    font-size: 16px;
-    font-weight: 800;
-    color: #111827;
-    letter-spacing: -0.4px;
-}
-.try-btn {
-    background: linear-gradient(135deg, #329a9a, #277878);
-    color: #ffffff;
-    border: none;
-    border-radius: 7px;
-    padding: 6px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    box-shadow: 0 2px 5px rgba(50, 154, 154, 0.2);
-}
-.try-btn:hover {
-    background: linear-gradient(135deg, #3bb3b3, #1f6565);
-    box-shadow: 0 4px 10px rgba(50, 154, 154, 0.35);
-    transform: translateY(-1px);
-}
-.price-section .price {
-    font-size: 16px;
-    font-weight: 800;
-    color: #111827;
-    letter-spacing: -0.4px;
-}
-.try-btn {
-    background: linear-gradient(135deg, #329a9a, #277878);
-    color: #ffffff;
-    border: none;
-    border-radius: 7px;
-    padding: 6px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
-    box-shadow: 0 2px 5px rgba(50, 154, 154, 0.2);
-}
-.try-btn:hover {
-    background: linear-gradient(135deg, #3bb3b3, #1f6565);
-    box-shadow: 0 4px 10px rgba(50, 154, 154, 0.35);
-    transform: translateY(-1px);
+.card-bottom-banner i {
+    color: #1e1b4b;
+    font-size: 12px;
 }
 
 /* ══════════════════════════════════════
@@ -768,6 +840,24 @@
 }
 .modern-pagination .page-item.disabled .page-link {
     opacity: 0.4; cursor: not-allowed; pointer-events: none; background: #f8fafc;
+}
+/* Similar Products Modal */
+.similar-modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+.similar-modal-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--cat-primary-soft);
+    color: var(--cat-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
 }
 </style>
 
@@ -892,6 +982,35 @@
             </div>
         </div>
     </section>
+
+    {{-- SIMILAR ITEMS MODAL --}}
+    <div class="modal fade" id="similarProductsModal" tabindex="-1" aria-labelledby="similarProductsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content similar-modal-content">
+                <div class="modal-header border-bottom px-4 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="similar-modal-icon-wrap">
+                            <i class="bi bi-intersect"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-dark mb-0" id="similarProductsModalLabel">Similar Eyewear</h5>
+                            <p class="text-muted mb-0 small" id="similarProductsModalSubtitle">Discover matching styles & frames</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 p-md-4" id="similar-modal-body">
+                    <div class="text-center py-5">
+                        <div class="spinner-border" role="status" style="color: var(--cat-primary);">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted small">Finding matching eyewear styles...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @endsection
@@ -965,6 +1084,185 @@ document.addEventListener('DOMContentLoaded', function() {
         $('html, body').animate({
             scrollTop: $('.catalog-page').offset().top - 70
         }, 300);
+    });
+
+    // Color Dot Click: Update all variant details (Image, Title, Brand, Size, Price, Discount, URLs) on CLICK ONLY
+    $(document).on('click', '.card-color-dot', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const $dot = $(this);
+        const $card = $dot.closest('.product-card');
+
+        // 1. Update active ring indicator on color dots
+        $dot.closest('.color-options-wrap').find('.card-color-dot').removeClass('active');
+        $dot.addClass('active');
+
+        // 2. Extract variant data from dot
+        const newImageUrl    = $dot.data('image-url');
+        const newDetailUrl   = $dot.data('detail-url');
+        const newProductId   = $dot.data('product-id');
+        const newProductName = $dot.data('product-name');
+        const newBrand       = $dot.data('product-brand');
+        const newSize        = $dot.data('size');
+        const newRetailPrice   = parseFloat($dot.data('retail-price')) || 0;
+        const newPurchasePrice = parseFloat($dot.data('purchase-price')) || 0;
+        const newDiscountPrice = parseFloat($dot.data('discount-price')) || 0;
+
+        // 3. Update Product Image
+        if (newImageUrl) {
+            const $img = $card.find('.product-image img');
+            if ($img.length && $img.attr('src') !== newImageUrl) {
+                $img.attr('src', newImageUrl);
+            }
+        }
+
+        // 4. Update Brand Name & Product Title
+        if (newBrand) {
+            $card.find('.brand-name').text(newBrand);
+        }
+        if (newProductName) {
+            $card.find('.product-title').text(newProductName);
+        }
+
+        // 5. Update Size
+        if (newSize) {
+            $card.find('.size-val').text(newSize);
+        }
+
+        // 6. Update Detail Links
+        if (newDetailUrl) {
+            $card.find('a.product-card-link').attr('href', newDetailUrl);
+        }
+
+        // 7. Update Wishlist & View Similar buttons
+        if (newProductId) {
+            $card.find('.wishlist-btn')
+                .attr('data-product-id', newProductId)
+                .attr('data-wishlist-product-id', newProductId);
+
+            $card.find('.btn-open-similar-modal')
+                .attr('data-product-id', newProductId)
+                .attr('data-product-name', newProductName || '')
+                .attr('data-product-brand', newBrand || '');
+        }
+
+        // 8. Dynamic Price Calculation (Matching Details Page logic)
+        let calcSellingPrice = 0;
+        let calcMrp = 0;
+
+        if (newDiscountPrice > 0 && newRetailPrice > 0 && newDiscountPrice < newRetailPrice) {
+            calcSellingPrice = newDiscountPrice;
+            calcMrp = newRetailPrice;
+        } else {
+            if (newRetailPrice > 0 && newPurchasePrice > 0) {
+                calcMrp = Math.max(newRetailPrice, newPurchasePrice);
+                calcSellingPrice = Math.min(newRetailPrice, newPurchasePrice);
+            } else {
+                calcMrp = Math.max(newRetailPrice, newPurchasePrice);
+                calcSellingPrice = calcMrp;
+            }
+        }
+
+        const hasDiscount = (calcMrp > calcSellingPrice && calcSellingPrice > 0);
+        let discountPercent = 0;
+        if (hasDiscount) {
+            discountPercent = Math.round(((calcMrp - calcSellingPrice) / calcMrp) * 100);
+        }
+
+        const $priceSection = $card.find('.price-section');
+        $priceSection.find('.current-price').text('₹' + Math.round(calcSellingPrice).toLocaleString());
+        
+        let $strikeRow = $priceSection.find('.price-strike-row');
+        let $banner = $card.find('.card-bottom-banner');
+
+        if (hasDiscount) {
+            if ($strikeRow.length) {
+                $strikeRow.find('.original-price').text('₹' + Math.round(calcMrp).toLocaleString());
+                $strikeRow.find('.discount-percent').text('(' + discountPercent + '% OFF)');
+                $strikeRow.show();
+            } else {
+                $priceSection.append(`
+                    <div class="price-strike-row">
+                        <span class="original-price">₹${Math.round(calcMrp).toLocaleString()}</span>
+                        <span class="discount-percent">(${discountPercent}% OFF)</span>
+                    </div>
+                `);
+            }
+
+            if ($banner.length) {
+                $banner.show();
+            } else {
+                // $card.append(`
+                //     <div class="card-bottom-banner">
+                //         <i class="bi bi-percent-circle-fill"></i> on sale price applied!
+                //     </div>
+                // `);
+            }
+        } else {
+            $strikeRow.hide();
+            $banner.hide();
+        }
+    });
+
+    // Open Similar Products Modal Click Handler
+    $(document).on('click', '.btn-open-similar-modal', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const productId = $(this).data('product-id');
+        const productName = $(this).data('product-name') || 'Selected Product';
+        const productBrand = $(this).data('product-brand') || 'Speckart';
+
+        if (!productId) return;
+
+        $('#similarProductsModalLabel').text('Similar to: ' + productName);
+        $('#similarProductsModalSubtitle').text('Matching frames & styles from ' + productBrand);
+        
+        $('#similar-modal-body').html(`
+            <div class="text-center py-5">
+                <div class="spinner-border" role="status" style="color: var(--cat-primary);">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted small">Finding matching eyewear styles...</p>
+            </div>
+        `);
+
+        const modalEl = document.getElementById('similarProductsModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        } else if (typeof $ !== 'undefined') {
+            $('#similarProductsModal').modal('show');
+        }
+
+        fetch(`/product/${productId}/similar`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                $('#similar-modal-body').html(data.html);
+            } else {
+                $('#similar-modal-body').html(`
+                    <div class="text-center py-5">
+                        <i class="bi bi-exclamation-circle text-muted" style="font-size: 36px;"></i>
+                        <h6 class="mt-3 fw-bold text-dark">Could not load similar items</h6>
+                        <p class="text-muted small">${data.message || 'Please try again later.'}</p>
+                    </div>
+                `);
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching similar products:', err);
+            $('#similar-modal-body').html(`
+                <div class="text-center py-5">
+                    <i class="bi bi-exclamation-circle text-muted" style="font-size: 36px;"></i>
+                    <h6 class="mt-3 fw-bold text-dark">Failed to load similar products</h6>
+                    <p class="text-muted small">Please check your connection and try again.</p>
+                </div>
+            `);
+        });
     });
 
     // Fetch Filtered Products AJAX
