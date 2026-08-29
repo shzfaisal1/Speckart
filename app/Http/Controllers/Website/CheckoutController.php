@@ -337,7 +337,7 @@ class CheckoutController extends Controller
 
             if (!empty($voucherCodeToBurn)) {
                 $cleanCode = strtoupper(trim($voucherCodeToBurn));
-                $dbVoucher = GiftVoucher::where('code', $cleanCode)->lockForUpdate()->first();
+                $dbVoucher = GiftVoucher::where('code', $cleanCode)->first();
                 if ($dbVoucher) {
                     $dbVoucher->total_used = ($dbVoucher->total_used ?? 0) + 1;
                     if ($dbVoucher->is_single_use || $dbVoucher->voucher_type === 'gold_deferred') {
@@ -354,14 +354,13 @@ class CheckoutController extends Controller
             }
 
             // 13. Auto-Generate Deferred Gift Voucher (₹2,600 for 2nd Pair) for Gold Members
-            // Triggered when a Gold/Gold Max member buys 1 frame without BOGO, didn't redeem a deferred voucher, and didn't use SINGLE coupon
+            // Triggered when a Gold/Gold Max member buys 1 frame without BOGO and didn't just redeem a deferred voucher
             $isGoldMember = !empty($membershipPurchased)
                 || ($customer && !empty($customer->membership_card_id) && !empty($customer->membership_expiry) && Carbon::parse($customer->membership_expiry)->isFuture())
                 || session()->has('active_membership');
 
-            $appliedVoucherType  = $appliedVoucher['voucher_type'] ?? '';
+            $appliedVoucherType = $appliedVoucher['voucher_type'] ?? '';
             $redeemedGoldVoucher = ($appliedVoucherType === 'gold_deferred');
-            $appliedSingleCoupon = strtoupper(trim($appliedCoupon['code'] ?? '')) === 'SINGLE';
 
             $eligibleFrameCount = 0;
             foreach ($cartData['items'] as $chkItem) {
@@ -371,7 +370,7 @@ class CheckoutController extends Controller
             }
 
             $generatedVoucher = null;
-            if ($isGoldMember && $eligibleFrameCount >= 1 && $bogoDiscount <= 0 && !$redeemedGoldVoucher && !$appliedSingleCoupon) {
+            if ($isGoldMember && $eligibleFrameCount >= 1 && $bogoDiscount <= 0 && !$redeemedGoldVoucher) {
                 $cardId = $membershipPurchased['card_id'] ?? ($customer->membership_card_id ?? 1);
                 $cardDb = DB::table('tbl_membership_card')->where('card_id', $cardId)->first();
                 $cardName = $cardDb->card_name ?? 'Gold Max Benefit';
