@@ -1433,6 +1433,25 @@
                         </div>
                     @endif
 
+                    {{-- Gold Member 2nd Pair Prompt Banner --}}
+                    @php
+                        $hasGold = !empty($cartData['has_membership_in_cart']) || !empty($cartData['membership_bogo_enabled']);
+                    @endphp
+                    @if($hasGold && !$cartData['is_bogo_active'])
+                        <div class="sc-bogo-prompt-banner mb-3 p-3" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1.5px dashed #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="font-size: 22px;">✨</span>
+                                <div>
+                                    <strong style="color: #1e40af; font-size: 13.5px;">Want a 2nd pair right now?</strong>
+                                    <div style="color: #2563eb; font-size: 12px;">Add any eligible frame & get it 100% FREE!</div>
+                                </div>
+                            </div>
+                            <a href="{{ route('products') }}" class="btn btn-sm btn-primary fw-bold px-3 py-2" style="border-radius: 8px; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 6px rgba(37,99,235,0.3);">
+                                + ADD 2ND PAIR FREE
+                            </a>
+                        </div>
+                    @endif
+
                     {{-- Items --}}
                     <div class="sc-items-list">
                         @foreach($cartData['items'] as $item)
