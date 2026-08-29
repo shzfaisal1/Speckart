@@ -86,12 +86,12 @@ class User extends Authenticatable
 
     public function getImageAttribute($value)
     {
-        return $value ?: ($this->attributes['avatar'] ?? ($this->attributes['photo'] ?? null));
+        return $value ?: ($this->attributes['photo'] ?? ($this->attributes['avatar'] ?? null));
     }
 
     public function getProfileImageUrlAttribute()
     {
-        $img = $this->image;
+        $img = $this->photo ?? ($this->image ?? ($this->avatar ?? null));
         if (!empty($img)) {
             if (file_exists(public_path('uploads/website/profile/' . $img))) {
                 return asset('uploads/website/profile/' . $img);
@@ -101,7 +101,7 @@ class User extends Authenticatable
             }
             return asset('uploads/website/profile/' . $img);
         }
-        return asset('assets/img/bg/profile.png');
+        return asset('website/assets/img/icon/user.png');
     }
 
     public function sales()

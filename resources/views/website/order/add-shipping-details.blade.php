@@ -1,677 +1,1306 @@
 @extends('website.layout.master')
 @section('content')
-    <style>
-        .add-shipping-details {
-            padding: 40px 0;
-            background: #f7fafb;
-        }
 
-        .shipping-card,
-        .order-summary-card {
-            background: #fff;
-            border-radius: 24px;
-            padding: 30px;
-            border: 1px solid #edf2f7;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, .06);
-        }
+{{-- ═══════════════════════════════════════════════════
+     SPECKART — Modern Premium Shipping Details UI
+     Consistent with Shopping Cart, Profile & Payment Flow
+═══════════════════════════════════════════════════ --}}
 
-        /* Header */
-        .shipping-header {
-            margin-bottom: 25px;
-        }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        .shipping-header h3 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #07484A;
-            margin-bottom: 6px;
-        }
+<style>
+    :root {
+        --sp-primary: #07484a;
+        --sp-primary-dark: #053738;
+        --sp-primary-soft: #f0fdfc;
+        --sp-teal: #11abb0;
+        --sp-teal-soft: #e6fffa;
+        --sp-green: #16a34a;
+        --sp-green-soft: #f0fdf4;
+        --sp-text: #0f172a;
+        --sp-text-muted: #64748b;
+        --sp-border: #e2e8f0;
+        --sp-card-bg: #ffffff;
+        --sp-radius: 16px;
+        --sp-shadow: 0 4px 20px rgba(7, 72, 74, 0.07);
+    }
 
-        .shipping-header p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 0;
-        }
+    .shipping-page-wrap {
+        background: #f8fafc;
+        min-height: 80vh;
+        padding-bottom: 60px;
+        font-family: 'Poppins', sans-serif;
+    }
 
-        /* Saved Address Cards (Lenskart inspired layout with Speckarts Theme) */
-        .saved-address-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 20px;
-            background: #ffffff;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            position: relative;
-        }
+    /* ── Checkout Progress Wizard ── */
+    .checkout-wizard-bar {
+        background: #ffffff;
+        border-bottom: 1px solid var(--sp-border);
+        padding: 18px 0;
+    }
 
-        .saved-address-card:hover {
-            border-color: #11ABB0;
-            box-shadow: 0 8px 24px rgba(17, 171, 176, 0.12);
-        }
+    .checkout-wizard-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        flex-wrap: wrap;
+    }
 
-        .saved-address-card.active {
-            border-color: #07484A;
-            background: #f0fdfc;
-            box-shadow: 0 10px 30px rgba(7, 72, 74, 0.12);
-        }
+    .wizard-step-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--sp-text-muted);
+        text-decoration: none;
+    }
 
-        .address-type-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: #e0f2f1;
-            color: #07484A;
-        }
+    .wizard-step-item.completed {
+        color: var(--sp-green);
+        font-weight: 600;
+    }
 
-        .saved-address-card.active .address-type-badge {
-            background: #07484A;
-            color: #ffffff;
-        }
+    .wizard-step-item.completed .step-number {
+        background: var(--sp-green-soft);
+        color: var(--sp-green);
+        border-color: var(--sp-green);
+    }
 
-        .custom-radio-indicator {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            border: 2px solid #cbd5e1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
+    .wizard-step-item.active {
+        color: var(--sp-primary);
+        font-weight: 700;
+    }
 
-        .saved-address-card.active .custom-radio-indicator {
-            border-color: #07484A;
-            background: #07484A;
-        }
+    .wizard-step-item.active .step-number {
+        background: var(--sp-primary);
+        color: #ffffff;
+        border-color: var(--sp-primary);
+        box-shadow: 0 2px 10px rgba(7, 72, 74, 0.3);
+    }
 
-        .custom-radio-indicator::after {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ffffff;
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.2s ease;
-        }
+    .wizard-step-item .step-number {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1.5px solid var(--sp-border);
+        transition: all 0.2s ease;
+    }
 
-        .saved-address-card.active .custom-radio-indicator::after {
-            opacity: 1;
-            transform: scale(1);
-        }
+    .wizard-step-divider {
+        color: #cbd5e1;
+        font-size: 14px;
+    }
 
-        .address-actions-btn {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            text-decoration: none;
-            background: none;
-            border: none;
-            padding: 0;
-            transition: color 0.2s;
-        }
+    /* ── Main Cards ── */
+    .sp-main-card {
+        background: var(--sp-card-bg);
+        border-radius: var(--sp-radius);
+        border: 1px solid var(--sp-border);
+        box-shadow: var(--sp-shadow);
+        padding: 28px;
+        transition: box-shadow 0.25s ease;
+    }
 
-        .address-actions-btn:hover {
-            color: #07484A;
-            text-decoration: underline;
-        }
+    .sp-main-card:hover {
+        box-shadow: 0 8px 30px rgba(7, 72, 74, 0.1);
+    }
 
-        .btn-add-new-address {
-            background: #07484A;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-        }
+    .sp-card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--sp-primary);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .btn-add-new-address:hover {
-            background: #11ABB0;
-            color: #fff;
-            transform: translateY(-1px);
-        }
+    .sp-card-subtitle {
+        font-size: 13px;
+        color: var(--sp-text-muted);
+        margin-bottom: 22px;
+    }
 
-        /* Address Type Selector */
-        .InputGroup {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
+    /* ── Compact & Premium Saved Address Cards ── */
+    .saved-addr-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
 
-        .InputGroup input {
-            display: none;
-        }
+    .saved-addr-card {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+    }
 
-        .InputGroup label {
-            display: flex;
-            align-items: center;
-            padding: 10px 16px;
-            border-radius: 14px;
-            border: 1px solid #e5e7eb;
-            background: #fff;
-            color: #374151;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: .3s ease;
-        }
+    .saved-addr-card:hover {
+        border-color: #00B9B9;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(7, 72, 74, 0.07);
+    }
 
-        .InputGroup label:hover {
-            border-color: #11ABB0;
-            color: #11ABB0;
-        }
+    .saved-addr-card.active {
+        border: 2px solid var(--sp-primary);
+        background: linear-gradient(135deg, #f0fdfc 0%, #ffffff 80%);
+        box-shadow: 0 4px 16px rgba(7, 72, 74, 0.1);
+    }
 
-        .InputGroup input:checked+label {
-            background: linear-gradient(135deg, #07484A, #11ABB0);
-            color: #fff;
-            border-color: #11ABB0;
-            box-shadow: 0 8px 20px rgba(17, 171, 176, .2);
-        }
+    .addr-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        gap: 8px;
+    }
 
-        /* Form Controls */
-        .add-shipping-details .form-control {
-            height: 54px;
-            border-radius: 14px;
-            border: 1px solid #e5e7eb;
-            padding: 14px 18px;
-            font-size: 14px;
-            transition: .3s ease;
-        }
+    /* Custom Selection Radio */
+    .addr-radio-indicator {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        background: #ffffff;
+        flex-shrink: 0;
+    }
 
-        .add-shipping-details .form-control:focus {
-            border-color: #11ABB0;
-            box-shadow: 0 0 0 4px rgba(17, 171, 176, .1);
-        }
+    .saved-addr-card.active .addr-radio-indicator {
+        border-color: var(--sp-primary);
+        background: var(--sp-primary);
+        box-shadow: 0 0 0 2px rgba(7, 72, 74, 0.15);
+    }
 
-        /* Button */
-        .checkout-btn {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #07484A, #11ABB0);
-            color: #fff;
-            font-size: 16px;
-            font-weight: 700;
-            transition: .3s ease;
-            box-shadow: 0 10px 25px rgba(17, 171, 176, .2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+    .addr-radio-indicator i {
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 800;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.2s ease;
+    }
 
-        .checkout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(17, 171, 176, .3);
-            color: #fff;
-        }
+    .saved-addr-card.active .addr-radio-indicator i {
+        opacity: 1;
+        transform: scale(1);
+    }
 
-        /* Order Summary Card */
-        .order-summary-card {
-            position: sticky;
-            top: 100px;
-        }
+    /* Address Type Tags */
+    .addr-type-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
 
-        .order-summary-img {
-            border-radius: 18px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
+    .addr-type-tag.type-home {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+    }
 
-        .order-summary-img img {
-            width: 100%;
-            transition: .5s ease;
-        }
+    .addr-type-tag.type-office {
+        background: #f5f3ff;
+        color: #7c3aed;
+        border: 1px solid #ede9fe;
+    }
 
-        .order-summary-img:hover img {
-            transform: scale(1.05);
-        }
+    .addr-type-tag.type-other {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
 
-        .summary-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #07484A;
-            margin-bottom: 18px;
-        }
+    /* Default Tag */
+    .addr-default-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-size: 10.5px;
+        font-weight: 700;
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
 
-        .summary-table tr td {
-            padding: 12px 0;
-            color: #4b5563;
-            font-size: 14px;
-        }
+    /* Recipient Name */
+    .addr-user-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-left: 2px;
+    }
 
-        .summary-total {
-            border-top: 1px solid #e5e7eb;
-        }
+    /* Action Buttons (Edit & Delete) */
+    .btn-card-action {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 3px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+    }
 
-        .summary-total td {
-            padding-top: 16px !important;
-            font-size: 18px;
-            font-weight: 700;
-            color: #07484A;
-        }
+    .btn-card-action i {
+        color: var(--sp-primary);
+        transition: color 0.2s ease;
+    }
 
-        .secure-box {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px;
-            border-radius: 14px;
-            background: #f0fdfc;
-            border: 1px solid #ccfbf1;
-            color: #0f766e;
-            font-weight: 600;
-            font-size: 14px;
-        }
+    .btn-card-action.btn-delete-action i {
+        color: #ef4444;
+    }
 
-        .secure-box i {
-            font-size: 18px;
-        }
+    .btn-card-action:hover {
+        background: var(--sp-primary);
+        color: #ffffff;
+        border-color: var(--sp-primary);
+    }
 
-        @media(max-width:991px) {
-            .shipping-card,
-            .order-summary-card {
-                padding: 20px;
-            }
+    .btn-card-action:hover i {
+        color: #ffffff !important;
+    }
 
-            .order-summary-card {
-                position: relative;
-                top: 0;
-            }
+    .btn-card-action.btn-delete-action:hover {
+        background: #ef4444;
+        color: #ffffff;
+        border-color: #ef4444;
+    }
 
-            .shipping-header h3 {
-                font-size: 22px;
-            }
-        }
-    </style>
+    .btn-card-action.btn-delete-action:hover i {
+        color: #ffffff !important;
+    }
 
-    <!-- breadcrumbs-section -->
-    <section class="breadcrumbs-section py-3 bg-white border-bottom">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <ul id="breadcrumbs" class="m-0 p-0 list-unstyled d-flex align-items-center gap-2" style="font-size: 13px;">
-                        <li><a href="{{ route('cart') }}" class="text-muted text-decoration-none">Cart</a></li>
-                        <li><i class="bi bi-chevron-right text-muted" style="font-size: 10px;"></i></li>
-                        <li class="fw-bold text-dark">Shipping Address</li>
-                        <li><i class="bi bi-chevron-right text-muted" style="font-size: 10px;"></i></li>
-                        <li class="text-muted">Payment</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
+    /* Address Text & Inline Contact */
+    .addr-card-body {
+        padding-left: 26px;
+    }
 
-    <!-- add-shipping-details -->
-    <section class="add-shipping-details">
-        <div class="container">
-            <div class="row g-4">
+    .addr-full-address {
+        font-size: 12.5px;
+        color: #475569;
+        line-height: 1.4;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+    }
 
-                <div class="col-lg-7">
-                    <div class="shipping-card">
+    .addr-full-address i {
+        color: #00B9B9;
+        font-size: 13px;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
 
-                        @if(session('success'))
-                            <div class="alert alert-success alert-dismissible fade show mb-3" style="border-radius: 14px; font-size: 14px;" role="alert">
-                                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
+    .addr-contact-inline {
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
 
-                        @if(session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show mb-3" style="border-radius: 14px; font-size: 14px;" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        @endif
+    .addr-contact-inline i {
+        color: #00B9B9;
+        font-size: 11px;
+    }
 
-                        @if ($errors->any())
-                            <div class="alert alert-danger mb-3" style="border-radius: 14px; font-size: 14px;">
-                                <ul class="mb-0 ps-3">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
+    .addr-contact-dot {
+        color: #cbd5e1;
+        font-weight: bold;
+    }
 
-                        {{-- Section Header --}}
-                        <div class="shipping-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <div>
-                                <h3>{{ $savedAddresses->count() > 0 ? 'Select Shipping Address' : 'Add Shipping Details' }}</h3>
-                                <p>{{ $savedAddresses->count() > 0 ? 'Choose a saved address or add a new delivery location.' : 'Please enter your delivery address information.' }}</p>
-                            </div>
+    /* ── Add New Address Trigger Button ── */
+    .btn-new-address-toggle {
+        background: var(--sp-primary);
+        color: #ffffff !important;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
 
-                            @if($savedAddresses->count() > 0)
-                                <button type="button" class="btn-add-new-address" id="btn-toggle-address-form">
-                                    <i class="bi bi-plus-lg"></i> Add New Address
-                                </button>
-                            @endif
+    .btn-new-address-toggle:hover {
+        background: #0b5e61;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(7, 72, 74, 0.2);
+    }
+
+    /* ── Empty State ── */
+    .addr-empty-state-box {
+        text-align: center;
+        padding: 40px 20px;
+        border: 2px dashed #cbd5e1;
+        border-radius: var(--sp-radius);
+        background: #f8fafc;
+    }
+
+    .addr-empty-icon {
+        width: 60px;
+        height: 60px;
+        background: #e0f2f1;
+        color: var(--sp-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        margin: 0 auto 16px;
+    }
+
+    /* ── Modern Form Controls in Modal ── */
+    .sp-form-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .sp-input {
+        width: 100%;
+        height: 46px;
+        border-radius: 10px;
+        border: 1.5px solid var(--sp-border);
+        padding: 10px 14px;
+        font-size: 13.5px;
+        font-family: 'Poppins', sans-serif;
+        color: var(--sp-text);
+        background: #ffffff;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .sp-input:focus {
+        border-color: var(--sp-teal);
+        box-shadow: 0 0 0 3px rgba(17, 171, 176, 0.15);
+    }
+
+    .sp-input::placeholder {
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    /* Address Type Radio Selector Group */
+    .sp-type-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+
+    .sp-type-group input[type="radio"] {
+        display: none;
+    }
+
+    .sp-type-group label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        border: 1.5px solid var(--sp-border);
+        background: #ffffff;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .sp-type-group label:hover {
+        border-color: var(--sp-teal);
+        color: var(--sp-primary);
+    }
+
+    .sp-type-group input[type="radio"]:checked + label {
+        background: var(--sp-primary);
+        color: #ffffff;
+        border-color: var(--sp-primary);
+        box-shadow: 0 2px 8px rgba(7, 72, 74, 0.2);
+    }
+
+    /* ── Primary Action Buttons ── */
+    .sp-btn-proceed {
+        width: 100%;
+        height: 52px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #07484a 0%, #0c5e61 100%);
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.22s ease;
+        box-shadow: 0 4px 15px rgba(7, 72, 74, 0.2);
+        cursor: pointer;
+    }
+
+    .sp-btn-proceed:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(7, 72, 74, 0.3);
+        color: #ffffff;
+    }
+
+    /* ── Order Summary Card ── */
+    .order-summary-sticky {
+        position: sticky;
+        top: 90px;
+    }
+
+    .summary-item-preview-list {
+        max-height: 240px;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 18px;
+    }
+
+    .summary-item-preview-list::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .summary-item-preview-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .summary-item-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .summary-item-row:last-child {
+        border-bottom: none;
+    }
+
+    .summary-item-thumb-wrap {
+        width: 54px;
+        height: 42px;
+        border-radius: 8px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .summary-item-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 2px;
+    }
+
+    .summary-membership-icon {
+        font-size: 22px;
+    }
+
+    .summary-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .summary-item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--sp-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.25;
+    }
+
+    .summary-item-sub {
+        font-size: 11.5px;
+        color: var(--sp-text-muted);
+    }
+
+    .summary-item-price {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--sp-text);
+        text-align: right;
+    }
+
+    /* Bill Rows */
+    .bill-table {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+
+    .bill-table tr td {
+        padding: 6px 0;
+        font-size: 13.5px;
+        color: #475569;
+    }
+
+    .bill-table .bill-total-row {
+        border-top: 1.5px dashed var(--sp-border);
+    }
+
+    .bill-table .bill-total-row td {
+        padding-top: 14px;
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--sp-primary);
+    }
+
+    .savings-badge-pill {
+        background: var(--sp-green-soft);
+        border: 1px solid #bbf7d0;
+        color: var(--sp-green);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .trust-features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .trust-feature-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    .trust-feature-item i {
+        color: var(--sp-teal);
+        font-size: 15px;
+    }
+
+    /* ── Modal Styling from My-Address ── */
+    .addr-modal .modal-content {
+        border-radius: 22px;
+        border: none;
+        box-shadow: 0 24px 60px rgba(7, 72, 74, 0.25);
+        overflow: hidden;
+    }
+
+    .addr-modal .modal-header {
+        background: linear-gradient(135deg, #07484A 0%, #0a5658 100%);
+        color: #ffffff;
+        padding: 18px 24px;
+        border-bottom: none;
+    }
+
+    .addr-modal .modal-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .addr-modal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    .addr-modal .modal-body {
+        padding: 24px;
+    }
+
+    .addr-form-label {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .addr-form-control {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13.5px;
+        color: #0f172a;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+
+    .addr-form-control:focus {
+        border-color: #00B9B9;
+        box-shadow: 0 0 0 3px rgba(0, 185, 185, 0.15);
+        outline: none;
+    }
+
+    /* Address Type Selector Pills in Modal */
+    .addr-type-selector {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .addr-type-selector input[type="radio"] {
+        display: none;
+    }
+
+    .addr-type-selector label {
+        padding: 8px 18px;
+        border-radius: 10px;
+        border: 1.5px solid #e2e8f0;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .addr-type-selector input[type="radio"]:checked + label {
+        background: #07484A;
+        color: #ffffff;
+        border-color: #07484A;
+        box-shadow: 0 4px 12px rgba(7, 72, 74, 0.2);
+    }
+
+    .addr-modal .modal-footer {
+        background: #f8fafc;
+        border-top: 1px solid #edf2f7;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .btn-addr-add {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #07484A !important;
+        font-weight: 700;
+        font-size: 13.5px;
+        padding: 11px 22px;
+        border-radius: 12px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        text-decoration: none !important;
+        cursor: pointer;
+    }
+
+    .btn-addr-add:hover {
+        background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(245, 158, 11, 0.4);
+        color: #032b2d !important;
+    }
+</style>
+
+<!-- Checkout Progress Wizard -->
+<div class="checkout-wizard-bar">
+    <div class="container">
+        <ul class="checkout-wizard-steps">
+            <li>
+                <a href="{{ route('cart') }}" class="wizard-step-item completed">
+                    <span class="step-number"><i class="bi bi-check-lg"></i></span>
+                    <span>1. Cart</span>
+                </a>
+            </li>
+            <li class="wizard-step-divider"><i class="bi bi-chevron-right"></i></li>
+            <li>
+                <span class="wizard-step-item active">
+                    <span class="step-number">2</span>
+                    <span>2. Shipping Address</span>
+                </span>
+            </li>
+            <li class="wizard-step-divider"><i class="bi bi-chevron-right"></i></li>
+            <li>
+                <span class="wizard-step-item">
+                    <span class="step-number">3</span>
+                    <span>3. Payment</span>
+                </span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="shipping-page-wrap pt-4">
+    <div class="container">
+
+        <div class="row g-4">
+
+            {{-- ══════════════════════════════════════════════════
+                 LEFT COLUMN: SAVED ADDRESS SELECTION & ACTIONS
+            ══════════════════════════════════════════════════ --}}
+            <div class="col-lg-7">
+                <div class="sp-main-card">
+
+                    {{-- Section Header --}}
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                        <div>
+                            <h3 class="sp-card-title">
+                                <i class="bi bi-geo-alt-fill text-teal"></i> Select Delivery Address
+                            </h3>
+                            <p class="sp-card-subtitle mb-0">
+                                Choose from your saved delivery addresses or add a new one.
+                            </p>
                         </div>
 
-                        {{-- SAVED ADDRESSES LIST (Lenskart Inspired Structure) --}}
-                        @if($savedAddresses->count() > 0)
-                            <div id="saved-addresses-wrapper" class="mb-4">
-                                <form action="{{ route('shipping.select') }}" method="POST" id="form-select-address">
-                                    @csrf
+                        <button type="button" class="btn-new-address-toggle" onclick="resetAndOpenModal()">
+                            <i class="bi bi-plus-lg"></i> Add New Address
+                        </button>
+                    </div>
 
+                    {{-- ── Saved Addresses Selection ── --}}
+                    @if($savedAddresses->count() > 0)
+                        <form action="{{ route('shipping.select') }}" method="POST" id="form-select-address">
+                            @csrf
+
+                            @php
+                                $selectedId = $shippingData['address_id'] ?? ($savedAddresses->first()->id ?? null);
+                            @endphp
+
+                            <div class="saved-addr-list">
+                                @foreach($savedAddresses as $index => $addr)
                                     @php
-                                        // Auto-select address from session if matching, or fallback to first address
-                                        $selectedId = $shippingData['address_id'] ?? ($savedAddresses->first()->id ?? null);
+                                        $isObj = is_object($addr);
+                                        $addrId   = $isObj ? $addr->id : ($addr['id'] ?? $index);
+                                        $addrType = $isObj ? ($addr->address_type ?? 'Home') : ($addr['address_type'] ?? 'Home');
+                                        $fullName = $isObj ? $addr->full_name : ($addr['full_name'] ?? '');
+                                        $phone    = $isObj ? $addr->phone : ($addr['phone'] ?? '');
+                                        $houseNo  = $isObj ? ($addr->address_line_1 ?? $addr->house_no) : ($addr['address_line_1'] ?? ($addr['house_no'] ?? ''));
+                                        $roadArea = $isObj ? ($addr->address_line_2 ?? $addr->road_area) : ($addr['address_line_2'] ?? ($addr['road_area'] ?? ''));
+                                        $city     = $isObj ? ($addr->city ?? '') : ($addr['city'] ?? '');
+                                        $state    = $isObj ? ($addr->state ?? '') : ($addr['state'] ?? '');
+                                        $pincode  = $isObj ? $addr->pincode : ($addr['pincode'] ?? '');
+                                        $fullAddr = $isObj ? $addr->full_address : ($addr['full_address'] ?? ($houseNo . ', ' . $roadArea . ($city ? ', ' . $city : '') . ' - ' . $pincode));
+
+                                        $typeClass = 'type-home';
+                                        $typeIcon  = 'bi-house-door-fill';
+                                        $normalizedType = strtolower($addrType);
+                                        if ($normalizedType === 'office' || $normalizedType === 'work') {
+                                            $typeClass = 'type-office';
+                                            $typeIcon  = 'bi-building-fill';
+                                        } elseif ($normalizedType === 'other') {
+                                            $typeClass = 'type-other';
+                                            $typeIcon  = 'bi-geo-alt-fill';
+                                        }
+
+                                        $isSelected = ($selectedId == $addrId) || ($index === 0 && !$selectedId);
                                     @endphp
 
-                                    <div class="d-flex flex-column gap-3 mb-4">
-                                        @foreach($savedAddresses as $index => $addr)
-                                            @php
-                                                $isObj = is_object($addr);
-                                                $addrId   = $isObj ? $addr->id : ($addr['id'] ?? $index);
-                                                $addrType = $isObj ? ($addr->address_type ?? 'Home') : ($addr['address_type'] ?? 'Home');
-                                                $fullName = $isObj ? $addr->full_name : ($addr['full_name'] ?? '');
-                                                $phone    = $isObj ? $addr->phone : ($addr['phone'] ?? '');
-                                                $houseNo  = $isObj ? $addr->house_no : ($addr['house_no'] ?? '');
-                                                $roadArea = $isObj ? $addr->road_area : ($addr['road_area'] ?? '');
-                                                $pincode  = $isObj ? $addr->pincode : ($addr['pincode'] ?? '');
-                                                $fullAddr = $isObj ? $addr->full_address : ($addr['full_address'] ?? ($houseNo . ', ' . $roadArea . ' - ' . $pincode));
+                                    <div class="saved-addr-card {{ $isSelected ? 'active' : '' }}"
+                                         data-address-id="{{ $addrId }}"
+                                         onclick="selectAddressCard(this, '{{ $addrId }}')">
 
-                                                $iconMap = [
-                                                    'Home' => 'bi-house-door',
-                                                    'Work' => 'bi-building',
-                                                    'Friend & Family' => 'bi-people',
-                                                    'Other' => 'bi-geo-alt'
-                                                ];
-                                                $typeIcon = $iconMap[$addrType] ?? 'bi-geo-alt';
+                                        <input type="radio" name="address_id" value="{{ $addrId }}" id="addr-radio-{{ $addrId }}" class="d-none" {{ $isSelected ? 'checked' : '' }}>
 
-                                                $isSelected = ($selectedId == $addrId) || ($index === 0 && !$selectedId);
-                                            @endphp
-
-                                            <div class="saved-address-card {{ $isSelected ? 'active' : '' }}"
-                                                 data-address-id="{{ $addrId }}"
-                                                 onclick="selectAddressCard(this, '{{ $addrId }}')">
-
-                                                <input type="radio" name="address_id" value="{{ $addrId }}" id="addr-radio-{{ $addrId }}" class="d-none" {{ $isSelected ? 'checked' : '' }}>
-
-                                                <div class="d-flex align-items-start justify-content-between mb-2">
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <span class="custom-radio-indicator"></span>
-                                                        <span class="address-type-badge">
-                                                            <i class="bi {{ $typeIcon }}"></i> {{ $addrType }}
-                                                        </span>
-                                                        <span class="badge rounded-pill bg-light text-secondary border px-2 py-1" style="font-size: 11px;">
-                                                            <i class="bi bi-truck text-success me-1"></i> Fast Delivery
-                                                        </span>
-                                                    </div>
-
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <button type="button" class="address-actions-btn text-danger" onclick="deleteAddress(event, '{{ $addrId }}')">
-                                                            <i class="bi bi-trash me-1"></i> Delete
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div class="ps-4 ms-1">
-                                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 16px;">{{ $fullName }}</h6>
-                                                    <p class="text-secondary mb-2" style="font-size: 14px; line-height: 1.5;">{{ $fullAddr }}</p>
-                                                    <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 13px;">
-                                                        <span><i class="bi bi-person me-1 text-teal"></i> {{ $fullName }}</span>
-                                                        <span>|</span>
-                                                        <span><i class="bi bi-telephone me-1 text-teal"></i> {{ $phone }}</span>
-                                                    </div>
-                                                </div>
+                                        <div class="addr-card-header">
+                                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                                <span class="addr-radio-indicator">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </span>
+                                                <span class="addr-type-tag {{ $typeClass }}">
+                                                    <i class="bi {{ $typeIcon }}"></i> {{ ucfirst($addrType) }}
+                                                </span>
+                                                @if(!empty($addr->is_default))
+                                                    <span class="addr-default-tag">
+                                                        <i class="bi bi-patch-check-fill"></i> Default
+                                                    </span>
+                                                @endif
+                                                <span class="addr-user-name">{{ $fullName }}</span>
                                             </div>
-                                        @endforeach
+
+                                            <div class="d-flex align-items-center gap-1">
+                                                <button type="button" class="btn-card-action btn-edit-address" data-address="{{ json_encode($addr) }}">
+                                                    <i class="bi bi-pencil-square"></i> <span>Edit</span>
+                                                </button>
+                                                <button type="button" class="btn-card-action btn-delete-action btn-delete-address" data-id="{{ $addrId }}">
+                                                    <i class="bi bi-trash3"></i> <span>Delete</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="addr-card-body">
+                                            <div class="addr-full-address">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                                <span>{{ $fullAddr }}</span>
+                                            </div>
+                                            <div class="addr-contact-inline">
+                                                <span><i class="bi bi-telephone-fill"></i> +91 {{ $phone }}</span>
+                                                @if(!empty($addr->email))
+                                                    <span class="addr-contact-dot">•</span>
+                                                    <span><i class="bi bi-envelope-fill"></i> {{ $addr->email }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
-
-                                    <button type="submit" class="checkout-btn" id="btn-submit-saved-address">
-                                        Save Address & Proceed <i class="bi bi-arrow-right fs-5"></i>
-                                    </button>
-                                </form>
-
-                                {{-- Hidden delete form --}}
-                                <form id="form-delete-address" action="" method="POST" style="display: none;">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
+                                @endforeach
                             </div>
-                        @endif
 
-                        {{-- ADD NEW ADDRESS FORM --}}
-                        <div id="address-form-wrapper" class="{{ $savedAddresses->count() > 0 ? 'd-none' : '' }}">
+                            <button type="submit" class="sp-btn-proceed mt-3" id="btn-submit-saved-address">
+                                <span>Deliver to This Address</span>
+                                <i class="bi bi-arrow-right fs-5"></i>
+                            </button>
+                        </form>
+                    @else
+                        {{-- Empty State --}}
+                        <div class="addr-empty-state-box">
+                            <div class="addr-empty-icon">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-2">No Saved Address Found</h5>
+                            <p class="text-muted small mb-4">Add your shipping address once to enjoy fast, one-click checkout.</p>
+                            <button type="button" class="sp-btn-proceed mx-auto" style="max-width: 260px;" onclick="resetAndOpenModal()">
+                                <i class="bi bi-plus-circle me-1"></i> Add Delivery Address
+                            </button>
+                        </div>
+                    @endif
 
-                            @if($savedAddresses->count() > 0)
-                                <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
-                                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-geo-alt-fill text-teal me-2"></i>Enter New Address Details</h5>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="btn-cancel-address-form">
-                                        <i class="bi bi-arrow-left me-1"></i> Back to Saved Addresses
-                                    </button>
+                    {{-- Hidden delete form --}}
+                    <form id="form-delete-address" action="" method="POST" style="display: none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+
+                </div>
+            </div>
+
+            {{-- ══════════════════════════════════════════════════
+                 RIGHT COLUMN: ORDER SUMMARY & SECURITY BADGES
+            ══════════════════════════════════════════════════ --}}
+            <div class="col-lg-5">
+                <div class="sp-main-card order-summary-sticky">
+
+                    @php
+                        $itemSubtotal = ($cartData['frame_subtotal'] ?? 0) + ($cartData['lens_subtotal'] ?? 0);
+                        $totalDiscounts = ($cartData['bogo_savings'] ?? 0) 
+                                        + ($cartData['third_item_savings'] ?? 0) 
+                                        + ($cartData['coupon_discount'] ?? 0) 
+                                        + ($cartData['first_frame_free_save'] ?? 0);
+                        $loyaltyDiscount = (float)($cartData['loyalty_discount'] ?? 0);
+                        $totalSavings = $totalDiscounts + $loyaltyDiscount;
+                        $shippingFee = (float)($cartData['shipping_charge'] ?? 0);
+                        $grandTotal = (float)($cartData['grand_total'] ?? 0);
+                        $itemsList = $cartData['items'] ?? [];
+                    @endphp
+
+                    {{-- Summary Header --}}
+                    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3">
+                        <h4 class="sp-card-title mb-0" style="font-size: 18px;">
+                            <i class="bi bi-bag-check-fill text-teal"></i> Order Summary
+                        </h4>
+                        <span class="badge bg-light text-dark border px-2 py-1 fw-bold" style="font-size: 11px;">
+                            {{ count($itemsList) }} {{ Str::plural('Item', count($itemsList)) }}
+                        </span>
+                    </div>
+
+                    {{-- Cart Items Mini-List --}}
+                    @if(count($itemsList) > 0)
+                        <div class="summary-item-preview-list">
+                            @foreach($itemsList as $cartItem)
+                                @php
+                                    $imgUrl = $cartItem['frame_image'] ?? ($cartItem['image'] ?? asset('website/assets/img/bg/Sunglasses1.png'));
+                                    $itemName = $cartItem['frame_name'] ?? ($cartItem['name'] ?? 'Eyewear Frame');
+                                    $itemQty = (int)($cartItem['quantity'] ?? 1);
+                                    $lensTitle = $cartItem['lens_name'] ?? ($cartItem['lens_package_name'] ?? 'Frame Only');
+                                    $fPrice = (float)($cartItem['frame_price'] ?? 0);
+                                    $lPrice = (float)($cartItem['lens_price'] ?? 0);
+                                    $itemTotal = ($fPrice + $lPrice) * $itemQty;
+                                @endphp
+                                <div class="summary-item-row">
+                                    <div class="summary-item-thumb-wrap">
+                                        @if(!empty($cartItem['is_membership']))
+                                            <div class="summary-membership-icon">
+                                                <i class="bi bi-award-fill text-warning"></i>
+                                            </div>
+                                        @else
+                                            <img src="{{ $imgUrl }}" alt="{{ $itemName }}" class="summary-item-thumb" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
+                                        @endif
+                                    </div>
+                                    <div class="summary-item-info">
+                                        <div class="summary-item-name" title="{{ $itemName }}">{{ $itemName }}</div>
+                                        <div class="summary-item-sub">Qty: {{ $itemQty }} · {{ $lensTitle }}</div>
+                                    </div>
+                                    <div class="summary-item-price">
+                                        ₹{{ number_format($itemTotal, 0) }}
+                                    </div>
                                 </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    {{-- Price Breakdown Table --}}
+                    <table class="bill-table">
+                        <tbody>
+                            <tr>
+                                <td>Items Subtotal</td>
+                                <td class="text-end fw-semibold text-dark">₹{{ number_format($itemSubtotal, 2) }}</td>
+                            </tr>
+
+                            @if($totalDiscounts > 0)
+                                <tr>
+                                    <td>Special Offers & Coupons</td>
+                                    <td class="text-end fw-semibold text-success">- ₹{{ number_format($totalDiscounts, 2) }}</td>
+                                </tr>
                             @endif
 
-                            {{-- Address Type Selection Tabs --}}
-                            <p class="fw-semibold text-secondary mb-2" style="font-size: 13px;">Address Type :</p>
-                            <div class="InputGroup">
-                                <input type="radio" name="address_type_radio" id="size_1" value="Home" checked onclick="document.getElementById('hidden_address_type').value = 'Home'">
-                                <label for="size_1">
-                                    <i class="bi bi-house-door me-2"></i>Home
-                                </label>
+                            @if($loyaltyDiscount > 0)
+                                <tr>
+                                    <td>Loyalty Points Redeemed</td>
+                                    <td class="text-end fw-semibold text-success">- ₹{{ number_format($loyaltyDiscount, 2) }}</td>
+                                </tr>
+                            @endif
 
-                                <input type="radio" name="address_type_radio" id="size_2" value="Work" onclick="document.getElementById('hidden_address_type').value = 'Work'">
-                                <label for="size_2">
-                                    <i class="bi bi-building me-2"></i>Work
-                                </label>
+                            @if($shippingFee > 0)
+                                <tr>
+                                    <td>Shipping Charges</td>
+                                    <td class="text-end fw-semibold text-dark">+ ₹{{ number_format($shippingFee, 2) }}</td>
+                                </tr>
+                            @endif
 
-                                <input type="radio" name="address_type_radio" id="size_3" value="Friend & Family" onclick="document.getElementById('hidden_address_type').value = 'Friend & Family'">
-                                <label for="size_3">
-                                    <i class="bi bi-people me-2"></i>Friend & Family
-                                </label>
+                            <tr class="bill-total-row">
+                                <td>Total Payable</td>
+                                <td class="text-end">₹{{ number_format($grandTotal, 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                                <input type="radio" name="address_type_radio" id="size_4" value="Other" onclick="document.getElementById('hidden_address_type').value = 'Other'">
-                                <label for="size_4">
-                                    <i class="bi bi-geo-alt me-2"></i>Other
-                                </label>
-                            </div>
-
-                            <form action="{{ route('shipping.save') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="address_type" id="hidden_address_type" value="Home">
-
-                                <div class="row">
-
-                                    <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control @error('pincode') is-invalid @enderror" id="shipping_pincode_input" placeholder="6-Digit Pincode *" name="pincode" value="{{ $shippingData['pincode'] ?? old('pincode') }}" maxlength="6" pattern="[0-9]{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
-                                        <div id="pincode-status-msg" class="small mt-1" style="display:none;"></div>
-                                        @error('pincode')
-                                            <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control @error('full_name') is-invalid @enderror" placeholder="Full Name *" name="full_name" value="{{ $shippingData['full_name'] ?? old('full_name') }}" required>
-                                        @error('full_name')
-                                            <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-12 mb-3">
-                                        <input type="text" class="form-control @error('house_no') is-invalid @enderror"
-                                            placeholder="House Number / Building Name *" name="house_no" value="{{ $shippingData['house_no'] ?? old('house_no') }}" required>
-                                        @error('house_no')
-                                            <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-12 mb-3">
-                                        <input type="text" class="form-control @error('road_area') is-invalid @enderror"
-                                            placeholder="Road Name / Area / Location *" name="road_area" value="{{ $shippingData['road_area'] ?? old('road_area') }}" required>
-                                        @error('road_area')
-                                            <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-12 mb-3">
-                                        <input type="text" class="form-control" placeholder="Landmark (Optional)" name="landmark" value="{{ $shippingData['landmark'] ?? old('landmark') }}">
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <input type="tel" class="form-control @error('phone') is-invalid @enderror" placeholder="10-Digit Mobile Number *" name="phone" value="{{ $shippingData['phone'] ?? old('phone') }}" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
-                                        @error('phone')
-                                            <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <input type="email" class="form-control @error('email') is-invalid @enderror" placeholder="Email Address (Optional)" name="email" value="{{ $shippingData['email'] ?? old('email') }}">
-                                        @error('email')
-                                            <span class="text-danger small mt-1 d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</span>
-                                        @enderror
-                                    </div>
-
-                                </div>
-
-                                <button type="submit" class="checkout-btn">
-                                    Continue to Payment <i class="bi bi-arrow-right fs-5"></i>
-                                </button>
-                            </form>
-
+                    {{-- Savings Banner --}}
+                    @if($totalSavings > 0)
+                        <div class="savings-badge-pill">
+                            <i class="bi bi-tag-fill"></i>
+                            <span>You are saving ₹{{ number_format($totalSavings, 0) }} on this order!</span>
                         </div>
+                    @endif
 
-                    </div>
-                </div>
-
-                <div class="col-lg-5">
-
-                    <div class="order-summary-card">
-
-                        <div class="order-summary-img d-none d-lg-block">
-                            <img src="{{ asset('website/assets/img/bg/Add-Shipping-details-bg.png') }}" alt="">
-                        </div>
-
-                        <h4 class="summary-title">Order Summary</h4>
-
-                        <table class="table table-borderless summary-table">
-                            <tbody>
-                                <tr>
-                                    <td class="text-start ps-2">Total Item Price</td>
-                                    <td class="text-end pe-2">₹{{ number_format(($cartData['frame_subtotal'] ?? 0) + ($cartData['lens_subtotal'] ?? 0), 0) }}</td>
-                                </tr>
-
-                                <tr>
-                                    <td class="text-start ps-2">Total Discount</td>
-                                    <td class="text-end text-success pe-2">- ₹{{ number_format(($cartData['bogo_savings'] ?? 0) + ($cartData['third_item_savings'] ?? 0) + ($cartData['coupon_discount'] ?? 0) + ($cartData['first_frame_free_save'] ?? 0), 0) }}</td>
-                                </tr>
-
-                                @if(($cartData['loyalty_discount'] ?? 0) > 0)
-                                <tr>
-                                    <td class="text-start ps-2">Loyalty Points</td>
-                                    <td class="text-end text-success pe-2">- ₹{{ number_format($cartData['loyalty_discount'], 0) }}</td>
-                                </tr>
-                                @endif
-
-                                <tr class="summary-total">
-                                    <td class="text-start ps-2">Total Payable</td>
-                                    <td class="text-end pe-2">₹{{ number_format($cartData['grand_total'] ?? 0, 0) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <div class="secure-box">
+                    {{-- Trust Badges --}}
+                    <div class="trust-features-grid">
+                        <div class="trust-feature-item">
                             <i class="bi bi-shield-check"></i>
                             <span>100% Secure Checkout</span>
                         </div>
-
+                        <div class="trust-feature-item">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>14-Day Free Returns</span>
+                        </div>
+                        <div class="trust-feature-item">
+                            <i class="bi bi-patch-check"></i>
+                            <span>1-Year Warranty</span>
+                        </div>
+                        <div class="trust-feature-item">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Safe Packaging</span>
+                        </div>
                     </div>
 
                 </div>
-
             </div>
+
         </div>
-    </section>
+    </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <script>
-        function selectAddressCard(element, addressId) {
-            $('.saved-address-card').removeClass('active');
-            $(element).addClass('active');
-            $(element).find('input[type="radio"]').prop('checked', true);
+<!-- ==========================================================================
+     UNIFIED MODAL: ADD / EDIT DELIVERY ADDRESS (Identical to My Address UI)
+     ========================================================================== -->
+<div class="modal fade addr-modal" id="addressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-geo-alt-fill text-warning"></i> Add New Address
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="addressForm" method="POST" action="{{ route('shipping.save') }}">
+                @csrf
+                <input type="hidden" id="modal_address_id" name="address_id">
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Recipient Names -->
+                        <div class="col-md-6">
+                            <label class="addr-form-label">First Name *</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_first_name" name="first_name" placeholder="e.g. Rahul" value="{{ old('first_name') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="addr-form-label">Last Name</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_last_name" name="last_name" placeholder="e.g. Sharma" value="{{ old('last_name') }}">
+                        </div>
+
+                        <!-- Mobile Number & Country -->
+                        <div class="col-md-6">
+                            <label class="addr-form-label">Mobile Number *</label>
+                            <input type="tel" class="form-control addr-form-control" id="modal_phone" name="phone" placeholder="10-digit mobile number" maxlength="10" pattern="[0-9]{10}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('phone') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="addr-form-label">Country</label>
+                            <input type="text" class="form-control addr-form-control" name="country" value="India" readonly style="background:#f8fafc;">
+                        </div>
+
+                        <!-- Address Line 1 -->
+                        <div class="col-12">
+                            <label class="addr-form-label">Flat, House No., Building, Apartment *</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_address_line_1" name="address_line_1" placeholder="e.g. Flat 402, Sunshine Heights" value="{{ old('address_line_1') }}" required>
+                        </div>
+
+                        <!-- Address Line 2 -->
+                        <div class="col-12">
+                            <label class="addr-form-label">Area, Street, Sector, Village (Optional)</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_address_line_2" name="address_line_2" placeholder="e.g. Near City Mall, MG Road" value="{{ old('address_line_2') }}">
+                        </div>
+
+                        <!-- City, State & Pincode -->
+                        <div class="col-md-4">
+                            <label class="addr-form-label">City / Town *</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_city" name="city" placeholder="e.g. Mumbai" value="{{ old('city') }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="addr-form-label">State *</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_state" name="state" placeholder="e.g. Maharashtra" value="{{ old('state') }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="addr-form-label">Pincode *</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_pincode" name="pincode" placeholder="6 digits" maxlength="6" pattern="[0-9]{6}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" value="{{ old('pincode') }}" required>
+                        </div>
+
+                        <!-- Landmark & Email -->
+                        <div class="col-md-6">
+                            <label class="addr-form-label">Landmark (Optional)</label>
+                            <input type="text" class="form-control addr-form-control" id="modal_landmark" name="landmark" placeholder="e.g. Opposite Metro Station" value="{{ old('landmark') }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="addr-form-label">Email Address (Optional)</label>
+                            <input type="email" class="form-control addr-form-control" id="modal_email" name="email" placeholder="e.g. name@example.com" value="{{ old('email') }}">
+                        </div>
+
+                        <!-- Address Type Selector -->
+                        <div class="col-12 mt-3">
+                            <label class="addr-form-label">Address Type</label>
+                            <div class="addr-type-selector">
+                                <input type="radio" name="type" value="home" id="modal_type_home" checked>
+                                <label for="modal_type_home">
+                                    <i class="bi bi-house-door-fill"></i> Home
+                                </label>
+
+                                <input type="radio" name="type" value="office" id="modal_type_office">
+                                <label for="modal_type_office">
+                                    <i class="bi bi-building-fill"></i> Office / Commercial
+                                </label>
+
+                                <input type="radio" name="type" value="other" id="modal_type_other">
+                                <label for="modal_type_other">
+                                    <i class="bi bi-geo-alt-fill"></i> Other
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Default Checkbox -->
+                        <div class="col-12 mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="modal_is_default" name="is_default" value="1" checked>
+                                <label class="form-check-label fw-semibold text-dark small" for="modal_is_default">
+                                    Set as default shipping address
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light rounded-3 px-3 fw-semibold text-muted" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-addr-add" id="modalSubmitBtn">
+                        <i class="bi bi-check2-circle"></i> Save Address
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+    function selectAddressCard(element, addressId) {
+        $('.saved-addr-card').removeClass('active');
+        $(element).addClass('active');
+        $(element).find('input[type="radio"]').prop('checked', true);
+    }
+
+    function resetAndOpenModal() {
+        let form = document.getElementById('addressForm');
+        form.reset();
+        form.action = "{{ route('shipping.save') }}";
+
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-geo-alt-fill text-warning"></i> Add New Address';
+        document.getElementById('modalSubmitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Save Address';
+        document.getElementById('modal_address_id').value = '';
+        document.getElementById('modal_type_home').checked = true;
+        document.getElementById('modal_is_default').checked = true;
+        let modal = new bootstrap.Modal(document.getElementById('addressModal'));
+        modal.show();
+    }
+
+    function openEditModal(address) {
+        if (!address) return;
+
+        let form = document.getElementById('addressForm');
+        let updateUrl = "{{ route('update_address', ':id') }}";
+        form.action = updateUrl.replace(':id', address.id);
+
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil-square text-warning"></i> Edit Address';
+        document.getElementById('modalSubmitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Update Address';
+        document.getElementById('modal_address_id').value = address.id;
+
+        document.getElementById('modal_first_name').value = address.first_name || (address.full_name ? address.full_name.split(' ')[0] : '');
+        document.getElementById('modal_last_name').value = address.last_name || (address.full_name && address.full_name.split(' ').length > 1 ? address.full_name.split(' ').slice(1).join(' ') : '');
+        document.getElementById('modal_phone').value = address.phone || '';
+        document.getElementById('modal_email').value = address.email || '';
+        document.getElementById('modal_address_line_1').value = address.address_line_1 || address.house_no || '';
+        document.getElementById('modal_address_line_2').value = address.address_line_2 || address.road_area || '';
+        document.getElementById('modal_city').value = address.city || '';
+        document.getElementById('modal_state').value = address.state || '';
+        document.getElementById('modal_pincode').value = address.pincode || '';
+        document.getElementById('modal_landmark').value = address.landmark || '';
+
+        let type = (address.address_type || address.type || 'home').toLowerCase();
+        if (type === 'work' || type === 'office') {
+            document.getElementById('modal_type_office').checked = true;
+        } else if (type === 'other') {
+            document.getElementById('modal_type_other').checked = true;
+        } else {
+            document.getElementById('modal_type_home').checked = true;
         }
 
-        function deleteAddress(event, addressId) {
-            event.stopPropagation();
-            Swal.fire({
-                title: 'Delete Address?',
-                text: 'Are you sure you want to delete this address?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Yes, delete it',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    var deleteForm = document.getElementById('form-delete-address');
-                    deleteForm.action = '/shipping-details/address/' + addressId;
-                    deleteForm.submit();
-                }
-            });
+        document.getElementById('modal_is_default').checked = (address.is_default == 1 || address.is_default === true);
+
+        let modal = new bootstrap.Modal(document.getElementById('addressModal'));
+        modal.show();
+    }
+
+    $(document).on('click', '.btn-edit-address', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var addressData = $(this).data('address');
+        if (typeof addressData === 'string') {
+            try { addressData = JSON.parse(addressData); } catch(err) {}
         }
+        openEditModal(addressData);
+    });
 
-        $(document).ready(function() {
-            $('#btn-toggle-address-form').on('click', function() {
-                $('#saved-addresses-wrapper').addClass('d-none');
-                $('#address-form-wrapper').removeClass('d-none');
-            });
+    $(document).on('click', '.btn-delete-address', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var addressId = $(this).data('id');
 
-            $('#btn-cancel-address-form').on('click', function() {
-                $('#address-form-wrapper').addClass('d-none');
-                $('#saved-addresses-wrapper').removeClass('d-none');
-            });
-
-            // Live Pincode Serviceability Check
-            $('#shipping_pincode_input').on('keyup input', function () {
-                var val = $(this).val().trim();
-                var msgEl = $('#pincode-status-msg');
-                if (val.length === 6) {
-                    msgEl.show().html('<span class="text-muted"><i class="bi bi-arrow-repeat spin me-1"></i> Checking delivery...</span>');
-                    $.ajax({
-                        url: "{{ route('shipping.check-pincode') }}",
-                        type: "POST",
-                        data: {
-                            _token: "{{ csrf_token() }}",
-                            pincode: val
-                        },
-                        success: function (res) {
-                            if (res.is_serviceable) {
-                                msgEl.html(`<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i> ${res.message}</span>`);
-                            } else {
-                                msgEl.html(`<span class="text-danger fw-semibold"><i class="bi bi-x-circle-fill me-1"></i> ${res.message}</span>`);
-                            }
-                        },
-                        error: function () {
-                            msgEl.hide();
-                        }
-                    });
-                } else {
-                    msgEl.hide();
-                }
-            });
-
-            // Trigger on page load if pincode already filled
-            if ($('#shipping_pincode_input').val().trim().length === 6) {
-                $('#shipping_pincode_input').trigger('input');
+        Swal.fire({
+            title: 'Delete Address?',
+            text: 'Are you sure you want to delete this saved address?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var deleteForm = document.getElementById('form-delete-address');
+                let deleteUrl = "{{ route('shipping.address.delete', ':id') }}";
+                deleteForm.action = deleteUrl.replace(':id', addressId);
+                deleteForm.submit();
             }
         });
-    </script>
+    });
+</script>
+
+@if ($errors->any())
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    @foreach ($errors->all() as $error)
+        toastr.error("{{ $error }}");
+    @endforeach
+
+    var myModal = new bootstrap.Modal(document.getElementById("addressModal"));
+    @if (old('address_id'))
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil-square text-warning"></i> Edit Address';
+        document.getElementById('modalSubmitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Update Address';
+        let updateUrl = "{{ route('update_address', ':id') }}";
+        document.getElementById('addressForm').action = updateUrl.replace(':id', "{{ old('address_id') }}");
+        document.getElementById('modal_address_id').value = "{{ old('address_id') }}";
+    @else
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-geo-alt-fill text-warning"></i> Add New Address';
+        document.getElementById('modalSubmitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Save Address';
+        document.getElementById('addressForm').action = "{{ route('shipping.save') }}";
+    @endif
+    myModal.show();
+});
+</script>
+@endif
 @endsection

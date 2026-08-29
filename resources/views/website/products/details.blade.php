@@ -714,7 +714,7 @@
     <!-- start 2 360 degrees -->
 
     <section class="degree mt-4">
-    <div class="cat-container">
+    <div class="container">
         <div class="row g-4">
 
             <!-- Left: Product Image & Thumbnails -->

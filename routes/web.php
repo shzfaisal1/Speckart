@@ -46,9 +46,10 @@ Route::group(['middleware' => ['web']], function ()
     Route::post('/login-web/verify-otp-ajax', [\App\Http\Controllers\Website\WebLoginController::class, 'verify_otp_ajax'])->name('login.web.verify.ajax');
     Route::post('/register-web-ajax',         [\App\Http\Controllers\Website\WebLoginController::class, 'register_ajax'])->name('register.web.ajax');
     // Wishlist
-    Route::get('/wishlist',              [\App\Http\Controllers\Website\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::get('/wishlist',              [\App\Http\Controllers\Website\WishlistController::class, 'index'])->name('wishlist');
+    Route::get('/wishlist-index',        [\App\Http\Controllers\Website\WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/toggle',      [\App\Http\Controllers\Website\WishlistController::class, 'toggle'])->name('wishlist.toggle');
-    Route::post('/wishlist/{id}',        [\App\Http\Controllers\Website\WishlistController::class, 'destroy'])->name('wishlist.destroy');
+    Route::match(['post', 'delete'], '/wishlist/{id}', [\App\Http\Controllers\Website\WishlistController::class, 'destroy'])->name('wishlist.destroy');
     Route::get('/wishlist/count',        [\App\Http\Controllers\Website\WishlistController::class, 'count'])->name('wishlist.count');
 
 

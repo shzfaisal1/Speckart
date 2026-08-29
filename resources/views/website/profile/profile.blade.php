@@ -9,7 +9,7 @@
 
 <style>
 /* ==========================================================================
-   HUMAN-CENTRIC PREMIUM PROFILE DASHBOARD STYLES
+   HUMAN-CENTRIC ULTRA-PREMIUM PROFILE DASHBOARD STYLES
    ========================================================================== */
 :root {
     --pf-primary: #07484A;
@@ -26,10 +26,13 @@
 }
 
 .profile-dashboard-section {
-    background: linear-gradient(180deg, #f0f7f7 0%, #f8fafc 180px, #f8fafc 100%);
+    background: radial-gradient(circle at 10% 10%, rgba(0, 185, 185, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(7, 72, 74, 0.06) 0%, transparent 45%),
+                #f8fafc;
     min-height: 88vh;
-    padding: 30px 0 70px;
+    padding: 32px 0 70px;
     font-family: 'Poppins', sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* ── Breadcrumbs ── */
@@ -67,16 +70,17 @@
 .pf-identity-card {
     background: #ffffff;
     border-radius: 24px;
-    border: 1px solid var(--pf-border);
-    box-shadow: 0 16px 40px -12px rgba(7, 72, 74, 0.12);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 20px 45px -15px rgba(7, 72, 74, 0.1), 0 2px 8px rgba(0, 0, 0, 0.02);
     overflow: hidden;
     position: relative;
     margin-bottom: 24px;
+    transition: box-shadow 0.3s ease;
 }
 
 .pf-cover-banner {
-    height: 115px;
-    background: linear-gradient(135deg, #07484A 0%, #0d5f63 50%, #117b80 100%);
+    height: 145px;
+    background: linear-gradient(135deg, #053335 0%, #07484A 55%, #0e7075 100%);
     position: relative;
     overflow: hidden;
 }
@@ -84,9 +88,9 @@
 .pf-cover-pattern {
     position: absolute;
     inset: 0;
-    opacity: 0.15;
+    opacity: 0.18;
     background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
-    background-size: 14px 14px;
+    background-size: 16px 16px;
 }
 
 .pf-cover-greeting-pill {
@@ -107,8 +111,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0 24px 28px;
-    margin-top: -55px;
+    padding: 0 24px 30px;
+    margin-top: -77px;
     text-align: center;
     position: relative;
     z-index: 2;
@@ -116,44 +120,44 @@
 
 .pf-avatar-wrapper {
     position: relative;
-    width: 118px;
-    height: 118px;
-    margin-bottom: 14px;
+    width: 154px;
+    height: 154px;
+    margin-bottom: 16px;
 }
 
 .pf-avatar-preview {
-    width: 118px;
-    height: 118px;
+    width: 154px;
+    height: 154px;
     border-radius: 50%;
     border: 4px solid #ffffff;
     background-size: cover;
     background-position: center;
     background-color: #f1f5f9;
-    box-shadow: 0 8px 24px rgba(7, 72, 74, 0.22);
+    box-shadow: 0 0 0 4px rgba(0, 185, 185, 0.28), 0 16px 35px rgba(7, 72, 74, 0.22);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .pf-avatar-wrapper:hover .pf-avatar-preview {
-    transform: scale(1.03);
-    box-shadow: 0 12px 30px rgba(7, 72, 74, 0.3);
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(0, 185, 185, 0.4), 0 18px 40px rgba(7, 72, 74, 0.28);
 }
 
 .pf-avatar-edit-btn {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 34px;
-    height: 34px;
+    bottom: 4px;
+    right: 4px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: linear-gradient(135deg, #00B9B9 0%, #07484A 100%);
-    border: 2.5px solid #ffffff;
+    border: 3px solid #ffffff;
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0, 185, 185, 0.4);
+    font-size: 15px;
+    box-shadow: 0 4px 14px rgba(0, 185, 185, 0.45);
     transition: all 0.2s ease;
 }
 
@@ -164,45 +168,50 @@
 }
 
 .pf-user-name {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
-    color: var(--pf-text-main);
-    margin-bottom: 3px;
+    color: #07484A;
+    margin-bottom: 5px;
+    letter-spacing: -0.3px;
     line-height: 1.25;
 }
 
 .pf-user-contact {
-    font-size: 13px;
-    color: var(--pf-text-muted);
-    margin-bottom: 14px;
-    display: flex;
+    font-size: 12.5px;
+    color: #64748b;
+    margin-bottom: 16px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    background: #f1f5f9;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: 500;
 }
 
 /* Loyalty Points Pill */
 .pf-points-pill {
     background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
     border: 1.5px solid #fde68a;
-    color: #b45309;
+    color: #92400e;
     border-radius: 50px;
-    padding: 8px 18px;
+    padding: 9px 20px;
     font-size: 13px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
     margin-bottom: 12px;
     text-decoration: none !important;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .pf-points-pill:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.22);
-    color: #92400e;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+    color: #78350f;
 }
 
 .pf-points-icon {
@@ -215,77 +224,45 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 18px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 12.5px;
     font-weight: 700;
     text-decoration: none !important;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 
 .pf-membership-active {
     background: linear-gradient(135deg, #07484A 0%, #00B9B9 100%);
     color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(7, 72, 74, 0.2);
+    box-shadow: 0 4px 14px rgba(7, 72, 74, 0.25);
 }
 
 .pf-membership-join {
     background: #f0fdfa;
-    border: 1px dashed #00B9B9;
+    border: 1.5px dashed #00B9B9;
     color: #0f766e !important;
 }
 
 .pf-membership-join:hover {
     background: #00B9B9;
     color: #ffffff !important;
-    transform: translateY(-1px);
-}
-
-/* Warm Friendly Card Note */
-.pf-warm-note {
-    background: #f8fafc;
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-align: left;
-    border: 1px solid #eef2f6;
-}
-
-.pf-warm-note-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: #f0fdfa;
-    color: #0f766e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 17px;
-    flex-shrink: 0;
-}
-
-.pf-warm-note p {
-    font-size: 12px;
-    color: #475569;
-    margin: 0;
-    line-height: 1.35;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 185, 185, 0.35);
 }
 
 /* ── RIGHT COLUMN: Main Hub ── */
 .pf-main-hub-card {
     background: #ffffff;
     border-radius: 24px;
-    border: 1px solid var(--pf-border);
-    box-shadow: 0 16px 40px -12px rgba(7, 72, 74, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 20px 45px -15px rgba(7, 72, 74, 0.08), 0 2px 8px rgba(0, 0, 0, 0.02);
     overflow: hidden;
     margin-bottom: 24px;
 }
 
 .pf-hub-header {
-    padding: 24px 28px;
+    padding: 24px 30px;
     border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
@@ -299,14 +276,8 @@
     font-size: 22px;
     font-weight: 800;
     color: var(--pf-primary);
-    margin: 0 0 4px;
-    letter-spacing: -0.2px;
-}
-
-.pf-hub-title p {
-    font-size: 13.5px;
-    color: var(--pf-text-muted);
     margin: 0;
+    letter-spacing: -0.3px;
 }
 
 .pf-hub-actions {
@@ -319,8 +290,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
-    border-radius: 10px;
+    padding: 8px 18px;
+    border-radius: 12px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none !important;
@@ -329,8 +300,8 @@
 }
 
 .btn-pf-back {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
     color: #334155 !important;
 }
 
@@ -341,8 +312,8 @@
 }
 
 .btn-pf-logout {
-    background: #fee2e2;
-    border: 1px solid #fecaca;
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
     color: #dc2626 !important;
 }
 
@@ -351,99 +322,100 @@
     color: #ffffff !important;
     border-color: #dc2626;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.28);
 }
 
 /* ── 6 Service Grid Cards ── */
 .pf-services-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    padding: 26px 28px;
+    gap: 18px;
+    padding: 28px 30px;
 }
 
 .pf-service-card {
     background: #ffffff;
-    border: 1.5px solid #eef2f6;
-    border-radius: 18px;
-    padding: 22px 18px;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 20px;
+    padding: 24px 16px;
     text-decoration: none !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
-    min-height: 155px;
+    min-height: 132px;
     justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .pf-service-card:hover {
     transform: translateY(-5px);
-    border-color: var(--pf-teal);
-    box-shadow: 0 16px 32px -8px rgba(7, 72, 74, 0.15);
+    border-color: rgba(0, 185, 185, 0.45);
+    box-shadow: 0 18px 36px -8px rgba(7, 72, 74, 0.14);
     background: #ffffff;
 }
 
 .pf-service-icon-box {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    margin-bottom: 12px;
+    font-size: 21px;
+    margin-bottom: 10px;
     transition: transform 0.25s ease;
 }
 
 .pf-service-card:hover .pf-service-icon-box {
-    transform: scale(1.12);
+    transform: scale(1.1);
 }
 
 /* Distinct theme colors for icon boxes */
 .icon-box-orders {
-    background: #f0fdf9;
-    color: #07484A;
+    background: linear-gradient(135deg, #f0fdf9 0%, #e6fdf5 100%);
+    color: #065f46;
     border: 1px solid #ccfbf1;
 }
 
 .icon-box-account {
-    background: #eff6ff;
-    color: #2563eb;
-    border: 1px solid #dbeafe;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
 }
 
 .icon-box-address {
-    background: #ecfdf5;
-    color: #059669;
-    border: 1px solid #d1fae5;
+    background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+    color: #0f766e;
+    border: 1px solid #99f6e4;
 }
 
 .icon-box-rx {
-    background: #fff1f2;
-    color: #e11d48;
-    border: 1px solid #ffe4e6;
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #be123c;
+    border: 1px solid #fecdd3;
 }
 
 .icon-box-voucher {
-    background: #f5f3ff;
-    color: #7c3aed;
-    border: 1px solid #ede9fe;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
 }
 
 .icon-box-points {
-    background: #fffbeb;
-    color: #d97706;
-    border: 1px solid #fef3c7;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #b45309;
+    border: 1px solid #fde68a;
 }
 
 .pf-service-title {
     font-size: 14.5px;
     font-weight: 700;
-    color: var(--pf-text-main);
-    margin-bottom: 3px;
+    color: #1e293b;
+    margin: 0;
     line-height: 1.25;
     transition: color 0.2s ease;
 }
@@ -452,20 +424,13 @@
     color: var(--pf-primary);
 }
 
-.pf-service-desc {
-    font-size: 11.5px;
-    color: var(--pf-text-muted);
-    line-height: 1.35;
-    font-weight: 500;
-}
-
 .pf-service-badge {
     margin-top: 6px;
     display: inline-block;
-    font-size: 10.5px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
+    padding: 2.5px 10px;
+    border-radius: 20px;
 }
 
 /* ── Active Vouchers Widget ── */
@@ -807,13 +772,8 @@
                             </div>
                         @endif
 
-                        {{-- <!-- Friendly Warm Note -->
-                        <div class="pf-warm-note w-100">
-                            <div class="pf-warm-note-icon">
-                                <i class="bi bi-heart-fill"></i>
-                            </div>
-                            <p>We're glad to have you with us! Enjoy exclusive member discounts &amp; free shipping on all orders.</p>
-                        </div> --}}
+                        <!-- Quick Sidebar Navigation Links -->
+                        
                     </div>
                 </div>
             </div>
@@ -826,7 +786,6 @@
                     <div class="pf-hub-header">
                         <div class="pf-hub-title">
                             <h3>{{ $greeting }}, {{ $firstName }}!</h3>
-                            <p>Welcome to your personal space. Manage your orders, prescriptions &amp; saved details.</p>
                         </div>
                         <div class="pf-hub-actions">
                             <a href="{{ route('home') }}" class="btn-pf-action btn-pf-back">
@@ -853,8 +812,7 @@
                                 <i class="bi bi-bag-check-fill"></i>
                             </div>
                             <span class="pf-service-title">My Orders</span>
-                            <span class="pf-service-desc">Track active orders, invoices &amp; past frames</span>
-                            <span class="pf-service-badge text-primary" style="background:#eff6ff;">Order History</span>
+                            {{-- <span class="pf-service-badge text-primary" style="background:#eff6ff;">Order History</span> --}}
                         </a>
 
                         <!-- 2. Account Information -->
@@ -863,8 +821,7 @@
                                 <i class="bi bi-person-bounding-box"></i>
                             </div>
                             <span class="pf-service-title">Personal Info</span>
-                            <span class="pf-service-desc">Update your name, email &amp; contact details</span>
-                            <span class="pf-service-badge text-info" style="background:#f0fdfa;">Edit Profile</span>
+                            {{-- <span class="pf-service-badge text-info" style="background:#f0fdfa;">Edit Profile</span> --}}
                         </a>
 
                         <!-- 3. Address Book -->
@@ -873,8 +830,7 @@
                                 <i class="bi bi-geo-alt-fill"></i>
                             </div>
                             <span class="pf-service-title">Saved Addresses</span>
-                            <span class="pf-service-desc">Manage home &amp; office delivery locations</span>
-                            <span class="pf-service-badge text-success" style="background:#ecfdf5;">Address Book</span>
+                            {{-- <span class="pf-service-badge text-success" style="background:#ecfdf5;">Address Book</span> --}}
                         </a>
 
                         <!-- 4. My Prescriptions -->
@@ -883,8 +839,7 @@
                                 <i class="bi bi-file-earmark-medical-fill"></i>
                             </div>
                             <span class="pf-service-title">Eye Prescriptions</span>
-                            <span class="pf-service-desc">Doctor slips, saved vision powers &amp; tests</span>
-                            <span class="pf-service-badge text-danger" style="background:#fff1f2;">Vision Records</span>
+                            {{-- <span class="pf-service-badge text-danger" style="background:#fff1f2;">Vision Records</span> --}}
                         </a>
 
                         <!-- 5. Voucher Balance -->
@@ -898,14 +853,11 @@
                             </div>
                             <span class="pf-service-title">Gift Vouchers</span>
                             @if($sessionVoucher)
-                                <span class="pf-service-desc fw-bold text-success">₹{{ number_format($sessionVoucher['amount_applied'] ?? 0) }} Applied on Cart</span>
-                                <span class="pf-service-badge text-success" style="background:#ecfdf5;">Applied</span>
+                                <span class="pf-service-badge text-success" style="background:#ecfdf5;">₹{{ number_format($sessionVoucher['amount_applied'] ?? 0) }} Applied</span>
                             @elseif($hasManualVouchers)
-                                <span class="pf-service-desc fw-bold" style="color:#7c3aed;">{{ $profileAvailableVouchers->count() }} Active Vouchers</span>
-                                <span class="pf-service-badge" style="background:#f5f3ff; color:#7c3aed;">Available</span>
+                                <span class="pf-service-badge" style="background:#f5f3ff; color:#7c3aed;">{{ $profileAvailableVouchers->count() }} Available</span>
                             @else
-                                <span class="pf-service-desc">Saved discounts ready to apply</span>
-                                <span class="pf-service-badge text-muted" style="background:#f1f5f9;">Cart Rewards</span>
+                                {{-- <span class="pf-service-badge text-muted" style="background:#f1f5f9;">Cart Rewards</span> --}}
                             @endif
                         </a>
 
@@ -920,8 +872,7 @@
                                 </svg>
                             </div>
                             <span class="pf-service-title">Loyalty Rewards</span>
-                            <span class="pf-service-desc fw-bold text-warning">{{ number_format($profilePts) }} Points to Spend</span>
-                            <span class="pf-service-badge text-warning" style="background:#fffbeb;">Redeem on Cart</span>
+                            <span class="pf-service-badge text-warning" style="background:#fffbeb;">{{ number_format($profilePts) }} Points</span>
                         </a>
 
                     </div>
@@ -1038,6 +989,9 @@ function readURL(input) {
                 if (response.success) {
                     if (response.image_url) {
                         $('#imagePreview').css('background-image', 'url("' + response.image_url + '")');
+                        $('.profile-avatar').attr('src', response.image_url);
+                        $('.mobile-user-avatar').attr('src', response.image_url);
+                        $('.user-nav-toggle img').attr('src', response.image_url);
                     }
                     if (typeof toastr !== 'undefined') {
                         toastr.success(response.message || 'Profile picture updated successfully!');

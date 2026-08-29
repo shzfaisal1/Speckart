@@ -18,7 +18,8 @@ class WebLoginController extends Controller
         if (Auth::check()) {
             return redirect()->route('home');
         }
-        return view('website.auth.loginweb');
+        return redirect()->route('home', ['login' => 1])
+            ->with('open_login_modal', true);
     }
 
     /**
@@ -290,10 +291,13 @@ class WebLoginController extends Controller
             app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
         } catch (\Throwable $e) {}
 
+        $redirectUrl = session()->pull('redirect_after_login', session()->pull('url.intended', null));
+
         return response()->json([
-            'status'   => 'success',
-            'message'  => 'Logged in successfully!',
-            'userName' => $user->name ?: 'Customer',
+            'status'       => 'success',
+            'message'      => 'Logged in successfully!',
+            'userName'     => $user->name ?: 'Customer',
+            'redirect_url' => $redirectUrl,
         ]);
     }
 
@@ -416,10 +420,13 @@ class WebLoginController extends Controller
             app(\App\Services\CartService::class)->syncGuestCartToUser($user->id, $guestSessionId);
         } catch (\Throwable $e) {}
 
+        $redirectUrl = session()->pull('redirect_after_login', session()->pull('url.intended', null));
+
         return response()->json([
-            'status'   => 'success',
-            'message'  => 'Account created successfully!',
-            'userName' => $user->name ?: 'Customer',
+            'status'       => 'success',
+            'message'      => 'Account created successfully!',
+            'userName'     => $user->name ?: 'Customer',
+            'redirect_url' => $redirectUrl,
         ]);
     }
 
