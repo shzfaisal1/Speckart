@@ -1034,10 +1034,6 @@
                         {{-- Customer-Bound Gold Max Benefit Vouchers (Auto-Generated from Order #1) --}}
                         @if($customerVouchers->count() > 0)
                             @foreach($customerVouchers as $cv)
-                                @php
-                                    $daysLeft = $cv->end_date ? (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($cv->end_date), false) : 30;
-                                    $daysLeft = max(0, $daysLeft);
-                                @endphp
                                 <div class="pf-gold-voucher-card">
                                     <div class="pf-voucher-head">
                                         <div>
@@ -1046,14 +1042,9 @@
                                                 <i class="bi bi-award-fill text-warning"></i> {{ $cv->name ?: 'Gold Max Benefit' }}
                                             </div>
                                         </div>
-                                        <div class="d-flex align-items-center gap-1">
-                                            <span class="pf-voucher-status-badge">
-                                                <i class="bi bi-check-circle-fill me-1"></i> AVAILABLE
-                                            </span>
-                                            <span class="badge" style="background:#fef3c7; color:#92400e; font-size:10.5px; border:1px solid #fde68a; border-radius:20px; padding:4px 8px;">
-                                                <i class="bi bi-hourglass-split me-1"></i> {{ $daysLeft }} Days Left
-                                            </span>
-                                        </div>
+                                        <span class="pf-voucher-status-badge">
+                                            <i class="bi bi-check-circle-fill me-1"></i> AVAILABLE
+                                        </span>
                                     </div>
                                     <div class="pf-voucher-meta">
                                         <div>
