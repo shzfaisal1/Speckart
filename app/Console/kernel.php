@@ -12,8 +12,13 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // 👉 Yaha tumhara command chalega
-    $schedule->command('send:nps-emails')->everyMinute();
+        // NPS email sender
+        $schedule->command('send:nps-emails')->everyMinute();
+
+        // Daily Gift Voucher expiry sweep — runs at 01:00 every night
+        // Transitions all status='active' vouchers whose expires_at < now() to 'expired'
+        // Required for: My Account EXPIRED state display & refund policy enforcement
+        $schedule->command('vouchers:expire')->dailyAt('01:00')->withoutOverlapping();
     }
 
     /**

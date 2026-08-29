@@ -8,6 +8,7 @@ use App\Models\sale\SalePayment;
 use App\Models\sale\SaleProduct;
 use App\Models\GiftVoucher;
 use App\Services\CartService;
+use App\Services\VoucherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,10 +18,12 @@ use Carbon\Carbon;
 class CheckoutController extends Controller
 {
     protected $cartService;
+    protected $voucherService;
 
-    public function __construct(CartService $cartService)
+    public function __construct(CartService $cartService, VoucherService $voucherService)
     {
-        $this->cartService = $cartService;
+        $this->cartService    = $cartService;
+        $this->voucherService = $voucherService;
     }
 
     /**
@@ -330,22 +333,24 @@ class CheckoutController extends Controller
                 }
             }
 
-            // 12. Redeem / Burn Applied Gift Voucher (Single-Use, Burn-in-Full)
+            // 12. Redeem / Burn Applied Gift Voucher via VoucherService (lockForUpdate + live expiry check)
             $appliedVoucher = session()->get('applied_voucher', null);
             $appliedCoupon  = session()->get('applied_coupon', null);
             $voucherCodeToBurn = $appliedVoucher['code'] ?? (!empty($appliedCoupon['is_gift_voucher']) ? ($appliedCoupon['code'] ?? null) : null);
 
             if (!empty($voucherCodeToBurn)) {
                 $cleanCode = strtoupper(trim($voucherCodeToBurn));
-                $dbVoucher = GiftVoucher::where('code', $cleanCode)->first();
-                if ($dbVoucher) {
-                    $dbVoucher->total_used = ($dbVoucher->total_used ?? 0) + 1;
-                    if ($dbVoucher->is_single_use || $dbVoucher->voucher_type === 'gold_deferred') {
-                        $dbVoucher->status = 'redeemed';
-                        $dbVoucher->redeemed_order_no = $orderNo;
-                    }
-                    $dbVoucher->save();
+                $dbVoucherCheck = GiftVoucher::where('code', $cleanCode)->first();
+
+                if ($dbVoucherCheck) {
+                    // Delegate to VoucherService — handles lockForUpdate + live expiry re-check
+                    $this->voucherService->redeemVoucher(
+                        $cleanCode,
+                        (float)($cartData['frame_subtotal'] ?? 0),
+                        $orderNo
+                    );
                 } else {
+                    // Legacy offers table voucher (no lockForUpdate needed — not customer-bound)
                     DB::table('offers')
                         ->where('offer_type', 'gift_voucher')
                         ->where('coupon_code', $cleanCode)
@@ -353,13 +358,13 @@ class CheckoutController extends Controller
                 }
             }
 
-            // 13. Auto-Generate Deferred Gift Voucher (₹2,600 for 2nd Pair) for Gold Members
-            // Triggered when a Gold/Gold Max member buys 1 frame without BOGO and didn't just redeem a deferred voucher
+            // 13. Auto-Generate Deferred Gift Voucher via VoucherService (idempotent via source_order_no unique)
+            // Triggered: Gold member + >= 1 frame + no BOGO + not redeeming a deferred voucher in this same order
             $isGoldMember = !empty($membershipPurchased)
                 || ($customer && !empty($customer->membership_card_id) && !empty($customer->membership_expiry) && Carbon::parse($customer->membership_expiry)->isFuture())
                 || session()->has('active_membership');
 
-            $appliedVoucherType = $appliedVoucher['voucher_type'] ?? '';
+            $appliedVoucherType  = $appliedVoucher['voucher_type'] ?? '';
             $redeemedGoldVoucher = ($appliedVoucherType === 'gold_deferred');
 
             $eligibleFrameCount = 0;
@@ -371,54 +376,18 @@ class CheckoutController extends Controller
 
             $generatedVoucher = null;
             if ($isGoldMember && $eligibleFrameCount >= 1 && $bogoDiscount <= 0 && !$redeemedGoldVoucher) {
-                $cardId = $membershipPurchased['card_id'] ?? ($customer->membership_card_id ?? 1);
-                $cardDb = DB::table('tbl_membership_card')->where('card_id', $cardId)->first();
+                $cardId   = $membershipPurchased['card_id'] ?? ($customer->membership_card_id ?? 1);
+                $cardDb   = DB::table('tbl_membership_card')->where('card_id', $cardId)->first();
                 $cardName = $cardDb->card_name ?? 'Gold Max Benefit';
-                $voucherDays = !empty($cardDb->voucher_validity_days) ? (int)$cardDb->voucher_validity_days : 30;
-                $voucherValue = 2600.00;
 
-                $uniqueCode = 'GV2600-' . strtoupper(Str::random(6));
-                while (GiftVoucher::where('code', $uniqueCode)->exists()) {
-                    $uniqueCode = 'GV2600-' . strtoupper(Str::random(6));
-                }
-
-                $voucherPayload = [
-                    'name'                  => '₹' . number_format($voucherValue, 0) . ' ' . $cardName . ' Voucher',
-                    'code'                  => $uniqueCode,
-                    'voucher_value'         => $voucherValue,
-                    'min_cart_amount'       => 0.00,
-                    'start_date'            => Carbon::now()->toDateString(),
-                    'end_date'              => Carbon::now()->addDays($voucherDays)->toDateString(),
-                    'validity_days'         => $voucherDays,
-                    'membership_scope'      => 'any_membership',
-                    'membership_card_id'    => $cardId,
-                    'allow_bogo_stacking'   => false,
-                    'allow_coupon_stacking' => false,
-                    'apply_on'              => 'all_products',
-                    'description'           => '₹' . number_format($voucherValue, 0) . ' Gift Voucher from Order #' . $orderNo . ' (' . $cardName . '). Valid for ' . $voucherDays . ' days.',
-                    'usage_limit_per_user'  => 1,
-                    'total_used'            => 0,
-                    'status'                => 'active',
-                    'added_by'              => $addedBy,
-                ];
-
-                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'user_id')) {
-                    $voucherPayload['user_id'] = $custId;
-                }
-                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'contact_no')) {
-                    $voucherPayload['contact_no'] = $shipping['phone'] ?? ($customer->contact_no ?? null);
-                }
-                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'source_order_no')) {
-                    $voucherPayload['source_order_no'] = $orderNo;
-                }
-                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'voucher_type')) {
-                    $voucherPayload['voucher_type'] = 'gold_deferred';
-                }
-                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'is_single_use')) {
-                    $voucherPayload['is_single_use'] = true;
-                }
-
-                $generatedVoucher = GiftVoucher::create($voucherPayload);
+                $generatedVoucher = $this->voucherService->generateGoldVoucher(
+                    userId:   $custId,
+                    phone:    $shipping['phone'] ?? ($customer->contact_no ?? null),
+                    orderNo:  $orderNo,
+                    cardId:   $cardId,
+                    cardName: $cardName,
+                    addedBy:  $addedBy
+                );
             }
 
             DB::commit();
