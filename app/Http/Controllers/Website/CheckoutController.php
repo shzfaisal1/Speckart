@@ -382,7 +382,7 @@ class CheckoutController extends Controller
                     $uniqueCode = 'GV2600-' . strtoupper(Str::random(6));
                 }
 
-                $generatedVoucher = GiftVoucher::create([
+                $voucherPayload = [
                     'name'                  => '₹' . number_format($voucherValue, 0) . ' ' . $cardName . ' Voucher',
                     'code'                  => $uniqueCode,
                     'voucher_value'         => $voucherValue,
@@ -400,12 +400,25 @@ class CheckoutController extends Controller
                     'total_used'            => 0,
                     'status'                => 'active',
                     'added_by'              => $addedBy,
-                    'user_id'               => $custId,
-                    'contact_no'            => $shipping['phone'] ?? ($customer->contact_no ?? null),
-                    'source_order_no'       => $orderNo,
-                    'voucher_type'          => 'gold_deferred',
-                    'is_single_use'         => true,
-                ]);
+                ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'user_id')) {
+                    $voucherPayload['user_id'] = $custId;
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'contact_no')) {
+                    $voucherPayload['contact_no'] = $shipping['phone'] ?? ($customer->contact_no ?? null);
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'source_order_no')) {
+                    $voucherPayload['source_order_no'] = $orderNo;
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'voucher_type')) {
+                    $voucherPayload['voucher_type'] = 'gold_deferred';
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'is_single_use')) {
+                    $voucherPayload['is_single_use'] = true;
+                }
+
+                $generatedVoucher = GiftVoucher::create($voucherPayload);
             }
 
             DB::commit();

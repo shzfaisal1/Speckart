@@ -80,14 +80,21 @@ class GiftVoucher extends Model
 
     public function scopeForCustomer($query, $userId = null, $phone = null)
     {
-        return $query->where(function ($q) use ($userId, $phone) {
+        $hasUserCol  = \Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'user_id');
+        $hasPhoneCol = \Illuminate\Support\Facades\Schema::hasColumn('tbl_gift_vouchers', 'contact_no');
+
+        if (!$hasUserCol && !$hasPhoneCol) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($userId, $phone, $hasUserCol, $hasPhoneCol) {
             $matched = false;
-            if (!empty($userId)) {
+            if ($hasUserCol && !empty($userId)) {
                 $q->orWhere('user_id', $userId);
                 $matched = true;
             }
-            if (!empty($phone)) {
-                $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+            if ($hasPhoneCol && !empty($phone)) {
+                $cleanPhone = preg_replace('/[^0-9]/', '', (string)$phone);
                 $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
                 $q->orWhere('contact_no', $phone)
                   ->orWhere('contact_no', $cleanPhone)
@@ -96,7 +103,8 @@ class GiftVoucher extends Model
             }
             if (!$matched) {
                 // If neither user nor phone provided, match general vouchers with no customer binding
-                $q->whereNull('user_id')->whereNull('contact_no');
+                if ($hasUserCol) $q->whereNull('user_id');
+                if ($hasPhoneCol) $q->whereNull('contact_no');
             }
         });
     }
