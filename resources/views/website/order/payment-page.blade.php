@@ -564,4 +564,13 @@
     });
 </script>
 
+{{-- Prevent browser back-forward cache from showing stale payment page after checkout --}}
+<script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+</script>
+
 @endsection
