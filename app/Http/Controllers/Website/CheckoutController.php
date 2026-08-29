@@ -330,22 +330,14 @@ class CheckoutController extends Controller
 
             DB::commit();
 
+            // 12. Completely clear cart from session AND database (inside try, after commit)
+            $this->cartService->clearCart();
+
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Checkout failed for user ' . ($user->id ?? 'guest') . ': ' . $e->getMessage());
             return redirect()->route('cart')->with('error', 'Something went wrong while placing your order. Please try again.');
         }
-
-        // 12. Clear all checkout session data
-        session()->forget([
-            'cart',
-            'applied_coupon',
-            'applied_voucher',
-            'cart_membership',
-            'checkout_shipping',
-            'use_loyalty_points',
-            'free_item_selected',
-        ]);
 
         $successMessage = 'Order ' . $orderNo . ' placed successfully!';
         if ($membershipPurchased) {
@@ -354,6 +346,10 @@ class CheckoutController extends Controller
         if ($paymentMethod === 'cod') {
             $successMessage .= ' Payment will be collected on delivery.';
         }
+
+        // Clear checkout_shipping after building the success message
+        // (preserved during clearCart so guest users can see their order on my-orders)
+        session()->forget('checkout_shipping');
 
         return redirect()->route('my-orders')->with('success', $successMessage);
     }

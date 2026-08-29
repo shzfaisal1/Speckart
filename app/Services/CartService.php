@@ -34,6 +34,9 @@ class CartService
 
         $cart = session()->get('cart', []);
 
+        // Clear the post-checkout flag since user is actively adding items again
+        session()->forget('cart_cleared');
+
         // Unique cart key for frame + lens combo + prescription + size
         $lensIdKey = $lens ? (isset($lens->package_id) ? $lens->package_id : $lens->id) : 0;
         $rxKey = $prescriptionData ? md5(is_string($prescriptionData) ? $prescriptionData : json_encode($prescriptionData)) : '0';
@@ -199,6 +202,55 @@ class CartService
         return false;
     }
 
+    /**
+     * Completely clear cart from session AND database (called after order checkout or manual clear)
+     */
+    public function clearCart()
+    {
+        $userId    = Auth::id();
+        $sessionId = session()->getId();
+
+        // 1. Wipe session cart & all associated checkout/discount keys
+        // NOTE: checkout_shipping is intentionally preserved so guest users
+        // can still see their order on the My Orders confirmation page.
+        session()->forget([
+            'cart',
+            'applied_coupon',
+            'applied_voucher',
+            'cart_membership',
+            'use_loyalty_points',
+            'free_item_selected',
+            'membership_bogo_active',
+        ]);
+
+        // 2. Set a flag to prevent loadCartFromDbToSession() from resurrecting
+        //    stale/orphaned DB cart records back into the session.
+        session()->put('cart_cleared', true);
+
+        // 3. Wipe ALL database cart & cart items for this user AND session
+        try {
+            if ($userId) {
+                $userCartIds = Cart::where('user_id', $userId)->pluck('id');
+                if ($userCartIds->isNotEmpty()) {
+                    CartItem::whereIn('cart_id', $userCartIds)->delete();
+                    Cart::whereIn('id', $userCartIds)->delete();
+                }
+            }
+
+            if ($sessionId) {
+                $guestCartIds = Cart::where('session_id', $sessionId)->pluck('id');
+                if ($guestCartIds->isNotEmpty()) {
+                    CartItem::whereIn('cart_id', $guestCartIds)->delete();
+                    Cart::whereIn('id', $guestCartIds)->delete();
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Error clearing DB cart: ' . $e->getMessage());
+        }
+
+        return true;
+    }
+
     // ── Database Helper Methods for Dynamic Cart Sync ──────────────────────────
 
     /**
@@ -341,6 +393,14 @@ class CartService
             $pd  = $rxData['GL_EYE_totalPD'] ?? ($rxData['pd'] ?? null);
         }
 
+        $rawPt = strtolower((string)($item['product_type'] ?? 'frame'));
+        $validPt = 'frame';
+        if (str_contains($rawPt, 'contact')) $validPt = 'contact_lens';
+        elseif (str_contains($rawPt, 'sunglass')) $validPt = 'sunglass';
+        elseif (str_contains($rawPt, 'lens')) $validPt = 'lens';
+        elseif (str_contains($rawPt, 'access')) $validPt = 'accessories';
+        elseif (in_array($rawPt, ['frame', 'lens', 'contact_lens', 'sunglass', 'accessories', 'other'])) $validPt = $rawPt;
+
         if ($dbItem) {
             $dbItem->qty = (int) $item['quantity'];
             $dbItem->sale_price = (float) ($item['frame_price'] ?? 0);
@@ -352,7 +412,7 @@ class CartService
                 'cart_id'            => $cartId,
                 'product_id'         => $productId,
                 'product_code'       => $item['frame_code'] ?? null,
-                'product_type'       => $item['product_type'] ?? 'Eyeglasses',
+                'product_type'       => $validPt,
                 'qty'                => (int) ($item['quantity'] ?? 1),
                 'unit_price'         => (float) ($item['frame_price'] ?? 0),
                 'sale_price'         => (float) ($item['frame_price'] ?? 0),
@@ -382,10 +442,16 @@ class CartService
     }
 
     /**
-     * Restore cart from database table to session if session cart is empty
+     * Restore cart from database table to session if session cart is empty.
+     * Skips restoration if the cart was just explicitly cleared (e.g., after checkout).
      */
     public function loadCartFromDbToSession()
     {
+        // If cart was just cleared by checkout, do NOT resurrect from DB.
+        if (session()->get('cart_cleared', false)) {
+            return [];
+        }
+
         $userId    = Auth::id();
         $sessionId = session()->getId();
         $cart      = [];
