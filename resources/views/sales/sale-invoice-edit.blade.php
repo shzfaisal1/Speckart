@@ -215,24 +215,24 @@ input.error
                 <label for="" class="form-label">Customer Category: </label>
                 <select class="form-control select" name="cust_category" id="cust_category" style="width:240px">
                     <option value="">Select Category</option>
-                    <option value="EYE TEST" @if($customer->cust_category == 'EYE TEST') Selected @endif >EYE TEST</option>
-                    <option value="GOLD MEMBERSHIP" @if($customer->cust_category == 'GOLD MEMBERSHIP') Selected @endif>GOLD MEMBERSHIP</option>
-                    <option value="REPAIRING" @if($customer->cust_category == 'REPAIRING') Selected @endif>REPAIRING</option>
-                    <option value="WALKOUT" @if($customer->cust_category == 'WALKOUT') Selected @endif>WALKOUT</option>
+                    <option value="EYE TEST" @if(!empty($customer) && $customer->cust_category == 'EYE TEST') Selected @endif >EYE TEST</option>
+                    <option value="GOLD MEMBERSHIP" @if(!empty($customer) && $customer->cust_category == 'GOLD MEMBERSHIP') Selected @endif>GOLD MEMBERSHIP</option>
+                    <option value="REPAIRING" @if(!empty($customer) && $customer->cust_category == 'REPAIRING') Selected @endif>REPAIRING</option>
+                    <option value="WALKOUT" @if(!empty($customer) && $customer->cust_category == 'WALKOUT') Selected @endif>WALKOUT</option>
                 </select>
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Gender : <span class="text-danger">*</span></label>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="gender" id="inlineRadio1" value="Male" @if($customer->gender == 'Male') checked @endif>
+                  <input class="form-check-input" type="radio" name="gender" id="inlineRadio1" value="Male" @if(!empty($customer) && $customer->gender == 'Male') checked @endif>
                   <label class="form-check-label" for="inlineRadio1">Male</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="gender" id="inlineRadio2" value="Female" @if($customer->gender == 'Female') checked @endif>
+                  <input class="form-check-input" type="radio" name="gender" id="inlineRadio2" value="Female" @if(!empty($customer) && $customer->gender == 'Female') checked @endif>
                   <label class="form-check-label" for="inlineRadio2">Female</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="gender" id="inlineRadio3" value="Other" @if($customer->gender == 'Other') checked @endif>
+                  <input class="form-check-input" type="radio" name="gender" id="inlineRadio3" value="Other" @if(!empty($customer) && $customer->gender == 'Other') checked @endif>
                   <label class="form-check-label" for="inlineRadio3">Other</label>
                 </div>
                 <span class="error badge text-danger" id="genderError"></span>
@@ -260,23 +260,23 @@ input.error
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Date of Birth: </label>
-                <input type="date" class="form-control" id="dob" name="dob" value="{{$customer->dob}}">
+                <input type="date" class="form-control" id="dob" name="dob" value="{{!empty($customer) ?? $customer->dob}}">
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Date of Anniversary: </label>
-                <input type="date" class="form-control" id="doa" name="doa" value="{{$customer->doa}}">
+                <input type="date" class="form-control" id="doa" name="doa" value="{{!empty($customer) ?? $customer->doa}}">
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Company Name: </label>
-                <input type="text"  class="form-control" placeholder="Company Name" name="company_name" id="company_name" value="{{$customer->company_name}}">
+                <input type="text"  class="form-control" placeholder="Company Name" name="company_name" id="company_name" value="{{!empty($customer) ?? $customer->company_name}}">
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Customer GST Number: </label>
-                <input type="text"  class="form-control" placeholder="Customer GST Number" name="gst_no" id="gst_no" value="{{$customer->gst_no}}">
+                <input type="text"  class="form-control" placeholder="Customer GST Number" name="gst_no" id="gst_no" value="{{!empty($customer) ?? $customer->gst_no}}">
             </div>
             <div class="col-md-12">
                 <label for="" class="form-label">Customer Notes: </label>
-                <input type="text"  class="form-control" placeholder="Customer Notes" name="cust_note" id="cust_note" value="{{$customer->cust_note}}">
+                <input type="text"  class="form-control" placeholder="Customer Notes" name="cust_note" id="cust_note" value="{{!empty($customer) ?? $customer->cust_note}}">
             </div> 
           </div>
             <hr/>

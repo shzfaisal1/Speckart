@@ -430,7 +430,7 @@
                                             <td colspan="2"><b><span class="rtl-fix"><span>Membership ID</span></span> : </b><span class="ltr-fix"></span></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="2"><b><span class="rtl-fix"><span>Loyalty Points Balance</span></span></b> : <span class="ltr-fix">{{$tbl_customer->Loyalty_Points_Bal}}</span></td>
+                                            <td colspan="2"><b><span class="rtl-fix"><span>Loyalty Points Balance</span></span></b> : <span class="ltr-fix">{{!empty($tbl_customer->Loyalty_Points_Bal) ?? $tbl_customer->Loyalty_Points_Bal}}</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -453,9 +453,11 @@
                                         <tr>
                                             <td colspan="2"><b><span class="rtl-fix"><span>Date of Deliver</span></span> : </b><span class="ltr-fix">{{ date("d-m-Y", strtotime($sale->delivery_date))}}</span></td>
                                         </tr>
+                                        @if(!empty($salePerson))
                                         <tr>
                                             <td colspan="2"><b><span class="rtl-fix"><span>Sales Person</span></span> : </b><span class="ltr-fix">{{$salePerson->name}}</span></td>
                                         </tr>
+                                        @endif
                                     </tbody>
                                 </table>
                             </td>
@@ -589,7 +591,7 @@
                         <tr align="center" style="font-weight: bold; font-size: 12px;">
                               @if($sale->earnedPoints > 0)
                             <td width="49%" style="border: 1px solid gray; background-color: #82fefa;" class="print-td-table">
-                                YOU HAVE EARNED<br>{{$sale->earnedPoints}} NEW LOYALTY POINTS FOR THIS PURCHASE<br><font color="blue">Your total loyalty point balance is {{$tbl_customer->Loyalty_Points_Bal}}</font>
+                                YOU HAVE EARNED<br>{{$sale->earnedPoints}} NEW LOYALTY POINTS FOR THIS PURCHASE<br><font color="blue">Your total loyalty point balance is {{ !empty($tbl_customer->Loyalty_Points_Bal) ?? $tbl_customer->Loyalty_Points_Bal}}</font>
                             </td>
                              @endif
                               
@@ -651,7 +653,7 @@
                                             <td colspan="2"><b><span class="rtl-fix"><span>Membership ID</span></span> : </b><span class="ltr-fix">{{$sale->membership_id}}</span></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="2"><b><span class="rtl-fix"><span>Loyalty Points Balance</span></span> : </b><span class="ltr-fix">{{$tbl_customer->Loyalty_Points_Bal}}</span></td>
+                                            <td colspan="2"><b><span class="rtl-fix"><span>Loyalty Points Balance</span></span> : </b><span class="ltr-fix">{{ !empty($tbl_customer->Loyalty_Points_Bal) ?? $tbl_customer->Loyalty_Points_Bal}}</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -711,7 +713,7 @@
                                             <td width="45%">: Rs {{$sale->pay_amount}}</td>
                                         </tr>
                                         <tr style="font-size: 12px;">
-                                                <td colspan="2">{{$sale->pay_method}} = Rs {{$sale->pay_amount}}</td>
+                                            <td colspan="2">{{$sale->pay_method}} = Rs {{$sale->pay_amount}}</td>
                                         </tr>
                                         <tr style="font-size: 15px; font-weight: bold;">
                                             <td width="55%"><span>Total Paid</span></td>
@@ -1068,7 +1070,7 @@
                                                 <td colspan="2"><b><span class="rtl-fix"><span>Membership ID</span></span> : </b><span class="ltr-fix"></span></td>
                                             </tr>
                                             <tr>
-                                                <td colspan="2"><b><span class="rtl-fix"><span>Loyalty Points Balance</span></span></b> : <span class="ltr-fix">{{$tbl_customer->Loyalty_Points_Bal}}</span></td>
+                                                <td colspan="2"><b><span class="rtl-fix"><span>Loyalty Points Balance</span></span></b> : <span class="ltr-fix">{{ !empty($tbl_customer->Loyalty_Points_Bal) ?? $tbl_customer->Loyalty_Points_Bal}}</span></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1091,9 +1093,11 @@
                                             <tr>
                                                 <td colspan="2"><b><span class="rtl-fix"><span>Date of Deliver</span></span> : </b><span class="ltr-fix">{{ date("d-m-Y", strtotime($sale->delivery_date))}}</span></td>
                                             </tr>
+                                            @if(!empty($salePerson))
                                             <tr>
                                                 <td colspan="2"><b><span class="rtl-fix"><span>Sales Person</span></span> : </b><span class="ltr-fix">{{$salePerson->name}}</span></td>
                                             </tr>
+                                            @endif
                                         </tbody>
                                     </table>
                                 </td>

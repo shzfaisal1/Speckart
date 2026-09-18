@@ -278,8 +278,8 @@ let dataListView = $('.datatables-basic')
                 render: function(data, type, full) 
                 {
                     // Base URL from Laravel
-                    let baseUrl = "{{ url('sale/invoice') }}";
-                    let baseUrll = "{{ url('sale/edit') }}";
+                    let baseUrl = "{{ url('admin/sale/invoice') }}";
+                    let baseUrll = "{{ url('admin/sale/edit') }}";
                 
                     // Dynamic URLs with both parameters
                     let invoiceUrl = baseUrl + '/' + full['encryptedId'] + '/invoice';

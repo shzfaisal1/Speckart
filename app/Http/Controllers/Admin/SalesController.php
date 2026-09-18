@@ -2394,7 +2394,7 @@ class SalesController extends Controller
                                                   <BR><strong>Advance Paid : </strong>'.$template->pay_amount.'
                                                   <BR><strong>Balance Paid  : </strong>'.$template->pending_amount.'';
                 $nestedData['store_name']   = $tbl_store->store_name;
-                $nestedData['sale_person']  = $sale_person->name;
+                $nestedData['sale_person']  = !empty($sale_person) ? $sale_person->name : '';
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
@@ -2422,6 +2422,7 @@ class SalesController extends Controller
             ['link' => url("/"), 'name' => 'Home'],
             ['name' => $setting['page_title']],
         ];
+        //dd($this->view_route);
         return view($this->view_route.'/sale-histroy',$setting);
     }
     
@@ -2767,7 +2768,7 @@ class SalesController extends Controller
             ['link' => url("/"), 'name' => 'Home'],
             ['name' => $setting['page_title']],
         ];
-        
+     
         $sale = Sale::where('sale_id', $decryptedId)->first();
         $store= Store::where('id', $sale->store_id)->first();
         
@@ -4591,7 +4592,7 @@ class SalesController extends Controller
         
         $sale = Sale::where('sale_id', $decryptedId)->first();
         $store= Store::where('id', $sale->store_id)->first();
-
+        // dd($decryptedId);
         $setting['sale'] = $sale;
         $setting['salePerson'] = User::find($sale->sale_person);
         $setting['store'] = Store::find($sale->store_id);
@@ -4600,19 +4601,19 @@ class SalesController extends Controller
         $setting['saleid'] = $id;
         $setting['printtype'] = $idd;
         $setting['saleproduct'] = SaleProduct::where('sale_id', $decryptedId)
-        ->orderBy('id', 'asc')
-        ->get()
-        ->unique(function ($item) {
-            return $item->product_type . '|' .
-                   $item->product_code . '|' .
-                   $item->barcode_use . '|' .
-                   $item->base_price . '|' .
-                   $item->discount_amt . '|' .
-                   $item->qty . '|' .
-                   $item->no_of_glass . '|' .
-                   $item->product_deatils;
-        })
-        ->values(); 
+            ->orderBy('id', 'asc')
+            ->get()
+            ->unique(function ($item) {
+                return $item->product_type . '|' .
+                       $item->product_code . '|' .
+                       $item->barcode_use . '|' .
+                       $item->base_price . '|' .
+                       $item->discount_amt . '|' .
+                       $item->qty . '|' .
+                       $item->no_of_glass . '|' .
+                       $item->product_deatils;
+            })
+            ->values(); 
     
         return view($this->view_route.'/sale-invoice',$setting);
     }
@@ -4634,20 +4635,20 @@ class SalesController extends Controller
         $setting['saleid'] = $id;
         $setting['printtype'] = $idd;
         $setting['saleproduct'] = SaleProduct::where('sale_id', $decryptedId)
-        ->orderBy('id', 'asc')
-        ->get()
-        ->unique(function ($item) {
-            return $item->product_type . '|' .
-                   $item->product_code . '|' .
-                   $item->barcode_use . '|' .
-                   $item->base_price . '|' .
-                   $item->discount_amt . '|' .
-                   $item->return_status . '|' .
-                   $item->qty . '|' .
-                   $item->no_of_glass . '|' .
-                   $item->product_deatils;
-        })
-        ->values(); 
+            ->orderBy('id', 'asc')
+            ->get()
+            ->unique(function ($item) {
+                return $item->product_type . '|' .
+                       $item->product_code . '|' .
+                       $item->barcode_use . '|' .
+                       $item->base_price . '|' .
+                       $item->discount_amt . '|' .
+                       $item->return_status . '|' .
+                       $item->qty . '|' .
+                       $item->no_of_glass . '|' .
+                       $item->product_deatils;
+            })
+            ->values(); 
         
         $pdf = Pdf::loadView($this->view_route . '/sale-pdf',$setting)
         ->setOptions([

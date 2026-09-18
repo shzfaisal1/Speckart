@@ -140,6 +140,239 @@ class HomeController extends Controller
         $maxDateStr = $endDate->toDateString();
         $stores     = Store::all();
 
+         // ── NEW: Order Dashboard Analytics (selected date range) ───────────
+        $dateFrom = request('date_from', Carbon::now()->startOfMonth()->toDateString());
+        $dateTo   = request('date_to', Carbon::now()->toDateString()); 
+        if (empty($dateFrom) && empty($dateTo)) {
+            $dateFrom = Carbon::now()->startOfMonth()->toDateString();
+            $dateTo   = Carbon::now()->toDateString();
+        }
+        $baseSales = Sale::b2c()
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo);
+    
+        // ATV
+        $paidSales   = (clone $baseSales)->where('payment_status', 'paid');
+        $totalRevenue = (float) $paidSales->sum('total_payable');
+        $orderCount   = $paidSales->count();
+        $atv = $orderCount > 0 ? round($totalRevenue / $orderCount, 2) : 0;
+    
+        $dashboardKpis = [
+            'total_orders'  => (clone $baseSales)->count(),
+            'paid_orders'   => $orderCount,
+            'total_revenue' => $totalRevenue,
+            'atv'           => $atv,
+            'delivered'     => (clone $baseSales)->where('order_status', 'delivered')->count(),
+            'cancelled'     => (clone $baseSales)->where('order_status', 'cancelled')->count(),
+        ];
+    
+     
+        // ── Brand-wise Sales ───────────────────────────────────────────────
+        $brandWise = DB::query()
+            ->fromSub(
+                DB::table('tbl_sales_product as sp')
+                    ->join('tbl_sales as s', 's.sale_id', '=', 'sp.sale_id')
+                    ->leftJoin('tbl_product_code as pc', 'pc.id', '=', 'sp.product_id')
+                    ->where('s.sales_type', 0)
+                    ->whereDate('s.created_at', '>=', $dateFrom)
+                    ->whereDate('s.created_at', '<=', $dateTo)
+                    ->where('s.order_status', '!=', 'cancelled')
+                    ->select(
+                        DB::raw("
+                            COALESCE(
+                                NULLIF(pc.Company, ''),
+                                NULLIF(sp.product_company, ''),
+                                'Unknown Brand'
+                            ) AS brand_name
+                        "),
+                        'sp.qty',
+                        'sp.sale_price',
+                        's.sale_id'
+                    ),
+                'brand_sales'
+            )
+            ->select(
+                'brand_name',
+                DB::raw('SUM(qty) AS total_qty'),
+                DB::raw('SUM(sale_price * qty) AS total_revenue'),
+                DB::raw('COUNT(DISTINCT sale_id) AS order_count')
+            )
+            ->groupBy('brand_name')
+            ->orderByDesc('total_revenue')
+            ->limit(12)
+            ->get();
+
+
+
+            // ── Lens Package Sales (FIXED) ─────────────────────────────────────────
+            $lensPackageWise = DB::table('tbl_sales_product as sp')
+                ->join('tbl_sales as s', 's.sale_id', '=', 'sp.sale_id')
+                ->leftJoin('lens_packages as lp', 'lp.id', '=', 'sp.package_id')
+                ->where('s.sales_type', 0)
+                ->whereDate('s.created_at', '>=', $dateFrom)
+                ->whereDate('s.created_at', '<=', $dateTo)
+                ->where('s.order_status', '!=', 'cancelled')
+                ->whereNotNull('sp.package_id')
+                ->where('sp.package_id', '!=', '')
+                ->where('sp.package_id', '!=', '0')
+                ->select(
+                    DB::raw("COALESCE(lp.name, CONCAT('Package #', sp.package_id)) as package_name"),
+                    DB::raw('SUM(sp.qty) as total_qty'),
+                    DB::raw('SUM(sp.lens_package_price * sp.qty) as package_revenue'),
+                    DB::raw('COUNT(DISTINCT s.sale_id) as order_count')
+                )
+                ->groupBy(DB::raw("COALESCE(lp.name, CONCAT('Package #', sp.package_id))"))
+                ->orderByDesc('package_revenue')
+                ->get();
+        
+     
+            // ── Contact Lens Sales ────────────────────────────────────────────────
+            $contactLens = DB::query()
+                ->fromSub(
+                    DB::table('tbl_sales_product as sp')
+                        ->join('tbl_sales as s', 's.sale_id', '=', 'sp.sale_id')
+                        ->leftJoin('tbl_product_code as pc', 'pc.id', '=', 'sp.product_id')
+                        ->where('s.sales_type', 0)
+                        ->whereDate('s.created_at', '>=', $dateFrom)
+                        ->whereDate('s.created_at', '<=', $dateTo)
+                        ->where('s.order_status', '!=', 'cancelled')
+                        ->where(function ($q) {
+                            $q->where('sp.product_type', 'like', '%contact%')
+                                ->orWhere('pc.product_type', 'like', '%contact%')
+                                ->orWhere('pc.product_type', 'like', '%Contact Lens%');
+                        })
+                        ->select(
+                            DB::raw("
+                                COALESCE(
+                                    NULLIF(pc.product_name, ''),
+                                    NULLIF(sp.product_code, ''),
+                                    'Contact Lens'
+                                ) AS product_name
+                            "),
+                            'sp.qty',
+                            'sp.sale_price',
+                            's.sale_id'
+                        ),
+                    'contact_lens_sales'
+                )
+                ->select(
+                    'product_name',
+                    DB::raw('SUM(qty) AS total_qty'),
+                    DB::raw('SUM(sale_price * qty) AS total_revenue'),
+                    DB::raw('COUNT(DISTINCT sale_id) AS order_count')
+                )
+                ->groupBy('product_name')
+                ->orderByDesc('total_revenue')
+                ->get();
+
+        // ── Best Selling Products ─────────────────────────────────────────────
+        $bestSelling = DB::query()
+            ->fromSub(
+                DB::table('tbl_sales_product as sp')
+                    ->join('tbl_sales as s', 's.sale_id', '=', 'sp.sale_id')
+                    ->leftJoin('tbl_product_code as pc', 'pc.id', '=', 'sp.product_id')
+                    ->where('s.sales_type', 0)
+                    ->whereDate('s.created_at', '>=', $dateFrom)
+                    ->whereDate('s.created_at', '<=', $dateTo)
+                    ->where('s.order_status', '!=', 'cancelled')
+                    ->select(
+                        DB::raw("
+                            COALESCE(
+                                NULLIF(pc.product_name, ''),
+                                NULLIF(sp.product_code, ''),
+                                'Unknown Product'
+                            ) AS product_name
+                        "),
+                        DB::raw("
+                            COALESCE(
+                                NULLIF(pc.product_code, ''),
+                                sp.product_code
+                            ) AS sku
+                        "),
+                        DB::raw("
+                            COALESCE(
+                                NULLIF(pc.product_type, ''),
+                                NULLIF(sp.product_type, ''),
+                                'other'
+                            ) AS product_type
+                        "),
+                        'sp.qty',
+                        'sp.sale_price',
+                        's.sale_id'
+                    ),
+                'best_selling_products'
+            )
+            ->select(
+                'product_name',
+                'sku',
+                'product_type',
+                DB::raw('SUM(qty) AS total_qty'),
+                DB::raw('SUM(sale_price * qty) AS total_revenue'),
+                DB::raw('COUNT(DISTINCT sale_id) AS order_count')
+            )
+            ->groupBy(
+                'product_name',
+                'sku',
+                'product_type'
+            )
+            ->orderByDesc('total_qty')
+            ->limit(15)
+            ->get();
+
+
+        // ── Salesperson-wise (already correct, just for completeness) ─────────
+        $salespersonWise = DB::table('tbl_sales as s')
+            ->leftJoin('users as u', 'u.id', '=', 's.sale_person')
+            ->where('s.sales_type', 0)
+            ->whereDate('s.created_at', '>=', $dateFrom)
+            ->whereDate('s.created_at', '<=', $dateTo)
+            ->where('s.order_status', '!=', 'cancelled')
+            ->select(
+                DB::raw("COALESCE(u.name, CONCAT('Staff #', s.sale_person), 'Online / System') as salesperson"),
+                DB::raw('COUNT(s.sale_id) as order_count'),
+                DB::raw('SUM(CASE WHEN s.payment_status = "paid" THEN s.total_payable ELSE 0 END) as revenue'),
+                DB::raw('ROUND(AVG(CASE WHEN s.payment_status = "paid" THEN s.total_payable ELSE NULL END), 2) as avg_ticket')
+            )
+            ->groupBy(DB::raw("COALESCE(u.name, CONCAT('Staff #', s.sale_person), 'Online / System')"))
+            ->orderByDesc('revenue')
+            ->get();
+            
+        // ── Category-wise Sales ────────────────────────────────────────
+            $categoryWise = DB::query()
+                ->fromSub(
+                    DB::table('tbl_sales_product as sp')
+                        ->join('tbl_sales as s', 's.sale_id', '=', 'sp.sale_id')
+                        ->leftJoin('tbl_product_code as pc', 'pc.id', '=', 'sp.product_id')
+                        ->where('s.sales_type', 0)
+                        ->whereDate('s.created_at', '>=', $dateFrom)
+                        ->whereDate('s.created_at', '<=', $dateTo)
+                        ->where('s.order_status', '!=', 'cancelled')
+                        ->select(
+                            DB::raw("
+                                COALESCE(
+                                    NULLIF(pc.product_type, ''),
+                                    'Other'
+                                ) AS category
+                            "),
+                            'sp.qty',
+                            'sp.sale_price',
+                            's.sale_id'
+                        ),
+                    'category_sales'
+                )
+                ->select(
+                    'category',
+                    DB::raw('SUM(qty) AS total_qty'),
+                    DB::raw('SUM(sale_price * qty) AS total_revenue'),
+                    DB::raw('COUNT(DISTINCT sale_id) AS order_count')
+                )
+                ->groupBy('category')
+                ->orderByDesc('total_revenue')
+                ->get();
+    
+        
+       
+
         return view('layouts.index', compact(
             'page_title',
             'breadcrumbs',
@@ -152,7 +385,18 @@ class HomeController extends Controller
             'availableYears',
             'minDateStr',
             'maxDateStr',
-            'stores'
+            'stores',
+            //
+            'dateFrom',
+            'dateTo',
+            'dashboardKpis',
+            'brandWise',
+            'lensPackageWise',
+            'contactLens',
+            'bestSelling',
+            'salespersonWise',
+            'categoryWise'
+            
         ));
     }
 }

@@ -677,6 +677,8 @@
                     $totalPayable = (float)($order->total_payable ?? ($order->pay_amount ?? 0));
                     $products     = $order->products ?? collect();
                     $searchCorpus = strtolower($orderNo . ' ' . $statusLabel . ' ' . $products->pluck('product_deatils')->join(' '));
+                    
+                    $encryptedId = base64_encode($orderId);
                 @endphp
 
                 <div class="order-box-card" data-status="{{ $dataStatus }}" data-search="{{ $searchCorpus }}">
@@ -774,6 +776,20 @@
                                     </button>
                                 </form>
                             @endif
+                        
+
+                            <a href="{{ route('my-orders.advance-receipt', ['id' => $encryptedId, 'idd' => 'receipt']) }}" target="_blank" class="order-status-badge processing">
+                                <i class="bi bi-receipt"></i> Advance Receipt
+                            </a>
+                                
+                            <a href="{{ route('my-orders.prescription-receipt', ['id' => $encryptedId, 'idd' => 'order']) }}" target="_blank" class="order-status-badge transit">
+                                <i class="bi bi-file-medical"></i> Prescription Receipt
+                            </a>
+                                
+                            <a href="{{ route('my-orders.invoice', ['id' => $encryptedId, 'idd' => 'invoice']) }}" target="_blank" class="order-status-badge delivered">
+                                <i class="bi bi-file-text"></i> Invoice
+                            </a>
+                        
                         </div>
                     </div>
                 </div>

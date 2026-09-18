@@ -68,33 +68,853 @@
     }
     
         .col-md-3
-{
-    margin-bottom: 10px;
-}
-.staff-performance-dashboard-card{
-    border: 1px solid #d9dde7;
-    height: 365px;
-    overflow: auto;
-}
-.store-performance-dashboard{
-    border: 1px solid #d9dde7;
-    width: 100%;
-    height: 250px;
-    overflow: auto;
-}
-.staff-performance-dashboard-card .table-responsive,
-.store-performance-dashboard .table-responsive{
-    height: 100%;
-}
-.walk-in-entry-history{
-    /*border: 1px solid #d9dde7;*/
-    width: 100%;
-    height: 500px;
-    overflow: auto;
-}
-.walk-in-entry-history .table-responsive{height: 100%;}
-</style>
+    {
+        margin-bottom: 10px;
+    }
+    .staff-performance-dashboard-card{
+        border: 1px solid #d9dde7;
+        height: 365px;
+        overflow: auto;
+    }
+    .store-performance-dashboard{
+        border: 1px solid #d9dde7;
+        width: 100%;
+        height: 250px;
+        overflow: auto;
+    }
+    .staff-performance-dashboard-card .table-responsive,
+    .store-performance-dashboard .table-responsive{
+        height: 100%;
+    }
+    .walk-in-entry-history{
+        /*border: 1px solid #d9dde7;*/
+        width: 100%;
+        height: 500px;
+        overflow: auto;
+    }
+    .walk-in-entry-history .table-responsive{height: 100%;}
     
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    .home-dash-wrap {
+        font-family: 'Inter', sans-serif;
+        color: #1e293b;
+    }
+    
+    /* KPI Summary Cards */
+    .dash-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+    .dash-kpi-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+    }
+    .dash-kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+    .dash-kpi-title {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .dash-kpi-val {
+        font-size: 24px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 4px;
+        line-height: 1.2;
+    }
+    .dash-kpi-sub {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+    .dash-kpi-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .dash-kpi-icon.primary { background: #e0f2fe; color: #0284c7; }
+    .dash-kpi-icon.success { background: #ecfdf5; color: #059669; }
+    .dash-kpi-icon.warning { background: #fffbeb; color: #d97706; }
+    .dash-kpi-icon.purple  { background: #f3e8ff; color: #9333ea; }
+    .dash-kpi-icon.teal    { background: #ccfbf1; color: #0d9488; }
+    .dash-kpi-icon.danger  { background: #fef2f2; color: #dc2626; }
+    
+    /* Order Pipeline Funnel Bar */
+    .pipeline-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .pipeline-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .pipeline-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 8px;
+    }
+    .pipeline-step {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 12px;
+        text-decoration: none !important;
+        transition: all 0.15s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .pipeline-step:hover {
+        background: #07484A;
+        border-color: #07484A;
+        transform: translateY(-2px);
+    }
+    .pipeline-step:hover .p-count,
+    .pipeline-step:hover .p-label {
+        color: #ffffff !important;
+    }
+    .pipeline-step .p-count {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .pipeline-step .p-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        margin-top: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    
+    /* Recent Orders Command Center */
+    .command-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .command-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
+    }
+    .command-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .command-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+    }
+    .command-table th {
+        background: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    .command-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .command-table tr:hover {
+        background-color: #f8fafc;
+    }
+    .order-code {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        color: #07484A;
+        text-decoration: none;
+    }
+    .order-code:hover {
+        text-decoration: underline;
+    }
+    
+    /* Badges */
+    .badge-rx {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .badge-rx-ok   { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .badge-rx-req  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .badge-rx-none { background: #f1f5f9; color: #64748b; }
+    
+    .badge-pay-ok  { background: #ecfdf5; color: #059669; font-weight: 600; }
+    .badge-pay-cod { background: #fffbeb; color: #d97706; font-weight: 600; }
+    .badge-pay-bad { background: #fef2f2; color: #dc2626; font-weight: 600; }
+    
+    .btn-quick-act {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.15s;
+        font-size: 12px;
+    }
+    .btn-quick-act:hover {
+        background: #07484A;
+        color: #ffffff;
+        border-color: #07484A;
+    }
+    /* Filter & Search Bar */
+    .filter-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .filter-grid-row1 {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+    @media (max-width: 768px) {
+        .filter-grid-row1 {
+            grid-template-columns: 1fr;
+        }
+    }
+    .filter-grid-row2 {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed #e2e8f0;
+    }
+    .date-inputs-group {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .date-presets-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-preset {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+    .btn-preset:hover {
+        background: #07484A;
+        color: #ffffff;
+        border-color: #07484A;
+    }
+    .form-label-custom {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .form-control-custom {
+        width: 100%;
+        height: 38px;
+        padding: 6px 12px;
+        font-size: 12.5px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background-color: #ffffff;
+        color: #1e293b;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .form-control-custom:focus {
+        border-color: #07484A;
+        box-shadow: 0 0 0 2px rgba(7,72,74,0.15);
+    }
+    
+    /* Bottom Grid Analytics */
+    .dash-bottom-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+    }
+    @media (max-width: 991px) {
+        .dash-bottom-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .trend-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+
+    .chart-panel-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        padding: 22px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .chart-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .chart-main-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .chart-subtitle {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+    }
+
+    /* Granularity Toggle Chips */
+    .filter-controls-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        background: #f8fafc;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+    }
+    .chip-group {
+        display: inline-flex;
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 2px;
+        gap: 2px;
+    }
+    .chip-btn {
+        border: none;
+        background: transparent;
+        color: #475569;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .chip-btn.active {
+        background: #0d5c56;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(13,92,86,0.25);
+    }
+    .select-sm-custom {
+        height: 32px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #1e293b;
+        outline: none;
+    }
+    .input-date-sm {
+        height: 32px;
+        padding: 4px 8px;
+        font-size: 11.5px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #1e293b;
+    }
+    .range-error-text {
+        font-size: 11px;
+        color: #dc2626;
+        font-weight: 600;
+        margin-top: 4px;
+        display: none;
+    }
+
+    /* Live Summary Bar */
+    .summary-metrics-strip {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 8px 16px;
+        margin-bottom: 16px;
+        font-size: 12.5px;
+    }
+    .summary-metric-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .summary-metric-item strong {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* Anomaly Callout */
+    .anomaly-callout {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        background: #fffbeb;
+        border: 1px solid #fef3c7;
+        color: #92400e;
+        margin-bottom: 14px;
+    }
+
+    /* Chart 2 & 3 Split Row */
+    .chart-split-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 20px;
+    }
+    @media (max-width: 991px) {
+        .chart-split-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    /*-------------order-analytics-section----------- */
+    .order-analytics-section {
+        margin-top: 24px;
+    }
+    
+    .analytics-header {
+        background: #d8f0f1;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px 12px 0 0;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom:10px!important;
+    }
+    
+    .analytics-header h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    
+    .analytics-header h3 i {
+        color: #07484A;
+        margin-right: 7px;
+    }
+    
+    .analytics-header > div:first-child span {
+        display: block;
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 11px;
+    }
+    
+    .analytics-summary {
+        display: flex;
+        gap: 18px;
+        font-size: 11px;
+        color: #64748b;
+    }
+    
+    .analytics-summary strong {
+        color: #0f172a;
+        font-size: 13px;
+        margin-right: 3px;
+    }
+    
+    
+    /* Analytics KPI Cards */
+    
+    .analytics-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-top: 12px;
+        margin-bottom: 14px;
+    }
+    
+    .analytics-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+    
+    .analytics-card-atv {
+        border-left: 3px solid #07484A;
+    }
+    
+    .analytics-card-icon {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border-radius: 9px;
+        background: #ccfbf1;
+        color: #0d9488;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+    }
+    
+    .analytics-card-icon.blue {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+    
+    .analytics-card-icon.green {
+        background: #ecfdf5;
+        color: #059669;
+    }
+    
+    .analytics-card-icon.teal {
+        background: #ccfbf1;
+        color: #0d9488;
+    }
+    
+    .analytics-card-icon.red {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    
+    .analytics-card-content {
+        min-width: 0;
+    }
+    
+    .analytics-card-label {
+        color: #64748b;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .analytics-card-value {
+        color: #0f172a;
+        font-size: 19px;
+        font-weight: 800;
+        margin-top: 2px;
+    }
+    
+    .analytics-card-sub {
+        color: #94a3b8;
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    
+    
+    /* Two Column Analytics */
+    
+    .analytics-two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+    
+    .analytics-panel {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,.03);
+    }
+    
+    .analytics-panel-header {
+        padding: 13px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .analytics-panel-header h4 {
+        margin: 0;
+        color: #0f172a;
+        font-size: 13px;
+        font-weight: 700;
+    }
+    
+    .analytics-panel-header h4 i {
+        color: #07484A;
+        margin-right: 5px;
+    }
+    
+    .analytics-panel-header span {
+        display: block;
+        color: #94a3b8;
+        font-size: 10.5px;
+        margin-top: 2px;
+    }
+    
+    .analytics-count {
+        background: #e2e8f0;
+        color: #475569 !important;
+        border-radius: 20px;
+        padding: 3px 8px;
+        font-size: 10px !important;
+        font-weight: 700;
+    }
+    
+    
+    /* Analytics Tables */
+    
+    .analytics-table-wrap {
+        overflow-x: auto;
+    }
+    
+    .analytics-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    
+    .analytics-table th {
+        background: #ffffff;
+        color: #64748b;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .35px;
+        font-weight: 700;
+        padding: 10px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+    
+    .analytics-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        vertical-align: middle;
+    }
+    
+    .analytics-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    
+    .analytics-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+    
+    .rank-cell {
+        width: 35px;
+        color: #94a3b8 !important;
+        font-weight: 700;
+    }
+    
+    .revenue-cell {
+        color: #07484A !important;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    
+    .text-right {
+        text-align: right !important;
+    }
+    
+    .analytics-sku {
+        color: #94a3b8;
+        font-size: 9.5px;
+        margin-top: 2px;
+    }
+    
+    .product-type-badge {
+        background: #f1f5f9;
+        color: #475569;
+        border-radius: 5px;
+        padding: 3px 6px;
+        font-size: 9.5px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    
+    .top-rank {
+        display: inline-flex;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        background: #07484A;
+        color: #ffffff;
+        font-size: 10px;
+    }
+    
+    .analytics-empty {
+        text-align: center;
+        padding: 25px !important;
+        color: #94a3b8 !important;
+        font-size: 11px;
+    }
+    
+    
+    /* Salesperson */
+    
+    .salesperson-panel {
+        margin-bottom: 14px;
+    }
+    
+    .salesperson-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .salesperson-avatar {
+        width: 27px;
+        height: 27px;
+        border-radius: 50%;
+        background: #e0f2fe;
+        color: #0284c7;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+    }
+    
+    
+    /* Responsive */
+    
+    @media (max-width: 1100px) {
+        .analytics-kpi-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+    
+        .analytics-header {
+            flex-direction: column;
+            align-items: flex-start;
+          
+        }
+    
+        .analytics-summary {
+            width: 100%;
+            justify-content: space-between;
+        }
+    
+        .analytics-kpi-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    
+        .analytics-two-column {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+    
+        .analytics-kpi-grid {
+            grid-template-columns: 1fr;
+        }
+    
+        .analytics-summary {
+            flex-direction: column;
+            gap: 4px;
+        }
+    }
+
+    
+</style>    
     
 <div id="ajaxLoader" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); z-index:9999; text-align:center;">
     <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">
@@ -161,253 +981,10 @@
 <!-- ══════════════════════════════════════════════════════════════════════════════
      B2C ORDER OPERATIONS COMMAND DASHBOARD
 ══════════════════════════════════════════════════════════════════════════════ -->
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
-.home-dash-wrap {
-    font-family: 'Inter', sans-serif;
-    color: #1e293b;
-}
-
-/* KPI Summary Cards */
-.dash-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-}
-.dash-kpi-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    transition: all 0.2s ease;
-    text-decoration: none !important;
-}
-.dash-kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-}
-.dash-kpi-title {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.dash-kpi-val {
-    font-size: 24px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-top: 4px;
-    line-height: 1.2;
-}
-.dash-kpi-sub {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 2px;
-}
-.dash-kpi-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-.dash-kpi-icon.primary { background: #e0f2fe; color: #0284c7; }
-.dash-kpi-icon.success { background: #ecfdf5; color: #059669; }
-.dash-kpi-icon.warning { background: #fffbeb; color: #d97706; }
-.dash-kpi-icon.purple  { background: #f3e8ff; color: #9333ea; }
-.dash-kpi-icon.teal    { background: #ccfbf1; color: #0d9488; }
-.dash-kpi-icon.danger  { background: #fef2f2; color: #dc2626; }
-
-/* Order Pipeline Funnel Bar */
-.pipeline-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.pipeline-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.pipeline-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 8px;
-}
-.pipeline-step {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px 12px;
-    text-decoration: none !important;
-    transition: all 0.15s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-.pipeline-step:hover {
-    background: #07484A;
-    border-color: #07484A;
-    transform: translateY(-2px);
-}
-.pipeline-step:hover .p-count,
-.pipeline-step:hover .p-label {
-    color: #ffffff !important;
-}
-.pipeline-step .p-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 18px;
-    font-weight: 800;
-    color: #0f172a;
-}
-.pipeline-step .p-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    margin-top: 2px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-
-/* Recent Orders Command Center */
-.command-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    overflow: hidden;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-.command-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #ffffff;
-}
-.command-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #0f172a;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.command-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12.5px;
-}
-.command-table th {
-    background: #f8fafc;
-    color: #475569;
-    font-weight: 600;
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e2e8f0;
-    white-space: nowrap;
-}
-.command-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-}
-.command-table tr:hover {
-    background-color: #f8fafc;
-}
-.order-code {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    color: #07484A;
-    text-decoration: none;
-}
-.order-code:hover {
-    text-decoration: underline;
-}
-
-/* Badges */
-.badge-rx {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-.badge-rx-ok   { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-.badge-rx-req  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-.badge-rx-none { background: #f1f5f9; color: #64748b; }
-
-.badge-pay-ok  { background: #ecfdf5; color: #059669; font-weight: 600; }
-.badge-pay-cod { background: #fffbeb; color: #d97706; font-weight: 600; }
-.badge-pay-bad { background: #fef2f2; color: #dc2626; font-weight: 600; }
-
-.btn-quick-act {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #475569;
-    text-decoration: none;
-    transition: all 0.15s;
-    font-size: 12px;
-}
-.btn-quick-act:hover {
-    background: #07484A;
-    color: #ffffff;
-    border-color: #07484A;
-}
-
-/* Bottom Grid Analytics */
-.dash-bottom-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-}
-@media (max-width: 991px) {
-    .dash-bottom-grid {
-        grid-template-columns: 1fr;
-    }
-}
-.trend-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    padding: 16px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-</style>
 
 <div class="home-dash-wrap">
+   
 
     <!-- 1. Executive Operational KPI Summary Cards -->
     <div class="dash-kpi-grid">
@@ -605,152 +1182,7 @@
     <!-- ══════════════════════════════════════════════════════════════════════════
          4. INTERACTIVE VISUAL ANALYTICS SUITE (ApexCharts + Vanilla JS)
     ══════════════════════════════════════════════════════════════════════════ -->
-    <style>
-    .chart-panel-card {
-        background: #ffffff;
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        padding: 22px;
-        margin-bottom: 24px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .chart-header-flex {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-bottom: 16px;
-    }
-    .chart-main-title {
-        font-size: 15px;
-        font-weight: 700;
-        color: #0f172a;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 4px 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .chart-subtitle {
-        font-size: 12px;
-        color: #64748b;
-        margin: 0;
-    }
-
-    /* Granularity Toggle Chips */
-    .filter-controls-wrap {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        background: #f8fafc;
-        padding: 10px 14px;
-        border-radius: 10px;
-        border: 1px solid #e2e8f0;
-    }
-    .chip-group {
-        display: inline-flex;
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        padding: 2px;
-        gap: 2px;
-    }
-    .chip-btn {
-        border: none;
-        background: transparent;
-        color: #475569;
-        font-size: 11.5px;
-        font-weight: 600;
-        padding: 5px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
-    .chip-btn.active {
-        background: #0d5c56;
-        color: #ffffff;
-        box-shadow: 0 2px 4px rgba(13,92,86,0.25);
-    }
-    .select-sm-custom {
-        height: 32px;
-        padding: 4px 10px;
-        font-size: 12px;
-        font-weight: 500;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        background: #ffffff;
-        color: #1e293b;
-        outline: none;
-    }
-    .input-date-sm {
-        height: 32px;
-        padding: 4px 8px;
-        font-size: 11.5px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        background: #ffffff;
-        color: #1e293b;
-    }
-    .range-error-text {
-        font-size: 11px;
-        color: #dc2626;
-        font-weight: 600;
-        margin-top: 4px;
-        display: none;
-    }
-
-    /* Live Summary Bar */
-    .summary-metrics-strip {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 8px;
-        padding: 8px 16px;
-        margin-bottom: 16px;
-        font-size: 12.5px;
-    }
-    .summary-metric-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .summary-metric-item strong {
-        font-family: 'JetBrains Mono', monospace;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    /* Anomaly Callout */
-    .anomaly-callout {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 11px;
-        background: #fffbeb;
-        border: 1px solid #fef3c7;
-        color: #92400e;
-        margin-bottom: 14px;
-    }
-
-    /* Chart 2 & 3 Split Row */
-    .chart-split-grid {
-        display: grid;
-        grid-template-columns: 1.2fr 0.8fr;
-        gap: 20px;
-    }
-    @media (max-width: 991px) {
-        .chart-split-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    </style>
+    
 
     <!-- CHART 1: Performance Combo Chart (Full Width) -->
     <div class="chart-panel-card">
@@ -844,7 +1276,680 @@
         <!-- Combo Chart Container -->
         <div id="performanceComboChart" style="min-height: 350px;"></div>
     </div>
+    
+     {{-- Date Filter --}}
+  <!-- Multi-Filter & Search Bar -->
+    <div class="filter-card">
+        <form method="GET" action="{{ route('index') }}">
+           
 
+            <!-- Row 2: Date Range Filter & Actions -->
+            <div class="filter-grid-row2">
+                <div class="date-inputs-group">
+                    <div>
+                        <label class="form-label-custom"><i class="fa fa-calendar" style="margin-right: 3px; color: #07484A;"></i> From Date</label>
+                        <input type="date" name="date_from" id="filter_date_from" class="form-control-custom" style="width: 160px;" value="{{ request('date_from') }}">
+                    </div>
+
+                    <div>
+                        <label class="form-label-custom"><i class="fa fa-calendar" style="margin-right: 3px; color: #07484A;"></i> To Date</label>
+                        <input type="date" name="date_to" id="filter_date_to" class="form-control-custom" style="width: 160px;" value="{{ request('date_to') }}">
+                    </div>
+
+                    <div style="margin-bottom: 2px;">
+                        <label class="form-label-custom" style="visibility: hidden;">Presets</label>
+                        <div class="date-presets-group">
+                            <button type="button" class="btn-preset" onclick="setDatePreset('today')">Today</button>
+                            <button type="button" class="btn-preset" onclick="setDatePreset('yesterday')">Yesterday</button>
+                            <button type="button" class="btn-preset" onclick="setDatePreset('7days')">Last 7 Days</button>
+                            <button type="button" class="btn-preset" onclick="setDatePreset('month')">This Month</button>
+                            @if(request('date_from') || request('date_to'))
+                            <button type="button" class="btn-preset" style="color: #dc2626; border-color: #fca5a5;" onclick="clearDates()">Clear Dates ✕</button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2" style="margin-bottom: 2px;">
+                    <button type="submit" class="btn" style="background: #07484A; color: #fff; border-radius: 8px; height: 38px; padding: 0 18px; font-weight: 600; font-size: 13px;">
+                        <i class="fa fa-filter mr-1"></i> Apply Filter
+                    </button>
+                    <a href="{{ route('index') }}" class="btn btn-outline-secondary" style="border-radius: 8px; height: 38px; padding: 0 14px; font-size: 13px; display: flex; align-items: center;">
+                        Reset All
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <div class="order-analytics-section">
+    
+        {{-- Analytics Header --}}
+        <div class="analytics-header bg bg-infor">
+            <div>
+                <h3>
+                    <i class="fa fa-bar-chart"></i>
+                    Order Analytics
+                </h3>
+                <span>
+                    {{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }}
+                    -
+                    {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }}
+                </span>
+            </div>
+    
+            <div class="analytics-summary">
+                <span>
+                    <strong>{{ $dashboardKpis['total_orders'] ?? 0 }}</strong>
+                    Orders
+                </span>
+    
+                <span>
+                    <strong>
+                        ₹{{ number_format($dashboardKpis['total_revenue'] ?? 0, 0) }}
+                    </strong>
+                    Revenue
+                </span>
+            </div>
+        </div>
+    
+    
+        {{-- ATV + CORE ANALYTICS CARDS --}}
+        <!--<div class="analytics-kpi-grid">-->
+    
+        <!--    {{-- ATV --}}-->
+        <!--    <div class="analytics-card analytics-card-atv">-->
+        <!--        <div class="analytics-card-icon">-->
+        <!--            <i class="fa fa-inr"></i>-->
+        <!--        </div>-->
+    
+        <!--        <div class="analytics-card-content">-->
+        <!--            <div class="analytics-card-label">-->
+        <!--                Average Transaction Value-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-value">-->
+        <!--                ₹{{ number_format($dashboardKpis['atv'] ?? 0, 2) }}-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-sub">-->
+        <!--                Based on {{ number_format($dashboardKpis['paid_orders'] ?? 0) }}-->
+        <!--                paid orders-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--    </div>-->
+    
+    
+        <!--    {{-- Total Orders --}}-->
+        <!--    <div class="analytics-card">-->
+        <!--        <div class="analytics-card-icon blue">-->
+        <!--            <i class="fa fa-shopping-cart"></i>-->
+        <!--        </div>-->
+    
+        <!--        <div class="analytics-card-content">-->
+        <!--            <div class="analytics-card-label">-->
+        <!--                Total Orders-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-value">-->
+        <!--                {{ number_format($dashboardKpis['total_orders'] ?? 0) }}-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-sub">-->
+        <!--                Selected period-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--    </div>-->
+    
+    
+        <!--    {{-- Revenue --}}-->
+        <!--    <div class="analytics-card">-->
+        <!--        <div class="analytics-card-icon green">-->
+        <!--            <i class="fa fa-money"></i>-->
+        <!--        </div>-->
+    
+        <!--        <div class="analytics-card-content">-->
+        <!--            <div class="analytics-card-label">-->
+        <!--                Paid Revenue-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-value">-->
+        <!--                ₹{{ number_format($dashboardKpis['total_revenue'] ?? 0, 0) }}-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-sub">-->
+        <!--                {{ number_format($dashboardKpis['paid_orders'] ?? 0) }} paid orders-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--    </div>-->
+    
+    
+        <!--    {{-- Delivered --}}-->
+        <!--    <div class="analytics-card">-->
+        <!--        <div class="analytics-card-icon teal">-->
+        <!--            <i class="fa fa-check-circle"></i>-->
+        <!--        </div>-->
+    
+        <!--        <div class="analytics-card-content">-->
+        <!--            <div class="analytics-card-label">-->
+        <!--                Delivered-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-value">-->
+        <!--                {{ number_format($dashboardKpis['delivered'] ?? 0) }}-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-sub">-->
+        <!--                Orders delivered-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--    </div>-->
+    
+    
+        <!--    {{-- Cancelled --}}-->
+        <!--    <div class="analytics-card">-->
+        <!--        <div class="analytics-card-icon red">-->
+        <!--            <i class="fa fa-times-circle"></i>-->
+        <!--        </div>-->
+    
+        <!--        <div class="analytics-card-content">-->
+        <!--            <div class="analytics-card-label">-->
+        <!--                Cancelled-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-value">-->
+        <!--                {{ number_format($dashboardKpis['cancelled'] ?? 0) }}-->
+        <!--            </div>-->
+    
+        <!--            <div class="analytics-card-sub">-->
+        <!--                Excluded from product sales-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--    </div>-->
+    
+        <!--</div>-->
+    
+        {{-- BRAND + LENS PACKAGE--}}
+        <div class="analytics-two-column">
+    
+            {{-- Brand-wise Sales --}}
+            <div class="analytics-panel">
+    
+                <div class="analytics-panel-header">
+                    <div>
+                        <h4>
+                            <i class="fa fa-tags"></i>
+                            Brand-wise Sales
+                        </h4>
+                        <span>Revenue and quantity by brand</span>
+                    </div>
+    
+                    <span class="analytics-count">
+                        {{ $brandWise->count() }}
+                    </span>
+                </div>
+    
+                <div class="analytics-table-wrap">
+                    <table class="analytics-table">
+    
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Brand</th>
+                                <th>Qty</th>
+                                <th>Orders</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+    
+                        <tbody>
+    
+                            @forelse($brandWise as $index => $brand)
+    
+                                <tr>
+                                    <td class="rank-cell">
+                                        {{ $index + 1 }}
+                                    </td>
+    
+                                    <td>
+                                        <strong>
+                                            {{ $brand->brand_name }}
+                                        </strong>
+                                    </td>
+    
+                                    <td>
+                                        {{ number_format($brand->total_qty) }}
+                                    </td>
+    
+                                    <td>
+                                        {{ number_format($brand->order_count) }}
+                                    </td>
+    
+                                    <td class="text-right revenue-cell">
+                                        ₹{{ number_format($brand->total_revenue, 0) }}
+                                    </td>
+                                </tr>
+    
+                            @empty
+    
+                                <tr>
+                                    <td colspan="5" class="analytics-empty">
+                                        No brand sales found
+                                    </td>
+                                </tr>
+    
+                            @endforelse
+    
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    
+    
+            {{-- Lens Package Sales --}}
+            <div class="analytics-panel">
+    
+                <div class="analytics-panel-header">
+                    <div>
+                        <h4>
+                            <i class="fa fa-eye"></i>
+                            Lens Package Sales
+                        </h4>
+                        <span>Package performance</span>
+                    </div>
+    
+                    <span class="analytics-count">
+                        {{ $lensPackageWise->count() }}
+                    </span>
+                </div>
+    
+                <div class="analytics-table-wrap">
+                    <table class="analytics-table">
+    
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Package</th>
+                                <th>Qty</th>
+                                <th>Orders</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+    
+                        <tbody>
+    
+                            @forelse($lensPackageWise as $index => $package)
+    
+                                <tr>
+                                    <td class="rank-cell">
+                                        {{ $index + 1 }}
+                                    </td>
+    
+                                    <td>
+                                        <strong>
+                                            {{ $package->package_name }}
+                                        </strong>
+                                    </td>
+    
+                                    <td>
+                                        {{ number_format($package->total_qty) }}
+                                    </td>
+    
+                                    <td>
+                                        {{ number_format($package->order_count) }}
+                                    </td>
+    
+                                    <td class="text-right revenue-cell">
+                                        ₹{{ number_format($package->package_revenue, 0) }}
+                                    </td>
+                                </tr>
+    
+                            @empty
+    
+                                <tr>
+                                    <td colspan="5" class="analytics-empty">
+                                        No lens package sales found
+                                    </td>
+                                </tr>
+    
+                            @endforelse
+    
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    
+        </div>
+    
+        {{-- CONTACT LENS + BEST SELLING --}}
+        <div class="analytics-two-column">
+            {{-- Contact Lens --}}
+            <div class="analytics-panel">
+    
+                <div class="analytics-panel-header">
+                    <div>
+                        <h4>
+                            <i class="fa fa-circle-o"></i>
+                            Contact Lens Sales
+                        </h4>
+                        <span>Contact lens product performance</span>
+                    </div>
+    
+                    <span class="analytics-count">
+                        {{ $contactLens->count() }}
+                    </span>
+                </div>
+    
+                <div class="analytics-table-wrap">
+                    <table class="analytics-table">
+    
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Orders</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+    
+                        <tbody>
+    
+                            @forelse($contactLens as $index => $contact)
+    
+                                <tr>
+                                    <td class="rank-cell">
+                                        {{ $index + 1 }}
+                                    </td>
+    
+                                    <td>
+                                        <strong>
+                                            {{ $contact->product_name }}
+                                        </strong>
+                                    </td>
+    
+                                    <td>
+                                        {{ number_format($contact->total_qty) }}
+                                    </td>
+    
+                                    <td>
+                                        {{ number_format($contact->order_count) }}
+                                    </td>
+    
+                                    <td class="text-right revenue-cell">
+                                        ₹{{ number_format($contact->total_revenue, 0) }}
+                                    </td>
+                                </tr>
+    
+                            @empty
+    
+                                <tr>
+                                    <td colspan="5" class="analytics-empty">
+                                        No contact lens sales found
+                                    </td>
+                                </tr>
+    
+                            @endforelse
+    
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {{-- Best Selling Products --}}
+            <div class="analytics-panel">
+    
+                <div class="analytics-panel-header">
+                    <div>
+                        <h4>
+                            <i class="fa fa-star"></i>
+                            Best-Selling Products
+                        </h4>
+                        <span>Ranked by units sold</span>
+                    </div>
+    
+                    <span class="analytics-count">
+                        {{ $bestSelling->count() }}
+                    </span>
+                </div>
+    
+                <div class="analytics-table-wrap">
+                    <table class="analytics-table">
+    
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product</th>
+                                <th>Type</th>
+                                <th>Qty</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+    
+                        <tbody>
+    
+                            @forelse($bestSelling as $index => $product)
+    
+                                <tr>
+    
+                                    <td class="rank-cell">
+                                        @if($index === 0)
+                                            <span class="top-rank">1</span>
+                                        @else
+                                            {{ $index + 1 }}
+                                        @endif
+                                    </td>
+    
+                                    <td>
+                                        <strong>
+                                            {{ $product->product_name }}
+                                        </strong>
+    
+                                        @if(!empty($product->sku))
+                                            <div class="analytics-sku">
+                                                SKU: {{ $product->sku }}
+                                            </div>
+                                        @endif
+                                    </td>
+    
+                                    <td>
+                                        <span class="product-type-badge">
+                                            {{ ucfirst($product->product_type ?? 'Other') }}
+                                        </span>
+                                    </td>
+    
+                                    <td>
+                                        <strong>
+                                            {{ number_format($product->total_qty) }}
+                                        </strong>
+                                    </td>
+    
+                                    <td class="text-right revenue-cell">
+                                        ₹{{ number_format($product->total_revenue, 0) }}
+                                    </td>
+    
+                                </tr>
+    
+                            @empty
+    
+                                <tr>
+                                    <td colspan="5" class="analytics-empty">
+                                        No product sales found
+                                    </td>
+                                </tr>
+    
+                            @endforelse
+    
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    
+        </div>
+    
+         {{-- category-wise  + saleperson-wise --}}
+        <div class="analytics-two-column">
+            {{-- category-wise sale --}}
+            <div class="analytics-panel">
+                <div class="analytics-panel-header">
+                    <div>
+                        <h4>
+                            <i class="fa fa-tags"></i>
+                            Category-wise Sales
+                        </h4>
+                        <span>Sales grouped by product category</span>
+                    </div>
+            
+                    <span class="analytics-count">
+                        {{ count($categoryWise ?? []) }} Categories
+                    </span>
+                </div>
+                <div class="analytics-table-wrap">
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Category</th>
+                                <th class="text-right">Qty</th>
+                                <th class="text-right">Orders</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+            
+                        <tbody>
+            
+                            @forelse($categoryWise ?? [] as $index => $category)
+            
+                                <tr>
+                                    <td class="rank-cell">
+                                        {{ $index + 1 }}
+                                    </td>
+            
+                                    <td>
+                                        <strong>
+                                            {{ $category->category }}
+                                        </strong>
+                                    </td>
+            
+                                    <td class="text-right">
+                                        {{ number_format($category->total_qty) }}
+                                    </td>
+            
+                                    <td class="text-right">
+                                        {{ number_format($category->order_count) }}
+                                    </td>
+            
+                                    <td class="text-right revenue-cell">
+                                        ₹{{ number_format($category->total_revenue, 2) }}
+                                    </td>
+                                </tr>
+            
+                            @empty
+            
+                                <tr>
+                                    <td colspan="5" class="analytics-empty">
+                                        No category sales found for the selected date range.
+                                    </td>
+                                </tr>
+            
+                            @endforelse
+            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {{-- SALESPERSON-WISE SALES --}}
+            <div class="analytics-panel">
+        
+                <div class="analytics-panel-header">
+        
+                    <div>
+                        <h4>
+                            <i class="fa fa-users"></i>
+                            Salesperson-wise Sales
+                        </h4>
+        
+                        <span>
+                            Sales performance by salesperson
+                        </span>
+                    </div>
+        
+                    <span class="analytics-count">
+                        {{ $salespersonWise->count() }}
+                    </span>
+        
+                </div>
+        
+                <div class="analytics-table-wrap">
+        
+                    <table class="analytics-table">
+        
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Salesperson</th>
+                                <th>Orders</th>
+                                <th>Avg. Ticket</th>
+                                <th class="text-right">Revenue</th>
+                            </tr>
+                        </thead>
+        
+                        <tbody>
+        
+                            @forelse($salespersonWise as $index => $person)
+        
+                                <tr>
+        
+                                    <td class="rank-cell">
+                                        {{ $index + 1 }}
+                                    </td>
+        
+                                    <td>
+                                        <div class="salesperson-name">
+                                            <span class="salesperson-avatar">
+                                                <i class="fa fa-user"></i>
+                                            </span>
+        
+                                            <strong>
+                                                {{ $person->salesperson }}
+                                            </strong>
+                                        </div>
+                                    </td>
+        
+                                    <td>
+                                        <strong>
+                                            {{ number_format($person->order_count) }}
+                                        </strong>
+                                    </td>
+        
+                                    <td>
+                                        ₹{{ number_format($person->avg_ticket ?? 0, 2) }}
+                                    </td>
+        
+                                    <td class="text-right revenue-cell">
+                                        ₹{{ number_format($person->revenue ?? 0, 0) }}
+                                    </td>
+        
+                                </tr>
+        
+                            @empty
+        
+                                <tr>
+                                    <td colspan="5" class="analytics-empty">
+                                        No salesperson sales found
+                                    </td>
+                                </tr>
+        
+                            @endforelse
+        
+                        </tbody>
+        
+                    </table>
+        
+                </div>
+            </div>
+        </div>
+    </div>    
+    
 </div>
 
 @endsection
@@ -1161,6 +2266,46 @@ document.addEventListener('DOMContentLoaded', function () {
     aggregateData();
 
 });
+
+function setDatePreset(type) {
+    const fromEl = document.getElementById('filter_date_from');
+    const toEl = document.getElementById('filter_date_to');
+    const now = new Date();
+    
+    function fmt(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    if (type === 'today') {
+        const todayStr = fmt(now);
+        fromEl.value = todayStr;
+        toEl.value = todayStr;
+    } else if (type === 'yesterday') {
+        const y = new Date(now);
+        y.setDate(y.getDate() - 1);
+        const yStr = fmt(y);
+        fromEl.value = yStr;
+        toEl.value = yStr;
+    } else if (type === '7days') {
+        const past = new Date(now);
+        past.setDate(past.getDate() - 6);
+        fromEl.value = fmt(past);
+        toEl.value = fmt(now);
+    } else if (type === 'month') {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        fromEl.value = fmt(start);
+        toEl.value = fmt(now);
+    }
+}
+
+function clearDates() {
+    document.getElementById('filter_date_from').value = '';
+    document.getElementById('filter_date_to').value = '';
+}
+
 </script>
 @endsection
 

@@ -31,7 +31,7 @@
 
             <!-- main content area start -->
             <div class="app-content page-body">
-                <div class="side-app pt-2 pl-0">
+                <div class="side-app pt-2 pl-2">
                     
                     <div class="page-header">
                         <div class="page-leftheader d-flex">

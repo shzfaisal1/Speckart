@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\SubcategoryController;
 use App\Http\Controllers\Admin\Product\ProductController;
 use App\Http\Controllers\Website\WebsitesController;
-
+use App\Http\Controllers\Admin\SalesController;
 
 //website routes//
 
@@ -98,6 +98,15 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/my-orders',               [\App\Http\Controllers\Website\OrderController::class, 'my_order'])->name('my-orders');
     Route::post('/my-orders/cancel/{id}',  [\App\Http\Controllers\Website\OrderController::class, 'cancel_order'])->name('my-orders.cancel');
     Route::post('/my-orders/reorder/{id}', [\App\Http\Controllers\Website\OrderController::class, 'reorder'])->name('my-orders.reorder');
+    
+    //-------------------------12-09-2026
+    Route::get('my-orders/{id}/advance-receipt/{idd}', [SalesController::class, 'saleInvoice'])->name('my-orders.advance-receipt');
+
+    Route::get('my-orders/{id}/prescription-receipt/{idd}', [SalesController::class, 'saleInvoice'])->name('my-orders.prescription-receipt');
+
+    Route::get('my-orders/{id}/invoice/{idd}', [SalesController::class, 'saleInvoice'])->name('my-orders.invoice');
+
+    
 
     // Eye Prescription
     Route::get('/add-power',               [\App\Http\Controllers\Website\PrescriptionController::class, 'add_power'])->name('add-power');
@@ -207,10 +216,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
     Route::post('importproduct/search', [ProductimportController::class, 'search'])->name('importproduct.search');
     Route::post('bulk-product-add', [ProductimportController::class, 'bulkProductAdd'])->name('bulk-product-add');
     
-    Route::get(
-    '/download-invalid-file/{file}',
-    [ProductimportController::class, 'downloadInvalidFile']
-)->name('download-invalid-file');
+    Route::get('/download-invalid-file/{file}', [ProductimportController::class, 'downloadInvalidFile'])->name('download-invalid-file');
     
     /***************** BRAND MASTER ******************/
     Route::get('/brand-master', [MasterController::class, 'brandMaster'])->name('brand-master');
@@ -320,7 +326,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
     Route::post('/purchase-excel-download', [ReportController::class, 'purchaseExcelDownload'])->name('purchase-excel-download');
     
     Route::get('/purchase-return-report', [ReportController::class, 'purchasereturnReport'])->name('purchase-return-report');
-    Route::post('/get-purchasereturndata-report', [ReportController::class, 'purchasereturndataReport'])->name('get-purchasereturndata-report');
+    Route::post('/get-purchasereturndata-report', [ReportController::class, 'purchasereturndataReport'])->name('get-purchasereturndata-report'); 
     Route::post('/purchase-return-report-datatable', [ReportController::class, 'purchasereturnReportDatatable'])->name('purchase-return-report-datatable');
     Route::post('/purchase-return-excel-download', [ReportController::class, 'purchasereturnExcelDownload'])->name('purchase-return-excel-download');
     

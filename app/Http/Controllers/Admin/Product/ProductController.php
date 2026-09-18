@@ -414,7 +414,7 @@ class ProductController extends Controller
 
             // Price validation
             $mrp = isset($variant['Retail_Price']) && is_numeric($variant['Retail_Price']) ? (float)$variant['Retail_Price'] : null;
-            $discount = isset($variant['discount_price']) && is_numeric($variant['discount_price']) ? (float)$variant['discount_price'] : null;
+            $discount = isset($variant['discount_price']) && is_numeric($variant['discount_price']) ? (float)$variant['discount_price'] : null; 
 
             if ($mrp !== null && $mrp < 0) {
                 $validationErrors[] = "Variant #{$variantNum}: Retail Price (MRP) cannot be negative.";
@@ -563,7 +563,7 @@ class ProductController extends Controller
                 // Gallery images upload
                 $galleryImages = [];
                 if ($request->hasFile("variants.{$idx}.images")) {
-                    foreach ($request->file("variants.{$idx}.images") as $file) {
+                    foreach ($request->file("variants.{$idx}.images") as $file) { 
                         $imgName         = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                         $file->move($folderPath, $imgName);
                         $galleryImages[] = $imgName;

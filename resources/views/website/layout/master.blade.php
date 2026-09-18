@@ -7,7 +7,7 @@
     <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="icon" href="{{ asset('admin/assets/images/favicon1.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('website/admin/assets/images/favicon1.png') }}" type="image/x-icon">
       @include('website.layout.partial.header')
       @yield('css')
       @yield('style')

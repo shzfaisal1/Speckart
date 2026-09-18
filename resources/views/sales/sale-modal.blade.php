@@ -473,9 +473,7 @@
                         					<td style="width: 45px; display: none;" class="hide-prism"><input type="text" class="search_input_function" name="GL_EYE_LPRISM_D" id="GL_EYE_LPRISM_D" value="" style="width:45px;" ></td>
                         				</tr>
                         				<tr id="nearvisionleft">
-                        					<td>
-                        						<input type="text" name="GL_EYE_LS_N" id="GL_EYE_LS_N" class="search_input_function" style="width:45px;">
-                        					</td>
+                        					<td><input type="text" name="GL_EYE_LS_N" id="GL_EYE_LS_N" class="search_input_function" style="width:45px;"></td>
                         					<td><input type="text" name="GL_EYE_LC_N" id="GL_EYE_LC_N" class="search_input_function" style="width:45px;"></td>
                         					<td><input type="text" name="GL_EYE_LA_N" id="GL_EYE_LA_N" class="search_input_function" style="width:45px;"></td>
                         					<td><input type="text" name="GL_EYE_LP_N" id="GL_EYE_LP_N" class="search_input_function" style="width:45px;"></td>

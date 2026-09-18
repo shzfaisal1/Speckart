@@ -1,6 +1,5 @@
 @extends('layouts.master')
 
-
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <style>
@@ -287,6 +286,356 @@
     color: #ffffff;
     border-color: #07484A;
 }
+/*-------------------------------*/
+.order-analytics-section {
+    margin-top: 24px;
+
+}
+
+.analytics-header {
+    background: #d8f0f1;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.analytics-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.analytics-header h3 i {
+    color: #07484A;
+    margin-right: 7px;
+}
+
+.analytics-header > div:first-child span {
+    display: block;
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.analytics-summary {
+    display: flex;
+    gap: 18px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.analytics-summary strong {
+    color: #0f172a;
+    font-size: 13px;
+    margin-right: 3px;
+}
+
+
+/* Analytics KPI Cards */
+
+.analytics-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+    margin-bottom: 14px;
+}
+
+.analytics-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.analytics-card-atv {
+    border-left: 3px solid #07484A;
+}
+
+.analytics-card-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: #ccfbf1;
+    color: #0d9488;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.analytics-card-icon.blue {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.analytics-card-icon.green {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.analytics-card-icon.teal {
+    background: #ccfbf1;
+    color: #0d9488;
+}
+
+.analytics-card-icon.red {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.analytics-card-content {
+    min-width: 0;
+}
+
+.analytics-card-label {
+    color: #64748b;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.analytics-card-value {
+    color: #0f172a;
+    font-size: 19px;
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+.analytics-card-sub {
+    color: #94a3b8;
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+
+/* Two Column Analytics */
+
+.analytics-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.analytics-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.03);
+}
+
+.analytics-panel-header {
+    padding: 13px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.analytics-panel-header h4 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.analytics-panel-header h4 i {
+    color: #07484A;
+    margin-right: 5px;
+}
+
+.analytics-panel-header span {
+    display: block;
+    color: #94a3b8;
+    font-size: 10.5px;
+    margin-top: 2px;
+}
+
+.analytics-count {
+    background: #e2e8f0;
+    color: #475569 !important;
+    border-radius: 20px;
+    padding: 3px 8px;
+    font-size: 10px !important;
+    font-weight: 700;
+}
+
+
+/* Analytics Tables */
+
+.analytics-table-wrap {
+    overflow-x: auto;
+}
+
+.analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.analytics-table th {
+    background: #ffffff;
+    color: #64748b;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .35px;
+    font-weight: 700;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.analytics-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.analytics-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.analytics-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.rank-cell {
+    width: 35px;
+    color: #94a3b8 !important;
+    font-weight: 700;
+}
+
+.revenue-cell {
+    color: #07484A !important;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.analytics-sku {
+    color: #94a3b8;
+    font-size: 9.5px;
+    margin-top: 2px;
+}
+
+.product-type-badge {
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 5px;
+    padding: 3px 6px;
+    font-size: 9.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.top-rank {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: #07484A;
+    color: #ffffff;
+    font-size: 10px;
+}
+
+.analytics-empty {
+    text-align: center;
+    padding: 25px !important;
+    color: #94a3b8 !important;
+    font-size: 11px;
+}
+
+
+/* Salesperson */
+
+.salesperson-panel {
+    margin-bottom: 14px;
+}
+
+.salesperson-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.salesperson-avatar {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+    .analytics-kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+
+    .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .analytics-summary {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .analytics-kpi-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .analytics-two-column {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .analytics-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-summary {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+
 </style>
 
 <div class="b2c-wrap">
@@ -370,6 +719,7 @@
             <div class="kpi-icon purple"><i class="fa fa-undo"></i></div>
         </a>
     </div>
+    
 
     <!-- Multi-Filter & Search Bar -->
     <div class="filter-card">
@@ -479,6 +829,10 @@
                 </thead>
                 <tbody>
                     @forelse($orders as $order)
+                    @php 
+                        $encryptedId = base64_encode($order->id);
+                    
+                    @endphp
                     <tr>
                         <!-- Order # & Date -->
                         <td>
@@ -580,6 +934,19 @@
                                 <a href="{{ route('admin.b2c-orders.lab-work-order', $order->id) }}" target="_blank" class="btn-action-icon" title="Print Optical Lab Job Sheet">
                                     <i class="fa fa-glasses" style="color: #07484A;"></i>
                                 </a>
+                               
+                            </div>    
+                            <div class="d-inline-flex gap-2">   
+                                <!-- 17-09-2026-->
+                                <a href="{{ route('admin.sale.invoice', ['id' => $encryptedId, 'idd' => 'receipt']) }}" target="_blank" class="btn-action-icon" title="View & Print Advance Receipt">
+                                    <i class="fa fa-receipt"></i>
+                                </a>
+                                <a href="{{ route('admin.sale.invoice', ['id' => $encryptedId, 'idd' => 'order']) }}" target="_blank" class="btn-action-icon" title="View & Print Paybal Receipt">
+                                    <i class="fa fa-file-medical"></i> 
+                                </a>
+                                <a href="{{ route('admin.sale.invoice', ['id' => $encryptedId, 'idd' => 'invoice']) }}" target="_blank" class="btn-action-icon" title="View & Print Invoice">
+                                    <i class="fa fa-file-text"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -609,6 +976,584 @@
         </div>
         @endif
     </div>
+    
+    
+    <!--<div class="order-analytics-section">-->
+    
+    <!--    {{-- Analytics Header --}}-->
+    <!--    <div class="analytics-header bg bg-infor">-->
+    <!--        <div>-->
+    <!--            <h3>-->
+    <!--                <i class="fa fa-bar-chart"></i>-->
+    <!--                Order Analytics-->
+    <!--            </h3>-->
+    <!--            <span>-->
+    <!--                {{ \Carbon\Carbon::parse($dateFrom)->format('d M Y') }}-->
+    <!--                --->
+    <!--                {{ \Carbon\Carbon::parse($dateTo)->format('d M Y') }}-->
+    <!--            </span>-->
+    <!--        </div>-->
+    
+    <!--        <div class="analytics-summary">-->
+    <!--            <span>-->
+    <!--                <strong>{{ $dashboardKpis['total_orders'] ?? 0 }}</strong>-->
+    <!--                Orders-->
+    <!--            </span>-->
+    
+    <!--            <span>-->
+    <!--                <strong>-->
+    <!--                    ₹{{ number_format($dashboardKpis['total_revenue'] ?? 0, 0) }}-->
+    <!--                </strong>-->
+    <!--                Revenue-->
+    <!--            </span>-->
+    <!--        </div>-->
+    <!--    </div>-->
+    
+    
+    <!--    {{-- ─────────────────────────────────────────────────────────────-->
+    <!--         ATV + CORE ANALYTICS CARDS-->
+    <!--         ───────────────────────────────────────────────────────────── --}}-->
+    
+    <!--    <div class="analytics-kpi-grid">-->
+    
+    <!--        {{-- ATV --}}-->
+    <!--        <div class="analytics-card analytics-card-atv">-->
+    <!--            <div class="analytics-card-icon">-->
+    <!--                <i class="fa fa-inr"></i>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-card-content">-->
+    <!--                <div class="analytics-card-label">-->
+    <!--                    Average Transaction Value-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-value">-->
+    <!--                    ₹{{ number_format($dashboardKpis['atv'] ?? 0, 2) }}-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-sub">-->
+    <!--                    Based on {{ number_format($dashboardKpis['paid_orders'] ?? 0) }}-->
+    <!--                    paid orders-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    
+    <!--        {{-- Total Orders --}}-->
+    <!--        <div class="analytics-card">-->
+    <!--            <div class="analytics-card-icon blue">-->
+    <!--                <i class="fa fa-shopping-cart"></i>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-card-content">-->
+    <!--                <div class="analytics-card-label">-->
+    <!--                    Total Orders-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-value">-->
+    <!--                    {{ number_format($dashboardKpis['total_orders'] ?? 0) }}-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-sub">-->
+    <!--                    Selected period-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    
+    <!--        {{-- Revenue --}}-->
+    <!--        <div class="analytics-card">-->
+    <!--            <div class="analytics-card-icon green">-->
+    <!--                <i class="fa fa-money"></i>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-card-content">-->
+    <!--                <div class="analytics-card-label">-->
+    <!--                    Paid Revenue-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-value">-->
+    <!--                    ₹{{ number_format($dashboardKpis['total_revenue'] ?? 0, 0) }}-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-sub">-->
+    <!--                    {{ number_format($dashboardKpis['paid_orders'] ?? 0) }} paid orders-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    
+    <!--        {{-- Delivered --}}-->
+    <!--        <div class="analytics-card">-->
+    <!--            <div class="analytics-card-icon teal">-->
+    <!--                <i class="fa fa-check-circle"></i>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-card-content">-->
+    <!--                <div class="analytics-card-label">-->
+    <!--                    Delivered-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-value">-->
+    <!--                    {{ number_format($dashboardKpis['delivered'] ?? 0) }}-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-sub">-->
+    <!--                    Orders delivered-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    
+    <!--        {{-- Cancelled --}}-->
+    <!--        <div class="analytics-card">-->
+    <!--            <div class="analytics-card-icon red">-->
+    <!--                <i class="fa fa-times-circle"></i>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-card-content">-->
+    <!--                <div class="analytics-card-label">-->
+    <!--                    Cancelled-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-value">-->
+    <!--                    {{ number_format($dashboardKpis['cancelled'] ?? 0) }}-->
+    <!--                </div>-->
+    
+    <!--                <div class="analytics-card-sub">-->
+    <!--                    Excluded from product sales-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    <!--    </div>-->
+    
+    
+    <!--    {{-- ─────────────────────────────────────────────────────────────-->
+    <!--         BRAND + LENS PACKAGE-->
+    <!--         ───────────────────────────────────────────────────────────── --}}-->
+    
+    <!--    <div class="analytics-two-column">-->
+    
+    <!--        {{-- Brand-wise Sales --}}-->
+    <!--        <div class="analytics-panel">-->
+    
+    <!--            <div class="analytics-panel-header">-->
+    <!--                <div>-->
+    <!--                    <h4>-->
+    <!--                        <i class="fa fa-tags"></i>-->
+    <!--                        Brand-wise Sales-->
+    <!--                    </h4>-->
+    <!--                    <span>Revenue and quantity by brand</span>-->
+    <!--                </div>-->
+    
+    <!--                <span class="analytics-count">-->
+    <!--                    {{ $brandWise->count() }}-->
+    <!--                </span>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-table-wrap">-->
+    <!--                <table class="analytics-table">-->
+    
+    <!--                    <thead>-->
+    <!--                        <tr>-->
+    <!--                            <th>#</th>-->
+    <!--                            <th>Brand</th>-->
+    <!--                            <th>Qty</th>-->
+    <!--                            <th>Orders</th>-->
+    <!--                            <th class="text-right">Revenue</th>-->
+    <!--                        </tr>-->
+    <!--                    </thead>-->
+    
+    <!--                    <tbody>-->
+    
+    <!--                        @forelse($brandWise as $index => $brand)-->
+    
+    <!--                            <tr>-->
+    <!--                                <td class="rank-cell">-->
+    <!--                                    {{ $index + 1 }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    <strong>-->
+    <!--                                        {{ $brand->brand_name }}-->
+    <!--                                    </strong>-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    {{ number_format($brand->total_qty) }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    {{ number_format($brand->order_count) }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td class="text-right revenue-cell">-->
+    <!--                                    ₹{{ number_format($brand->total_revenue, 0) }}-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @empty-->
+    
+    <!--                            <tr>-->
+    <!--                                <td colspan="5" class="analytics-empty">-->
+    <!--                                    No brand sales found-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @endforelse-->
+    
+    <!--                    </tbody>-->
+    <!--                </table>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    
+    <!--        {{-- Lens Package Sales --}}-->
+    <!--        <div class="analytics-panel">-->
+    
+    <!--            <div class="analytics-panel-header">-->
+    <!--                <div>-->
+    <!--                    <h4>-->
+    <!--                        <i class="fa fa-eye"></i>-->
+    <!--                        Lens Package Sales-->
+    <!--                    </h4>-->
+    <!--                    <span>Package performance</span>-->
+    <!--                </div>-->
+    
+    <!--                <span class="analytics-count">-->
+    <!--                    {{ $lensPackageWise->count() }}-->
+    <!--                </span>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-table-wrap">-->
+    <!--                <table class="analytics-table">-->
+    
+    <!--                    <thead>-->
+    <!--                        <tr>-->
+    <!--                            <th>#</th>-->
+    <!--                            <th>Package</th>-->
+    <!--                            <th>Qty</th>-->
+    <!--                            <th>Orders</th>-->
+    <!--                            <th class="text-right">Revenue</th>-->
+    <!--                        </tr>-->
+    <!--                    </thead>-->
+    
+    <!--                    <tbody>-->
+    
+    <!--                        @forelse($lensPackageWise as $index => $package)-->
+    
+    <!--                            <tr>-->
+    <!--                                <td class="rank-cell">-->
+    <!--                                    {{ $index + 1 }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    <strong>-->
+    <!--                                        {{ $package->package_name }}-->
+    <!--                                    </strong>-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    {{ number_format($package->total_qty) }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    {{ number_format($package->order_count) }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td class="text-right revenue-cell">-->
+    <!--                                    ₹{{ number_format($package->package_revenue, 0) }}-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @empty-->
+    
+    <!--                            <tr>-->
+    <!--                                <td colspan="5" class="analytics-empty">-->
+    <!--                                    No lens package sales found-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @endforelse-->
+    
+    <!--                    </tbody>-->
+    <!--                </table>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    <!--    </div>-->
+    
+    
+    <!--    {{-- ─────────────────────────────────────────────────────────────-->
+    <!--         CONTACT LENS + BEST SELLING-->
+    <!--         ───────────────────────────────────────────────────────────── --}}-->
+    
+    <!--    <div class="analytics-two-column">-->
+    
+    <!--        {{-- Contact Lens --}}-->
+    <!--        <div class="analytics-panel">-->
+    
+    <!--            <div class="analytics-panel-header">-->
+    <!--                <div>-->
+    <!--                    <h4>-->
+    <!--                        <i class="fa fa-circle-o"></i>-->
+    <!--                        Contact Lens Sales-->
+    <!--                    </h4>-->
+    <!--                    <span>Contact lens product performance</span>-->
+    <!--                </div>-->
+    
+    <!--                <span class="analytics-count">-->
+    <!--                    {{ $contactLens->count() }}-->
+    <!--                </span>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-table-wrap">-->
+    <!--                <table class="analytics-table">-->
+    
+    <!--                    <thead>-->
+    <!--                        <tr>-->
+    <!--                            <th>#</th>-->
+    <!--                            <th>Product</th>-->
+    <!--                            <th>Qty</th>-->
+    <!--                            <th>Orders</th>-->
+    <!--                            <th class="text-right">Revenue</th>-->
+    <!--                        </tr>-->
+    <!--                    </thead>-->
+    
+    <!--                    <tbody>-->
+    
+    <!--                        @forelse($contactLens as $index => $contact)-->
+    
+    <!--                            <tr>-->
+    <!--                                <td class="rank-cell">-->
+    <!--                                    {{ $index + 1 }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    <strong>-->
+    <!--                                        {{ $contact->product_name }}-->
+    <!--                                    </strong>-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    {{ number_format($contact->total_qty) }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    {{ number_format($contact->order_count) }}-->
+    <!--                                </td>-->
+    
+    <!--                                <td class="text-right revenue-cell">-->
+    <!--                                    ₹{{ number_format($contact->total_revenue, 0) }}-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @empty-->
+    
+    <!--                            <tr>-->
+    <!--                                <td colspan="5" class="analytics-empty">-->
+    <!--                                    No contact lens sales found-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @endforelse-->
+    
+    <!--                    </tbody>-->
+    <!--                </table>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    
+    <!--        {{-- Best Selling Products --}}-->
+    <!--        <div class="analytics-panel">-->
+    
+    <!--            <div class="analytics-panel-header">-->
+    <!--                <div>-->
+    <!--                    <h4>-->
+    <!--                        <i class="fa fa-star"></i>-->
+    <!--                        Best-Selling Products-->
+    <!--                    </h4>-->
+    <!--                    <span>Ranked by units sold</span>-->
+    <!--                </div>-->
+    
+    <!--                <span class="analytics-count">-->
+    <!--                    {{ $bestSelling->count() }}-->
+    <!--                </span>-->
+    <!--            </div>-->
+    
+    <!--            <div class="analytics-table-wrap">-->
+    <!--                <table class="analytics-table">-->
+    
+    <!--                    <thead>-->
+    <!--                        <tr>-->
+    <!--                            <th>#</th>-->
+    <!--                            <th>Product</th>-->
+    <!--                            <th>Type</th>-->
+    <!--                            <th>Qty</th>-->
+    <!--                            <th class="text-right">Revenue</th>-->
+    <!--                        </tr>-->
+    <!--                    </thead>-->
+    
+    <!--                    <tbody>-->
+    
+    <!--                        @forelse($bestSelling as $index => $product)-->
+    
+    <!--                            <tr>-->
+    
+    <!--                                <td class="rank-cell">-->
+    <!--                                    @if($index === 0)-->
+    <!--                                        <span class="top-rank">1</span>-->
+    <!--                                    @else-->
+    <!--                                        {{ $index + 1 }}-->
+    <!--                                    @endif-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    <strong>-->
+    <!--                                        {{ $product->product_name }}-->
+    <!--                                    </strong>-->
+    
+    <!--                                    @if(!empty($product->sku))-->
+    <!--                                        <div class="analytics-sku">-->
+    <!--                                            SKU: {{ $product->sku }}-->
+    <!--                                        </div>-->
+    <!--                                    @endif-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    <span class="product-type-badge">-->
+    <!--                                        {{ ucfirst($product->product_type ?? 'Other') }}-->
+    <!--                                    </span>-->
+    <!--                                </td>-->
+    
+    <!--                                <td>-->
+    <!--                                    <strong>-->
+    <!--                                        {{ number_format($product->total_qty) }}-->
+    <!--                                    </strong>-->
+    <!--                                </td>-->
+    
+    <!--                                <td class="text-right revenue-cell">-->
+    <!--                                    ₹{{ number_format($product->total_revenue, 0) }}-->
+    <!--                                </td>-->
+    
+    <!--                            </tr>-->
+    
+    <!--                        @empty-->
+    
+    <!--                            <tr>-->
+    <!--                                <td colspan="5" class="analytics-empty">-->
+    <!--                                    No product sales found-->
+    <!--                                </td>-->
+    <!--                            </tr>-->
+    
+    <!--                        @endforelse-->
+    
+    <!--                    </tbody>-->
+    <!--                </table>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    
+    <!--    </div>-->
+    
+    
+    <!--    {{-- ─────────────────────────────────────────────────────────────-->
+    <!--         SALESPERSON-WISE SALES-->
+    <!--         ───────────────────────────────────────────────────────────── --}}-->
+    
+    <!--    <div class="analytics-panel salesperson-panel">-->
+    
+    <!--        <div class="analytics-panel-header">-->
+    
+    <!--            <div>-->
+    <!--                <h4>-->
+    <!--                    <i class="fa fa-users"></i>-->
+    <!--                    Salesperson-wise Sales-->
+    <!--                </h4>-->
+    
+    <!--                <span>-->
+    <!--                    Sales performance by salesperson-->
+    <!--                </span>-->
+    <!--            </div>-->
+    
+    <!--            <span class="analytics-count">-->
+    <!--                {{ $salespersonWise->count() }}-->
+    <!--            </span>-->
+    
+    <!--        </div>-->
+    
+    <!--        <div class="analytics-table-wrap">-->
+    
+    <!--            <table class="analytics-table">-->
+    
+    <!--                <thead>-->
+    <!--                    <tr>-->
+    <!--                        <th>#</th>-->
+    <!--                        <th>Salesperson</th>-->
+    <!--                        <th>Orders</th>-->
+    <!--                        <th>Avg. Ticket</th>-->
+    <!--                        <th class="text-right">Revenue</th>-->
+    <!--                    </tr>-->
+    <!--                </thead>-->
+    
+    <!--                <tbody>-->
+    
+    <!--                    @forelse($salespersonWise as $index => $person)-->
+    
+    <!--                        <tr>-->
+    
+    <!--                            <td class="rank-cell">-->
+    <!--                                {{ $index + 1 }}-->
+    <!--                            </td>-->
+    
+    <!--                            <td>-->
+    <!--                                <div class="salesperson-name">-->
+    <!--                                    <span class="salesperson-avatar">-->
+    <!--                                        <i class="fa fa-user"></i>-->
+    <!--                                    </span>-->
+    
+    <!--                                    <strong>-->
+    <!--                                        {{ $person->salesperson }}-->
+    <!--                                    </strong>-->
+    <!--                                </div>-->
+    <!--                            </td>-->
+    
+    <!--                            <td>-->
+    <!--                                <strong>-->
+    <!--                                    {{ number_format($person->order_count) }}-->
+    <!--                                </strong>-->
+    <!--                            </td>-->
+    
+    <!--                            <td>-->
+    <!--                                ₹{{ number_format($person->avg_ticket ?? 0, 2) }}-->
+    <!--                            </td>-->
+    
+    <!--                            <td class="text-right revenue-cell">-->
+    <!--                                ₹{{ number_format($person->revenue ?? 0, 0) }}-->
+    <!--                            </td>-->
+    
+    <!--                        </tr>-->
+    
+    <!--                    @empty-->
+    
+    <!--                        <tr>-->
+    <!--                            <td colspan="5" class="analytics-empty">-->
+    <!--                                No salesperson sales found-->
+    <!--                            </td>-->
+    <!--                        </tr>-->
+    
+    <!--                    @endforelse-->
+    
+    <!--                </tbody>-->
+    
+    <!--            </table>-->
+    
+    <!--        </div>-->
+    <!--    </div>-->
+    
+    <!--</div>-->
+
+
 </div>
 
 <!-- Side-by-Side Prescription Workbench Modal -->
