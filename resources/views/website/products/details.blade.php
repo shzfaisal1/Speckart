@@ -2276,23 +2276,100 @@
                                                    inputmode="numeric">
                                         </div>
                                     </div>
+
+                                    <!-- Row 4: VA (Visual Acuity - Distance) -->
+                                    <div class="row align-items-center mb-3 rx-va-row">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13.5px;" title="Visual Acuity">
+                                            VA <span class="text-muted fw-normal" style="font-size:11px;">(Opt.)</span>
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_va">
+                                                <option value="" selected>None / Skip</option>
+                                                <option value="6/6">6/6 (20/20)</option>
+                                                <option value="6/9">6/9 (20/30)</option>
+                                                <option value="6/12">6/12 (20/40)</option>
+                                                <option value="6/18">6/18 (20/60)</option>
+                                                <option value="6/24">6/24 (20/80)</option>
+                                                <option value="6/36">6/36 (20/120)</option>
+                                                <option value="6/60">6/60 (20/200)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_va">
+                                                <option value="" selected>None / Skip</option>
+                                                <option value="6/6">6/6 (20/20)</option>
+                                                <option value="6/9">6/9 (20/30)</option>
+                                                <option value="6/12">6/12 (20/40)</option>
+                                                <option value="6/18">6/18 (20/60)</option>
+                                                <option value="6/24">6/24 (20/80)</option>
+                                                <option value="6/36">6/36 (20/120)</option>
+                                                <option value="6/60">6/60 (20/200)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 5: ADD (Near Addition for Bifocal / Progressive) -->
+                                    <div class="row align-items-center mb-3 rx-add-row" id="rx_add_container" style="display:none;">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13.5px;">
+                                            ADD <span class="text-muted fw-normal" style="font-size:11px;">(Near)</span>
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_add">
+                                                <option value="" selected>None</option>
+                                                @for($add = 0.75; $add <= 3.50; $add += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $add) }}">{{ sprintf('+%.2f', $add) }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_add">
+                                                <option value="" selected>None</option>
+                                                @for($add = 0.75; $add <= 3.50; $add += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $add) }}">{{ sprintf('+%.2f', $add) }}</option>
+                                                @endfor
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Pupillary Distance (PD) -->
-                                {{-- <div class="pd-section p-3 rounded-3 mb-4" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-start">
-                                        <label for="rx_pd" class="form-label fw-bold mb-0" style="color:#07484A; font-size:13.5px;">
-                                            <i class="bi bi-arrows-expand me-1"></i> Pupillary Distance (PD)
-                                        </label>
-                                        <div style="min-width: 140px;">
-                                            <select class="form-select custom-lenskart-select" id="rx_pd" style="height:40px;">
-                                                @for($pd = 50; $pd <= 80; $pd++)
+                                <div class="pd-section p-3 rounded-3 mb-4 text-start" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                        <div>
+                                            <label for="rx_pd" class="form-label fw-bold mb-0" style="color:#07484A; font-size:13.5px;">
+                                                <i class="bi bi-arrows-expand me-1"></i> Pupillary Distance (PD) <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="text-muted" style="font-size:11.5px;">Distance between pupil centers. Standard adult average is 63 mm.</div>
+                                        </div>
+                                        <div id="single-pd-wrapper" style="min-width: 130px;">
+                                            <select class="form-select custom-lenskart-select" id="rx_pd" style="height:38px;">
+                                                @for($pd = 50; $pd <= 75; $pd++)
                                                     <option value="{{ $pd }}" {{ $pd == 63 ? 'selected' : '' }}>{{ $pd }} mm</option>
                                                 @endfor
                                             </select>
                                         </div>
                                     </div>
-                                </div> --}}
+
+                                    <!-- Dual PD Checkbox -->
+                                    <div class="form-check custom-lenskart-check mt-2 pt-1">
+                                        <input class="form-check-input" type="checkbox" id="rx_has_dual_pd">
+                                        <label class="form-check-label text-muted" for="rx_has_dual_pd" style="font-size: 12.5px; cursor: pointer;">
+                                            I have separate Right/Left PD on my prescription
+                                        </label>
+                                    </div>
+
+                                    <!-- Dual PD Inputs (R-PD and L-PD) -->
+                                    <div class="row align-items-center mt-2 pt-2 border-top rx-dual-pd-row" style="display:none;">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold mb-1" style="color:#334155; font-size:12px;">Right PD (R-PD)</label>
+                                            <input type="number" step="0.5" min="25" max="40" class="form-control text-center custom-lenskart-input" id="rx_right_pd" placeholder="e.g. 31.5">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold mb-1" style="color:#334155; font-size:12px;">Left PD (L-PD)</label>
+                                            <input type="number" step="0.5" min="25" max="40" class="form-control text-center custom-lenskart-input" id="rx_left_pd" placeholder="e.g. 31.5">
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div class="d-flex gap-2 justify-content-end mt-4 action-buttons">
                                     <button type="button"
@@ -2965,8 +3042,9 @@
         }
 
         function submitManualPrescription() {
-            const hasCyl = $('#rx_has_cyl').is(':checked');
-            const isSame = $('#rx_same_power').is(':checked');
+            const hasCyl    = $('#rx_has_cyl').is(':checked');
+            const isSame    = $('#rx_same_power').is(':checked');
+            const hasDualPd = $('#rx_has_dual_pd').is(':checked');
 
             let rightSph = $('#rx_right_sph').val() || '0.00';
             let leftSph  = isSame ? rightSph : ($('#rx_left_sph').val() || '0.00');
@@ -2976,6 +3054,12 @@
 
             let rightAxis = hasCyl ? ($('#rx_right_axis').val() || '').trim() : '';
             let leftAxis  = hasCyl ? (isSame ? rightAxis : ($('#rx_left_axis').val() || '').trim()) : '';
+
+            let rightVa = $('#rx_right_va').val() || '';
+            let leftVa  = isSame ? rightVa : ($('#rx_left_va').val() || '');
+
+            let rightAdd = $('#rx_right_add').val() || '';
+            let leftAdd  = isSame ? rightAdd : ($('#rx_left_add').val() || '');
 
             // Axis Validation: If CYL is selected (> 0.00 or < 0.00), Axis is mandatory (1 - 180)
             if (hasCyl) {
@@ -2997,16 +3081,63 @@
                 }
             }
 
+            // Pupillary Distance (PD) calculation
+            let totalPd = $('#rx_pd').val() || '63';
+            let rightPd = (parseFloat(totalPd) / 2).toFixed(1);
+            let leftPd  = rightPd;
+
+            if (hasDualPd) {
+                let rPdVal = parseFloat($('#rx_right_pd').val());
+                let lPdVal = parseFloat($('#rx_left_pd').val());
+                if (!isNaN(rPdVal) && rPdVal >= 20 && rPdVal <= 45) {
+                    rightPd = rPdVal.toFixed(1);
+                }
+                if (!isNaN(lPdVal) && lPdVal >= 20 && lPdVal <= 45) {
+                    leftPd = lPdVal.toFixed(1);
+                }
+                if (!isNaN(rPdVal) && !isNaN(lPdVal)) {
+                    totalPd = (rPdVal + lPdVal).toFixed(1);
+                }
+            }
+
             const rxData = {
-                right_eye_sph: rightSph,
-                right_eye_cyl: rightCyl,
-                right_eye_axis: rightAxis ? parseInt(rightAxis, 10) : 0,
-                right_eye_ap: '',
-                left_eye_sph: leftSph,
-                left_eye_cyl: leftCyl,
-                left_eye_axis: leftAxis ? parseInt(leftAxis, 10) : 0,
-                left_eye_ap: '',
-                pd: $('#rx_pd').val() || '63'
+                // Exact database column keys for tbl_sale_products
+                GL_EYE_RS_D    : rightSph,
+                GL_EYE_RC_D    : rightCyl,
+                GL_EYE_RA_D    : rightAxis ? parseInt(rightAxis, 10) : null,
+                GL_EYE_RP_D    : rightPd,
+                GL_EYE_RV_D    : rightVa,
+                GL_EYE_RADD    : rightAdd,
+
+                GL_EYE_LS_D    : leftSph,
+                GL_EYE_LC_D    : leftCyl,
+                GL_EYE_LA_D    : leftAxis ? parseInt(leftAxis, 10) : null,
+                GL_EYE_LP_D    : leftPd,
+                GL_EYE_LV_D    : leftVa,
+                GL_EYE_LADD    : leftAdd,
+
+                GL_EYE_totalPD : totalPd,
+
+                // Dual PD & Compatibility aliases
+                right_pd       : rightPd,
+                left_pd        : leftPd,
+                pd             : totalPd,
+                right_va       : rightVa,
+                left_va        : leftVa,
+                re_sph         : rightSph,
+                re_cyl         : rightCyl,
+                re_axis        : rightAxis ? parseInt(rightAxis, 10) : null,
+                re_add         : rightAdd,
+                le_sph         : leftSph,
+                le_cyl         : leftCyl,
+                le_axis        : leftAxis ? parseInt(leftAxis, 10) : null,
+                le_add         : leftAdd,
+                right_eye_sph  : rightSph,
+                right_eye_cyl  : rightCyl,
+                right_eye_axis : rightAxis ? parseInt(rightAxis, 10) : 0,
+                left_eye_sph   : leftSph,
+                left_eye_cyl   : leftCyl,
+                left_eye_axis  : leftAxis ? parseInt(leftAxis, 10) : 0
             };
 
             addToCartAjax(selectedLensType, selectedLensPackageId, JSON.stringify(rxData), null);
@@ -3031,6 +3162,20 @@
                 }
             });
 
+            // Dual PD checkbox toggle
+            $(document).on('change', '#rx_has_dual_pd', function() {
+                const hasDual = $(this).is(':checked');
+                if (hasDual) {
+                    $('.rx-dual-pd-row').show();
+                    const currentTotal = parseFloat($('#rx_pd').val()) || 63;
+                    const half = (currentTotal / 2).toFixed(1);
+                    if (!$('#rx_right_pd').val()) $('#rx_right_pd').val(half);
+                    if (!$('#rx_left_pd').val()) $('#rx_left_pd').val(half);
+                } else {
+                    $('.rx-dual-pd-row').hide();
+                }
+            });
+
             // Same power checkbox toggle
             $(document).on('change', '#rx_same_power', function() {
                 const isSame = $(this).is(':checked');
@@ -3038,9 +3183,11 @@
                     $('#rx_left_sph').val($('#rx_right_sph').val());
                     $('#rx_left_cyl').val($('#rx_right_cyl').val());
                     $('#rx_left_axis').val($('#rx_right_axis').val());
-                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis').prop('disabled', true).addClass('bg-light');
+                    $('#rx_left_va').val($('#rx_right_va').val());
+                    $('#rx_left_add').val($('#rx_right_add').val());
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_add').prop('disabled', true).addClass('bg-light');
                 } else {
-                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis').prop('disabled', false).removeClass('bg-light');
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_add').prop('disabled', false).removeClass('bg-light');
                 }
             });
 
@@ -3054,6 +3201,18 @@
             $(document).on('change', '#rx_right_cyl', function() {
                 if ($('#rx_same_power').is(':checked')) {
                     $('#rx_left_cyl').val($(this).val());
+                }
+            });
+
+            $(document).on('change', '#rx_right_va', function() {
+                if ($('#rx_same_power').is(':checked')) {
+                    $('#rx_left_va').val($(this).val());
+                }
+            });
+
+            $(document).on('change', '#rx_right_add', function() {
+                if ($('#rx_same_power').is(':checked')) {
+                    $('#rx_left_add').val($(this).val());
                 }
             });
 
@@ -3086,6 +3245,14 @@
             isFreeLens = freeLensFlag;
 
             console.log('Selected Package ID:', selectedLensPackageId, 'Type:', selectedLensType);
+
+            // Conditionally show ADD row if Bifocal or Progressive
+            if (selectedLensType && (selectedLensType.toLowerCase().includes('progressive') || selectedLensType.toLowerCase().includes('bifocal'))) {
+                $('#rx_add_container').show();
+            } else {
+                $('#rx_add_container').hide();
+                $('#rx_right_add, #rx_left_add').val('');
+            }
 
             if (selectedLensType === 'Zero Power' || (selectedLensType && selectedLensType.toLowerCase().includes('zero'))) {
                 addToCartAjax('Zero Power', selectedLensPackageId, null, null);
