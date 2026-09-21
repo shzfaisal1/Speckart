@@ -38,7 +38,7 @@
 	<div class="row">
 		<div class="col-md-3">
 			<label for="">Sales Person<span class="text-danger">*</span></label>
-			<input type="text" class="form-control" value="{{$salePerson->name}}"  readonly>
+			<input type="text" class="form-control" value="{{$salePerson->name ?? 'N/A'}}"  readonly>
 			
 		</div>
 		<div class="col-md-3">
@@ -273,7 +273,7 @@
 														<td></td>
 														<td>{{$payment->pay_amount}}</td>
 														<td>{{$payment->pay_date}}</td>
-														<td>{{$saleperson->name}}</td>
+														<td>{{$saleperson->name ?? 'N/A'}}</td>
 														<td>{{$payment->created_at}}</td>
 														<td>
 															<a class="tooltip pointer" data-toggle="modal" data-target="#edit-payamount-modal" data-backdrop="static" data-keyboard="false" style="text-decoration: none;">
@@ -321,7 +321,7 @@
 														<td></td>
 														<td>{{$payment->pay_amount}}</td>
 														<td>{{$payment->pay_date}}</td>
-														<td>{{$saleperson->name}}</td>
+														<td>{{$saleperson->name ?? 'N/A'}}</td>
 														<td>{{$payment->created_at}}</td>
 														<td>
 															<a href="" class="tooltip">
