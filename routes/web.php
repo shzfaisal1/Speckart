@@ -98,6 +98,9 @@ Route::group(['middleware' => ['web']], function ()
     Route::get('/my-orders',               [\App\Http\Controllers\Website\OrderController::class, 'my_order'])->name('my-orders');
     Route::post('/my-orders/cancel/{id}',  [\App\Http\Controllers\Website\OrderController::class, 'cancel_order'])->name('my-orders.cancel');
     Route::post('/my-orders/reorder/{id}', [\App\Http\Controllers\Website\OrderController::class, 'reorder'])->name('my-orders.reorder');
+    Route::post('/my-orders/return-exchange/{id}', [\App\Http\Controllers\Website\OrderController::class, 'submitReturnExchange'])->name('my-orders.return-exchange');
+    Route::post('/my-orders/return-exchange/cancel/{id}', [\App\Http\Controllers\Website\OrderController::class, 'cancelReturnExchange'])->name('my-orders.return-exchange.cancel');
+    Route::get('/my-orders/return-exchange/details/{id}', [\App\Http\Controllers\Website\OrderController::class, 'getReturnExchangeDetails'])->name('my-orders.return-exchange.details');
     
     //-------------------------12-09-2026
     Route::get('my-orders/{id}/advance-receipt/{idd}', [SalesController::class, 'saleInvoice'])->name('my-orders.advance-receipt');

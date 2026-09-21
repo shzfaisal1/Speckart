@@ -319,11 +319,15 @@ class OrderController extends Controller
             $orderProducts = collect();
             foreach ($sale->products as $item) {
                 $pObj = new \stdClass();
+                $pObj->item_id         = $item->id;
                 $pObj->product_id      = $item->product_id;
                 $pObj->product_company = 'Speckarts';
                 $pObj->product_deatils = $item->product_deatils;
                 $pObj->item_price      = $item->sale_price;
                 $pObj->qty             = $item->qty;
+                $pObj->item_status     = $item->item_status;
+                $pObj->return_status   = $item->return_status;
+                $pObj->return_remark   = $item->return_remark;
                 $pObj->image           = asset('website/assets/img/bg/Eyeglasses1.png');
 
                 // Resolve frame image from product catalog
@@ -364,6 +368,17 @@ class OrderController extends Controller
             $orderObj->delivery_method = $sale->delivery_method ?? 'Standard';
             $orderObj->tracking_number = $sale->tracking_number;
             $orderObj->products      = $orderProducts;
+
+            // Return & Exchange fields
+            $orderObj->return_type          = $sale->return_type;
+            $orderObj->return_reason        = $sale->return_reason;
+            $orderObj->return_exchange_type = $sale->return_exchange_type;
+            $orderObj->return_stage         = $sale->return_stage;
+            $orderObj->return_admin_notes   = $sale->return_admin_notes;
+            $orderObj->customer_note        = $sale->customer_note;
+            $orderObj->shipping_address     = $sale->full_address_text ?? ($sale->cust_address ?? '');
+            $orderObj->contact_no           = $sale->contact_no;
+            $orderObj->cust_name            = $sale->customer_name ?? 'Customer';
 
             $orders->push($orderObj);
         }
@@ -418,20 +433,305 @@ class OrderController extends Controller
     }
 
     /**
-     * Ajax endpoint to check pincode serviceability and shipping fee
+     * Submit Return or Exchange request (Lenskart Style)
      */
-    public function check_pincode(Request $request)
+    public function submitReturnExchange(Request $request, $id)
     {
-        $pincode = $request->input('pincode');
-        $result = \App\Models\ShippingCharge::getChargeForPincode($pincode);
+        $sale = Sale::with('products')->where('sale_id', $id)->first();
+        if (!$sale) {
+            $sale = Sale::with('products')->where('id', $id)->first();
+        }
+
+        if (!$sale) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+            }
+            return back()->with('error', 'Order not found.');
+        }
+
+        // Authorization check if user is logged in
+        if (auth()->check()) {
+            $user = auth()->user();
+            $ownsOrder = false;
+            if (!empty($sale->cust_id) && $sale->cust_id == $user->id) $ownsOrder = true;
+            if (!empty($sale->user_id) && $sale->user_id == $user->id) $ownsOrder = true;
+            if (!empty($user->phone) && $sale->contact_no == $user->phone) $ownsOrder = true;
+            if (!empty($user->email) && $sale->email_id == $user->email) $ownsOrder = true;
+
+            if (!$ownsOrder && !auth()->user()->is_admin) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized action for this order.'], 403);
+                }
+                return back()->with('error', 'Unauthorized access to this order.');
+            }
+        }
+
+        // Validate payload
+        $request->validate([
+            'action_type'        => 'required|in:exchange,return',
+            'return_type'        => 'nullable|in:refund,replacement,lens_remake',
+            'reason'             => 'required|in:power_mismatch,fit_issue,frame_damage,changed_mind,other',
+            'exchange_type'      => 'nullable|in:same_product,different_power,different_frame,none',
+            'customer_remarks'   => 'nullable|string|max:1000',
+            'photo'              => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            'refund_mode'        => 'nullable|in:original,bank_transfer',
+            'bank_account_no'    => 'nullable|string|max:50',
+            'bank_ifsc'          => 'nullable|string|max:20',
+            'bank_holder_name'   => 'nullable|string|max:100',
+            'pickup_address'     => 'nullable|string|max:500',
+            'pickup_contact'     => 'nullable|string|max:20',
+        ]);
+
+        $actionType   = $request->input('action_type', 'exchange');
+        $returnType   = $request->input('return_type');
+        if (!$returnType) {
+            $returnType = ($actionType === 'exchange') ? 'replacement' : 'refund';
+        }
+
+        $exchangeType = $request->input('exchange_type');
+        if (!$exchangeType) {
+            $exchangeType = ($actionType === 'return') ? 'none' : 'different_power';
+        }
+
+        $reason       = $request->input('reason', 'other');
+        $remarks      = $request->input('customer_remarks', '');
+        $refundMode   = $request->input('refund_mode', 'original');
+
+        // Handle Photo Upload
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $filename = 'return_' . $sale->sale_id . '_' . time() . '.' . $photo->getClientOriginalExtension();
+            $destinationDir = public_path('uploads/returns');
+            if (!file_exists($destinationDir)) {
+                mkdir($destinationDir, 0755, true);
+            }
+            $photo->move($destinationDir, $filename);
+            $photoPath = 'uploads/returns/' . $filename;
+        }
+
+        // Build note summary
+        $noteParts = [];
+        $noteParts[] = "== " . strtoupper($actionType) . " REQUESTED (" . now()->format('d M Y, h:i A') . ") ==";
+        $noteParts[] = "Type: " . ucfirst(str_replace('_', ' ', $returnType));
+        $noteParts[] = "Reason: " . ucfirst(str_replace('_', ' ', $reason));
+        if ($actionType === 'exchange') {
+            $noteParts[] = "Exchange Preference: " . ucfirst(str_replace('_', ' ', $exchangeType));
+        } else {
+            $noteParts[] = "Refund Method: " . ($refundMode === 'bank_transfer' ? 'Direct Bank Transfer' : 'Original Payment Source');
+            if ($refundMode === 'bank_transfer' && $request->filled('bank_account_no')) {
+                $noteParts[] = "Bank Acc: " . $request->input('bank_account_no') . " | IFSC: " . $request->input('bank_ifsc') . " | Name: " . $request->input('bank_holder_name');
+            }
+        }
+        if ($request->filled('pickup_address')) {
+            $noteParts[] = "Pickup Address: " . $request->input('pickup_address');
+        }
+        if ($request->filled('pickup_contact')) {
+            $noteParts[] = "Pickup Contact: " . $request->input('pickup_contact');
+        }
+        if (!empty($remarks)) {
+            $noteParts[] = "Customer Notes: " . $remarks;
+        }
+        if (!empty($photoPath)) {
+            $noteParts[] = "Attachment: " . asset($photoPath);
+        }
+
+        $formattedNote = implode("\n", $noteParts);
+
+        // Update tbl_sales record
+        $sale->return_type          = $returnType;
+        $sale->return_reason        = $reason;
+        $sale->return_exchange_type = $exchangeType;
+        $sale->return_stage         = 'requested';
+        $sale->customer_note        = ($sale->customer_note ? $sale->customer_note . "\n\n" : '') . $formattedNote;
+
+        if ($returnType === 'refund') {
+            $sale->return_amount = (float)($sale->total_payable ?? 0);
+        }
+
+        if ($returnType === 'lens_remake') {
+            $sale->lab_status = 'assigned';
+            $sale->lab_notes  = "FREE LENS REMAKE (Optical Adjustment): " . ($remarks ?: 'Power adjustment requested by customer');
+        }
+
+        $sale->save();
+
+        // Update items in tbl_sales_product
+        $itemIds = $request->input('item_ids', []);
+        foreach ($sale->products as $prod) {
+            if (empty($itemIds) || in_array($prod->id, (array)$itemIds)) {
+                $prod->return_status = 1; // 1 = Return / Exchange requested
+                $prod->item_status   = 'returned';
+                $prod->return_date   = now();
+                $prod->return_remark = ucfirst(str_replace('_', ' ', $reason)) . ($remarks ? " - " . $remarks : "");
+                if ($photoPath) {
+                    $prod->return_photo = $photoPath;
+                }
+                $prod->save();
+            }
+        }
+
+        $actionWord = ($actionType === 'exchange') ? 'Exchange' : 'Return';
+        $successMessage = "Your {$actionWord} request for Order #{$sale->order_no} has been registered successfully! Our team will contact you shortly for pickup schedule.";
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+                'order_id' => $sale->sale_id,
+                'order_no' => $sale->order_no,
+                'action_type' => $actionType,
+                'stage' => 'requested'
+            ]);
+        }
+
+        return back()->with('success', $successMessage);
+    }
+
+    /**
+     * Cancel an active Return / Exchange request
+     */
+    public function cancelReturnExchange(Request $request, $id)
+    {
+        $sale = Sale::with('products')->where('sale_id', $id)->first();
+        if (!$sale) {
+            $sale = Sale::with('products')->where('id', $id)->first();
+        }
+
+        if (!$sale) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+            }
+            return back()->with('error', 'Order not found.');
+        }
+
+        if ($sale->return_stage !== 'requested') {
+            $msg = 'Cannot cancel this request because it is already ' . ($sale->return_stage ?? 'in process') . '.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 400);
+            }
+            return back()->with('error', $msg);
+        }
+
+        $actionWord = ($sale->return_type === 'refund') ? 'Return' : 'Exchange';
+
+        $sale->return_type          = null;
+        $sale->return_reason        = null;
+        $sale->return_exchange_type = null;
+        $sale->return_stage         = null;
+        $sale->customer_note        = ($sale->customer_note ? $sale->customer_note . "\n" : '') . "{$actionWord} request cancelled by customer on " . now()->format('d M Y, h:i A');
+        $sale->save();
+
+        foreach ($sale->products as $prod) {
+            $prod->return_status = 0;
+            $prod->item_status   = 'delivered';
+            $prod->save();
+        }
+
+        $msg = "Your {$actionWord} request for Order #{$sale->order_no} has been cancelled successfully.";
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $msg]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Get live Return / Exchange details & timeline for tracking modal
+     */
+    public function getReturnExchangeDetails(Request $request, $id)
+    {
+        $sale = Sale::with('products')->where('sale_id', $id)->first();
+        if (!$sale) {
+            $sale = Sale::with('products')->where('id', $id)->first();
+        }
+
+        if (!$sale) {
+            return response()->json(['success' => false, 'message' => 'Order not found.'], 404);
+        }
+
+        $reasonMap = [
+            'power_mismatch' => 'Optical Power Mismatch / Eye Strain / Unclear Vision',
+            'fit_issue'      => 'Frame Fit Issue (Too loose / tight / bridge discomfort)',
+            'frame_damage'   => 'Defective / Damaged / Scratched on delivery',
+            'changed_mind'   => 'Changed Mind / Disliked style or color',
+            'other'          => 'Other Eyewear Issue',
+        ];
+
+        $exchangeMap = [
+            'different_power' => 'Free Lens Remake (Same Frame with Revised Power)',
+            'different_frame' => 'Exchange for Different Frame / Model',
+            'same_product'    => 'Same Product Replacement (Fresh Piece)',
+            'none'            => 'No Exchange (100% Refund)',
+        ];
+
+        $typeMap = [
+            'lens_remake' => 'Free Lens Remake (Optical Adjustment)',
+            'replacement' => 'Frame Replacement / Exchange',
+            'refund'      => 'Return & 100% Refund',
+        ];
+
+        $actionType = ($sale->return_type === 'refund') ? 'return' : 'exchange';
+        $stage = $sale->return_stage ?: 'requested';
+
+        $steps = [
+            [
+                'title' => 'Request Received',
+                'desc'  => 'Your ' . ($actionType === 'exchange' ? 'exchange' : 'return') . ' request was placed.',
+                'done'  => true,
+                'active'=> ($stage === 'requested'),
+                'date'  => $sale->updated_at ? $sale->updated_at->format('d M Y') : now()->format('d M Y')
+            ],
+            [
+                'title' => 'Request Approved',
+                'desc'  => 'Speckarts customer support has approved the request.',
+                'done'  => in_array($stage, ['approved', 'item_received', 'remake_in_progress', 'completed']),
+                'active'=> ($stage === 'approved'),
+                'date'  => in_array($stage, ['approved', 'item_received', 'remake_in_progress', 'completed']) ? 'Completed' : 'Pending Review'
+            ],
+            [
+                'title' => 'Pickup & Verification',
+                'desc'  => 'Courier picks up the product from your address.',
+                'done'  => in_array($stage, ['item_received', 'remake_in_progress', 'completed']),
+                'active'=> ($stage === 'item_received'),
+                'date'  => in_array($stage, ['item_received', 'remake_in_progress', 'completed']) ? 'Received' : 'Scheduled upon approval'
+            ],
+            [
+                'title' => ($actionType === 'exchange' ? 'Exchange Dispatched' : 'Refund Processed'),
+                'desc'  => ($actionType === 'exchange' ? 'New lenses/frame crafted and shipped.' : '100% refund credited to your account.'),
+                'done'  => ($stage === 'completed'),
+                'active'=> ($stage === 'completed' || $stage === 'remake_in_progress'),
+                'date'  => ($stage === 'completed') ? 'Done' : 'Final Step'
+            ],
+        ];
 
         return response()->json([
-            'status'           => 'success',
-            'is_serviceable'   => $result['is_serviceable'],
-            'amount'           => $result['amount'],
-            'amount_text'      => $result['amount'] > 0 ? ('₹' . number_format($result['amount'], 2)) : 'FREE Delivery',
-            'is_cod_available' => (bool) ($result['is_cod_available'] ?? true),
-            'message'          => $result['message'],
+            'success'        => true,
+            'order_id'       => $sale->sale_id,
+            'order_no'       => $sale->order_no ?? ('SPECK' . $sale->sale_id),
+            'action_type'    => $actionType,
+            'action_label'   => ucfirst($actionType),
+            'return_type'    => $sale->return_type,
+            'type_label'     => $typeMap[$sale->return_type] ?? ucfirst(str_replace('_', ' ', $sale->return_type ?? '')),
+            'reason'         => $sale->return_reason,
+            'reason_label'   => $reasonMap[$sale->return_reason] ?? ucfirst(str_replace('_', ' ', $sale->return_reason ?? '')),
+            'exchange_type'  => $sale->return_exchange_type,
+            'exchange_label' => $exchangeMap[$sale->return_exchange_type] ?? ucfirst(str_replace('_', ' ', $sale->return_exchange_type ?? '')),
+            'stage'          => $stage,
+            'stage_label'    => ucfirst(str_replace('_', ' ', $stage)),
+            'admin_notes'    => $sale->return_admin_notes,
+            'pickup_address' => $sale->full_address_text ?? ($sale->cust_address ?? 'Address on file'),
+            'can_cancel'     => ($stage === 'requested'),
+            'steps'          => $steps,
+            'products'       => $sale->products->map(function($p) {
+                return [
+                    'name'  => $p->product_deatils ?: 'Eyewear Frame',
+                    'price' => '₹' . number_format($p->sale_price ?: 0, 2),
+                    'qty'   => $p->qty ?: 1,
+                ];
+            }),
         ]);
     }
 }
+

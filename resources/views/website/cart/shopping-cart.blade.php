@@ -1688,7 +1688,7 @@
                                                 </div>
                                             @elseif(isset($item['is_bogo_third_discount']) && $item['is_bogo_third_discount'])
                                                 <div class="sc-promo-tag blue">
-                                                    <i class="bi bi-percent"></i> {{ (int)($item['bogo_third_discount_percent'] ?? 60) }}% OFF on 3rd Pair
+                                                     {{ (int)($item['bogo_third_discount_percent'] ?? 60) }}<i class="bi bi-percent"></i> OFF on 3rd Pair
                                                 </div>
                                             @elseif(isset($item['is_bogo_half']) && $item['is_bogo_half'])
                                                 <div class="sc-promo-tag amber">
