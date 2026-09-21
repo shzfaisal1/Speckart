@@ -323,7 +323,7 @@
                                 <td><strong>{{ $item->GL_EYE_RC_D !== null ? sprintf('%+.2f', $item->GL_EYE_RC_D) : '0.00' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_RA_D ?? '—' }}{{ $item->GL_EYE_RA_D ? '°' : '' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_RADD !== null ? sprintf('+%.2f', $item->GL_EYE_RADD) : '—' }}</strong></td>
-                                <td><strong>{{ $item->GL_EYE_RPD ?? '—' }} mm</strong></td>
+                                <td><strong>{{ $item->GL_EYE_RPD ?? ($item->GL_EYE_RP_D ?? '—') }} mm</strong></td>
                                 <td><strong>{{ $item->fitting_height ?? '—' }} mm</strong></td>
                             </tr>
                             <tr>
@@ -332,7 +332,7 @@
                                 <td><strong>{{ $item->GL_EYE_LC_D !== null ? sprintf('%+.2f', $item->GL_EYE_LC_D) : '0.00' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_LA_D ?? '—' }}{{ $item->GL_EYE_LA_D ? '°' : '' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_LADD !== null ? sprintf('+%.2f', $item->GL_EYE_LADD) : '—' }}</strong></td>
-                                <td><strong>{{ $item->GL_EYE_LPD ?? '—' }} mm</strong></td>
+                                <td><strong>{{ $item->GL_EYE_LPD ?? ($item->GL_EYE_LP_D ?? '—') }} mm</strong></td>
                                 <td><strong>{{ $item->fitting_height ?? '—' }} mm</strong></td>
                             </tr>
                         </tbody>
