@@ -2534,7 +2534,7 @@ class SalesController extends Controller
                                                   <BR><strong>Advance Paid : </strong>'.$template->pay_amount.'
                                                   <BR><strong>Balance Paid  : </strong>'.$template->pending_amount.'';
                 $nestedData['store_name']   = $tbl_store->store_name;
-                $nestedData['sale_person']  = $sale_person->name;
+                $nestedData['sale_person']  = $sale_person->name ?? 'N/A';
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
