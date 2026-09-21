@@ -2172,19 +2172,18 @@
                         <div id="manual-power-form" style="display:none;">
                             <div class="prescription-card p-3 p-md-4">
 
-                                <!-- Top Checkboxes (Lenskart style) -->
-                                <div class="lenskart-rx-checkboxes mb-4 text-start">
-                                    <div class="form-check custom-lenskart-check mb-2">
+                                <!-- Top Bar (Same power checkbox + Quick Upload Switch) -->
+                                <div class="lenskart-rx-checkboxes mb-4 text-start d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2 border-bottom">
+                                    <div class="form-check custom-lenskart-check mb-0">
                                         <input class="form-check-input" type="checkbox" id="rx_same_power">
                                         <label class="form-check-label fw-semibold" for="rx_same_power" style="color: #1e293b; font-size: 14px; cursor: pointer;">
                                             I have same power for both eyes
                                         </label>
                                     </div>
-                                    <div class="form-check custom-lenskart-check">
-                                        <input class="form-check-input" type="checkbox" id="rx_has_cyl">
-                                        <label class="form-check-label fw-semibold" for="rx_has_cyl" style="color: #1e293b; font-size: 14px; cursor: pointer;">
-                                            I have cylindrical power
-                                        </label>
+                                    <div>
+                                        <button type="button" class="btn btn-sm text-decoration-none fw-semibold p-0" style="color:#00a297; font-size:13px;" onclick="selectPowerOption('upload')">
+                                            <i class="bi bi-cloud-arrow-up me-1"></i> Upload Prescription Image Instead
+                                        </button>
                                     </div>
                                 </div>
 
@@ -2199,81 +2198,74 @@
                                     <!-- Row 1: SPH -->
                                     <div class="row align-items-center mb-3">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
-                                            SPH
+                                            SPH <span class="text-danger">*</span>
                                         </div>
                                         <div class="col-4 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_sph">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($p = -12.00; $p <= -0.25; $p += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $p) }}">{{ sprintf('%.2f', $p) }}</option>
-                                                @endfor
-                                                @for($p = 0.25; $p <= 6.00; $p += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $p) }}">{{ sprintf('+%.2f', $p) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-sph-input"
+                                                   id="rx_right_sph"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="rx-error-msg" id="rx_right_sph_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_sph">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($p = -12.00; $p <= -0.25; $p += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $p) }}">{{ sprintf('%.2f', $p) }}</option>
-                                                @endfor
-                                                @for($p = 0.25; $p <= 6.00; $p += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $p) }}">{{ sprintf('+%.2f', $p) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-sph-input"
+                                                   id="rx_left_sph"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="same-as-right-label" id="rx_left_sph_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_sph_error"></div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 2: CYL (Hidden by default until "I have cylindrical power" is checked) -->
-                                    <div class="row align-items-center mb-3 rx-cyl-row" style="display:none;">
+                                    <!-- Row 2: CYL (Always visible, optional unless entered) -->
+                                    <div class="row align-items-center mb-3 rx-cyl-row">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
                                             CYL
                                         </div>
                                         <div class="col-4 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_cyl">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($c = -4.00; $c <= -0.25; $c += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $c) }}">{{ sprintf('%.2f', $c) }}</option>
-                                                @endfor
-                                                @for($c = 0.25; $c <= 4.00; $c += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $c) }}">{{ sprintf('+%.2f', $c) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-cyl-input"
+                                                   id="rx_right_cyl"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="rx-error-msg" id="rx_right_cyl_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_cyl">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($c = -4.00; $c <= -0.25; $c += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $c) }}">{{ sprintf('%.2f', $c) }}</option>
-                                                @endfor
-                                                @for($c = 0.25; $c <= 4.00; $c += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $c) }}">{{ sprintf('+%.2f', $c) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-cyl-input"
+                                                   id="rx_left_cyl"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="same-as-right-label" id="rx_left_cyl_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_cyl_error"></div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 3: Axis (Hidden by default until "I have cylindrical power" is checked) -->
-                                    <div class="row align-items-center mb-3 rx-axis-row" style="display:none;">
+                                    <!-- Row 3: Axis (Always visible, optional unless CYL is entered) -->
+                                    <div class="row align-items-center mb-3 rx-axis-row">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
                                             Axis
                                         </div>
                                         <div class="col-4 col-sm-5">
                                             <input type="text"
-                                                   class="form-control custom-lenskart-input rx-axis-field text-center"
+                                                   class="form-control custom-lenskart-input text-center rx-axis-field"
                                                    id="rx_right_axis"
                                                    placeholder="1 - 180"
                                                    maxlength="3"
                                                    inputmode="numeric">
+                                            <div class="rx-error-msg" id="rx_right_axis_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
                                             <input type="text"
-                                                   class="form-control custom-lenskart-input rx-axis-field text-center"
+                                                   class="form-control custom-lenskart-input text-center rx-axis-field"
                                                    id="rx_left_axis"
                                                    placeholder="1 - 180"
                                                    maxlength="3"
                                                    inputmode="numeric">
+                                            <div class="same-as-right-label" id="rx_left_axis_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_axis_error"></div>
                                         </div>
                                     </div>
 
@@ -2283,32 +2275,65 @@
                                             VA <span class="text-muted fw-normal" style="font-size:11px;">(Opt.)</span>
                                         </div>
                                         <div class="col-4 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_va">
-                                                <option value="" selected>None / Skip</option>
-                                                <option value="6/6">6/6 (20/20)</option>
-                                                <option value="6/9">6/9 (20/30)</option>
-                                                <option value="6/12">6/12 (20/40)</option>
-                                                <option value="6/18">6/18 (20/60)</option>
-                                                <option value="6/24">6/24 (20/80)</option>
-                                                <option value="6/36">6/36 (20/120)</option>
-                                                <option value="6/60">6/60 (20/200)</option>
-                                            </select>
+                                            <div class="input-group">
+                                                <span class="input-group-text fw-bold text-muted" style="border-radius:10px 0 0 10px; background:#f8fafc; border:1.5px solid #cbd5e1; border-right:none; font-size:13px; height:48px;">6/</span>
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-va-input"
+                                                       id="rx_right_va"
+                                                       placeholder="6"
+                                                       maxlength="2"
+                                                       inputmode="numeric"
+                                                       style="border-radius:0 10px 10px 0;">
+                                            </div>
+                                            <div class="rx-error-msg" id="rx_right_va_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_va">
-                                                <option value="" selected>None / Skip</option>
-                                                <option value="6/6">6/6 (20/20)</option>
-                                                <option value="6/9">6/9 (20/30)</option>
-                                                <option value="6/12">6/12 (20/40)</option>
-                                                <option value="6/18">6/18 (20/60)</option>
-                                                <option value="6/24">6/24 (20/80)</option>
-                                                <option value="6/36">6/36 (20/120)</option>
-                                                <option value="6/60">6/60 (20/200)</option>
-                                            </select>
+                                            <div class="input-group">
+                                                <span class="input-group-text fw-bold text-muted" style="border-radius:10px 0 0 10px; background:#f8fafc; border:1.5px solid #cbd5e1; border-right:none; font-size:13px; height:48px;">6/</span>
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-va-input"
+                                                       id="rx_left_va"
+                                                       placeholder="6"
+                                                       maxlength="2"
+                                                       inputmode="numeric"
+                                                       style="border-radius:0 10px 10px 0;">
+                                            </div>
+                                            <div class="same-as-right-label" id="rx_left_va_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_va_error"></div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 5: ADD (Near Addition for Bifocal / Progressive) -->
+                                    <!-- Row 5: PD (Pupillary Distance) - Integrated below VA in 3-column table -->
+                                    <div class="row align-items-center mb-3 rx-pd-row">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13px;" title="Pupillary Distance">
+                                            PD <span class="text-danger">*</span><br><span class="text-muted fw-normal" style="font-size:11px;">(mm)</span>
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <div class="input-group">
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-pd-input"
+                                                       id="rx_right_pd"
+                                                       placeholder="e.g. 31.5"
+                                                       inputmode="decimal">
+                                                <span class="input-group-text fw-semibold text-muted" style="border-radius:0 10px 10px 0; background:#f8fafc; border:1.5px solid #cbd5e1; border-left:none; font-size:12px; height:48px;">mm</span>
+                                            </div>
+                                            <div class="rx-error-msg" id="rx_right_pd_error"></div>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <div class="input-group">
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-pd-input"
+                                                       id="rx_left_pd"
+                                                       placeholder="e.g. 31.5"
+                                                       inputmode="decimal">
+                                                <span class="input-group-text fw-semibold text-muted" style="border-radius:0 10px 10px 0; background:#f8fafc; border:1.5px solid #cbd5e1; border-left:none; font-size:12px; height:48px;">mm</span>
+                                            </div>
+                                            <div class="same-as-right-label" id="rx_left_pd_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_pd_error"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 6: ADD (Near Addition for Bifocal / Progressive) -->
                                     <div class="row align-items-center mb-3 rx-add-row" id="rx_add_container" style="display:none;">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13.5px;">
                                             ADD <span class="text-muted fw-normal" style="font-size:11px;">(Near)</span>
@@ -2328,45 +2353,7 @@
                                                     <option value="{{ sprintf('+%.2f', $add) }}">{{ sprintf('+%.2f', $add) }}</option>
                                                 @endfor
                                             </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Pupillary Distance (PD) -->
-                                <div class="pd-section p-3 rounded-3 mb-4 text-start" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-                                        <div>
-                                            <label for="rx_pd" class="form-label fw-bold mb-0" style="color:#07484A; font-size:13.5px;">
-                                                <i class="bi bi-arrows-expand me-1"></i> Pupillary Distance (PD) <span class="text-danger">*</span>
-                                            </label>
-                                            <div class="text-muted" style="font-size:11.5px;">Distance between pupil centers. Standard adult average is 63 mm.</div>
-                                        </div>
-                                        <div id="single-pd-wrapper" style="min-width: 130px;">
-                                            <select class="form-select custom-lenskart-select" id="rx_pd" style="height:38px;">
-                                                @for($pd = 50; $pd <= 75; $pd++)
-                                                    <option value="{{ $pd }}" {{ $pd == 63 ? 'selected' : '' }}>{{ $pd }} mm</option>
-                                                @endfor
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <!-- Dual PD Checkbox -->
-                                    <div class="form-check custom-lenskart-check mt-2 pt-1">
-                                        <input class="form-check-input" type="checkbox" id="rx_has_dual_pd">
-                                        <label class="form-check-label text-muted" for="rx_has_dual_pd" style="font-size: 12.5px; cursor: pointer;">
-                                            I have separate Right/Left PD on my prescription
-                                        </label>
-                                    </div>
-
-                                    <!-- Dual PD Inputs (R-PD and L-PD) -->
-                                    <div class="row align-items-center mt-2 pt-2 border-top rx-dual-pd-row" style="display:none;">
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold mb-1" style="color:#334155; font-size:12px;">Right PD (R-PD)</label>
-                                            <input type="number" step="0.5" min="25" max="40" class="form-control text-center custom-lenskart-input" id="rx_right_pd" placeholder="e.g. 31.5">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold mb-1" style="color:#334155; font-size:12px;">Left PD (L-PD)</label>
-                                            <input type="number" step="0.5" min="25" max="40" class="form-control text-center custom-lenskart-input" id="rx_left_pd" placeholder="e.g. 31.5">
+                                            <div class="same-as-right-label" id="rx_left_add_same">Same as right</div>
                                         </div>
                                     </div>
                                 </div>
@@ -3041,77 +3028,248 @@
             $('#step4-sub').text("Choose how you'd like to provide your prescription");
         }
 
+        // ── Real-time Input Sanitization & Validation Helpers ──
+        function setRxError(fieldId, errorMsg) {
+            const $field = $('#' + fieldId);
+            $field.addClass('is-invalid');
+            const $err = $('#' + fieldId + '_error');
+            if ($err.length) {
+                $err.text(errorMsg).show();
+            }
+        }
+
+        function clearRxError(fieldId) {
+            const $field = $('#' + fieldId);
+            $field.removeClass('is-invalid');
+            const $err = $('#' + fieldId + '_error');
+            if ($err.length) {
+                $err.text('').hide();
+            }
+        }
+
+        function sanitizeSignedDecimal(input) {
+            let val = $(input).val();
+            let isNeg = val.startsWith('-');
+            let clean = val.replace(/[^0-9.]/g, '');
+            let dotIdx = clean.indexOf('.');
+            if (dotIdx !== -1) {
+                clean = clean.substring(0, dotIdx + 1) + clean.substring(dotIdx + 1).replace(/\./g, '');
+            }
+            let res = (isNeg ? '-' : '') + clean;
+            if (val !== res) {
+                $(input).val(res);
+            }
+            return res;
+        }
+
+        function sanitizeUnsignedDecimal(input) {
+            let val = $(input).val();
+            let clean = val.replace(/[^0-9.]/g, '');
+            let dotIdx = clean.indexOf('.');
+            if (dotIdx !== -1) {
+                clean = clean.substring(0, dotIdx + 1) + clean.substring(dotIdx + 1).replace(/\./g, '');
+            }
+            if (val !== clean) {
+                $(input).val(clean);
+            }
+            return clean;
+        }
+
+        function sanitizeDigitsOnly(input, maxLen) {
+            let val = $(input).val().replace(/\D/g, '');
+            if (maxLen && val.length > maxLen) {
+                val = val.substring(0, maxLen);
+            }
+            if ($(input).val() !== val) {
+                $(input).val(val);
+            }
+            return val;
+        }
+
+        function validateRxField(fieldId) {
+            const $field = $('#' + fieldId);
+            if (!$field.length) return true;
+
+            // Exclude disabled fields (e.g. Left eye when "Same power" is checked)
+            if ($field.prop('disabled')) {
+                clearRxError(fieldId);
+                return true;
+            }
+
+            const val = $field.val().trim();
+
+            // ── SPH (-20 to +20) ── (Mandatory)
+            if (fieldId === 'rx_right_sph' || fieldId === 'rx_left_sph') {
+                if (val === '') {
+                    setRxError(fieldId, 'Enter a number between -20 and 20');
+                    return false;
+                }
+                let num = Number(val);
+                if (isNaN(num) || num < -20 || num > 20) {
+                    setRxError(fieldId, 'Enter a number between -20 and 20');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── CYL (-10 to +10) ── (Optional; but if entered must be between -10 and 10)
+            if (fieldId === 'rx_right_cyl' || fieldId === 'rx_left_cyl') {
+                if (val === '' || val === '0' || val === '0.00' || val === '+0.00' || val === '-0.00') {
+                    clearRxError(fieldId);
+                    return true;
+                }
+                let num = Number(val);
+                if (isNaN(num) || num < -10 || num > 10) {
+                    setRxError(fieldId, 'Enter a number between -10 and 10');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── Axis (1 to 180 whole numbers) ── (Mandatory only if CYL is entered and non-zero)
+            if (fieldId === 'rx_right_axis' || fieldId === 'rx_left_axis') {
+                let side = (fieldId === 'rx_right_axis') ? 'right' : 'left';
+                let cylRaw = $('#rx_' + side + '_cyl').val().trim();
+                let hasCylValue = (cylRaw !== '' && !isNaN(Number(cylRaw)) && Number(cylRaw) !== 0);
+
+                if (val === '') {
+                    if (hasCylValue) {
+                        setRxError(fieldId, 'Axis is required (1 to 180)');
+                        return false;
+                    }
+                    clearRxError(fieldId);
+                    return true;
+                }
+
+                // If user entered Axis, check that CYL is also provided
+                if (!hasCylValue) {
+                    setRxError(fieldId, 'Enter CYL power for this Axis');
+                    return false;
+                }
+
+                let num = parseInt(val, 10);
+                if (isNaN(num) || !/^\d+$/.test(val) || num < 1 || num > 180) {
+                    setRxError(fieldId, 'Enter a whole number between 1 and 180');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── VA (4 to 60 whole numbers) ── (Optional)
+            if (fieldId === 'rx_right_va' || fieldId === 'rx_left_va') {
+                if (val === '') {
+                    clearRxError(fieldId);
+                    return true;
+                }
+                let num = parseInt(val, 10);
+                if (isNaN(num) || !/^\d+$/.test(val) || num < 4 || num > 60) {
+                    setRxError(fieldId, 'Enter a number between 4 and 60');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── PD (20 to 40mm) ── (Mandatory)
+            if (fieldId === 'rx_right_pd' || fieldId === 'rx_left_pd') {
+                if (val === '') {
+                    setRxError(fieldId, 'Enter PD between 20 and 40 mm');
+                    return false;
+                }
+                let num = Number(val);
+                if (isNaN(num) || num < 20 || num > 40) {
+                    setRxError(fieldId, 'Enter a value between 20 and 40 mm');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            clearRxError(fieldId);
+            return true;
+        }
+
         function submitManualPrescription() {
-            const hasCyl    = $('#rx_has_cyl').is(':checked');
-            const isSame    = $('#rx_same_power').is(':checked');
-            const hasDualPd = $('#rx_has_dual_pd').is(':checked');
+            const isSame = $('#rx_same_power').is(':checked');
 
-            let rightSph = $('#rx_right_sph').val() || '0.00';
-            let leftSph  = isSame ? rightSph : ($('#rx_left_sph').val() || '0.00');
+            // Fields to validate in order
+            let fieldsToValidate = ['rx_right_sph'];
+            if (!isSame) {
+                fieldsToValidate.push('rx_left_sph');
+            }
+            fieldsToValidate.push('rx_right_cyl');
+            if (!isSame) fieldsToValidate.push('rx_left_cyl');
+            fieldsToValidate.push('rx_right_axis');
+            if (!isSame) fieldsToValidate.push('rx_left_axis');
+            fieldsToValidate.push('rx_right_va');
+            if (!isSame) fieldsToValidate.push('rx_left_va');
+            fieldsToValidate.push('rx_right_pd');
+            if (!isSame) fieldsToValidate.push('rx_left_pd');
 
-            let rightCyl = hasCyl ? ($('#rx_right_cyl').val() || '0.00') : '0.00';
-            let leftCyl  = hasCyl ? (isSame ? rightCyl : ($('#rx_left_cyl').val() || '0.00')) : '0.00';
+            let firstInvalidField = null;
+            let hasError = false;
 
-            let rightAxis = hasCyl ? ($('#rx_right_axis').val() || '').trim() : '';
-            let leftAxis  = hasCyl ? (isSame ? rightAxis : ($('#rx_left_axis').val() || '').trim()) : '';
-
-            let rightVa = $('#rx_right_va').val() || '';
-            let leftVa  = isSame ? rightVa : ($('#rx_left_va').val() || '');
-
-            let rightAdd = $('#rx_right_add').val() || '';
-            let leftAdd  = isSame ? rightAdd : ($('#rx_left_add').val() || '');
-
-            // Axis Validation: If CYL is selected (> 0.00 or < 0.00), Axis is mandatory (1 - 180)
-            if (hasCyl) {
-                if (rightCyl !== '0.00' && rightCyl !== '') {
-                    let rAxisNum = parseInt(rightAxis, 10);
-                    if (isNaN(rAxisNum) || rAxisNum < 1 || rAxisNum > 180) {
-                        toastr.warning('Please enter a valid Axis (1 to 180) for the Right Eye.');
-                        $('#rx_right_axis').focus();
-                        return;
+            fieldsToValidate.forEach(function(fieldId) {
+                let valid = validateRxField(fieldId);
+                if (!valid) {
+                    hasError = true;
+                    if (!firstInvalidField) {
+                        firstInvalidField = $('#' + fieldId);
                     }
                 }
-                if (leftCyl !== '0.00' && leftCyl !== '') {
-                    let lAxisNum = parseInt(leftAxis, 10);
-                    if (isNaN(lAxisNum) || lAxisNum < 1 || lAxisNum > 180) {
-                        toastr.warning('Please enter a valid Axis (1 to 180) for the Left Eye.');
-                        $('#rx_left_axis').focus();
-                        return;
-                    }
+            });
+
+            if (hasError) {
+                if (firstInvalidField && firstInvalidField.length) {
+                    firstInvalidField[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalidField.focus();
                 }
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('Please fix the highlighted errors in the prescription form.');
+                }
+                return;
             }
 
-            // Pupillary Distance (PD) calculation
-            let totalPd = $('#rx_pd').val() || '63';
-            let rightPd = (parseFloat(totalPd) / 2).toFixed(1);
-            let leftPd  = rightPd;
+            let rightSph = $('#rx_right_sph').val().trim();
+            let leftSph  = isSame ? rightSph : $('#rx_left_sph').val().trim();
 
-            if (hasDualPd) {
-                let rPdVal = parseFloat($('#rx_right_pd').val());
-                let lPdVal = parseFloat($('#rx_left_pd').val());
-                if (!isNaN(rPdVal) && rPdVal >= 20 && rPdVal <= 45) {
-                    rightPd = rPdVal.toFixed(1);
-                }
-                if (!isNaN(lPdVal) && lPdVal >= 20 && lPdVal <= 45) {
-                    leftPd = lPdVal.toFixed(1);
-                }
-                if (!isNaN(rPdVal) && !isNaN(lPdVal)) {
-                    totalPd = (rPdVal + lPdVal).toFixed(1);
-                }
-            }
+            let rightCylRaw = $('#rx_right_cyl').val().trim();
+            let leftCylRaw  = isSame ? rightCylRaw : $('#rx_left_cyl').val().trim();
+            let rightCyl = (rightCylRaw !== '' && !isNaN(Number(rightCylRaw))) ? rightCylRaw : '0.00';
+            let leftCyl  = (leftCylRaw !== '' && !isNaN(Number(leftCylRaw))) ? leftCylRaw : '0.00';
+
+            let rightAxisRaw = $('#rx_right_axis').val().trim();
+            let leftAxisRaw  = isSame ? rightAxisRaw : $('#rx_left_axis').val().trim();
+            let rightAxis = rightAxisRaw ? parseInt(rightAxisRaw, 10) : null;
+            let leftAxis  = leftAxisRaw ? parseInt(leftAxisRaw, 10) : null;
+
+            let rightVaInput = $('#rx_right_va').val().trim();
+            let leftVaInput  = isSame ? rightVaInput : $('#rx_left_va').val().trim();
+            let rightVa = rightVaInput ? ('6/' + rightVaInput) : null;
+            let leftVa  = leftVaInput ? ('6/' + leftVaInput) : null;
+
+            let rightAdd = $('#rx_right_add').val() || null;
+            let leftAdd  = isSame ? rightAdd : ($('#rx_left_add').val() || null);
+
+            let rightPd = parseFloat($('#rx_right_pd').val().trim()).toFixed(1);
+            let leftPd  = parseFloat((isSame ? $('#rx_right_pd') : $('#rx_left_pd')).val().trim()).toFixed(1);
+            let totalPd = (parseFloat(rightPd) + parseFloat(leftPd)).toFixed(1);
 
             const rxData = {
                 // Exact database column keys for tbl_sale_products
                 GL_EYE_RS_D    : rightSph,
                 GL_EYE_RC_D    : rightCyl,
-                GL_EYE_RA_D    : rightAxis ? parseInt(rightAxis, 10) : null,
+                GL_EYE_RA_D    : rightAxis,
                 GL_EYE_RP_D    : rightPd,
                 GL_EYE_RV_D    : rightVa,
                 GL_EYE_RADD    : rightAdd,
 
                 GL_EYE_LS_D    : leftSph,
                 GL_EYE_LC_D    : leftCyl,
-                GL_EYE_LA_D    : leftAxis ? parseInt(leftAxis, 10) : null,
+                GL_EYE_LA_D    : leftAxis,
                 GL_EYE_LP_D    : leftPd,
                 GL_EYE_LV_D    : leftVa,
                 GL_EYE_LADD    : leftAdd,
@@ -3126,18 +3284,18 @@
                 left_va        : leftVa,
                 re_sph         : rightSph,
                 re_cyl         : rightCyl,
-                re_axis        : rightAxis ? parseInt(rightAxis, 10) : null,
+                re_axis        : rightAxis,
                 re_add         : rightAdd,
                 le_sph         : leftSph,
                 le_cyl         : leftCyl,
-                le_axis        : leftAxis ? parseInt(leftAxis, 10) : null,
+                le_axis        : leftAxis,
                 le_add         : leftAdd,
                 right_eye_sph  : rightSph,
                 right_eye_cyl  : rightCyl,
-                right_eye_axis : rightAxis ? parseInt(rightAxis, 10) : 0,
+                right_eye_axis : rightAxis || 0,
                 left_eye_sph   : leftSph,
                 left_eye_cyl   : leftCyl,
-                left_eye_axis  : leftAxis ? parseInt(leftAxis, 10) : 0
+                left_eye_axis  : leftAxis || 0
             };
 
             addToCartAjax(selectedLensType, selectedLensPackageId, JSON.stringify(rxData), null);
@@ -3145,34 +3303,65 @@
 
         // ── Lenskart Prescription Interactive Handlers ──
         $(document).ready(function() {
-            // Axis field: numbers only & max 180 validation
-            $(document).on('input', '.rx-axis-field', function() {
-                let val = $(this).val().replace(/\D/g, ''); // numbers only
-                if (val !== '') {
-                    let num = parseInt(val, 10);
-                    if (num > 180) {
-                        val = '180';
-                    }
-                }
-                $(this).val(val);
+            // SPH & CYL: Signed decimals only, block non-numeric characters in real-time
+            $(document).on('input', '.rx-sph-input, .rx-cyl-input', function() {
+                sanitizeSignedDecimal(this);
 
-                // If same power is active, sync right to left
-                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_axis') {
-                    $('#rx_left_axis').val(val);
+                // If "same power" is checked, mirror to left eye immediately
+                if ($('#rx_same_power').is(':checked')) {
+                    if ($(this).attr('id') === 'rx_right_sph') {
+                        $('#rx_left_sph').val($(this).val());
+                        clearRxError('rx_left_sph');
+                    } else if ($(this).attr('id') === 'rx_right_cyl') {
+                        $('#rx_left_cyl').val($(this).val());
+                        clearRxError('rx_left_cyl');
+                    }
                 }
             });
 
-            // Dual PD checkbox toggle
-            $(document).on('change', '#rx_has_dual_pd', function() {
-                const hasDual = $(this).is(':checked');
-                if (hasDual) {
-                    $('.rx-dual-pd-row').show();
-                    const currentTotal = parseFloat($('#rx_pd').val()) || 63;
-                    const half = (currentTotal / 2).toFixed(1);
-                    if (!$('#rx_right_pd').val()) $('#rx_right_pd').val(half);
-                    if (!$('#rx_left_pd').val()) $('#rx_left_pd').val(half);
-                } else {
-                    $('.rx-dual-pd-row').hide();
+            // Axis: Whole numbers only (1 - 180), max 3 digits
+            $(document).on('input', '.rx-axis-field', function() {
+                sanitizeDigitsOnly(this, 3);
+                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_axis') {
+                    $('#rx_left_axis').val($(this).val());
+                    clearRxError('rx_left_axis');
+                }
+            });
+
+            // VA: Whole numbers only (4 - 60), max 2 digits
+            $(document).on('input', '.rx-va-input', function() {
+                sanitizeDigitsOnly(this, 2);
+                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_va') {
+                    $('#rx_left_va').val($(this).val());
+                    clearRxError('rx_left_va');
+                }
+            });
+
+            // PD: Decimals allowed (20 - 40 mm)
+            $(document).on('input', '.rx-pd-input', function() {
+                sanitizeUnsignedDecimal(this);
+                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_pd') {
+                    $('#rx_left_pd').val($(this).val());
+                    clearRxError('rx_left_pd');
+                }
+            });
+
+            // On Blur: Validate individual field
+            $(document).on('blur', '.rx-sph-input, .rx-cyl-input, .rx-axis-field, .rx-va-input, .rx-pd-input', function() {
+                validateRxField($(this).attr('id'));
+            });
+
+            // Clear errors as soon as user types valid input
+            $(document).on('keyup', '.rx-sph-input, .rx-cyl-input, .rx-axis-field, .rx-va-input, .rx-pd-input', function() {
+                if ($(this).hasClass('is-invalid')) {
+                    validateRxField($(this).attr('id'));
+                }
+            });
+
+            // ADD select change handler
+            $(document).on('change', '#rx_right_add', function() {
+                if ($('#rx_same_power').is(':checked')) {
+                    $('#rx_left_add').val($(this).val());
                 }
             });
 
@@ -3184,47 +3373,26 @@
                     $('#rx_left_cyl').val($('#rx_right_cyl').val());
                     $('#rx_left_axis').val($('#rx_right_axis').val());
                     $('#rx_left_va').val($('#rx_right_va').val());
+                    $('#rx_left_pd').val($('#rx_right_pd').val());
                     $('#rx_left_add').val($('#rx_right_add').val());
-                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_add').prop('disabled', true).addClass('bg-light');
+
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_pd, #rx_left_add')
+                        .prop('disabled', true)
+                        .addClass('bg-light');
+
+                    clearRxError('rx_left_sph');
+                    clearRxError('rx_left_cyl');
+                    clearRxError('rx_left_axis');
+                    clearRxError('rx_left_va');
+                    clearRxError('rx_left_pd');
+
+                    $('.same-as-right-label').show();
                 } else {
-                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_add').prop('disabled', false).removeClass('bg-light');
-                }
-            });
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_pd, #rx_left_add')
+                        .prop('disabled', false)
+                        .removeClass('bg-light');
 
-            // Sync right eye changes to left eye when same power is checked
-            $(document).on('change', '#rx_right_sph', function() {
-                if ($('#rx_same_power').is(':checked')) {
-                    $('#rx_left_sph').val($(this).val());
-                }
-            });
-
-            $(document).on('change', '#rx_right_cyl', function() {
-                if ($('#rx_same_power').is(':checked')) {
-                    $('#rx_left_cyl').val($(this).val());
-                }
-            });
-
-            $(document).on('change', '#rx_right_va', function() {
-                if ($('#rx_same_power').is(':checked')) {
-                    $('#rx_left_va').val($(this).val());
-                }
-            });
-
-            $(document).on('change', '#rx_right_add', function() {
-                if ($('#rx_same_power').is(':checked')) {
-                    $('#rx_left_add').val($(this).val());
-                }
-            });
-
-            // Has Cylindrical power checkbox toggle
-            $(document).on('change', '#rx_has_cyl', function() {
-                const hasCyl = $(this).is(':checked');
-                if (hasCyl) {
-                    $('.rx-cyl-row, .rx-axis-row').show();
-                } else {
-                    $('.rx-cyl-row, .rx-axis-row').hide();
-                    $('#rx_right_cyl, #rx_left_cyl').val('0.00');
-                    $('#rx_right_axis, #rx_left_axis').val('');
+                    $('.same-as-right-label').hide();
                 }
             });
         });
@@ -3456,6 +3624,47 @@
             color: #64748b !important;
             cursor: not-allowed;
             border-color: #e2e8f0;
+        }
+        .custom-lenskart-select.is-invalid, .custom-lenskart-input.is-invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+        }
+        .rx-error-msg {
+            color: #ef4444;
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: none;
+            text-align: center;
+        }
+        .same-as-right-label {
+            font-size: 11px;
+            color: #00a297;
+            font-weight: 600;
+            font-style: italic;
+            margin-top: 4px;
+            display: none;
+            text-align: center;
+        }
+        .input-group > .custom-lenskart-input:first-child {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        .input-group > .custom-lenskart-input:last-child {
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+        }
+        .input-group > .input-group-text:first-child {
+            border-top-left-radius: 10px !important;
+            border-bottom-left-radius: 10px !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        .input-group > .input-group-text:last-child {
+            border-top-right-radius: 10px !important;
+            border-bottom-right-radius: 10px !important;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
         }
 
         /* ── Contact Lens Power Tabs ── */
