@@ -260,6 +260,8 @@ class CheckoutController extends Controller
                     'product_company'    => $item['brand'] ?? null,
                     'product_size'       => $item['size'] ?? null,
                     'prescription_notes' => $prescriptionNotes,
+                    'prescription_source'   => (is_array($rx) && isset($rx['type']) && $rx['type'] === 'upload') ? 'upload' : 'manual',
+                    'prescription_file_url' => (is_array($rx) && !empty($rx['file'])) ? $rx['file'] : null,
                     'product_typesss'    => $item['lens_name'] ?? ($item['lens_type'] ?? null),
                     'product_coating'    => $item['lens_coating'] ?? null,
                     'product_index'      => $item['lens_index'] ?? null,
