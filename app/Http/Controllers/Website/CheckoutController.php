@@ -233,6 +233,16 @@ class CheckoutController extends Controller
                     $prescriptionNotes = is_string($item['prescription_data']) ? $item['prescription_data'] : json_encode($item['prescription_data']);
                 }
 
+                $cleanVal = function($val) {
+                    if ($val === null) return null;
+                    $trimmed = is_string($val) ? trim($val) : $val;
+                    return $trimmed === '' ? null : $trimmed;
+                };
+
+                $totalPd = is_array($rx) ? ($rx['GL_EYE_totalPD'] ?? ($rx['pd'] ?? null)) : null;
+                $rightPd = is_array($rx) ? ($rx['GL_EYE_RP_D'] ?? ($rx['right_pd'] ?? (!empty($rx['pd']) && is_numeric($rx['pd']) ? round((float)$rx['pd'] / 2, 1) : null))) : null;
+                $leftPd  = is_array($rx) ? ($rx['GL_EYE_LP_D'] ?? ($rx['left_pd'] ?? (!empty($rx['pd']) && is_numeric($rx['pd']) ? round((float)$rx['pd'] / 2, 1) : null))) : null;
+
                 SaleProduct::create([
                     'sale_id'            => $saleId,
                     'order_no'           => $orderNo,
@@ -254,15 +264,25 @@ class CheckoutController extends Controller
                     'product_coating'    => $item['lens_coating'] ?? null,
                     'product_index'      => $item['lens_index'] ?? null,
                     'frame_fh'           => is_array($rx) ? ($rx['fitting_height'] ?? ($rx['fh'] ?? null)) : null,
-                    'GL_EYE_RS_D'        => is_array($rx) ? ($rx['GL_EYE_RS_D'] ?? ($rx['re_sph'] ?? null)) : null,
-                    'GL_EYE_RC_D'        => is_array($rx) ? ($rx['GL_EYE_RC_D'] ?? ($rx['re_cyl'] ?? null)) : null,
-                    'GL_EYE_RA_D'        => is_array($rx) ? ($rx['GL_EYE_RA_D'] ?? ($rx['re_axis'] ?? null)) : null,
-                    'GL_EYE_RADD'        => is_array($rx) ? ($rx['GL_EYE_RADD'] ?? ($rx['re_add'] ?? null)) : null,
-                    'GL_EYE_LS_D'        => is_array($rx) ? ($rx['GL_EYE_LS_D'] ?? ($rx['le_sph'] ?? null)) : null,
-                    'GL_EYE_LC_D'        => is_array($rx) ? ($rx['GL_EYE_LC_D'] ?? ($rx['le_cyl'] ?? null)) : null,
-                    'GL_EYE_LA_D'        => is_array($rx) ? ($rx['GL_EYE_LA_D'] ?? ($rx['le_axis'] ?? null)) : null,
-                    'GL_EYE_LADD'        => is_array($rx) ? ($rx['GL_EYE_LADD'] ?? ($rx['le_add'] ?? null)) : null,
-                    'GL_EYE_totalPD'     => is_array($rx) ? ($rx['GL_EYE_totalPD'] ?? ($rx['pd'] ?? null)) : null,
+
+                    // RIGHT EYE (OD)
+                    'GL_EYE_RS_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_RS_D'] ?? ($rx['re_sph'] ?? ($rx['right_eye_sph'] ?? null))) : null),
+                    'GL_EYE_RC_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_RC_D'] ?? ($rx['re_cyl'] ?? ($rx['right_eye_cyl'] ?? null))) : null),
+                    'GL_EYE_RA_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_RA_D'] ?? ($rx['re_axis'] ?? ($rx['right_eye_axis'] ?? null))) : null),
+                    'GL_EYE_RP_D'        => $cleanVal($rightPd),
+                    'GL_EYE_RV_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_RV_D'] ?? ($rx['right_va'] ?? null)) : null),
+                    'GL_EYE_RADD'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_RADD'] ?? ($rx['re_add'] ?? null)) : null),
+
+                    // LEFT EYE (OS)
+                    'GL_EYE_LS_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_LS_D'] ?? ($rx['le_sph'] ?? ($rx['left_eye_sph'] ?? null))) : null),
+                    'GL_EYE_LC_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_LC_D'] ?? ($rx['le_cyl'] ?? ($rx['left_eye_cyl'] ?? null))) : null),
+                    'GL_EYE_LA_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_LA_D'] ?? ($rx['le_axis'] ?? ($rx['left_eye_axis'] ?? null))) : null),
+                    'GL_EYE_LP_D'        => $cleanVal($leftPd),
+                    'GL_EYE_LV_D'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_LV_D'] ?? ($rx['left_va'] ?? null)) : null),
+                    'GL_EYE_LADD'        => $cleanVal(is_array($rx) ? ($rx['GL_EYE_LADD'] ?? ($rx['le_add'] ?? null)) : null),
+
+                    // TOTAL PD
+                    'GL_EYE_totalPD'     => $cleanVal($totalPd),
                 ]);
             }
 
