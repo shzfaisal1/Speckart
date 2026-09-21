@@ -130,15 +130,15 @@ let dataListView = $('.datatables-basic')
                 
                 {
                     // Base URLs from Laravel
-                    let baseUrl  = "{{ url('sale/invoice') }}";
-                    let baseUrll = "{{ url('sale/edit') }}";
+                    let baseUrl  = "{{ url(config('app.admin_path', 'admin').'/sale/invoice') }}";
+                    let baseUrll = "{{ url(config('app.admin_path', 'admin').'/sale/edit') }}";
                 
                     // Dynamic URLs
                     let invoiceUrl = baseUrl + '/' + full['encryptedId'] + '/invoice';
                     let receiptUrl = baseUrl + '/' + full['encryptedId'] + '/receipt';
                     let orderUrl   = baseUrl + '/' + full['encryptedId'] + '/order';
                     let editUrl    = baseUrll + '/' + full['encryptedId'];
-                    let confirmUrl    = "{{ url('sale/confirm') }}" + '/' + full['encryptedId'];
+                    let confirmUrl = "{{ url(config('app.admin_path', 'admin').'/sale/confirm') }}" + '/' + full['encryptedId'];
                 
                     // SMS condition
                     const smsDisabledClass = full['ready_reminder_sms'] == 1 ? 'icon-dark' : '';
