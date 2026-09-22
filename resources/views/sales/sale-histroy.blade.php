@@ -54,6 +54,50 @@ input.loading {
     font-weight: 400;
     margin: 10px;
 }
+
+/* Cancelled order row highlight in red */
+.row-cancelled, 
+table.dataTable tbody tr.row-cancelled, 
+table.dataTable tbody tr.row-cancelled > td {
+    background-color: #ffe0e0 !important;
+}
+table.dataTable tbody tr.row-cancelled {
+    border-left: 4px solid #dc2626;
+}
+table.dataTable tbody tr.row-cancelled:hover,
+table.dataTable tbody tr.row-cancelled:hover > td {
+    background-color: #ffd0d0 !important;
+}
+
+/* Disabled action buttons for cancelled orders */
+.icon-disabled-cancelled {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+.icon-disabled-cancelled img,
+.icon-disabled-cancelled i {
+    filter: grayscale(100%);
+}
+
+/* Cancel reason icon button */
+.action-icon-cancel-reason {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #dc2626;
+    color: #fff;
+    font-size: 12px;
+    margin: 2px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.action-icon-cancel-reason:hover {
+    background-color: #b91c1c;
+}
 </style>  
 
 @endsection
@@ -239,6 +283,11 @@ let dataListView = $('.datatables-basic')
                 d._token = "{{ csrf_token() }}";
             }
         },
+        "createdRow": function(row, data, dataIndex) {
+            if (data.is_cancelled == 1) {
+                $(row).addClass('row-cancelled');
+            }
+        },
         "columns": [
             {
                 "data": "sr_no",
@@ -292,6 +341,82 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
                 render: function(data, type, full) 
                 {
+                    // Check if order is cancelled
+                    if (full['is_cancelled'] == 1) {
+                        let cancelReason = encodeURIComponent(full['cancellation_reason'] || 'No cancellation reason specified');
+                        let customerName = encodeURIComponent(full['customer_name'] || '');
+                        let disabledMsg = 'Action Disabled (Order Cancelled)';
+
+                        return (`
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-whatsapp.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/receipt.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/form.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/print.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-update-price.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-payment-details.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/edit.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-courier-no.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-update-redeem-points.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <!-- View Product Details (ENABLED for cancelled orders) -->
+                            <a class="tooltip pointer" onclick="openprescriptionModal('${full['oid']}', true)">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-udpate-prescription.webp')}}">
+                                <span class="tooltip-text">View Product Details</span>
+                            </a>
+
+                            <!-- View Cancellation Reason (NEW ACTION BUTTON) -->
+                            <a href="javascript:void(0);" class="tooltip pointer btn-show-cancel-reason" 
+                               data-oid="${full['oid']}" 
+                               data-reason="${cancelReason}" 
+                               data-cust="${customerName}">
+                                <span class="action-icon-cancel-reason">
+                                    <i class="fa fa-ban"></i>
+                                </span>
+                                <span class="tooltip-text">View Cancellation Reason</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-mail-send.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+                        `);
+                    }
+
                     // Base URL from Laravel
                     let baseUrl = "{{ url('admin/sale/invoice') }}";
                     let baseUrll = "{{ url('admin/sale/edit') }}";
@@ -1721,6 +1846,44 @@ let dataListView = $('.datatables-basic')
         
 </script>
 
+<script>
+// View Cancellation Reason popup handler
+$(document).on('click', '.btn-show-cancel-reason', function() {
+    let oid = $(this).data('oid');
+    let reason = decodeURIComponent($(this).data('reason') || 'No cancellation reason specified');
+    let custName = decodeURIComponent($(this).data('cust') || 'N/A');
+
+    Swal.fire({
+        title: '<div style="color: #dc2626; font-weight: 700; font-size: 20px;"><i class="fa fa-ban mr-2"></i> Order Cancelled</div>',
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <div style="margin-bottom: 12px; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                    <strong style="color: #991b1b;"><i class="fa fa-shopping-cart mr-1"></i> Order No:</strong>
+                    <span style="color: #dc2626; font-weight: 600;">#${oid}</span>
+                </div>
+                <div style="margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <strong style="color: #374151;"><i class="fa fa-user mr-1"></i> Customer:</strong>
+                    <span style="color: #1f2937;">${custName}</span>
+                </div>
+                <div style="padding: 12px; background: #fff5f5; border-radius: 8px; border-left: 4px solid #dc2626;">
+                    <strong style="color: #991b1b; display: block; margin-bottom: 6px;">
+                        <i class="fa fa-comment mr-1"></i> Cancellation Reason:
+                    </strong>
+                    <p style="color: #7f1d1d; margin: 0; white-space: pre-wrap; line-height: 1.6;">${reason}</p>
+                </div>
+            </div>
+        `,
+        showCloseButton: true,
+        showConfirmButton: true,
+        confirmButtonText: 'Close',
+        confirmButtonColor: '#dc2626',
+        width: 520,
+        customClass: {
+            popup: 'swal-cancel-reason-popup'
+        }
+    });
+});
+</script>
 
 
 

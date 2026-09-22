@@ -510,5 +510,4 @@ class OrderController extends Controller
             'message'          => $result['message'],
         ]);
     }
-
 }

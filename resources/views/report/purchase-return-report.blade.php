@@ -521,5 +521,4 @@ let dataListView = $('.datatables-basic')
         });
     </script>
 
-    {{-- Purchase Return Report --}}
 @endsection

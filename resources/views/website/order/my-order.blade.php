@@ -1275,5 +1275,4 @@
         }
     });
 </script>
-
 @endsection

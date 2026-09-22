@@ -495,4 +495,7 @@ let dataListView = $('.datatables-basic')
         
 </script>
 
+
+
+
 @endsection
