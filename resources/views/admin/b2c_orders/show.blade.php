@@ -225,6 +225,18 @@
     </div>
     @endif
 
+    @if($order->order_status == 'cancelled')
+    <div class="alert alert-danger d-flex align-items-center mb-3" role="alert" style="border-radius: 12px; background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 14px 18px;">
+        <i class="fa fa-ban fa-2x mr-3 text-danger"></i>
+        <div>
+            <div class="font-weight-bold" style="font-size: 14px;">This Order has been Cancelled</div>
+            <div style="font-size: 13px; color: #7f1d1d; margin-top: 2px;">
+                <strong>Cancellation Reason:</strong> {{ $order->cancellation_reason ?? ($order->customer_note ?? 'Cancelled by customer') }}
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Header Card -->
     <div class="order-header-card d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
