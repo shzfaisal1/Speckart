@@ -6029,7 +6029,9 @@ class SalesController extends Controller
 
     
 
-    
+    // ==========================================
+    // SALE RETURN PRODUCT MODULE
+    // ==========================================
     public function saleReturn()
     {
         $setting['page_title'] = 'Create Sale Return';
