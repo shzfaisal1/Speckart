@@ -342,5 +342,4 @@ $('#searchsales').on('click', function() {
     });
     </script>
 
-    {{-- Sales Return Report --}}
 @endsection
