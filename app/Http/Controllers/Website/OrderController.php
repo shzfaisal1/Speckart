@@ -442,7 +442,10 @@ class OrderController extends Controller
         $fullReason = !empty($comment) ? "{$reason} - {$comment}" : $reason;
 
         $sale->order_status        = 'cancelled';
-        $sale->sales_status        = 3;
+        // Keep in Pending Orders list if it was a pending order
+        if ($sale->sales_status != 1) {
+            $sale->sales_status = 0;
+        }
         $sale->cancellation_reason = $fullReason;
         $sale->customer_note       = 'Cancellation Reason: ' . $fullReason;
         $sale->admin_note          = ($sale->admin_note ? $sale->admin_note . ' | ' : '') . 'Cancelled by customer via My Orders. Reason: ' . $fullReason;

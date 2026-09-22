@@ -2308,7 +2308,7 @@ class SalesController extends Controller
             
             // Admin - can see all stores
             $totalData = DB::table('tbl_sales')
-                ->where('sales_status', 0)
+                ->whereIn('sales_status', [0, 3])
                 ->where('is_deleted', 0);
             if (!empty($filter_store_id)) {
                 $totalData->where('store_id', $filter_store_id);
@@ -2317,7 +2317,7 @@ class SalesController extends Controller
             // Normal user - only own store
             $totalData = DB::table('tbl_sales')
                 ->where('store_id', $store_id)
-                ->where('sales_status', 0)
+                ->whereIn('sales_status', [0, 3])
                 ->where('is_deleted', 0);
         }
 
@@ -2331,17 +2331,19 @@ class SalesController extends Controller
 
         if ($search1 != '') 
         {
-            $totalData->where('order_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_id', 'like', '%' . $search1 . '%')
-            ->orWhere('contact_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            $totalData->where(function($q) use ($search1) {
+                $q->where('order_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_id', 'like', '%' . $search1 . '%')
+                  ->orWhere('contact_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            });
         }
         $totalData = $totalData->count();
         
         if($store_id == '0')
         {
             $templates = DB::table('tbl_sales')
-                ->where('sales_status', 0)
+                ->whereIn('sales_status', [0, 3])
                 ->where('is_deleted', 0);
         
             if (!empty($filter_store_id)) {
@@ -2350,7 +2352,7 @@ class SalesController extends Controller
         }
         else
         {
-            $templates = DB::table('tbl_sales')->where('store_id', $store_id)->where('sales_status', 0)->where('is_deleted', 0);
+            $templates = DB::table('tbl_sales')->where('store_id', $store_id)->whereIn('sales_status', [0, 3])->where('is_deleted', 0);
         }
         if ($sale_person != '')
         {
@@ -2363,10 +2365,12 @@ class SalesController extends Controller
 
         if ($search1 != '') 
         {
-            $templates->where('order_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_id', 'like', '%' . $search1 . '%')
-            ->orWhere('contact_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            $templates->where(function($q) use ($search1) {
+                $q->where('order_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_id', 'like', '%' . $search1 . '%')
+                  ->orWhere('contact_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            });
         }
 
 
@@ -2387,6 +2391,10 @@ class SalesController extends Controller
                 $tbl_store   = Store::find($template->store_id);
                 $encryptedId = base64_encode($template->sale_id);
                 
+                $isCancelled = ($template->order_status === 'cancelled' || $template->sales_status == 3) ? 1 : 0;
+                $cancelBadge = $isCancelled ? '<br><span class="badge badge-danger" style="background-color: #dc2626; color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 700;"><i class="fa fa-ban mr-1"></i> CANCELLED</span>' : '';
+                $cancelText  = $isCancelled ? '<br><span style="color: #dc2626; font-weight: 700; font-size: 12px;"><i class="fa fa-times-circle mr-1"></i> Order Cancelled</span>' : '';
+
                 if($template->sales_type == '1')
                 {
                     $sales_type = '<div class="tooltip">
@@ -2401,8 +2409,8 @@ class SalesController extends Controller
                 
                 $encryptedId = base64_encode($template->sale_id);
                 $nestedData['sr_no']    = $i++;
-                $nestedData['order_details']     = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR> <strong>Delivery Date</strong> :'.date('d M, Y h:i A', strtotime($template->delivery_date));
-                $nestedData['bill_details']      = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR><strong>Bill No : </strong> : '.$template->order_no.'<br>'.$sales_type;
+                $nestedData['order_details']     = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR> <strong>Delivery Date</strong> :'.date('d M, Y h:i A', strtotime($template->delivery_date)) . $cancelText;
+                $nestedData['bill_details']      = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR><strong>Bill No : </strong> : '.$template->order_no.'<br>'.$sales_type . $cancelBadge;
                 $nestedData['customer_details']  = '<strong>Customer Name</strong> :'.$template->cust_name.'<BR><strong>Mobile No :</strong>'.$template->contact_no.'<BR><strong>Cust ID : </strong> : '.$template->cust_id;
                 $nestedData['invoice_details']   = '
                                                   <strong>Order Value : </strong>'.$template->total_item_price.'
@@ -2410,16 +2418,15 @@ class SalesController extends Controller
                                                   <BR><strong>Total Payable : </strong>'.$template->total_payable.'
                                                   <BR><strong>Advance Paid : </strong>'.$template->pay_amount.'
                                                   <BR><strong>Balance Paid  : </strong>'.$template->pending_amount.'';
-                $nestedData['store_name']   = $tbl_store->store_name;
+                $nestedData['store_name']   = $tbl_store->store_name ?? 'N/A';
                 $nestedData['sale_person']  = !empty($sale_person) ? $sale_person->name : '';
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
                 $nestedData['ready_reminder_sms']  = $template->ready_reminder_sms;
-                $nestedData['is_cancelled']        = ($template->order_status === 'cancelled') ? 1 : 0;
-                $nestedData['cancellation_reason'] = $template->cancellation_reason ?? '';
-                $nestedData['customer_name']       = $template->cust_name ?? '';
-                $nestedData['inter_sale']           = $template->inter_sale ?? '0';
+                $nestedData['is_cancelled']  = $isCancelled;
+                $nestedData['cancellation_reason']  = $template->cancellation_reason ?? '';
+                $nestedData['customer_name']  = $template->cust_name ?? '';
                 $data[]  = $nestedData;
             }
         }
@@ -2567,10 +2574,10 @@ class SalesController extends Controller
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
-                $nestedData['is_cancelled']        = ($template->order_status === 'cancelled') ? 1 : 0;
-                $nestedData['cancellation_reason'] = $template->cancellation_reason ?? '';
-                $nestedData['customer_name']       = $template->cust_name ?? '';
-                $nestedData['inter_sale']           = $template->inter_sale ?? '0';
+                $nestedData['inter_sale']  = $template->inter_sale ?? 0;
+                $nestedData['is_cancelled']  = ($template->order_status === 'cancelled') ? 1 : 0;
+                $nestedData['cancellation_reason']  = $template->cancellation_reason ?? '';
+                $nestedData['customer_name']  = $template->cust_name ?? '';
                 $data[]  = $nestedData;
             }
         }
@@ -4565,20 +4572,66 @@ class SalesController extends Controller
     {
         $oid = $request->oid;
 
-        $saleproduct = DB::table('tbl_sales_product')->where('order_no', $oid)
+        $order = DB::table('tbl_sales')->where('order_no', $oid)->first();
+        if (!$order) {
+            $order = DB::table('tbl_sales')->where('sale_id', $oid)->first();
+        }
+
+        $saleproduct = DB::table('tbl_sales_product')
+            ->where(function($q) use ($oid, $order) {
+                $q->where('order_no', $oid);
+                if ($order) {
+                    $q->orWhere('sale_id', $order->sale_id);
+                }
+            })
             ->orderBy('id', 'ASC')
             ->get();
 
         return response()->json([
+            'order' => $order ? [
+                'sale_id'             => $order->sale_id,
+                'order_no'            => $order->order_no,
+                'cust_name'           => $order->cust_name,
+                'contact_no'          => $order->contact_no,
+                'email_id'            => $order->email_id ?? '',
+                'order_status'        => $order->order_status,
+                'sales_status'        => $order->sales_status,
+                'cancellation_reason' => $order->cancellation_reason ?? '',
+                'total_item_price'    => $order->total_item_price,
+                'total_discount'      => $order->total_discount,
+                'total_payable'       => $order->total_payable,
+                'pay_amount'          => $order->pay_amount,
+                'pending_amount'      => $order->pending_amount,
+                'sale_date'           => $order->sale_date,
+                'created_at'          => $order->created_at,
+            ] : null,
             'data' => $saleproduct->map(function ($p) 
             {
                 return [
-                    'pid' => $p->id,
-                    'product_type' => $p->product_type,
-                    'product_code' => $p->product_code,
-                    'product_deatils' => $p->product_deatils,
-                    'purchase_price' => $p->purchase_price,
-                    'qty' => $p->qty,
+                    'pid'                 => $p->id,
+                    'product_type'        => $p->product_type,
+                    'product_code'        => $p->product_code,
+                    'product_deatils'     => $p->product_deatils,
+                    'purchase_price'      => $p->purchase_price,
+                    'sale_price'          => $p->sale_price ?? $p->base_price,
+                    'base_price'          => $p->base_price,
+                    'qty'                 => $p->qty,
+                    'item_status'         => $p->item_status,
+                    'cancellation_reason' => $p->cancellation_reason ?? '',
+                    'has_prescription'    => (!empty($p->GL_EYE_RS_D) || !empty($p->GL_EYE_LS_D) || !empty($p->prescription_file_url)),
+                    'rx' => [
+                        'r_sph'  => $p->GL_EYE_RS_D,
+                        'r_cyl'  => $p->GL_EYE_RC_D,
+                        'r_axis' => $p->GL_EYE_RA_D,
+                        'r_add'  => $p->GL_EYE_RADD,
+                        'l_sph'  => $p->GL_EYE_LS_D,
+                        'l_cyl'  => $p->GL_EYE_LC_D,
+                        'l_axis' => $p->GL_EYE_LA_D,
+                        'l_add'  => $p->GL_EYE_LADD,
+                        'total_pd' => $p->GL_EYE_totalPD,
+                        'file_url' => $p->prescription_file_url,
+                        'notes'    => $p->prescription_notes,
+                    ],
                 ];
             })
         ]);

@@ -215,7 +215,7 @@ let dataListView = $('.datatables-basic')
                             </a>
 
                             <!-- View Product Details (ENABLED for cancelled orders) -->
-                            <a class="tooltip pointer" onclick="openprescriptionModal('${full['oid']}', true)">
+                            <a class="tooltip pointer" onclick="openCancelledOrderProductsModal('${full['oid']}')">
                                 <img class="action-icon" src="{{asset('assets/images/icon/icon-udpate-prescription.webp')}}">
                                 <span class="tooltip-text">View Product Details</span>
                             </a>
@@ -2188,6 +2188,116 @@ let dataListView = $('.datatables-basic')
             },
             complete: function() {
                 $("#ajaxLoader").fadeOut(); 
+            }
+        });
+    }
+
+    /* ========================================================
+     * Open Cancelled Order Product Details Modal
+     * Shows all items, quantities, prices, descriptions, and cancellation reason
+     * ======================================================== */
+    function openCancelledOrderProductsModal(oid) {
+        $("#ajaxLoader").show();
+
+        // Reset fields
+        $('#copm_order_no').text(oid);
+        $('#copm_cust_name').text('Loading...');
+        $('#copm_contact').text('...');
+        $('#copm_order_date').text('...');
+        $('#copm_cancellation_box').hide();
+        $('#copm_cancel_reason').text('');
+        $('#copm_products_tbody').html('<tr><td colspan="8" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div> Loading product details...</td></tr>');
+        $('#copm_total_val').text('Rs 0.00');
+        $('#copm_discount').text('Rs 0.00');
+        $('#copm_payable').text('Rs 0.00');
+        $('#copm_paid').text('Rs 0.00');
+        $('#copm_balance').text('Rs 0.00');
+
+        $.ajax({
+            url: "{{ route('admin.getsalesproduct') }}",
+            type: "GET",
+            data: { oid: oid },
+            dataType: "json",
+            success: function(res) {
+                // Populate Order info
+                if (res.order) {
+                    let ord = res.order;
+                    $('#copm_cust_name').text(ord.cust_name || 'N/A');
+                    $('#copm_contact').text(ord.contact_no || 'N/A');
+                    $('#copm_order_date').text(ord.created_at || ord.sale_date || 'N/A');
+
+                    if (ord.order_status === 'cancelled' || ord.sales_status == 3) {
+                        $('#copm_status_badge').html('<i class="fa fa-ban mr-1"></i> CANCELLED').removeClass('badge-success').addClass('badge-danger').show();
+                    } else {
+                        $('#copm_status_badge').html('<i class="fa fa-clock-o mr-1"></i> ' + (ord.order_status ? ord.order_status.toUpperCase() : 'PENDING')).removeClass('badge-danger').addClass('badge-info').show();
+                    }
+
+                    if (ord.cancellation_reason && ord.cancellation_reason.trim() !== '') {
+                        $('#copm_cancel_reason').text(ord.cancellation_reason);
+                        $('#copm_cancellation_box').show();
+                    }
+
+                    $('#copm_total_val').text('Rs ' + (parseFloat(ord.total_item_price) || 0).toFixed(2));
+                    $('#copm_discount').text('Rs ' + (parseFloat(ord.total_discount) || 0).toFixed(2));
+                    $('#copm_payable').text('Rs ' + (parseFloat(ord.total_payable) || 0).toFixed(2));
+                    $('#copm_paid').text('Rs ' + (parseFloat(ord.pay_amount) || 0).toFixed(2));
+                    $('#copm_balance').text('Rs ' + (parseFloat(ord.pending_amount) || 0).toFixed(2));
+                }
+
+                // Populate Products
+                let tbody = $('#copm_products_tbody');
+                tbody.empty();
+
+                if (!res.data || res.data.length === 0) {
+                    tbody.html('<tr><td colspan="8" class="text-center text-muted py-4"><i class="fa fa-info-circle mr-1"></i> No items found for this order.</td></tr>');
+                } else {
+                    res.data.forEach(function(item, idx) {
+                        let rxHtml = '<span class="text-muted" style="font-size:12px;">Non-prescription</span>';
+                        if (item.has_prescription && item.rx) {
+                            let rx = item.rx;
+                            let rDetails = (rx.r_sph || rx.r_cyl || rx.r_axis || rx.r_add) 
+                                ? `<strong>R:</strong> SPH: ${rx.r_sph || '-'}, CYL: ${rx.r_cyl || '-'}, AXIS: ${rx.r_axis || '-'}, ADD: ${rx.r_add || '-'}` 
+                                : '';
+                            let lDetails = (rx.l_sph || rx.l_cyl || rx.l_axis || rx.l_add) 
+                                ? `<strong>L:</strong> SPH: ${rx.l_sph || '-'}, CYL: ${rx.l_cyl || '-'}, AXIS: ${rx.l_axis || '-'}, ADD: ${rx.l_add || '-'}` 
+                                : '';
+                            let pdDetails = rx.total_pd ? `<br><small class="text-muted">PD: ${rx.total_pd}</small>` : '';
+                            let fileLink = rx.file_url ? `<br><a href="${rx.file_url}" target="_blank" class="badge badge-info mt-1"><i class="fa fa-paperclip mr-1"></i> View Rx File</a>` : '';
+                            rxHtml = `<div style="font-size: 11px; line-height: 1.4;">${rDetails ? rDetails + '<br>' : ''}${lDetails}${pdDetails}${fileLink}</div>`;
+                        }
+
+                        let statusBadge = (item.item_status === 'cancelled' || (res.order && (res.order.order_status === 'cancelled' || res.order.sales_status == 3)))
+                            ? '<span class="badge badge-danger" style="background-color:#dc2626; color:#fff; font-size:11px; padding:3px 6px;">Cancelled</span>'
+                            : '<span class="badge badge-success" style="font-size:11px; padding:3px 6px;">Active</span>';
+
+                        let itemRow = `
+                            <tr>
+                                <td class="text-center font-weight-bold">${idx + 1}</td>
+                                <td><span class="badge badge-dark" style="font-size: 11px;">${item.product_type || 'N/A'}</span></td>
+                                <td class="font-weight-bold text-dark">${item.product_code || 'N/A'}</td>
+                                <td>${item.product_deatils || '-'}</td>
+                                <td class="text-center font-weight-bold">${item.qty || 1}</td>
+                                <td class="font-weight-bold text-dark">Rs ${(parseFloat(item.sale_price) || 0).toFixed(2)}</td>
+                                <td>${rxHtml}</td>
+                                <td class="text-center">${statusBadge}</td>
+                            </tr>
+                        `;
+                        tbody.append(itemRow);
+                    });
+                }
+
+                $('#CancelledOrderProductModal').modal('show');
+            },
+            error: function() {
+                $.toaster({
+                    priority: 'danger',
+                    title: 'Error',
+                    message: 'Failed to fetch product details for Order #' + oid,
+                    timeout: 4000
+                });
+            },
+            complete: function() {
+                $("#ajaxLoader").fadeOut();
             }
         });
     }
