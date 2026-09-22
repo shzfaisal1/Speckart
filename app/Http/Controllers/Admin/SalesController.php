@@ -2416,6 +2416,10 @@ class SalesController extends Controller
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
                 $nestedData['ready_reminder_sms']  = $template->ready_reminder_sms;
+                $nestedData['is_cancelled']        = ($template->order_status === 'cancelled') ? 1 : 0;
+                $nestedData['cancellation_reason'] = $template->cancellation_reason ?? '';
+                $nestedData['customer_name']       = $template->cust_name ?? '';
+                $nestedData['inter_sale']           = $template->inter_sale ?? '0';
                 $data[]  = $nestedData;
             }
         }
@@ -2563,6 +2567,10 @@ class SalesController extends Controller
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
+                $nestedData['is_cancelled']        = ($template->order_status === 'cancelled') ? 1 : 0;
+                $nestedData['cancellation_reason'] = $template->cancellation_reason ?? '';
+                $nestedData['customer_name']       = $template->cust_name ?? '';
+                $nestedData['inter_sale']           = $template->inter_sale ?? '0';
                 $data[]  = $nestedData;
             }
         }
