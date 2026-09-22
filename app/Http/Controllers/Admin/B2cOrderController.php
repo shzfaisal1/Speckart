@@ -32,6 +32,7 @@ class B2cOrderController extends Controller
             $dateFrom = Carbon::now()->startOfMonth()->toDateString();
             $dateTo   = Carbon::now()->toDateString();
         }
+        
         // ── Existing KPI cards (Orders Today, Revenue Today etc.) ─────────
         $today = Carbon::today();
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -227,7 +228,7 @@ class B2cOrderController extends Controller
             ->get();
 
 
-        // ── Salesperson-wise (already correct, just for completeness) ─────────
+        // ── Salesperson-wise  ─────────
         $salespersonWise = DB::table('tbl_sales as s')
             ->leftJoin('users as u', 'u.id', '=', 's.sale_person')
             ->where('s.sales_type', 0)
@@ -244,7 +245,7 @@ class B2cOrderController extends Controller
             ->orderByDesc('revenue')
             ->get();
             
-        // ── Existing Order List Query (filters) ────────────────────────────
+        // ── Existing Order List Query ────────────────────────────
         $query = Sale::b2c()->with(['products', 'user', 'payments'])
             ->latest('created_at');
     

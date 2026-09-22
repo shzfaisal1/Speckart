@@ -72,6 +72,7 @@ let dataListView = $('.datatables-basic')
                 d.date_to = $('#date_to').val(),
                 d.search1 = $('#search').val(),
                 d.sale_person = $('#sale_person').val(),
+                d.store_id = $('#filter_store_id').val(),
                 d._token = "{{ csrf_token() }}";
             }
         },

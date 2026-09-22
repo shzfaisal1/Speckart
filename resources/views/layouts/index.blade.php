@@ -1278,7 +1278,7 @@
     </div>
     
      {{-- Date Filter --}}
-  <!-- Multi-Filter & Search Bar -->
+    <!-- Multi-Filter & Search Bar -->
     <div class="filter-card">
         <form method="GET" action="{{ route('index') }}">
            
@@ -1286,6 +1286,22 @@
             <!-- Row 2: Date Range Filter & Actions -->
             <div class="filter-grid-row2">
                 <div class="date-inputs-group">
+                    <div>
+                        <label class="form-label-custom">
+                            <i class="fa fa-building" style="margin-right: 3px; color: #07484A;"></i>
+                            Store
+                        </label>
+                    
+                        <select name="store_id" id="filter_store_id" class="form-control-custom" style="width: 200px;">
+                            <option value="">All Stores</option>
+                    
+                            @foreach($stores as $store)
+                                <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
+                                    {{ $store->store_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label class="form-label-custom"><i class="fa fa-calendar" style="margin-right: 3px; color: #07484A;"></i> From Date</label>
                         <input type="date" name="date_from" id="filter_date_from" class="form-control-custom" style="width: 160px;" value="{{ request('date_from') }}">
@@ -1309,7 +1325,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="d-flex gap-2" style="margin-bottom: 2px;">
                     <button type="submit" class="btn" style="background: #07484A; color: #fff; border-radius: 8px; height: 38px; padding: 0 18px; font-weight: 600; font-size: 13px;">
                         <i class="fa fa-filter mr-1"></i> Apply Filter

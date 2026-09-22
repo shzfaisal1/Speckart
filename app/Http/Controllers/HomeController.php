@@ -138,7 +138,7 @@ class HomeController extends Controller
         }
         $minDateStr = $startDate->toDateString();
         $maxDateStr = $endDate->toDateString();
-        $stores     = Store::all();
+        $stores = Store::where('status', 1)->orderBy('store_name')->get();
 
          // ── NEW: Order Dashboard Analytics (selected date range) ───────────
         $dateFrom = request('date_from', Carbon::now()->startOfMonth()->toDateString());
@@ -147,6 +147,9 @@ class HomeController extends Controller
             $dateFrom = Carbon::now()->startOfMonth()->toDateString();
             $dateTo   = Carbon::now()->toDateString();
         }
+        $storeId = request('store_id');
+        //dd($storeId);
+        
         $baseSales = Sale::b2c()
             ->whereDate('created_at', '>=', $dateFrom)
             ->whereDate('created_at', '<=', $dateTo);
@@ -165,8 +168,8 @@ class HomeController extends Controller
             'delivered'     => (clone $baseSales)->where('order_status', 'delivered')->count(),
             'cancelled'     => (clone $baseSales)->where('order_status', 'cancelled')->count(),
         ];
-    
-     
+        
+
         // ── Brand-wise Sales ───────────────────────────────────────────────
         $brandWise = DB::query()
             ->fromSub(
@@ -176,6 +179,7 @@ class HomeController extends Controller
                     ->where('s.sales_type', 0)
                     ->whereDate('s.created_at', '>=', $dateFrom)
                     ->whereDate('s.created_at', '<=', $dateTo)
+                    ->where('s.store_id', $storeId)
                     ->where('s.order_status', '!=', 'cancelled')
                     ->select(
                         DB::raw("
@@ -211,6 +215,7 @@ class HomeController extends Controller
                 ->where('s.sales_type', 0)
                 ->whereDate('s.created_at', '>=', $dateFrom)
                 ->whereDate('s.created_at', '<=', $dateTo)
+                ->where('s.store_id', $storeId)
                 ->where('s.order_status', '!=', 'cancelled')
                 ->whereNotNull('sp.package_id')
                 ->where('sp.package_id', '!=', '')
@@ -235,6 +240,7 @@ class HomeController extends Controller
                         ->where('s.sales_type', 0)
                         ->whereDate('s.created_at', '>=', $dateFrom)
                         ->whereDate('s.created_at', '<=', $dateTo)
+                        ->where('s.store_id', $storeId)
                         ->where('s.order_status', '!=', 'cancelled')
                         ->where(function ($q) {
                             $q->where('sp.product_type', 'like', '%contact%')
@@ -274,6 +280,7 @@ class HomeController extends Controller
                     ->where('s.sales_type', 0)
                     ->whereDate('s.created_at', '>=', $dateFrom)
                     ->whereDate('s.created_at', '<=', $dateTo)
+                    ->where('s.store_id', $storeId)
                     ->where('s.order_status', '!=', 'cancelled')
                     ->select(
                         DB::raw("
@@ -326,6 +333,7 @@ class HomeController extends Controller
             ->where('s.sales_type', 0)
             ->whereDate('s.created_at', '>=', $dateFrom)
             ->whereDate('s.created_at', '<=', $dateTo)
+            ->where('s.store_id', $storeId)
             ->where('s.order_status', '!=', 'cancelled')
             ->select(
                 DB::raw("COALESCE(u.name, CONCAT('Staff #', s.sale_person), 'Online / System') as salesperson"),
@@ -346,6 +354,7 @@ class HomeController extends Controller
                         ->where('s.sales_type', 0)
                         ->whereDate('s.created_at', '>=', $dateFrom)
                         ->whereDate('s.created_at', '<=', $dateTo)
+                        ->where('s.store_id', $storeId)
                         ->where('s.order_status', '!=', 'cancelled')
                         ->select(
                             DB::raw("

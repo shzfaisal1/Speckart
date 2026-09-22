@@ -69,7 +69,7 @@ class CheckoutController extends Controller
         $user = auth()->user();
 
         // 5. Generate Order Number from store settings
-        $store = DB::table('tbl_store')->where('id', 1)->first() ?? DB::table('tbl_store')->first();
+        $store = DB::table('tbl_store')->where('id', 6)->first() ?? DB::table('tbl_store')->first();
         $storeDbId = $store->id ?? 1;
 
         $orderPrefix = $store->order_no_prefix ?? 'WEB';

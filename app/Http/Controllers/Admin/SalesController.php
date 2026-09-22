@@ -740,15 +740,15 @@ class SalesController extends Controller
                 'pay_amount'          => $request->pay_amount ?? 0,
                 'pending_amount'      => $request->pending_amount ?? 0,
                 'extrnal_warranty'    => $request->extrnal_warranty,
-                'pay_method'    => $request->pay_method,
-                'pay_deatils'    => $request->pay_deatils,
+                'pay_method'          => $request->pay_method,
+                'pay_deatils'         => $request->pay_deatils,
                 'added_by'            => $user->id,
                 'store_id'            => $request->store_id,
                 'sales_type'          => 0,
                 'delivery_date'       => $request->delivery_date,
-                'sales_status'    => $request->submit_type,
-                'customer_account'       => $request->customer_account,
-                'advance_amount'       => $request->advance_amount,
+                'sales_status'        => $request->submit_type,
+                'customer_account'    => $request->customer_account,
+                'advance_amount'      => $request->advance_amount,
             ]);
             
             $custData = DB::table('tbl_customer')->where('contact_no', $request->contact_no)->first();
@@ -2286,12 +2286,14 @@ class SalesController extends Controller
             ['link' => url("/"), 'name' => 'Home'],
             ['name' => $setting['page_title']],
         ];
+        $setting['stores'] = Store::where('status', 1)->orderBy('store_name')->get();
         return view($this->view_route.'/pending-order',$setting);
     }
     
     
     public function salesPendingDatatable(Request $request)
     {
+       
         $store_id = auth()->user()->store_id;
         $limit = $request->input('length');
         $start = $request->input('start');
@@ -2301,15 +2303,26 @@ class SalesController extends Controller
         $date_to = $request->input('date_to');
         $search1 = $request->input('search1');
         $sale_person = $request->input('sale_person');
-        
-        if($store_id == '0')
-        {
-            $totalData = DB::table('tbl_sales')->where('sales_status', 0)->where('is_deleted', 0);
+     
+        $filter_store_id = $request->input('store_id');
+    
+        if ($store_id == '0') {
+            
+            // Admin - can see all stores
+            $totalData = DB::table('tbl_sales')
+                ->where('sales_status', 0)
+                ->where('is_deleted', 0);
+            if (!empty($filter_store_id)) {
+                $totalData->where('store_id', $filter_store_id);
+            }
+        } else {
+            // Normal user - only own store
+            $totalData = DB::table('tbl_sales')
+                ->where('store_id', $store_id)
+                ->where('sales_status', 0)
+                ->where('is_deleted', 0);
         }
-        else
-        {
-            $totalData = DB::table('tbl_sales')->where('store_id', $store_id)->where('sales_status', 0)->where('is_deleted', 0);
-        }
+
         if ($sale_person != '')
         {
             $totalData->where('sale_person', [$sale_person]);
@@ -2329,7 +2342,13 @@ class SalesController extends Controller
         
         if($store_id == '0')
         {
-            $templates = DB::table('tbl_sales')->where('sales_status', 0)->where('is_deleted', 0);
+            $templates = DB::table('tbl_sales')
+                ->where('sales_status', 0)
+                ->where('is_deleted', 0);
+        
+            if (!empty($filter_store_id)) {
+                $templates->where('store_id', $filter_store_id);
+            }
         }
         else
         {
@@ -2423,6 +2442,7 @@ class SalesController extends Controller
             ['name' => $setting['page_title']],
         ];
         //dd($this->view_route);
+        $setting['stores'] = Store::where('status', 1)->orderBy('store_name')->get();
         return view($this->view_route.'/sale-histroy',$setting);
     }
     
@@ -2438,10 +2458,15 @@ class SalesController extends Controller
         $date_to = $request->input('date_to');
         $search1 = $request->input('search1');
         $sale_person = $request->input('sale_person');
-        
+        $filter_store_id = $request->input('store_id');
+        $filter_store_id = $request->input('store_id');
+    
         if($store_id == '0')
         {
             $totalData = DB::table('tbl_sales')->where('sales_status', 1)->where('is_deleted', 0);
+            if (!empty($filter_store_id)) {
+                $totalData->where('store_id', $filter_store_id);
+            }
         }
         else
         {
@@ -2467,6 +2492,9 @@ class SalesController extends Controller
         if($store_id == '0')
         {
             $templates = DB::table('tbl_sales')->where('sales_status', 1)->where('is_deleted', 0);
+            if (!empty($filter_store_id)) {
+                $templates->where('store_id', $filter_store_id);
+            }
         }
         else
         {

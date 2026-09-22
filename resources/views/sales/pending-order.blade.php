@@ -98,12 +98,26 @@ input.loading {
                 </div>    
                 <div class="col-lg-3">
                     <div class="form-group">
-                        <input type="text" class="form-control input" placeholder="Bill Number,Customer Name,MobileNo" id="search" name="search" style="width: 250px;margin-top: 10px;">
+                        <input type="text" class="form-control input" placeholder="Bill Number,Customer Name,MobileNo" id="search" name="search" style="margin-top: 10px;">
                     </div>
                 </div> 
+                
+                @if(auth()->user()->user_type == "Admin")
+                <div  class="col-lg-3" style="margin-top:10px">
+                    <select name="store_id" id="filter_store_id" class="form-control select" style="height: 36px !important;" >
+                        <option value="">All Stores</option>
+                    
+                        @foreach($stores as $store)
+                            <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
+                                {{ $store->store_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 <div class="col-lg-3" style="margin-top:10px">
                     <div class="form-group">
-                        <select class="form-control select" style="height: 32px !important;" id="sale_person" name="sale_person">
+                        <select class="form-control select" style="height: 36px !important;" id="sale_person" name="sale_person">
                             <option value="">Select Person</option>
                           <?php  $tbl_users =  DB::table("users")->where('status',1)->get();  ?>
                            @foreach($tbl_users as $tbl_users)
