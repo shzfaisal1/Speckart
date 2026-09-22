@@ -352,18 +352,30 @@ class OrderController extends Controller
                 $orderProducts->push($pObj);
             }
 
+            $cancellationReason = null;
+            if (!empty($sale->cancellation_reason)) {
+                $cancellationReason = $sale->cancellation_reason;
+            } elseif (!empty($sale->customer_note) && str_starts_with($sale->customer_note, 'Cancellation Reason:')) {
+                $cancellationReason = trim(str_replace('Cancellation Reason:', '', $sale->customer_note));
+            } elseif (!empty($sale->admin_note) && str_contains($sale->admin_note, 'Cancelled by customer')) {
+                if (preg_match('/Reason:\s*(.*?)(\||$)/i', $sale->admin_note, $matches)) {
+                    $cancellationReason = trim($matches[1]);
+                }
+            }
+
             $orderObj = new \stdClass();
-            $orderObj->id            = $sale->sale_id ?? $sale->id;
-            $orderObj->sale_id       = $sale->sale_id ?? $sale->id;
-            $orderObj->order_no      = $sale->order_no; // Using mapped field
-            $orderObj->order_status  = $sale->order_status;
-            $orderObj->sales_status  = $statusCode;
-            $orderObj->sale_date     = $sale->created_at->toDateString();
-            $orderObj->created_at    = $sale->created_at;
-            $orderObj->total_payable = (float) $sale->total_payable;
-            $orderObj->delivery_method = $sale->delivery_method ?? 'Standard';
-            $orderObj->tracking_number = $sale->tracking_number;
-            $orderObj->products      = $orderProducts;
+            $orderObj->id                  = $sale->sale_id ?? $sale->id;
+            $orderObj->sale_id             = $sale->sale_id ?? $sale->id;
+            $orderObj->order_no            = $sale->order_no; // Using mapped field
+            $orderObj->order_status        = $sale->order_status;
+            $orderObj->sales_status        = $statusCode;
+            $orderObj->cancellation_reason = $cancellationReason;
+            $orderObj->sale_date           = $sale->created_at->toDateString();
+            $orderObj->created_at          = $sale->created_at;
+            $orderObj->total_payable       = (float) $sale->total_payable;
+            $orderObj->delivery_method     = $sale->delivery_method ?? 'Standard';
+            $orderObj->tracking_number     = $sale->tracking_number;
+            $orderObj->products            = $orderProducts;
 
             $orders->push($orderObj);
         }
@@ -372,22 +384,86 @@ class OrderController extends Controller
     }
 
     /**
-     * Cancel an active order (Syncs tbl_sales)
+     * Cancel an active order with customer reason (Syncs tbl_sales & items)
      */
     public function cancel_order(Request $request, $id)
     {
+        $request->validate([
+            'cancellation_reason'  => 'required|string|max:255',
+            'cancellation_comment' => 'nullable|string|max:1000',
+        ], [
+            'cancellation_reason.required' => 'Please select a reason for cancelling your order.',
+        ]);
+
         $sale = Sale::find($id);
 
-        if ($sale) {
-            $sale->order_status = 'cancelled';
-            $sale->sales_status = 3;
-            $sale->admin_note   = ($sale->admin_note ? $sale->admin_note . ' | ' : '') . 'Cancelled by customer via My Orders';
-            $sale->save();
-
-            return back()->with('success', 'Order ' . ($sale->order_no ?? '') . ' has been cancelled.');
+        if (!$sale) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Order not found.'], 404);
+            }
+            return back()->with('error', 'Order not found.');
         }
 
-        return back()->with('error', 'Order not found.');
+        // Ownership verification
+        $user = auth()->user();
+        if ($user) {
+            $isOwner = ($sale->cust_id == $user->id) || ($sale->user_id == $user->id) ||
+                       (!empty($user->phone) && $sale->contact_no == $user->phone) ||
+                       (!empty($user->email) && $sale->email_id == $user->email);
+            if (!$isOwner) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Unauthorized access to this order.'], 403);
+                }
+                return back()->with('error', 'Unauthorized access to this order.');
+            }
+        } else {
+            $shippingData = session()->get('checkout_shipping', []);
+            $phone = $shippingData['phone'] ?? null;
+            if (!$phone || $sale->contact_no !== $phone) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Unauthorized access to this order.'], 403);
+                }
+                return back()->with('error', 'Unauthorized access to this order.');
+            }
+        }
+
+        // Status verification: Cannot cancel delivered, completed, or already cancelled orders
+        $currentStatus = strtolower((string)($sale->order_status ?? ''));
+        if (in_array($currentStatus, ['cancelled', 'delivered', 'completed', 'returned'])) {
+            $msg = 'This order cannot be cancelled as it is already ' . ucfirst($currentStatus) . '.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            return back()->with('error', $msg);
+        }
+
+        $reason  = trim($request->input('cancellation_reason'));
+        $comment = trim($request->input('cancellation_comment', ''));
+        $fullReason = !empty($comment) ? "{$reason} - {$comment}" : $reason;
+
+        $sale->order_status        = 'cancelled';
+        $sale->sales_status        = 3;
+        $sale->cancellation_reason = $fullReason;
+        $sale->customer_note       = 'Cancellation Reason: ' . $fullReason;
+        $sale->admin_note          = ($sale->admin_note ? $sale->admin_note . ' | ' : '') . 'Cancelled by customer via My Orders. Reason: ' . $fullReason;
+        $sale->save();
+
+        // Update individual items in tbl_sales_product
+        DB::table('tbl_sales_product')->where('sale_id', $sale->sale_id)->update([
+            'item_status'         => 'cancelled',
+            'cancellation_reason' => $fullReason,
+        ]);
+
+        $successMsg = 'Order #' . ($sale->order_no ?? $sale->sale_id) . ' has been cancelled successfully.';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => $successMsg,
+            ]);
+        }
+
+        return back()->with('success', $successMsg);
     }
 
     /**
