@@ -586,7 +586,7 @@
             <form id="updatePrescriptionForm" method="POST" action="{{ route('admin.prescriptionupdate') }}">
                     @csrf
             <div class="modal-body">
-                <div class="row">
+                <div class="row" id="prescriptionImportantNote">
                     <div style="color: red; font-weight: bold; font-size: 14px;">Important Note: When you update prescription details; system will update only sales records and prescription records, there will be no adjustment or effect to inventory records. Hence, if you are following power wise inventory we suggest that you do sales return and then add fresh new sale with correct prescription details.</div>
                 </div>
                 
@@ -594,7 +594,7 @@
                     <!-- Prescriptions will be appended here -->
                 </div>
                 
-                <button type="submit" class="btn btn-success mt-3">
+                <button type="submit" class="btn btn-success mt-3" id="btnUpdatePrescriptionSubmit">
                     Update Prescription
                 </button>
             </div>

@@ -54,6 +54,53 @@ input.loading {
     font-weight: 400;
     margin: 10px;
 }
+
+/* Cancelled order row highlight in red */
+.row-cancelled, 
+table.dataTable tbody tr.row-cancelled, 
+table.dataTable tbody tr.row-cancelled > td {
+    background-color: #fef2f2 !important;
+}
+table.dataTable tbody tr.row-cancelled {
+    border-left: 4px solid #dc2626 !important;
+}
+
+/* Action button for viewing cancellation reason */
+.action-icon-cancel-reason {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #dc2626;
+    color: #ffffff !important;
+    margin: 2px;
+    font-size: 11px;
+    vertical-align: middle;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.4);
+    transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+.action-icon-cancel-reason:hover {
+    background-color: #b91c1c;
+    transform: scale(1.15);
+    color: #ffffff !important;
+}
+.action-icon-cancel-reason i {
+    color: #ffffff !important;
+}
+
+/* Disabled action buttons for cancelled orders */
+.icon-disabled-cancelled {
+    filter: grayscale(100%) opacity(0.28) !important;
+    cursor: not-allowed !important;
+}
+.icon-disabled-cancelled img,
+.icon-disabled-cancelled i {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
 </style>  
 
 @endsection
