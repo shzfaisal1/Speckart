@@ -6,6 +6,7 @@ function isCurrentMonth(date) {
     return date.month() === moment().month() && date.year() === moment().year();
 }
 
+
 function cb(start, end) {
     $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
     $('#date_from').val(start.format('YYYY-MM-DD'));
@@ -47,6 +48,7 @@ $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
 
 cb(start, end);
 </script>
+
 
 <script>
 let dataListView = $('.datatables-basic')

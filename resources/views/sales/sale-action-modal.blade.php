@@ -1,4 +1,5 @@
     <!------------ PAYMENT DETAILS MODAL --------> 
+    
     <div class="modal fade" data-backdrop="static" id="PaymentModal" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">

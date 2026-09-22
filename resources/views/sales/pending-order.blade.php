@@ -13,6 +13,7 @@ input.loading {
     display: inline-block;
 }
 
+
 .tooltip-text {
     visibility: hidden;
     background-color: #000;
