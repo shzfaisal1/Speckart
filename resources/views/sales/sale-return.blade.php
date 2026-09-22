@@ -188,7 +188,4 @@ input.loading {
     });
 </script>
 
-
-
-
 @endsection

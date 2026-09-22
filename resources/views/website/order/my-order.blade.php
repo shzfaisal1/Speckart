@@ -1275,4 +1275,5 @@
         }
     });
 </script>
+
 @endsection
