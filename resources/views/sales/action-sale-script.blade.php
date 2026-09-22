@@ -76,6 +76,11 @@ let dataListView = $('.datatables-basic')
                 d._token = "{{ csrf_token() }}";
             }
         },
+        "createdRow": function(row, data, dataIndex) {
+            if (data.is_cancelled == 1) {
+                $(row).addClass('row-cancelled');
+            }
+        },
         "columns": [
             {
                 "data": "sr_no",
@@ -130,6 +135,112 @@ let dataListView = $('.datatables-basic')
                 render: function(data, type, full) 
                 
                 {
+                    // Check if order is cancelled
+                    if (full['is_cancelled'] == 1) {
+                        let cancelReason = encodeURIComponent(full['cancellation_reason'] || 'No cancellation reason specified');
+                        let customerName = encodeURIComponent(full['customer_name'] || '');
+                        let disabledMsg = 'Action Disabled (Order Cancelled)';
+
+                        return (`
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img src="{{asset('assets/images/icon/sms.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-whatsapp.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon_unblock.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+                            
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/edit.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-courier-no.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-update-price.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/receipt.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/form.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/print.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-payment-details.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-update-redeem-points.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-discount-coupon.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-cart-discount.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/user.png')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <!-- View Product Details (ENABLED for cancelled orders) -->
+                            <a class="tooltip pointer" onclick="openprescriptionModal('${full['oid']}', true)">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-udpate-prescription.webp')}}">
+                                <span class="tooltip-text">View Product Details</span>
+                            </a>
+
+                            <!-- View Cancellation Reason (NEW ACTION BUTTON) -->
+                            <a href="javascript:void(0);" class="tooltip pointer btn-show-cancel-reason" 
+                               data-oid="${full['oid']}" 
+                               data-reason="${cancelReason}" 
+                               data-cust="${customerName}">
+                                <span class="action-icon-cancel-reason">
+                                    <i class="fa fa-ban"></i>
+                                </span>
+                                <span class="tooltip-text">View Cancellation Reason</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-mail-send.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon_block.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+                        `);
+                    }
+
                     // Base URLs from Laravel
                     let baseUrl  = "{{ url(config('app.admin_path', 'admin').'/sale/invoice') }}";
                     let baseUrll = "{{ url(config('app.admin_path', 'admin').'/sale/edit') }}";
@@ -1807,8 +1918,16 @@ let dataListView = $('.datatables-basic')
     });
     
     
-    function openprescriptionModal(oid) {
-        $('#modalTitlePrescription').text('Update Prescription Order No: ' + oid);
+    function openprescriptionModal(oid, isReadOnly = false) {
+        if (isReadOnly) {
+            $('#modalTitlePrescription').html('<i class="fa fa-eye text-primary mr-1"></i> Product Details - Order No: #' + oid + ' <span class="badge badge-danger ml-2" style="background-color: #dc2626; color: #fff; font-size: 12px; padding: 3px 8px;"><i class="fa fa-ban mr-1"></i> CANCELLED (Read Only)</span>');
+            $('#btnUpdatePrescriptionSubmit').hide();
+            $('#prescriptionImportantNote').hide();
+        } else {
+            $('#modalTitlePrescription').text('Update Prescription Order No: ' + oid);
+            $('#btnUpdatePrescriptionSubmit').show();
+            $('#prescriptionImportantNote').show();
+        }
     
         // Clear previous prescriptions
         $('#Prescriptionglassdiv').empty();
@@ -1823,7 +1942,16 @@ let dataListView = $('.datatables-basic')
             },
             success: function(response) {
                 if (!response.data || response.data.length === 0) {
-                    alert('Prescription not available for this order');
+                    if (isReadOnly) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Product Details',
+                            text: 'No product details found for Order #' + oid,
+                            confirmButtonColor: '#07484A'
+                        });
+                    } else {
+                        alert('Prescription not available for this order');
+                    }
                     return;
                 }
     
@@ -2043,6 +2171,14 @@ let dataListView = $('.datatables-basic')
                     $('#Prescriptionglassdiv').append(html);
                 });
     
+                if (isReadOnly) {
+                    $('#Prescriptionglassdiv input, #Prescriptionglassdiv select, #Prescriptionglassdiv textarea').prop('disabled', true);
+                    $('.copy-right-to-left, .copy-left-to-right').hide();
+                } else {
+                    $('#Prescriptionglassdiv input, #Prescriptionglassdiv select, #Prescriptionglassdiv textarea').prop('disabled', false);
+                    $('.copy-right-to-left, .copy-left-to-right').show();
+                }
+
                 $('#PrescriptionModal').modal('show');
             },
             error: function() {
@@ -2053,6 +2189,41 @@ let dataListView = $('.datatables-basic')
             }
         });
     }
+
+    // Modal popup to view customer cancellation reason
+    $(document).on('click', '.btn-show-cancel-reason', function(e) {
+        e.preventDefault();
+        let oid = $(this).data('oid');
+        let reason = decodeURIComponent($(this).data('reason') || 'No cancellation reason provided');
+        let customerName = decodeURIComponent($(this).data('cust') || 'Customer');
+
+        Swal.fire({
+            title: '<div style="color: #dc2626; font-weight: 700; font-size: 20px;"><i class="fa fa-ban mr-2"></i> Order Cancelled</div>',
+            html: `
+                <div style="text-align: left; padding: 12px 16px; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin-top: 10px;">
+                    <div style="margin-bottom: 8px; font-size: 14px; color: #1f2937;">
+                        <strong>Order Number:</strong> <span class="badge badge-secondary" style="font-size: 13px;">#${oid}</span>
+                    </div>
+                    <div style="margin-bottom: 12px; font-size: 14px; color: #1f2937;">
+                        <strong>Customer:</strong> <span>${customerName}</span>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fa fa-comment mr-1"></i> Customer Cancellation Reason:
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #e5e7eb; border-left: 4px solid #dc2626; border-radius: 6px; padding: 12px; font-size: 14px; color: #374151; line-height: 1.5; word-break: break-word;">
+                        ${reason}
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            confirmButtonText: '<i class="fa fa-times mr-1"></i> Close',
+            confirmButtonColor: '#07484A',
+            showCloseButton: true,
+            customClass: {
+                popup: 'rounded-lg'
+            }
+        });
+    });
 
 
 
