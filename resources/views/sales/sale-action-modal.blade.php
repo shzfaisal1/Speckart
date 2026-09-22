@@ -607,3 +607,130 @@
          </div>
        </div>
     </div>
+
+    <!------------ CANCELLED ORDER PRODUCT DETAILS MODAL --------> 
+    <div class="modal fade" id="CancelledOrderProductModal" tabindex="-1" role="dialog" aria-labelledby="cancelledOrderProductModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+           <div class="modal-header" style="background-color: #07484A; color: #fff;">
+                <h5 class="modal-title text-white" id="cancelledOrderProductModalTitle">
+                    <i class="fa fa-shopping-bag mr-1"></i> Product Details - Order #<span id="copm_order_no"></span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- Header Banner -->
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3" style="background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <div>
+                        <h6 class="mb-1 text-dark font-weight-bold" id="copm_cust_info">Customer: <span id="copm_cust_name">-</span> (<span id="copm_contact">-</span>)</h6>
+                        <small class="text-muted">Order Date: <span id="copm_order_date">-</span></small>
+                    </div>
+                    <div class="text-right">
+                        <span id="copm_status_badge" class="badge badge-danger" style="background-color: #dc2626; color: #fff; font-size: 13px; padding: 6px 12px; border-radius: 4px;">
+                            <i class="fa fa-ban mr-1"></i> CANCELLED
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Cancellation Reason Banner (if cancelled) -->
+                <div id="copm_cancellation_box" class="alert alert-danger mb-3" style="border-left: 5px solid #dc2626; background-color: #fef2f2; color: #991b1b; display: none;">
+                    <h6 class="font-weight-bold mb-1"><i class="fa fa-exclamation-circle mr-1"></i> Customer Cancellation Reason:</h6>
+                    <p class="mb-0" id="copm_cancel_reason" style="font-size: 14px; font-weight: 500;"></p>
+                </div>
+
+                <!-- Products Table -->
+                <h6 class="font-weight-bold mb-2 text-dark"><i class="fa fa-list mr-1"></i> Ordered Items:</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="copm_products_table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Product Type</th>
+                                <th>Product Code / Name</th>
+                                <th>Description</th>
+                                <th style="width: 70px;">Qty</th>
+                                <th style="width: 110px;">Price (Rs)</th>
+                                <th>Prescription Details</th>
+                                <th style="width: 100px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="copm_products_tbody">
+                            <tr><td colspan="8" class="text-center py-4">Loading products...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Order Financial Summary -->
+                <div class="row justify-content-end mt-3">
+                    <div class="col-md-5">
+                        <div class="card p-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Total Order Value:</span>
+                                <strong id="copm_total_val">Rs 0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Total Discount:</span>
+                                <strong class="text-success" id="copm_discount">Rs 0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Total Payable:</span>
+                                <strong id="copm_payable">Rs 0.00</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Advance Paid:</span>
+                                <strong class="text-info" id="copm_paid">Rs 0.00</strong>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold text-dark">Balance Amount:</span>
+                                <strong class="text-danger" id="copm_balance">Rs 0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+         </div>
+       </div>
+    </div>
+
+    <!------------ CANCELLATION REASON MODAL --------> 
+    <div class="modal fade" id="CancelReasonModal" tabindex="-1" role="dialog" aria-labelledby="cancelReasonModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #dc2626; color: #fff;">
+                    <h5 class="modal-title text-white" id="cancelReasonModalLabel">
+                        <i class="fa fa-ban mr-1"></i> Order Cancellation Reason
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity:1;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="font-weight-bold text-muted">Order No:</label>
+                        <span id="cancelReasonOrderNo" class="font-weight-bold text-dark ml-1"></span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="font-weight-bold text-muted">Customer Name:</label>
+                        <span id="cancelReasonCustName" class="text-dark ml-1"></span>
+                    </div>
+                    <hr>
+                    <div>
+                        <label class="font-weight-bold text-danger mb-1">
+                            <i class="fa fa-exclamation-triangle mr-1"></i> Customer Stated Reason:
+                        </label>
+                        <div id="cancelReasonText" class="mt-2 p-3" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; font-size: 14px; color: #991b1b; font-weight: 500; word-break: break-word;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>

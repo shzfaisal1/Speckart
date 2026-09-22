@@ -58,45 +58,52 @@ input.loading {
 /* Cancelled order row highlight in red */
 .row-cancelled, 
 table.dataTable tbody tr.row-cancelled, 
-table.dataTable tbody tr.row-cancelled > td {
-    background-color: #ffe0e0 !important;
+table.dataTable tbody tr.row-cancelled > td,
+table.dataTable tbody tr.row-cancelled:hover,
+table.dataTable tbody tr.row-cancelled:hover > td,
+table.dataTable.table-striped tbody tr.row-cancelled:nth-of-type(odd),
+table.dataTable.table-striped tbody tr.row-cancelled:nth-of-type(odd) > td {
+    background-color: #ffdada !important;
 }
 table.dataTable tbody tr.row-cancelled {
-    border-left: 4px solid #dc2626;
-}
-table.dataTable tbody tr.row-cancelled:hover,
-table.dataTable tbody tr.row-cancelled:hover > td {
-    background-color: #ffd0d0 !important;
+    border-left: 6px solid #dc2626 !important;
 }
 
-/* Disabled action buttons for cancelled orders */
-.icon-disabled-cancelled {
-    opacity: 0.3;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-.icon-disabled-cancelled img,
-.icon-disabled-cancelled i {
-    filter: grayscale(100%);
-}
-
-/* Cancel reason icon button */
+/* Action button for viewing cancellation reason */
 .action-icon-cancel-reason {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     background-color: #dc2626;
-    color: #fff;
-    font-size: 12px;
+    color: #ffffff !important;
     margin: 2px;
+    font-size: 11px;
+    vertical-align: middle;
     cursor: pointer;
-    transition: background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.4);
+    transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 .action-icon-cancel-reason:hover {
     background-color: #b91c1c;
+    transform: scale(1.15);
+    color: #ffffff !important;
+}
+.action-icon-cancel-reason i {
+    color: #ffffff !important;
+}
+
+/* Disabled action buttons for cancelled orders */
+.icon-disabled-cancelled {
+    filter: grayscale(100%) opacity(0.28) !important;
+    cursor: not-allowed !important;
+}
+.icon-disabled-cancelled img,
+.icon-disabled-cancelled i {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
 }
 </style>  
 
@@ -341,7 +348,17 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
                 render: function(data, type, full) 
                 {
-                    // Check if order is cancelled
+                    // Base URL from Laravel
+                    let baseUrl = "{{ url(config('app.admin_path', 'admin').'/sale/invoice') }}";
+                    let baseUrll = "{{ url(config('app.admin_path', 'admin').'/sale/edit') }}";
+                
+                    // Dynamic URLs with both parameters
+                    let invoiceUrl = baseUrl + '/' + full['encryptedId'] + '/invoice';
+                    let receiptUrl = baseUrl + '/' + full['encryptedId'] + '/receipt';
+                    let orderUrl   = baseUrl + '/' + full['encryptedId'] + '/order';
+                    let editUrl = baseUrll + '/' + full['encryptedId'];
+
+                    // ======= CANCELLED ORDER =======
                     if (full['is_cancelled'] == 1) {
                         let cancelReason = encodeURIComponent(full['cancellation_reason'] || 'No cancellation reason specified');
                         let customerName = encodeURIComponent(full['customer_name'] || '');
@@ -393,8 +410,13 @@ let dataListView = $('.datatables-basic')
                                 <span class="tooltip-text">${disabledMsg}</span>
                             </a>
 
+                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
+                                <img class="action-icon" src="{{asset('assets/images/icon/icon-mail-send.webp')}}">
+                                <span class="tooltip-text">${disabledMsg}</span>
+                            </a>
+
                             <!-- View Product Details (ENABLED for cancelled orders) -->
-                            <a class="tooltip pointer" onclick="openprescriptionModal('${full['oid']}', true)">
+                            <a class="tooltip pointer" onclick="openCancelledOrderProductsModal('${full['oid']}')">
                                 <img class="action-icon" src="{{asset('assets/images/icon/icon-udpate-prescription.webp')}}">
                                 <span class="tooltip-text">View Product Details</span>
                             </a>
@@ -409,24 +431,10 @@ let dataListView = $('.datatables-basic')
                                 </span>
                                 <span class="tooltip-text">View Cancellation Reason</span>
                             </a>
-
-                            <a class="tooltip icon-disabled-cancelled" href="javascript:void(0);">
-                                <img class="action-icon" src="{{asset('assets/images/icon/icon-mail-send.webp')}}">
-                                <span class="tooltip-text">${disabledMsg}</span>
-                            </a>
                         `);
                     }
 
-                    // Base URL from Laravel
-                    let baseUrl = "{{ url('admin/sale/invoice') }}";
-                    let baseUrll = "{{ url('admin/sale/edit') }}";
-                
-                    // Dynamic URLs with both parameters
-                    let invoiceUrl = baseUrl + '/' + full['encryptedId'] + '/invoice';
-                    let receiptUrl = baseUrl + '/' + full['encryptedId'] + '/receipt';
-                    let orderUrl   = baseUrl + '/' + full['encryptedId'] + '/order';
-                    let editUrl = baseUrll + '/' + full['encryptedId'];
-                    
+                    // ======= INTER-STORE SALE =======
                     if (full['inter_sale'] == '1') {
                         return (`
 
@@ -464,9 +472,9 @@ let dataListView = $('.datatables-basic')
                           
                         `);
                     } 
-                    else 
-                    {
-                        return (`
+
+                    // ======= NORMAL ORDER =======
+                    return (`
                         
                             <a class="tooltip pointer" onclick="openwhatsappModal('${full['oid']}')">
                                 <img class="action-icon" src="{{asset('assets/images/icon/icon-whatsapp.webp')}}">
@@ -520,7 +528,6 @@ let dataListView = $('.datatables-basic')
                             </a>
                             
                         `);
-                    }    
 
                 }
 
@@ -1847,43 +1854,131 @@ let dataListView = $('.datatables-basic')
 </script>
 
 <script>
-// View Cancellation Reason popup handler
-$(document).on('click', '.btn-show-cancel-reason', function() {
-    let oid = $(this).data('oid');
-    let reason = decodeURIComponent($(this).data('reason') || 'No cancellation reason specified');
-    let custName = decodeURIComponent($(this).data('cust') || 'N/A');
+/* ========================================================
+ * Open Cancelled Order Product Details Modal
+ * Shows all items, quantities, prices, descriptions, and cancellation reason
+ * ======================================================== */
+function openCancelledOrderProductsModal(oid) {
+    $("#ajaxLoader").show();
 
-    Swal.fire({
-        title: '<div style="color: #dc2626; font-weight: 700; font-size: 20px;"><i class="fa fa-ban mr-2"></i> Order Cancelled</div>',
-        html: `
-            <div style="text-align: left; padding: 10px;">
-                <div style="margin-bottom: 12px; padding: 10px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
-                    <strong style="color: #991b1b;"><i class="fa fa-shopping-cart mr-1"></i> Order No:</strong>
-                    <span style="color: #dc2626; font-weight: 600;">#${oid}</span>
-                </div>
-                <div style="margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-                    <strong style="color: #374151;"><i class="fa fa-user mr-1"></i> Customer:</strong>
-                    <span style="color: #1f2937;">${custName}</span>
-                </div>
-                <div style="padding: 12px; background: #fff5f5; border-radius: 8px; border-left: 4px solid #dc2626;">
-                    <strong style="color: #991b1b; display: block; margin-bottom: 6px;">
-                        <i class="fa fa-comment mr-1"></i> Cancellation Reason:
-                    </strong>
-                    <p style="color: #7f1d1d; margin: 0; white-space: pre-wrap; line-height: 1.6;">${reason}</p>
-                </div>
-            </div>
-        `,
-        showCloseButton: true,
-        showConfirmButton: true,
-        confirmButtonText: 'Close',
-        confirmButtonColor: '#dc2626',
-        width: 520,
-        customClass: {
-            popup: 'swal-cancel-reason-popup'
+    // Reset fields
+    $('#copm_order_no').text(oid);
+    $('#copm_cust_name').text('Loading...');
+    $('#copm_contact').text('...');
+    $('#copm_order_date').text('...');
+    $('#copm_cancellation_box').hide();
+    $('#copm_cancel_reason').text('');
+    $('#copm_products_tbody').html('<tr><td colspan="8" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div> Loading product details...</td></tr>');
+    $('#copm_total_val').text('Rs 0.00');
+    $('#copm_discount').text('Rs 0.00');
+    $('#copm_payable').text('Rs 0.00');
+    $('#copm_paid').text('Rs 0.00');
+    $('#copm_balance').text('Rs 0.00');
+
+    $.ajax({
+        url: "{{ route('admin.getsalesproduct') }}",
+        type: "GET",
+        data: { oid: oid },
+        dataType: "json",
+        success: function(res) {
+            // Populate Order info
+            if (res.order) {
+                let ord = res.order;
+                $('#copm_cust_name').text(ord.cust_name || 'N/A');
+                $('#copm_contact').text(ord.contact_no || 'N/A');
+                $('#copm_order_date').text(ord.created_at || ord.sale_date || 'N/A');
+
+                if (ord.order_status === 'cancelled' || ord.sales_status == 3) {
+                    $('#copm_status_badge').html('<i class="fa fa-ban mr-1"></i> CANCELLED').removeClass('badge-success').addClass('badge-danger').show();
+                } else {
+                    $('#copm_status_badge').html('<i class="fa fa-clock-o mr-1"></i> ' + (ord.order_status ? ord.order_status.toUpperCase() : 'PENDING')).removeClass('badge-danger').addClass('badge-info').show();
+                }
+
+                if (ord.cancellation_reason && ord.cancellation_reason.trim() !== '') {
+                    $('#copm_cancel_reason').text(ord.cancellation_reason);
+                    $('#copm_cancellation_box').show();
+                }
+
+                $('#copm_total_val').text('Rs ' + (parseFloat(ord.total_item_price) || 0).toFixed(2));
+                $('#copm_discount').text('Rs ' + (parseFloat(ord.total_discount) || 0).toFixed(2));
+                $('#copm_payable').text('Rs ' + (parseFloat(ord.total_payable) || 0).toFixed(2));
+                $('#copm_paid').text('Rs ' + (parseFloat(ord.pay_amount) || 0).toFixed(2));
+                $('#copm_balance').text('Rs ' + (parseFloat(ord.pending_amount) || 0).toFixed(2));
+            }
+
+            // Populate Products
+            let tbody = $('#copm_products_tbody');
+            tbody.empty();
+
+            if (!res.data || res.data.length === 0) {
+                tbody.html('<tr><td colspan="8" class="text-center text-muted py-4"><i class="fa fa-info-circle mr-1"></i> No items found for this order.</td></tr>');
+            } else {
+                res.data.forEach(function(item, idx) {
+                    let rxHtml = '<span class="text-muted" style="font-size:12px;">Non-prescription</span>';
+                    if (item.has_prescription && item.rx) {
+                        let rx = item.rx;
+                        let rDetails = (rx.r_sph || rx.r_cyl || rx.r_axis || rx.r_add) 
+                            ? `<strong>R:</strong> SPH: ${rx.r_sph || '-'}, CYL: ${rx.r_cyl || '-'}, AXIS: ${rx.r_axis || '-'}, ADD: ${rx.r_add || '-'}` 
+                            : '';
+                        let lDetails = (rx.l_sph || rx.l_cyl || rx.l_axis || rx.l_add) 
+                            ? `<strong>L:</strong> SPH: ${rx.l_sph || '-'}, CYL: ${rx.l_cyl || '-'}, AXIS: ${rx.l_axis || '-'}, ADD: ${rx.l_add || '-'}` 
+                            : '';
+                        let pdDetails = rx.total_pd ? `<br><small class="text-muted">PD: ${rx.total_pd}</small>` : '';
+                        let fileLink = rx.file_url ? `<br><a href="${rx.file_url}" target="_blank" class="badge badge-info mt-1"><i class="fa fa-paperclip mr-1"></i> View Rx File</a>` : '';
+                        rxHtml = `<div style="font-size: 11px; line-height: 1.4;">${rDetails ? rDetails + '<br>' : ''}${lDetails}${pdDetails}${fileLink}</div>`;
+                    }
+
+                    let statusBadge = (item.item_status === 'cancelled' || (res.order && (res.order.order_status === 'cancelled' || res.order.sales_status == 3)))
+                        ? '<span class="badge badge-danger" style="background-color:#dc2626; color:#fff; font-size:11px; padding:3px 6px;">Cancelled</span>'
+                        : '<span class="badge badge-success" style="font-size:11px; padding:3px 6px;">Active</span>';
+
+                    let itemRow = `
+                        <tr>
+                            <td class="text-center font-weight-bold">${idx + 1}</td>
+                            <td><span class="badge badge-dark" style="font-size: 11px;">${item.product_type || 'N/A'}</span></td>
+                            <td class="font-weight-bold text-dark">${item.product_code || 'N/A'}</td>
+                            <td>${item.product_deatils || '-'}</td>
+                            <td class="text-center font-weight-bold">${item.qty || 1}</td>
+                            <td class="font-weight-bold text-dark">Rs ${(parseFloat(item.sale_price) || 0).toFixed(2)}</td>
+                            <td>${rxHtml}</td>
+                            <td class="text-center">${statusBadge}</td>
+                        </tr>
+                    `;
+                    tbody.append(itemRow);
+                });
+            }
+
+            $('#CancelledOrderProductModal').modal('show');
+        },
+        error: function() {
+            $.toaster({
+                priority: 'danger',
+                title: 'Error',
+                message: 'Failed to fetch product details for Order #' + oid,
+                timeout: 4000
+            });
+        },
+        complete: function() {
+            $("#ajaxLoader").fadeOut();
         }
     });
+}
+
+/* ============================
+ * View Cancellation Reason Modal Handler
+ * ============================ */
+$(document).on('click', '.btn-show-cancel-reason', function () {
+    let oid    = $(this).data('oid');
+    let reason = decodeURIComponent($(this).data('reason') || 'No cancellation reason specified');
+    let cust   = decodeURIComponent($(this).data('cust') || 'N/A');
+
+    $('#cancelReasonOrderNo').text(oid);
+    $('#cancelReasonCustName').text(cust);
+    $('#cancelReasonText').text(reason);
+    $('#CancelReasonModal').modal('show');
 });
 </script>
+
 
 
 

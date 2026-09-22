@@ -59,11 +59,15 @@ input.loading {
 /* Cancelled order row highlight in red */
 .row-cancelled, 
 table.dataTable tbody tr.row-cancelled, 
-table.dataTable tbody tr.row-cancelled > td {
-    background-color: #fef2f2 !important;
+table.dataTable tbody tr.row-cancelled > td,
+table.dataTable tbody tr.row-cancelled:hover,
+table.dataTable tbody tr.row-cancelled:hover > td,
+table.dataTable.table-striped tbody tr.row-cancelled:nth-of-type(odd),
+table.dataTable.table-striped tbody tr.row-cancelled:nth-of-type(odd) > td {
+    background-color: #ffdada !important;
 }
 table.dataTable tbody tr.row-cancelled {
-    border-left: 4px solid #dc2626 !important;
+    border-left: 6px solid #dc2626 !important;
 }
 
 /* Action button for viewing cancellation reason */

@@ -567,6 +567,7 @@ class B2cOrderController extends Controller
 
         $order = Sale::findOrFail($id);
         $order->order_status = 'cancelled';
+        $order->cancellation_reason = $request->input('cancellation_reason');
         $order->admin_note   = ($order->admin_note ? $order->admin_note . " | " : "") . "Cancelled: " . $request->input('cancellation_reason');
         $order->save();
 
