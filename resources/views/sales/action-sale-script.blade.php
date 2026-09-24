@@ -405,6 +405,9 @@ let dataListView = $('.datatables-basic')
         ],
         displayLength: 10,
     });
+    
+    
+    
      let debounceTimer;
     $('.input').on('keyup', function() {
         clearTimeout(debounceTimer);
@@ -413,6 +416,8 @@ let dataListView = $('.datatables-basic')
             column.search($(this).val()).draw();
         }.bind(this), 500);
     });
+    
+    
     
     $('.select').on('change', function() 
     {
@@ -1961,216 +1966,304 @@ let dataListView = $('.datatables-basic')
                 response.data.forEach(function(p, index) {
     
                     // Full HTML template for a single prescription
+                    let wearingTypes = p.wearing_type
+                        ? (Array.isArray(p.wearing_type)
+                            ? p.wearing_type
+                            : String(p.wearing_type).split(','))
+                        : [];
+                
+                    let rightChecked = false;
+                    let leftChecked = false;
+                    
+                    let rightLeft = String(p.right_left || '').split(',').map(x => x.trim());
+                    
+                    if (p.qty == 2) {
+                        rightChecked = true;
+                        leftChecked = true;
+                    } else {
+                        rightChecked = rightLeft.includes('Right');
+                        leftChecked = rightLeft.includes('Left');
+                    }
+                    const prescriptionBaseUrl = "{{ url('/public') }}/";
+                    let rxImageUrl = p.prescription_file_url  ? prescriptionBaseUrl + p.prescription_file_url.replace(/^\/+/, '') : '';
                     let html = `
-                    <div class="row prescription-section mb-4 border p-3">
-                        <!-- Product info -->
-                        <div class="12">
-                            <h5>Product type : <span class="ptype">${p.product_type || ''}</span></h5>
-                            <h5>Description  : <span class="pdescription">${p.product_deatils || ''}</span></h5>
+                    <div class="prescription-card">
+                
+                        <!-- HEADER -->
+                        <div class="prescription-card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4><i class="fa fa-eye me-2"></i> Prescription ${index + 1}</h4>
+                                <h4>Product type : <span class="ptype">${p.product_type || ''}</span></h5>
+                                <h4>Description  : <span class="pdescription">${p.product_deatils || ''}</span></h5>
+                                <span class="badge bg-secondary">
+                                    ${p.product_type || 'Eyewear'}
+                                </span>
+                            </div>
                         </div>
-    
-                        <!-- Eyewear Prescription -->
-                        <div class="col-md-6">
-                            <h5>Eyewear Prescription</h5>
-                            <div class="table-responsive">
-                                <table align="left" id="gl-eyewear-powers" style="float: none; font-size: 13px;">
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <!-- Right Eye -->
-                                                <table align="left" id="gl-eyewear-right">
+                        <div class="prescription-card-body">
+                            <div class="row g-3 mb-4">
+                                <!-- PRESCRIPTION IMAGE -->
+                                ${rxImageUrl ? `
+                                <div class="col-lg-4">
+                                    <div class="parameter-box prescription-image-viewer-wrap">
+                                        <h6 class="mb-3"><i class="fa fa-image me-1"></i>Uploaded Prescription</h6>
+                                        <div class="rx-image-toolbar mb-2">
+                                            <button type="button" class="btn btn-sm btn-outline-primary rx-zoom-in" title="Zoom In"> <i class="fa fa-search-plus"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rx-zoom-out" title="Zoom Out"><i class="fa fa-search-minus"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rx-rotate" title="Rotate"> <i class="fa fa-repeat"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rx-reset" title="Reset"><i class="fa fa-refresh"></i></button>
+                                            <a href="${rxImageUrl}" download target="_blank" class="btn btn-sm btn-outline-primary" title="Download">
+                                                <i class="fa fa-download"></i>
+                                            </a>
+                                        </div>
+                                        <div class="rx-image-container">
+                                            <img src="${rxImageUrl}" class="rx-prescription-img" data-zoom="1" data-rotate="0" style="max-width:100%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                
+                                <!-- EYE POWERS -->
+                                <div class="${p.prescription_file_url ? 'col-lg-8' : 'col-lg-12'}">
+                                    <div class="row g-3">
+                                        <!-- RIGHT EYE -->
+                                        <div class="col-xl-6">
+                                            <div class="eye-card">
+                                                <div class="eye-card-header">
+                                                    RIGHT EYE (OD) <i class="fa fa-clone copy-right-to-left" title="Copy To Left"></i>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="eye-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th></th>
+                                                                <th>SPH</th>
+                                                                <th>CYL</th>
+                                                                <th>AXIS</th>
+                                                                <th><span class="mandatory">*</span>PD</th>
+                                                                <th>VA</th>
+                                                                <th class="hide-prism">PRISM</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>Distance</td>
+                                                                <td><input type="text" name="GL_EYE_RS_D_${index}" value="${p.GL_EYE_RS_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RC_D_${index}" value="${p.GL_EYE_RC_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RA_D_${index}" value="${p.GL_EYE_RA_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RP_D_${index}" value="${p.GL_EYE_RP_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RV_D_${index}" value="${p.GL_EYE_RV_D || ''}"></td>
+                                                                <td class="hide-prism"><input type="text" name="GL_EYE_RPRISM_D_${index}" value="${p.GL_EYE_RPRISM_D || ''}"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Near</td>
+                                                                <td><input type="text" name="GL_EYE_RS_N_${index}" value="${p.GL_EYE_RS_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RC_N_${index}" value="${p.GL_EYE_RC_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RA_N_${index}" value="${p.GL_EYE_RA_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RP_N_${index}" value="${p.GL_EYE_RP_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_RV_N_${index}" value="${p.GL_EYE_RV_N || ''}"></td>
+                                                                <td class="hide-prism"><input type="text" name="GL_EYE_RPRISM_N_${index}" value="${p.GL_EYE_RPRISM_N || ''}"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>ADD</td>
+                                                                <td colspan="6"><input type="text" name="GL_EYE_RADD_${index}" value="${p.GL_EYE_RADD || ''}"></td>
+                                                            </tr>
+                                                            <tr class="hide-total-pd">
+                                                                <td>Total PD</td>
+                                                                <td colspan="6"><input type="text" name="GL_EYE_totalPD_${index}" value="${p.GL_EYE_totalPD || ''}"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                
+                                        <!-- LEFT EYE -->
+                                        <div class="col-xl-6">
+                                            <div class="eye-card">
+                                                <div class="eye-card-header">
+                                                    <i class="fa fa-clone copy-left-to-right"  title="Copy To Right"></i> LEFT EYE (OS)
+                                                </div>
+                                                <div class="table-responsive">
+                                                <table class="eye-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>SPH</th>
+                                                            <th>CYL</th>
+                                                            <th>AXIS</th>
+                                                            <th><span class="mandatory">*</span>PD</th>
+                                                            <th>VA</th>
+                                                            <th class="hide-prism">PRISM</th>
+                                                        </tr>
+                                                    </thead>
                                                     <tbody>
-                                                        <tr>
-                                                            <td></td>
-                                                            <td colspan="6" align="center" style="font-size: 15px; font-weight: bold; text-decoration: underline;">RIGHT EYE (OD)
-                                                            <i class="fa fa-clone fa-solid copy-right-to-left" style="margin-left: 15px;font-weight: bolder;font-size: large; cursor: pointer; color:#ff7200;" title="Copy To Left"></i>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td></td>
-                                                            <td style="text-align:center">R-SPH</td>
-                                                            <td style="text-align:center">R-CYL</td>
-                                                            <td style="text-align:center">R-AXIS</td>
-                                                            <td style="text-align:center"><span class="mandatory">*</span>R-PD</td>
-                                                            <td style="text-align:center">R-VA</td>
-                                                            <td style="text-align:center; display:none;" class="hide-prism">R-PRISM</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Distance Vision (DV)</td>
-                                                            <td><input type="text" name="GL_EYE_RS_D" class="search_input_function" value="${p.GL_EYE_RS_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RC_D" class="search_input_function" value="${p.GL_EYE_RC_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RA_D" class="search_input_function" value="${p.GL_EYE_RA_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RP_D" class="search_input_function" value="${p.GL_EYE_RP_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RV_D" class="search_input_function" value="${p.GL_EYE_RV_D || ''}" style="width:45px;"></td>
-                                                            <td style="display:none;" class="hide-prism"><input type="text" name="GL_EYE_RPRISM_D" class="search_input_function" value="${p.GL_EYE_RPRISM_D || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Near Vision (NV)</td>
-                                                            <td><input type="text" name="GL_EYE_RS_N" class="search_input_function" value="${p.GL_EYE_RS_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RC_N" class="search_input_function" value="${p.GL_EYE_RC_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RA_N" class="search_input_function" value="${p.GL_EYE_RA_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RP_N" class="search_input_function" value="${p.GL_EYE_RP_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_RV_N" class="search_input_function" value="${p.GL_EYE_RV_N || ''}" style="width:45px;"></td>
-                                                            <td style="display:none;" class="hide-prism"><input type="text" name="GL_EYE_RPRISM_N" class="search_input_function" value="${p.GL_EYE_RPRISM_N || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Addition (ADD)</td>
-                                                            <td><input type="text" name="GL_EYE_RADD" class="search_input_function" value="${p.GL_EYE_RADD || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                        <tr class="hide-total-pd">
-                                                            <td>IPD (Total PD)</td>
-                                                            <td><input type="text" name="GL_EYE_totalPD" class="search_input_function" value="${p.total_pd || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </td>
-    
-                                            <!-- Left Eye -->
-                                            <td style="vertical-align: top;">
-                                                <table align="left" id="gl-eyewear-left">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td colspan="6" align="center" style="font-size: 15px; font-weight: bold; text-decoration: underline;">
-                                                            <i class="fa fa-clone copy-left-to-right" style="margin-right: 15px;font-weight: bolder;font-size: large; cursor: pointer; color:#ff7200;" title="Copy To Right"></i>LEFT EYE (OS)
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="text-align:center">L-SPH</td>
-                                                            <td style="text-align:center">L-CYL</td>
-                                                            <td style="text-align:center">L-AXIS</td>
-                                                            <td style="text-align:center"><span class="mandatory">*</span>L-PD</td>
-                                                            <td style="text-align:center">L-VA</td>
-                                                            <td style="text-align:center; display:none;" class="hide-prism">L-PRISM</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text" name="GL_EYE_LS_D" class="search_input_function" value="${p.GL_EYE_LS_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LC_D" class="search_input_function" value="${p.GL_EYE_LC_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LA_D" class="search_input_function" value="${p.GL_EYE_LA_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LP_D" class="search_input_function" value="${p.GL_EYE_LP_D || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LV_D" class="search_input_function" value="${p.GL_EYE_LV_D || ''}" style="width:45px;"></td>
-                                                            <td style="display:none;" class="hide-prism"><input type="text" name="GL_EYE_LPRISM_D" class="search_input_function" value="${p.GL_EYE_LPRISM_D || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text" name="GL_EYE_LS_N" class="search_input_function" value="${p.GL_EYE_LS_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LC_N" class="search_input_function" value="${p.GL_EYE_LC_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LA_N" class="search_input_function" value="${p.GL_EYE_LA_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LP_N" class="search_input_function" value="${p.GL_EYE_LP_N || ''}" style="width:45px;"></td>
-                                                            <td><input type="text" name="GL_EYE_LV_N" class="search_input_function" value="${p.GL_EYE_LV_N || ''}" style="width:45px;"></td>
-                                                            <td style="display:none;" class="hide-prism"><input type="text" name="GL_EYE_LPRISM_N" class="search_input_function" value="${p.GL_EYE_LPRISM_N || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td><input type="text" name="GL_EYE_LADD" class="search_input_function" value="${p.GL_EYE_LADD || ''}" style="width:45px;"></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-    
-                        <!-- Wearing Parameters -->
-                        <div class="col-md-6">
-                            <h5>Wearing Parameters</h5>
-                            <div class="row">
-                               <div class="col-md-12">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input frametype-input" type="radio" name="frametypeglass_${index}" value="Full frame" ${p.frametypeglass === 'Full frame' ? 'checked' : ''}>
-                                        <label class="form-check-label">Full frame</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input frametype-input" type="radio" name="frametypeglass_${index}" value="Half frame" ${p.frametypeglass === 'Half frame' ? 'checked' : ''}>
-                                        <label class="form-check-label">Half frame</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input frametype-input" type="radio" name="frametypeglass_${index}" value="Rimless frame" ${p.frametypeglass === 'Rimless frame' ? 'checked' : ''}>
-                                        <label class="form-check-label">Rimless frame</label>
+                                                            <tr>
+                                                                <td><input type="text" name="GL_EYE_LS_D_${index}" value="${p.GL_EYE_LS_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LC_D_${index}" value="${p.GL_EYE_LC_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LA_D_${index}" value="${p.GL_EYE_LA_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LP_D_${index}" value="${p.GL_EYE_LP_D || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LV_D_${index}" value="${p.GL_EYE_LV_D || ''}"></td>
+                                                                <td class="hide-prism"><input type="text" name="GL_EYE_LPRISM_D_${index}" value="${p.GL_EYE_LPRISM_D || ''}"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><input type="text" name="GL_EYE_LS_N_${index}" value="${p.GL_EYE_LS_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LC_N_${index}" value="${p.GL_EYE_LC_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LA_N_${index}" value="${p.GL_EYE_LA_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LP_N_${index}" value="${p.GL_EYE_LP_N || ''}"></td>
+                                                                <td><input type="text" name="GL_EYE_LV_N_${index}" value="${p.GL_EYE_LV_N || ''}"></td>
+                                                                <td class="hide-prism"><input type="text" name="GL_EYE_LPRISM_N_${index}" value="${p.GL_EYE_LPRISM_N || ''}"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="6"><input type="text" name="GL_EYE_LADD_${index}" value="${p.GL_EYE_LADD || ''}"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="6"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                           <div class="row mt-2 prescription-frame-row">
-                                <div class="col-md-3"><label>Fitting Height</label>
-                                    <input type="text" class="form-control frame-fh" name="frame_fh" value="${p.frame_fh || ''}">
+                
+                            <!-- WEARING PARAMETERS -->
+                            <div class="section-title">
+                                <i class="fa fa-sliders me-1"></i>  Wearing Parameters
+                            </div>
+                
+                            <div class="parameter-box mb-4">
+                                <div class="row g-3">
+                                <div class="mb-3 col-md-4 lens-types">
+                                    <label class="form-label-custom">Frame Type</label>
+                                    <div>
+                                        <label class="form-check form-check-inline">
+                                            <input class="form-check-input frametype-input" type="radio" name="frametypeglass_${index}" value="Full frame" ${p.frametypeglass === 'Full frame' ? 'checked' : ''}>
+                                            <span class="form-check-label"> Full Frame  </span>
+                                        </label>
+                                        <label class="form-check form-check-inline">
+                                            <input class="form-check-input frametype-input" type="radio" name="frametypeglass_${index}" value="Half frame" ${p.frametypeglass === 'Half frame' ? 'checked' : ''}>
+                                            <span class="form-check-label"> Half Frame </span>
+                                        </label>
+                                        <label class="form-check form-check-inline">
+                                            <input class="form-check-input frametype-input" type="radio"  name="frametypeglass_${index}"  value="Rimless frame"   ${p.frametypeglass === 'Rimless frame' ? 'checked' : ''}>
+                                            <span class="form-check-label">Rimless Frame </span>
+                                        </label>
+                
+                                    </div>
+                
                                 </div>
-                                <div class="col-md-3 framesizea"><label>A Size</label>
-                                    <input type="text" class="form-control frame-asize" name="frame_asize" value="${p.frame_asize || ''}">
+                                <div class="mb-3 col-md-3 lens-types">
+                                        <label class="form-label-custom mb-0">
+                                            Count In Eye Testing Records?
+                                        </label>
+                                        <div>
+                                            <label class="form-check form-check-inline">
+                                                <input class="form-check-input"  type="radio" name="count_eye_test_${index}" value="1"${p.count_eye_test == 1 ? 'checked' : ''}>
+                                                <span class="form-check-label"> Yes  </span>
+                                            </label>
+                                            <label class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="count_eye_test_${index}" value="0" ${p.count_eye_test == 0 ? 'checked' : ''}>
+                                                <span class="form-check-label"> No</span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-3 framesizeb"><label>B Size</label>
-                                    <input type="text" class="form-control frame-bsize" name="frame_bsize" value="${p.frame_bsize || ''}">
-                                </div>
-                                <div class="col-md-3"><label>DBL</label>
-                                    <input type="text" class="form-control frame-dbl" name="frame_dbl" value="${p.frame_dbl || ''}">
-                                </div>
-                                <div class="col-md-3"><label>ED</label>
-                                    <input type="text" class="form-control frame-ed" name="frame_ed" value="${p.frame_ed || ''}">
+                                <div class="row g-3">
+                                    <div class="col-md-2">
+                                        <label class="form-label-custom"> Fitting Height</label>
+                                        <input type="text" class="form-control frame-fh" name="frame_fh_${index}" value="${p.frame_fh || ''}">
+                                    </div>
+                                    <div class="col-md-2 framesizea">
+                                        <label class="form-label-custom">A Size</label>
+                                        <input type="text" class="form-control frame-asize" name="frame_asize_${index}" value="${p.frame_asize || ''}">
+                                    </div>
+                                    <div class="col-md-2 framesizeb">
+                                        <label class="form-label-custom">B Size</label>
+                                        <input type="text" class="form-control frame-bsize" name="frame_bsize_${index}" value="${p.frame_bsize || ''}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label-custom">DBL</label>
+                                        <input type="text" class="form-control frame-dbl" name="frame_dbl_${index}" value="${p.frame_dbl || ''}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label-custom">ED</label>
+                                        <input type="text" class="form-control frame-ed" name="frame_ed_${index}" value="${p.frame_ed || ''}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label-custom">Eye</label>
+                                        <div class="pt-1">
+                                            <label class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="modal_rightleft_${index}[]" value="Right" ${rightChecked ? 'checked' : ''}>
+                                                <span class="form-check-label">Right</span>
+                                            </label>
+                                            <label class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="modal_rightleft_${index}[]" value="Left" ${leftChecked ? 'checked' : ''}>
+                                                <span class="form-check-label">Left</span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div class="mt-2">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" 
-                                           name="modal_rightleft[]" 
-                                           value="Right" 
-                                           ${p.qty === 2 ? 'checked' : (p.right_left ? 'checked' : '')}>
-                                    <label class="form-check-label">Right</label>
+                            <!-- PATIENT INFORMATION -->
+                            <div class="section-title"><i class="fa fa-user me-1"></i>Patient & Doctor Information</div>
+                
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">Patient Name</label>
+                                    <input type="text" class="form-control" name="patient_name_${index}" value="${p.patient_name || ''}">
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" 
-                                           name="modal_rightleft[]" 
-                                           value="Left" 
-                                           ${p.qty === 2 ? 'checked' : (p.right_left ? 'checked' : '')}>
-                                    <label class="form-check-label">Left</label>
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">Doctor / Optometrist Name</label>
+                                    <input type="text" class="form-control" name="doc_name_${index}" value="${p.doc_name || ''}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">Prescription Notes</label>
+                                    <input type="text" class="form-control" name="prescription_notes_${index}" value="${p.prescription_notes || ''}">
                                 </div>
                             </div>
-                        </div>
-    
-                        <!-- Patient & Doctor Info -->
-                        <div class="col-md-3 mt-2">
-                            <label>Patient Name</label>
-                            <input type="text" class="form-control" name="patient_name" value="${p.patient_name || ''}">
-                        </div>
-                        <div class="col-md-3 mt-2">
-                            <label>Doctor / Optometrist Name</label>
-                            <input type="text" class="form-control" name="doc_name" value="${p.doc_name || ''}">
-                        </div>
-    
-                        <!-- Lens Type -->
-                        <div class="col-md-6 mt-2">
-                            <label>Lens Type:</label><br>
-                            ${['Constant Use','Reading Wear','Distance Wear','Single Vision','Progressive','Bifocal','Trifocal'].map(type => `
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="glassWearingType_${index}[]" value="${type}" ${p.wearing_type?.includes(type) ? 'checked' : ''}>
-                                    <label class="form-check-label">${type}</label>
-                                </div>
-                            `).join('')}
-                        </div>
-    
-                        <!-- Prescription Notes -->
-                        <div class="col-md-4 mt-2">
-                            <label>Prescription Notes:</label>
-                            <input type="text" class="form-control" name="prescription_notes" value="${p.prescription_notes || ''}">
-                        </div>
-    
-                        <!-- Count in Eye Testing Records -->
-                        <div class="col-md-4 mt-2">
-                            <label>Count In Eye Testing Records?</label><br>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="count_eye_test_${index}" value="1" ${p.count_eye_test == 1 ? 'checked' : ''}>
-                              <label class="form-check-label">Yes</label>
+                            <!-- LENS TYPE -->
+                            <div class="section-title"><i class="fa fa-cogs me-1"></i>Lens Type</div>
+                            <div class="lens-types mb-4">
+                                ${
+                                    [
+                                        'Constant Use',
+                                        'Reading Wear',
+                                        'Distance Wear',
+                                        'Single Vision',
+                                        'Progressive',
+                                        'Bifocal',
+                                        'Trifocal'
+                                    ].map(type => `
+                                        <label class="form-check form-check-inline">
+                                            <input class="form-check-input" type="checkbox" name="glassWearingType_${index}[]" value="${type}" ${wearingTypes.includes(type) ? 'checked' : ''}>
+                                            <span class="form-check-label">${type}</span>
+                                        </label>
+                
+                                    `).join('')
+                                }
                             </div>
-                            <div class="form-check form-check-inline">
-                              <input class="form-check-input" type="radio" name="count_eye_test_${index}" value="0" ${p.count_eye_test == 0 ? 'checked' : ''}>
-                              <label class="form-check-label">No</label>
-                            </div>
+                        </div>
+                        <!-- FOOTER -->
+                        <div class="prescription-footer">
+                            <input type="hidden" name="pid_${index}" value="${p.id || ''}">
+                            <small class="text-muted"> Prescription ID:  <strong>${p.id || 'New'}</strong>  </small>
                         </div>
                     </div>
-                    
                     <input type="hidden" class="form-control" value="${p.id || ''}" name="pid">
                     `;
     
                     // Append prescription HTML
                     $('#Prescriptionglassdiv').append(html);
+                    
+                    $(`input[name="GL_EYE_RP_D_${index}"], input[name="GL_EYE_LP_D_${index}"]`)
+                        .off('input.totalpd change.totalpd')
+                        .on('input.totalpd change.totalpd', function () {
+                            calculateTotalPD(index);
+                        });
+                    
+                    calculateTotalPD(index);
                 });
     
                 if (isReadOnly) {
@@ -2191,7 +2284,130 @@ let dataListView = $('.datatables-basic')
             }
         });
     }
-
+    
+    function calculateTotalPD(index) {
+        const rightPD = parseFloat($(`input[name="GL_EYE_RP_D_${index}"]`).val()) || 0;
+        const leftPD  = parseFloat($(`input[name="GL_EYE_LP_D_${index}"]`).val()) || 0;
+    
+        const total = rightPD + leftPD;
+    
+        // Only update if at least one value is entered
+        if (rightPD || leftPD) {
+            $(`input[name="GL_EYE_totalPD_${index}"]`).val(total.toFixed(1).replace(/\.0$/, ''));
+        } else {
+            $(`input[name="GL_EYE_totalPD_${index}"]`).val('');
+        }
+    }
+    
+    
+    // Copy Right Eye → Left Eye
+    $(document).on('click', '.copy-right-to-left', function () {
+        const $card = $(this).closest('.prescription-card');
+        const index = $card.find('input[name^="GL_EYE_RS_D_"]').attr('name').split('_').pop();
+    
+        // Distance
+        $card.find(`input[name="GL_EYE_LS_D_${index}"]`).val($card.find(`input[name="GL_EYE_RS_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LC_D_${index}"]`).val($card.find(`input[name="GL_EYE_RC_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LA_D_${index}"]`).val($card.find(`input[name="GL_EYE_RA_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LP_D_${index}"]`).val($card.find(`input[name="GL_EYE_RP_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LV_D_${index}"]`).val($card.find(`input[name="GL_EYE_RV_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LPRISM_D_${index}"]`).val($card.find(`input[name="GL_EYE_RPRISM_D_${index}"]`).val());
+    
+        // Near
+        $card.find(`input[name="GL_EYE_LS_N_${index}"]`).val($card.find(`input[name="GL_EYE_RS_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LC_N_${index}"]`).val($card.find(`input[name="GL_EYE_RC_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LA_N_${index}"]`).val($card.find(`input[name="GL_EYE_RA_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LP_N_${index}"]`).val($card.find(`input[name="GL_EYE_RP_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LV_N_${index}"]`).val($card.find(`input[name="GL_EYE_RV_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_LPRISM_N_${index}"]`).val($card.find(`input[name="GL_EYE_RPRISM_N_${index}"]`).val());
+    
+        // ADD
+        $card.find(`input[name="GL_EYE_LADD_${index}"]`).val($card.find(`input[name="GL_EYE_RADD_${index}"]`).val());
+    
+        // Recalculate Total PD after copy
+        if (typeof calculateTotalPD === 'function') {
+            calculateTotalPD(index);
+        }
+    
+    });
+    
+    // Copy Left Eye → Right Eye
+    $(document).on('click', '.copy-left-to-right', function () {
+        const $card = $(this).closest('.prescription-card');
+        const index = $card.find('input[name^="GL_EYE_LS_D_"]').attr('name').split('_').pop();
+    
+        // Distance
+        $card.find(`input[name="GL_EYE_RS_D_${index}"]`).val($card.find(`input[name="GL_EYE_LS_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RC_D_${index}"]`).val($card.find(`input[name="GL_EYE_LC_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RA_D_${index}"]`).val($card.find(`input[name="GL_EYE_LA_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RP_D_${index}"]`).val($card.find(`input[name="GL_EYE_LP_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RV_D_${index}"]`).val($card.find(`input[name="GL_EYE_LV_D_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RPRISM_D_${index}"]`).val($card.find(`input[name="GL_EYE_LPRISM_D_${index}"]`).val());
+    
+        // Near
+        $card.find(`input[name="GL_EYE_RS_N_${index}"]`).val($card.find(`input[name="GL_EYE_LS_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RC_N_${index}"]`).val($card.find(`input[name="GL_EYE_LC_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RA_N_${index}"]`).val($card.find(`input[name="GL_EYE_LA_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RP_N_${index}"]`).val($card.find(`input[name="GL_EYE_LP_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RV_N_${index}"]`).val($card.find(`input[name="GL_EYE_LV_N_${index}"]`).val());
+        $card.find(`input[name="GL_EYE_RPRISM_N_${index}"]`).val($card.find(`input[name="GL_EYE_LPRISM_N_${index}"]`).val());
+    
+        // ADD
+        $card.find(`input[name="GL_EYE_RADD_${index}"]`).val($card.find(`input[name="GL_EYE_LADD_${index}"]`).val());
+    
+        // Recalculate Total PD after copy
+        if (typeof calculateTotalPD === 'function') {
+            calculateTotalPD(index);
+        }
+    
+       
+    });
+        /* -------------------------
+           Prescription Image Viewer
+           (Zoom, Rotate, Download)
+        ------------------------- */
+        function applyRxImageTransform($img) {
+            let zoom = parseFloat($img.data('zoom')) || 1;
+            let rotate = parseFloat($img.data('rotate')) || 0;
+            $img.css('transform', `scale(${zoom}) rotate(${rotate}deg)`);
+            $img.css('cursor', zoom >= 3 ? 'zoom-out' : 'zoom-in');
+        }
+        
+        $(document).on('click', '.rx-zoom-in', function () {
+            let $img = $(this).closest('.prescription-image-viewer-wrap').find('.rx-prescription-img');
+            let zoom = Math.min((parseFloat($img.data('zoom')) || 1) + 0.25, 3);
+            $img.data('zoom', zoom);
+            applyRxImageTransform($img);
+        });
+        
+        $(document).on('click', '.rx-zoom-out', function () {
+            let $img = $(this).closest('.prescription-image-viewer-wrap').find('.rx-prescription-img');
+            let zoom = Math.max((parseFloat($img.data('zoom')) || 1) - 0.25, 0.5);
+            $img.data('zoom', zoom);
+            applyRxImageTransform($img);
+        });
+        
+        $(document).on('click', '.rx-rotate', function () {
+            let $img = $(this).closest('.prescription-image-viewer-wrap').find('.rx-prescription-img');
+            let rotate = ((parseFloat($img.data('rotate')) || 0) + 90) % 360;
+            $img.data('rotate', rotate);
+            applyRxImageTransform($img);
+        });
+        
+        $(document).on('click', '.rx-reset', function () {
+            let $img = $(this).closest('.prescription-image-viewer-wrap').find('.rx-prescription-img');
+            $img.data('zoom', 1).data('rotate', 0);
+            applyRxImageTransform($img);
+        });
+        
+        // Click the image itself to quick-cycle zoom
+        $(document).on('click', '.rx-prescription-img', function () {
+            let $img = $(this);
+            let zoom = parseFloat($img.data('zoom')) || 1;
+            zoom = zoom >= 2 ? 1 : zoom + 0.5;
+            $img.data('zoom', zoom);
+            applyRxImageTransform($img);
+        });
     /* ========================================================
      * Open Cancelled Order Product Details Modal
      * Shows all items, quantities, prices, descriptions, and cancellation reason

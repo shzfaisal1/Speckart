@@ -41,6 +41,7 @@ class TaxMasterController extends Controller
     
     public function store(Request $request)
     {
+      
         $validator = Validator::make($request->all(), [
             'product_type'        => 'required|string|max:255',
             'hsn_code'            => 'required|string|max:100',
@@ -147,6 +148,7 @@ class TaxMasterController extends Controller
                 $nestedData['id'] =$template->id; 
                 $nestedData['product_type'] =$template->product_type;
                 $nestedData['hsn_code'] =$template->hsn_code.' '.$checkd;
+                $nestedData['hsn_code_t']   = $template->hsn_code;   
                 $nestedData['percentage'] =$template->percentage.'%';
                 $nestedData['description'] =$template->description;
                 $nestedData['set_default'] =$template->set_default;

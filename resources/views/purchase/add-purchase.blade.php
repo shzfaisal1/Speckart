@@ -189,6 +189,10 @@ input.error
                                                     <option value="Goggles">Goggles</option>
                                                     <option value="Lens">Contact Lens</option>
                                                     <option value="Solution">Solution</option>
+                                                    <option value="ContactLense">ContactLense</option>
+                                                    <option value="Reading Glasses">Reading Glasses</option>
+                                                    <option value="Sunglasses">Sunglasses</option>
+                                                    <option value="Eyeglasses">Eyeglasses</option>
                                                     <option value="Other">Other</option>
                                                 </select>
 

@@ -5391,7 +5391,15 @@ class SalesController extends Controller
         $oid = $request->oid;
     
         $prescription = SaleProduct::where('order_no', $oid)
-            ->where('product_type', 'Glass')
+            ->where(function ($query) {
+                $query->where('product_type', 'Glass')
+                    ->orWhere('store_id', 6); 
+                })
+            ->where(function ($query) {
+                $query->where('GL_EYE_RS_D', '!=', null)
+                    ->orWhere('prescription_file_url', '!=', null); 
+                })    
+            
             ->orderBy('id', 'asc')
             ->get()
             ->unique(function ($item) {
@@ -5406,20 +5414,203 @@ class SalesController extends Controller
                        $item->product_deatils;
             })
             ->values();
-    
+
         return response()->json([
             'data' => $prescription
         ]);
+        
+        
     }
     
     
     public function prescriptionupdate(Request $request)
     {
-        
+        try {
+ 
+            $request->validate([
+                'pid' => 'required',
+                //'pid.*' => ['required', 'integer', 'exists:tbl_sales_product,id'],
+            // ]
+            ]);
+    
+            $pids = is_array($request->pid)
+                ? $request->pid
+                : [$request->pid];
+   
+            foreach ($pids as $index => $pid) {
+    
+                $product = SaleProduct::find($pid);
+    
+                if (!$product) {
+                    continue;
+                }
+    
+                $rules = [
+                    "GL_EYE_RS_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RC_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RA_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RP_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RV_D_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_RS_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RC_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RA_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RP_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RV_N_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_RADD_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_totalPD_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_LS_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LC_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LA_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LP_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LV_D_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_LS_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LC_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LA_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LP_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LV_N_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_LADD_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    // Frame
+                    "frame_fh_{$index}" => ['nullable', 'string', 'max:11'],
+                    "frame_asize_{$index}" => ['nullable', 'string', 'max:50'],
+                    "frame_bsize_{$index}" => ['nullable', 'string', 'max:50'],
+                    "frame_dbl_{$index}" => ['nullable', 'string', 'max:11'],
+                    "frame_ed_{$index}" => ['nullable', 'string', 'max:11'],
+                    "frametypeglass_{$index}" => ['nullable', 'string', 'max:100'],
+    
+                    // Other
+                    "modal_rightleft_{$index}" => ['nullable'],
+                    "patient_name_{$index}" => ['nullable', 'string', 'max:100'],
+                    "doc_name_{$index}" => ['nullable', 'string', 'max:100'],
+                    "prescription_notes_{$index}" => ['nullable', 'string'],
+                    "count_eye_test_{$index}" => ['nullable', 'string', 'max:11'],
+                ];
+    
+                $messages = [];
+    
+                foreach ($rules as $field => $fieldRules) {
+                    $messages["{$field}.max"] =
+                        'Prescription value is too long. Maximum allowed is :max characters.';
+                }
+    
+                $validator = \Validator::make(
+                    $request->all(),
+                    $rules,
+                    $messages
+                );
+    
+                if ($validator->fails()) {
+    
+                    $errors = $validator->errors();
+    
+                    return redirect()
+                        ->back()
+                        ->withErrors($errors)
+                        ->withInput()
+                        ->with('error', 'Please correct the prescription values and try again.');
+                }
+    
+                $wearingType = $request->input("glassWearingType_{$index}", []);
+    
+                if (is_array($wearingType)) {
+                    $wearingType = implode(',', $wearingType);
+                }
+    
+                $rightLeft = $request->input("modal_rightleft_{$index}", []);
+    
+                if (is_array($rightLeft)) {
+                    $rightLeft = implode(',', $rightLeft);
+                }
+    
+                if ($rightLeft !== '' && $rightLeft !== null) {
+    
+                    $rightLeftValues = is_array($request->input("modal_rightleft_{$index}"))
+                        ? $request->input("modal_rightleft_{$index}")
+                        : [$rightLeft];
+    
+                    foreach ($rightLeftValues as $value) {
+    
+                        if (!in_array($value, ['Right', 'Left'], true)) {
+    
+                            return redirect()
+                                ->back()
+                                ->withInput()
+                                ->with(
+                                    'error',
+                                    'Invalid eye selection. Only Right or Left is allowed.'
+                                );
+                        }
+                    }
+                }
+    
+                $product->update([
+    
+                    // Right Eye
+                    'GL_EYE_RS_D' => $request->input("GL_EYE_RS_D_{$index}"),
+                    'GL_EYE_RC_D' => $request->input("GL_EYE_RC_D_{$index}"),
+                    'GL_EYE_RA_D' => $request->input("GL_EYE_RA_D_{$index}"),
+                    'GL_EYE_RP_D' => $request->input("GL_EYE_RP_D_{$index}"),
+                    'GL_EYE_RV_D' => $request->input("GL_EYE_RV_D_{$index}"),
+    
+                    'GL_EYE_RS_N' => $request->input("GL_EYE_RS_N_{$index}"),
+                    'GL_EYE_RC_N' => $request->input("GL_EYE_RC_N_{$index}"),
+                    'GL_EYE_RA_N' => $request->input("GL_EYE_RA_N_{$index}"),
+                    'GL_EYE_RP_N' => $request->input("GL_EYE_RP_N_{$index}"),
+                    'GL_EYE_RV_N' => $request->input("GL_EYE_RV_N_{$index}"),
+    
+                    'GL_EYE_RADD' => $request->input("GL_EYE_RADD_{$index}"),
+                    'GL_EYE_totalPD' => $request->input("GL_EYE_totalPD_{$index}"),
+    
+                    // Left Eye
+                    'GL_EYE_LS_D' => $request->input("GL_EYE_LS_D_{$index}"),
+                    'GL_EYE_LC_D' => $request->input("GL_EYE_LC_D_{$index}"),
+                    'GL_EYE_LA_D' => $request->input("GL_EYE_LA_D_{$index}"),
+                    'GL_EYE_LP_D' => $request->input("GL_EYE_LP_D_{$index}"),
+                    'GL_EYE_LV_D' => $request->input("GL_EYE_LV_D_{$index}"),
+    
+                    'GL_EYE_LS_N' => $request->input("GL_EYE_LS_N_{$index}"),
+                    'GL_EYE_LC_N' => $request->input("GL_EYE_LC_N_{$index}"),
+                    'GL_EYE_LA_N' => $request->input("GL_EYE_LA_N_{$index}"),
+                    'GL_EYE_LP_N' => $request->input("GL_EYE_LP_N_{$index}"),
+                    'GL_EYE_LV_N' => $request->input("GL_EYE_LV_N_{$index}"),
+    
+                    'GL_EYE_LADD' => $request->input("GL_EYE_LADD_{$index}"),
+    
+                    // Frame
+                    'frame_fh' => $request->input("frame_fh_{$index}"),
+                    'frame_asize' => $request->input("frame_asize_{$index}"),
+                    'frame_bsize' => $request->input("frame_bsize_{$index}"),
+                    'frame_dbl' => $request->input("frame_dbl_{$index}"),
+                    'frame_ed' => $request->input("frame_ed_{$index}"),
+                    'frametypeglass' => $request->input("frametypeglass_{$index}"),
+    
+                    // Other
+                    'right_left' => $rightLeft,
+                    'patient_name' => $request->input("patient_name_{$index}"),
+                    'doc_name' => $request->input("doc_name_{$index}"),
+                    'wearing_type' => $wearingType,
+                    'prescription_notes' => $request->input("prescription_notes_{$index}"),
+                    'count_eye_test' => $request->input("count_eye_test_{$index}"),
+                ]);
+            }
+    
+            return redirect()
+                ->back()
+                ->with('success', 'Prescription updated successfully.');
+    
+        } catch (\Exception $e) {
+    
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Unable to update prescription: ' . $e->getMessage());
+        }
     }
-    
-
-    
     
     
     public function interStoreSale()

@@ -106,6 +106,193 @@ table.dataTable tbody tr.row-cancelled {
     cursor: not-allowed !important;
     pointer-events: none !important;
 }
+
+
+
+    .prescription-card {
+        background: #fff;
+        border: 1px solid #e1e5ea;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .prescription-card-header {
+        background: #f7f9fc;
+        border-bottom: 1px solid #e1e5ea;
+        padding: 15px 20px;
+    }
+
+    .prescription-card-header h4 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        color: #2f3b52;
+    }
+
+    .prescription-card-body {
+        padding: 20px;
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2f3b52;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #f0f2f5;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e7ebf0;
+        border-radius: 7px;
+        padding: 12px 15px;
+        height: 100%;
+    }
+
+    .info-box label {
+        display: block;
+        font-size: 12px;
+        color: #7a8494;
+        margin-bottom: 3px;
+    }
+
+    .info-box .value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #252b35;
+    }
+
+    .eye-card {
+        border: 1px solid #dee3e8;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .eye-card-header {
+        background: #f5f7fa;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .eye-card-header i {
+        color: #ff7200;
+        cursor: pointer;
+        margin: 0 8px;
+    }
+
+    .eye-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+    .eye-table th,
+    .eye-table td {
+        border: 1px solid #edf0f3;
+        padding: 7px 5px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .eye-table th {
+        background: #fafbfc;
+        font-weight: 600;
+        color: #5f6875;
+    }
+
+    .eye-table td:first-child {
+        text-align: left;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .eye-table input {
+        width: 55px !important;
+        height: 30px;
+        padding: 3px 5px;
+        text-align: center;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .rx-image-container {
+        overflow: auto;
+        border: 1px solid #ddd;
+        max-height: 400px;
+        text-align: center;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 7px;
+    }
+
+    .rx-prescription-img {
+        max-width: 100%;
+        transition: transform 0.15s ease;
+        cursor: zoom-in;
+    }
+
+    .rx-image-toolbar {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .parameter-box {
+        border: 1px solid #e1e5ea;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fff;
+    }
+
+    .form-label-custom {
+        font-size: 12px;
+        font-weight: 600;
+        color: #5c6675;
+        margin-bottom: 5px;
+    }
+
+    .lens-types {
+        background: #f8fafc;
+        border: 1px solid #e7ebf0;
+        border-radius: 7px;
+        padding: 12px;
+    }
+
+    .lens-types .form-check {
+        margin-right: 12px;
+        margin-bottom: 7px;
+    }
+
+    .prescription-footer {
+        background: #f8f9fb;
+        border-top: 1px solid #e1e5ea;
+        padding: 15px 20px;
+    }
+
+    .mandatory {
+        color: red;
+    }
+
+    @media (max-width: 768px) {
+        .prescription-card-body {
+            padding: 12px;
+        }
+
+        .eye-table {
+            min-width: 650px;
+        }
+
+        .eye-card {
+            overflow-x: auto;
+        }
+    }
 </style>  
 
 @endsection

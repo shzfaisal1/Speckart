@@ -19,7 +19,7 @@ class SaleProduct extends Model
         'product_id', 'product_company', 'product_quality', 'product_material',
         'product_color', 'product_design', 'product_coating', 'product_index',
         'product_number', 'product_ct', 'product_typesss', 'product_validity',
-        'product_shape', 'product_size', 'product_variant', 'right_left', 'doc_name',
+        'product_shape', 'product_size', 'product_variant', 'right_left', 'patient_name', 'doc_name',
         'wearing_type', 'discount_amt', 'package_id', 'coating_apply',
         'frame_dbl', 'frame_ed', 'frame_fh', 'frame_asize', 'frame_bsize', 'frametypeglass',
         'GL_EYE_RS_D', 'GL_EYE_RC_D', 'GL_EYE_RA_D', 'GL_EYE_RP_D', 'GL_EYE_RV_D',
