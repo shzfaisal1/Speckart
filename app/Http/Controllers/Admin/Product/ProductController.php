@@ -42,57 +42,48 @@ class ProductController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('product_name', 'like', "%{$search}%")
                   ->orWhere('product_code', 'like', "%{$search}%")
-                  ->orWhere('Company', 'like', "%{$search}%")
-                  ->orWhere('Description', 'like', "%{$search}%")
                   ->orWhere('parent_product_code', 'like', "%{$search}%")
+                  ->orWhere('Company', 'like', "%{$search}%")
+                  ->orWhere('Color', 'like', "%{$search}%")
+                  ->orWhere('Description', 'like', "%{$search}%")
                   ->orWhere('product_id', 'like', "%{$search}%");
             });
         }
 
-        $totalData     = Product::where('is_b2c', 1)->distinct()->count(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id)'));
-        $totalFiltered = (clone $query)->distinct()->count(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id)'));
+        $totalData     = Product::where('is_b2c', 1)->count();
+        $totalFiltered = (clone $query)->count();
 
-        $parentCodes = (clone $query)->select(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id) as group_key'))
-            ->distinct()
+        $products = (clone $query)
+            ->orderBy('id', 'desc')
             ->offset($start)
             ->limit($limit)
-            ->pluck('group_key');
-
-        $products = Product::where('is_b2c', 1)
-            ->where(function($q) use ($parentCodes) {
-                $q->whereIn('parent_product_code', $parentCodes)
-                  ->orWhereIn('product_id', $parentCodes);
-            })
             ->get();
-            
-        $grouped = $products->groupBy(function($item) {
-            return !empty($item->parent_product_code) ? $item->parent_product_code : $item->product_id;
-        });
 
         $data = [];
-        foreach ($parentCodes as $pkey) {
-            $variants = $grouped->get($pkey);
-            if (!$variants || $variants->isEmpty()) continue;
-
-            $first    = $variants->first();
-            $isActive = $variants->contains('status', '1');
-            $skus     = $variants->pluck('product_code')->filter()->unique()->values()->toArray();
+        foreach ($products as $p) {
+            $typeLower  = strtolower($p->product_type ?: 'frame');
+            $parentCode = $p->parent_product_code ?: $p->product_id;
+            $uploadBase = asset("uploads/{$typeLower}/product/{$parentCode}");
 
             $data[] = [
-                'id'                  => $first->id,
-                'product_id'          => $first->product_id,
-                'product_code'        => $first->parent_product_code ?: $first->product_code,
-                'product_name'        => $first->product_name,
-                'Company'             => $first->Company ?? 'N/A',
-                'product_type'        => $first->product_type,
-                'parent_product_code' => $first->parent_product_code,
-                'skus'                => $skus,
-                'status'              => $isActive ? 1 : 0,
-                'is_b2c'              => $first->is_b2c,
-                'created_at'          => $first->created_at
-                    ? ($first->created_at instanceof \Carbon\Carbon
-                        ? $first->created_at->format('d M, Y')
-                        : date('d M, Y', strtotime($first->created_at)))
+                'id'                  => $p->id,
+                'product_id'          => $p->product_id,
+                'product_code'        => $p->product_code, // Variant SKU: Exercitation sunt pr, demo-1312
+                'parent_product_code' => $p->parent_product_code ?: '–',
+                'product_name'        => $p->product_name,
+                'Company'             => $p->Company ?? 'N/A',
+                'product_type'        => $p->product_type,
+                'color'               => $p->Color,
+                'size'                => $p->Size,
+                'retail_price'        => $p->Retail_Price,
+                'discount_price'      => $p->discount_price,
+                'main_image_url'      => !empty($p->main_image) ? $uploadBase . '/' . $p->main_image : null,
+                'status'              => (int) $p->status,
+                'is_b2c'              => $p->is_b2c,
+                'created_at'          => $p->created_at
+                    ? ($p->created_at instanceof \Carbon\Carbon
+                        ? $p->created_at->format('d M, Y')
+                        : date('d M, Y', strtotime($p->created_at)))
                     : 'N/A',
             ];
         }

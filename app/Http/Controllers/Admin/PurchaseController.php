@@ -798,7 +798,7 @@ class PurchaseController extends Controller
 
         ]);
         
-        dd($request);
+    
     
         if ($validator->fails()) {
             return response()->json([

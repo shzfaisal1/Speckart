@@ -22,6 +22,71 @@
     border-color: #a5b4fc;
     transform: translateY(-1px);
 }
+.variant-color-card {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin: 2px 2px;
+    font-size: 0.78rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.variant-color-card:hover {
+    background-color: #f8fafc;
+    border-color: #6366f1;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(99,102,241,0.15);
+}
+.variant-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1.5px solid #94a3b8;
+    vertical-align: middle;
+    margin-right: 5px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.25);
+}
+.variant-swatch-split {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1.5px solid #94a3b8;
+    vertical-align: middle;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
+.variant-sku-code {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 0.8rem;
+}
+.variant-price-tag {
+    font-weight: 700;
+    color: #16a34a;
+    font-size: 0.72rem;
+    margin-left: 5px;
+    background: #f0fdf4;
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid #bbf7d0;
+}
+.variant-mini-thumb {
+    width: 22px;
+    height: 22px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
 .qv-swatch {
     width: 20px;
     height: 20px;
@@ -61,6 +126,20 @@
     border-radius: 6px;
     border: 1px solid #e2e8f0;
     background: #f8fafc;
+}
+#catalogTable th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle !important;
+    white-space: nowrap;
+}
+#catalogTable td {
+    vertical-align: middle !important;
+    font-size: 0.85rem;
 }
 </style>
 @endsection
@@ -102,8 +181,8 @@
                                     <th>Product Name</th>
                                     <th>Brand / Company</th>
                                     <th>Type</th>
-                                    <th>Variants (SKUs)</th>
-                                    <th>Created At</th>
+                                    <th>Color</th>
+                                    <th>Price</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -120,6 +199,18 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+function formatColorSwatch(colorStr, swatchClass) {
+    swatchClass = swatchClass || 'variant-swatch';
+    if (!colorStr) {
+        return `<span class="${swatchClass}" style="background:#cbd5e1;" title="No color specified"></span>`;
+    }
+    let parts = colorStr.split('/').map(c => c.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+        return `<span class="${swatchClass} variant-swatch-split" style="background: linear-gradient(135deg, ${parts[0]} 50%, ${parts[1]} 50%); margin-right:5px;" title="Colors: ${parts[0]} / ${parts[1]}"></span>`;
+    }
+    return `<span class="${swatchClass}" style="background:${parts[0]}; margin-right:5px;" title="Color: ${parts[0]}"></span>`;
+}
+
 $(document).ready(function() {
     let dataListView = $('#catalogTable')
         .on('preXhr.dt', function() {
@@ -145,27 +236,62 @@ $(document).ready(function() {
                     "data": "product_code", 
                     "orderable": false,
                     "render": function(data, type, full) {
-                        return `<a href="javascript:void(0);" class="view-details-btn text-primary" data-id="${full.product_id}" style="font-weight:700; text-decoration:none;"><i class="fa fa-eye mr-1" style="font-size:0.8rem;"></i>${data || full.product_id}</a>`;
+                        return `<a href="javascript:void(0);" class="view-details-btn text-primary" data-id="${full.product_id}" style="font-weight:700; font-size:0.9rem; text-decoration:none;">${data || full.product_id}</a>`;
                     }
                 },
                 { 
                     "data": "product_name", 
                     "orderable": false,
                     "render": function(data, type, full) {
-                        return `<a href="javascript:void(0);" class="view-details-btn text-dark" data-id="${full.product_id}" style="font-weight:600; text-decoration:none;">${data || '–'}</a>`;
+                        let imgTag = full.main_image_url 
+                            ? `<img src="${full.main_image_url}" class="rounded border mr-2 flex-shrink-0" style="width:38px; height:38px; object-fit:cover;" onerror="this.style.display='none'">` 
+                            : '';
+                        return `
+                            <div class="d-flex align-items-center">
+                                ${imgTag}
+                                <div>
+                                    <a href="javascript:void(0);" class="view-details-btn text-dark" data-id="${full.product_id}" style="font-weight:600; text-decoration:none;">${data || '–'}</a>
+                                    ${full.size ? `<span class="text-muted d-block" style="font-size:0.72rem;">Size: ${full.size}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
                     }
                 },
                 { "data": "Company", "orderable": false },
                 { "data": "product_type", "orderable": false },
                 { 
-                    "data": "skus", 
+                    "data": "color", 
                     "orderable": false,
                     "render": function(data, type, full) {
-                        if (!data || data.length === 0) return '<span class="text-muted">No variants</span>';
-                        return data.map(sku => `<span class="badge-variant view-details-btn" style="cursor:pointer;" data-id="${full.product_id}" title="Click to view details">${sku}</span>`).join(' ');
+                        let swatch = formatColorSwatch(data, 'variant-swatch');
+                        let label = data ? data : '<span class="text-muted">Standard</span>';
+                        return `
+                            <div class="d-flex align-items-center">
+                                ${swatch}
+                                <span style="font-size:0.82rem; font-weight:600; color:#334155;">${label}</span>
+                            </div>
+                        `;
                     }
                 },
-                { "data": "created_at", "orderable": false },
+                { 
+                    "data": "retail_price", 
+                    "orderable": false,
+                    "render": function(data, type, full) {
+                        let effective = full.discount_price || data;
+                        let priceHtml = effective 
+                            ? `<strong class="text-success" style="font-size:0.95rem;">₹${parseFloat(effective).toFixed(0)}</strong>` 
+                            : '<span class="text-muted">–</span>';
+                        let origHtml = (full.discount_price && data && parseFloat(full.discount_price) < parseFloat(data))
+                            ? `<span class="text-muted text-decoration-line-through ml-1" style="font-size:0.75rem; text-decoration:line-through;">₹${parseFloat(data).toFixed(0)}</span>`
+                            : '';
+                        return `
+                            <div>
+                                ${priceHtml} ${origHtml}
+                                <div class="text-muted" style="font-size:0.7rem; margin-top:2px;">${full.created_at}</div>
+                            </div>
+                        `;
+                    }
+                },
                 { 
                     "data": "status", 
                     "orderable": false,
@@ -318,7 +444,7 @@ $(document).ready(function() {
         let variantsHtml = '<h6 style="text-align:left; font-weight:700; color:#1e293b; margin-bottom:12px;"><i class="fa fa-layer-group text-primary mr-1"></i> Color Variants (' + p.variants.length + ' Total)</h6>';
         
         p.variants.forEach((v, idx) => {
-            let colorSwatch = v.Color ? `<span class="qv-swatch" style="background:${v.Color}; margin-right:6px;"></span>` : '';
+            let colorSwatch = formatColorSwatch(v.Color, 'qv-swatch');
             let discountBadge = '';
             if (v.Retail_Price && v.discount_price && parseFloat(v.Retail_Price) > parseFloat(v.discount_price)) {
                 let diff = parseFloat(v.Retail_Price) - parseFloat(v.discount_price);
