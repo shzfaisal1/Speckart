@@ -451,6 +451,9 @@ class OrderController extends Controller
         $sale->admin_note          = ($sale->admin_note ? $sale->admin_note . ' | ' : '') . 'Cancelled by customer via My Orders. Reason: ' . $fullReason;
         $sale->save();
 
+        // Restock physical inventory in Store 6 and live sync website master catalog
+        \App\Services\StockSyncService::restockOrder($sale, 'cancelled');
+
         // Update individual items in tbl_sales_product
         DB::table('tbl_sales_product')->where('sale_id', $sale->sale_id)->update([
             'item_status'         => 'cancelled',

@@ -67,15 +67,51 @@ class PurchaseController extends Controller
     public function getProductWiseCode(Request $request)
     {
         $productType = $request->input('product_type');
-        $query = $request->input('query');
+        $query = trim($request->input('query', ''));
     
         $products = DB::table('tbl_product_code')
-            ->select('productdetails')
+            ->select('product_code', 'productdetails', 'product_name')
             ->where('product_type', $productType)
-            ->where('product_code', 'LIKE', '%' . $query . '%')
+            ->where(function($q) use ($query) {
+                $q->where('product_code', 'LIKE', '%' . $query . '%')
+                  ->orWhere('productdetails', 'LIKE', '%' . $query . '%')
+                  ->orWhere('product_name', 'LIKE', '%' . $query . '%');
+            })
+            ->take(25)
             ->get();
+
+        if ($productType === 'Glass') {
+            $lensPackages = DB::table('lens_packages')
+                ->where(function($q) use ($query) {
+                    $q->where('product_code', 'LIKE', '%' . $query . '%')
+                      ->orWhere('name', 'LIKE', '%' . $query . '%');
+                })
+                ->take(15)
+                ->get();
+
+            $existingCodes = $products->pluck('product_code')->filter()->toArray();
+            foreach ($lensPackages as $lp) {
+                if (!empty($lp->product_code) && !in_array($lp->product_code, $existingCodes)) {
+                    $detailsParts = array_filter([$lp->name, $lp->company, $lp->material, $lp->coating, $lp->lens_index]);
+                    $pDetails = implode(' - ', $detailsParts) ?: $lp->name;
+                    $products->push((object)[
+                        'product_code'   => $lp->product_code,
+                        'productdetails' => $pDetails,
+                        'product_name'   => $lp->name,
+                    ]);
+                }
+            }
+        }
     
-        return response()->json($products);
+        $result = $products->map(function($p) {
+            $displayText = !empty($p->productdetails) ? $p->productdetails : ($p->product_name ?: $p->product_code);
+            return [
+                'product_code'   => $p->product_code ?? '',
+                'productdetails' => $displayText,
+            ];
+        });
+
+        return response()->json($result);
     }
     
     
@@ -120,22 +156,71 @@ class PurchaseController extends Controller
     public function getProductDetails(Request $request)
     {
         $productType = $request->input('product_type');
-        $productdetails = $request->input('productdetails');
+        $productdetails = trim($request->input('productdetails', ''));
     
         $product = DB::table('tbl_product_code')
             ->where('product_type', $productType)
-            ->where('productdetails', $productdetails)
+            ->where(function($q) use ($productdetails) {
+                $q->where('productdetails', $productdetails)
+                  ->orWhere('product_code', $productdetails)
+                  ->orWhere('product_name', $productdetails);
+            })
             ->orderby('id', 'DESC')
             ->first();
+
+        // Fallback for Glass: If not in tbl_product_code yet, search lens_packages and auto-sync
+        if (!$product && $productType === 'Glass') {
+            $pkg = DB::table('lens_packages')
+                ->where('product_code', $productdetails)
+                ->orWhere('name', $productdetails)
+                ->first();
+
+            if ($pkg) {
+                do {
+                    $newProductId = random_int(100000, 999999);
+                } while (DB::table('tbl_product_code')->where('product_id', $newProductId)->exists());
+
+                $detailsParts = array_filter([$pkg->name, $pkg->company, $pkg->material, $pkg->coating, $pkg->lens_index]);
+                $pDetails = implode(' - ', $detailsParts) ?: $pkg->name;
+                $newCode = $pkg->product_code ?: ('LP-' . $pkg->id);
+
+                $insertedId = DB::table('tbl_product_code')->insertGetId([
+                    'product_id'               => $newProductId,
+                    'product_code'             => $newCode,
+                    'product_name'             => $pkg->name,
+                    'productdetails'           => $pDetails,
+                    'product_type'             => 'Glass',
+                    'Company'                  => $pkg->company,
+                    'Index'                    => $pkg->lens_index,
+                    'Coating'                  => $pkg->coating,
+                    'Material'                 => $pkg->material,
+                    'Design'                   => $pkg->design,
+                    'Retail_Price'             => (float) $pkg->current_price,
+                    'Purchase_Price'           => (float) ($pkg->purchase_price ?? 0),
+                    'Purchase_Base_Price'      => (float) ($pkg->purchase_price ?? 0),
+                    'Track_Inventory'          => 1,
+                    'Allow_Negative_Inventory' => 1,
+                    'status'                   => 1,
+                    'stock_status'             => 'in_stock',
+                    'stock_quantity'           => 0,
+                    'created_at'               => now(),
+                    'updated_at'               => now(),
+                ]);
+
+                $product = DB::table('tbl_product_code')->where('id', $insertedId)->first();
+            }
+        }
     
         return response()->json([
             'product_id'   => $product->product_id ?? '',
             'product_code' => $product->product_code ?? '',
             'product_name' => $product->product_name ?? '',
+            'productdetails' => $product->productdetails ?? '',
             'Company'      => $product->Company ?? '',
             'Quality'      => $product->Quality ?? '',
-            'Track_Inventory'      => $product->Track_Inventory ?? '',
-            'Allow_Negative_Inventory'      => $product->Allow_Negative_Inventory ?? '',
+            'Track_Inventory'      => $product->Track_Inventory ?? '1',
+            'track_inventory'      => $product->Track_Inventory ?? '1',
+            'Allow_Negative_Inventory'      => $product->Allow_Negative_Inventory ?? '1',
             'Purchase_Price'      => $product->Purchase_Price ?? '0',
             'Retail_Price'      => $product->Retail_Price ?? '0',
             'Color'        => $product->Color ?? '',
@@ -495,6 +580,12 @@ class PurchaseController extends Controller
                     'updated_at' => now()
                 ]);
             }
+        }
+
+        // Synchronize live website catalog if inwarding into designated E-Commerce Store
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        if ((int)$store_id === $ecomStoreId) {
+            \App\Services\StockSyncService::syncProductStock($code, (int)$store_id);
         }
     }
 

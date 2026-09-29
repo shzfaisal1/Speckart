@@ -538,7 +538,12 @@ class InventoryController extends Controller
                         'updated_at'   => now()
                     ]);
                 }
-                
+
+                // If either store is the e-commerce store, synchronize website catalog
+                $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+                if ((int)$from_store === $ecomStoreId || (int)$to_store === $ecomStoreId) {
+                    \App\Services\StockSyncService::syncProductStock($product->product_code, $ecomStoreId);
+                }
                 
                 // Transfer Barcode
                 for ($j = 0; $j < $product->transfer_quantity; $j++) 
@@ -1500,21 +1505,21 @@ class InventoryController extends Controller
                 
                 $product_details = implode(' - ', $filteredFields); 
 
-                $product_qty =  $data['modal_glass_qty'];
+                $product_qty =  $data['modal_glass_qty'] ?? 1;
                 
-                $product_name =  $data['modal_glass_details'];
-                $product_company =  $data['modal_glass_company'];
-                $product_quality =  $data['modal_glass_quality'];
+                $product_name =  $data['modal_glass_details'] ?? '';
+                $product_company =  $data['modal_glass_company'] ?? '';
+                $product_quality =  $data['modal_glass_quality'] ?? '';
                 
-                $product_color =  $data['modal_glass_color'];
-                $product_material =  $data['modal_glass_Material'];
-                $product_coating =  $data['modal_glass_Coating'];
-                $product_design =  $data['modal_glass_Design'];
-                $product_index =  $data['modal_glass_Index'];
-                $product_sph =  $data['modal_glass_SPH'];
-                $product_cyl =  $data['modal_glass_CYL'];
-                $product_addition =  $data['modal_glass_Addition'];
-                $product_axis =  $data['modal_glass_Axis'];
+                $product_color =  $data['modal_glass_color'] ?? '';
+                $product_material =  $data['modal_glass_Material'] ?? '';
+                $product_coating =  $data['modal_glass_Coating'] ?? '';
+                $product_design =  $data['modal_glass_Design'] ?? '';
+                $product_index =  $data['modal_glass_Index'] ?? '';
+                $product_sph =  $data['modal_glass_SPH'] ?? '';
+                $product_cyl =  $data['modal_glass_CYL'] ?? '';
+                $product_addition =  $data['modal_glass_Addition'] ?? '';
+                $product_axis =  $data['modal_glass_Axis'] ?? '';
                 
                 $product_bc =  '';
                 $product_diameter =  '';
@@ -1686,6 +1691,9 @@ class InventoryController extends Controller
             
 
             
+            $PCount = DB::table('tbl_product_code')
+                         ->where('product_code', $data['modal_product_code'])->count();
+
             $tCount = DB::table('tbl_product_code')
                          ->where('product_type', $data['product_type'])
                          ->where('product_code', $data['modal_product_code'])
@@ -1767,6 +1775,38 @@ class InventoryController extends Controller
                 {
                     $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['modal_product_code'])->first();
                     $product_id = $tbl_product_code->product_id;
+
+                    // Sync latest Retail_Price and Purchase_Price to tbl_product_code master
+                    $priceUpdate = [];
+                    if (!empty($data['modal_retail_price']) && (float)$data['modal_retail_price'] > 0) {
+                        $priceUpdate['Retail_Price'] = (float)$data['modal_retail_price'];
+                    }
+                    if (!empty($data['modal_total_price']) && (float)$data['modal_total_price'] > 0) {
+                        $priceUpdate['Purchase_Price'] = (float)$data['modal_total_price'];
+                    } elseif (!empty($data['modal_purchase_price']) && (float)$data['modal_purchase_price'] > 0) {
+                        $priceUpdate['Purchase_Price'] = (float)$data['modal_purchase_price'];
+                    }
+                    if (!empty($data['modal_basic_price']) && (float)$data['modal_basic_price'] > 0) {
+                        $priceUpdate['Purchase_Base_Price'] = (float)$data['modal_basic_price'];
+                    }
+                    if (!empty($priceUpdate)) {
+                        $priceUpdate['updated_at'] = now();
+                        DB::table('tbl_product_code')->where('id', $tbl_product_code->id)->update($priceUpdate);
+                    }
+
+                    // Also keep lens_packages in sync if product_type is Glass
+                    if ($data['product_type'] === 'Glass') {
+                        $lensPkgUpdate = [];
+                        if (!empty($data['modal_retail_price']) && (float)$data['modal_retail_price'] > 0) {
+                            $lensPkgUpdate['current_price'] = (float)$data['modal_retail_price'];
+                        }
+                        if (!empty($data['modal_purchase_price']) && (float)$data['modal_purchase_price'] > 0) {
+                            $lensPkgUpdate['purchase_price'] = (float)$data['modal_purchase_price'];
+                        }
+                        if (!empty($lensPkgUpdate)) {
+                            DB::table('lens_packages')->where('product_code', $data['modal_product_code'])->update($lensPkgUpdate);
+                        }
+                    }
                 }
             }
             

@@ -2179,6 +2179,12 @@ class SalesController extends Controller
             'created_at'      => now(),
             'updated_at'      => now()
         ]);
+
+        // If sale was made from e-commerce store, synchronize website master catalog
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        if ((int)$store_id === $ecomStoreId) {
+            \App\Services\StockSyncService::syncProductStock($product_code, $ecomStoreId);
+        }
     }
     
     

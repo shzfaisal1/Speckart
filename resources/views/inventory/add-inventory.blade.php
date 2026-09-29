@@ -132,7 +132,7 @@ input.error
             <div class="row" id="pcode" style="display:none">
                     <div class="col-md-3">
                         <label>Product Code <span class="text-danger">*</span></label>
-                        <input type="text" id="modal_product_code" name="modal_product_code" class="form-control">
+                        <input type="text" id="modal_product_code" name="modal_product_code" class="form-control product-code">
                         <div class="suggestion-box list-group" style="display:none; position:absolute; z-index:1000;"></div>
                          <span class="error badge text-danger" id="modal_product_codeError"></span>
 
@@ -745,7 +745,7 @@ $(document).ready(function () {
                     if (Array.isArray(response) && response.length > 0) {
                         response.forEach(function (item) {
                             suggestionBox.append(
-                                `<a href="#" class="list-group-item list-group-item-action">${item.productdetails}</a>`
+                                `<a href="#" class="list-group-item list-group-item-action" data-code="${item.product_code}">${item.productdetails}</a>`
                             );
                         });
                     } else {
@@ -762,45 +762,25 @@ $(document).ready(function () {
             $input.siblings('.suggestion-box').hide();
         }
     });
-    
-    $(document).on('click', '.suggestion-box a', function (e) {
-        e.preventDefault();
-        let selectedText = $(this).text();
-        $('#modal_product_code').val(selectedText);
-        $(this).closest('.suggestion-box').hide();
-    });
-    
-    $(document).on('click', function (e) {
-        if (!$(e.target).closest('#modal_product_code, .suggestion-box').length) {
-            $('.suggestion-box').hide();
-        }
-    });
 
-    
-    
-    $(document).on('click', '.suggestion-box a', function (e) {
-        e.preventDefault();
-    
-        let $this = $(this);
-        let selectedCode = $this.text().trim();
-        let $input = $this.closest('.suggestion-box').prev('.product-code');
+    function fetchProductDetails(lookupValue) {
         let productType = $("#product_type").val();
-
-    
-        $input.val(selectedCode);
-        $this.closest('.suggestion-box').hide();
-    
+        if (!lookupValue || !productType) return;
 
         $.ajax({
             url: "{{ route('admin.get-product-details') }}",
             method: 'GET',
             data: {
                 product_type: productType,
-                productdetails: selectedCode
+                productdetails: lookupValue
             },
             success: function (res) 
             {
-                $("#modal_product_code").val(res.product_code);
+                if (!res) return;
+
+                if (res.product_code) {
+                    $("#modal_product_code").val(res.product_code);
+                }
                 $("#modal_product_id").val(res.product_id);
                 $("#modal_frame_name").val(res.product_name);
                 $("#modal_frame_company").val(res.Company);
@@ -809,7 +789,7 @@ $(document).ready(function () {
                 $('input[name="modal_Negative_Inventory"][value="' + res.Allow_Negative_Inventory + '"]').prop('checked', true);
                 $("#modal_purchase_price").val(res.Purchase_Price);
                 $("#modal_retail_price").val(res.Retail_Price);
-                $("#modal_glass_details").val(res.product_name);
+                $("#modal_glass_details").val(res.productdetails || res.product_name);
                 $("#modal_glass_company").val(res.Company);
                 $("#modal_glass_quality").val(res.Quality);
                 $("#modal_glass_color").val(res.Color);
@@ -838,7 +818,6 @@ $(document).ready(function () {
                 $("#modal_lens_bc").val(res.base_carve);
                 $("#modal_lens_diameter").val(res.Diameter);
                 $("#modal_lens_powertype").val(res.Power_Type);
-                $("#modal_lens_quality").val(res.Quality);
                 $("#modal_lens_batch").val(res.Batch_Number);
                 $("#modal_lens_mfg").val(res.Mfg_Date);
                 $("#modal_lens_expiry").val(res.Expiry_Date);
@@ -858,12 +837,31 @@ $(document).ready(function () {
                 $("#modal_other_size").val(res.Size);
                 $("#modal_other_quality").val(res.Quality);
 
-                
-
                 calculateProductModal();
             }
-            
         });
+    }
+
+    $(document).on('click', '.suggestion-box a', function (e) {
+        e.preventDefault();
+        let selectedCode = $(this).data('code') || $(this).text().trim();
+        let selectedText = $(this).text().trim();
+        $('#modal_product_code').val(selectedCode);
+        $(this).closest('.suggestion-box').hide();
+        fetchProductDetails(selectedCode || selectedText);
+    });
+
+    $(document).on('change', '#modal_product_code', function () {
+        let code = $(this).val().trim();
+        if (code.length >= 2) {
+            fetchProductDetails(code);
+        }
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#modal_product_code, .suggestion-box').length) {
+            $('.suggestion-box').hide();
+        }
     });
     
     $(document).on('click', '#getoldvalue', function() 

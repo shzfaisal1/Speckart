@@ -23,6 +23,16 @@ class CartService
             return ['status' => false, 'message' => 'Frame product not found.'];
         }
 
+        // Verify live stock availability in Store 6 (Online Website)
+        $quantity = max(1, (int)$quantity);
+        $liveStock = \App\Services\StockSyncService::getLiveStock($frame->product_code);
+        if ($liveStock <= 0) {
+            return ['status' => false, 'message' => 'Sorry, this product is currently out of stock.'];
+        }
+        if ($quantity > $liveStock) {
+            return ['status' => false, 'message' => "Only {$liveStock} piece(s) available in stock."];
+        }
+
         // Fetch Lens Package if selected
         $lens = null;
         if ($lensPackageId) {
@@ -100,6 +110,21 @@ class CartService
         // Dynamic Frame Image Path
         $imageUrl = getProductImageUrl($frame);
 
+        // Sum existing quantity of this product code across all cart items
+        $existingQtyInCart = 0;
+        foreach ($cart as $cItem) {
+            if (($cItem['frame_code'] ?? null) === $frame->product_code) {
+                $existingQtyInCart += (int)($cItem['quantity'] ?? 0);
+            }
+        }
+
+        if (($existingQtyInCart + $quantity) > $liveStock) {
+            $msg = $existingQtyInCart > 0 
+                ? "Only {$liveStock} piece(s) available in stock. You already have {$existingQtyInCart} in your cart."
+                : "Only {$liveStock} piece(s) available in stock.";
+            return ['status' => false, 'message' => $msg];
+        }
+
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $quantity;
         } else {
@@ -113,6 +138,7 @@ class CartService
                 'frame_image'       => $imageUrl,
                 'size'              => $size ?: (explode(',', $frame->Size ?? 'Medium')[0]), // FIX: use customer-selected size
                 'lens_package_id'   => $lensIdKey,
+                'lens_product_code' => $lens->product_code ?? null,
                 'lens_type'         => $lensType,
                 'lens_name'         => $lensName,
                 'lens_details'      => $lensDetails,
@@ -168,7 +194,22 @@ class CartService
                     $this->removeDbCartItem($dbCart->id, $itemToRemove);
                 } catch (\Throwable $e) {}
             } else {
-                $cart[$cartKey]['quantity'] = (int) $quantity;
+                $requestedQty = max(1, (int) $quantity);
+                $item = $cart[$cartKey] ?? [];
+                $frameCode = $item['frame_code'] ?? null;
+                if ($frameCode) {
+                    $liveStock = \App\Services\StockSyncService::getLiveStock($frameCode);
+                    $otherQty = 0;
+                    foreach ($cart as $k => $cItem) {
+                        if ($k !== $cartKey && ($cItem['frame_code'] ?? null) === $frameCode) {
+                            $otherQty += (int)($cItem['quantity'] ?? 0);
+                        }
+                    }
+                    if (($otherQty + $requestedQty) > $liveStock) {
+                        return false;
+                    }
+                }
+                $cart[$cartKey]['quantity'] = $requestedQty;
                 session()->put('cart', $cart);
 
                 try {
@@ -509,6 +550,7 @@ class CartService
                             'frame_image'       => $imageUrl,
                             'size'              => $frame->Size ?? 'Medium',
                             'lens_package_id'   => $lensIdKey,
+                            'lens_product_code' => $lens->product_code ?? null,
                             'lens_name'         => $lensName,
                             'lens_details'      => $lensDetails,
                             'lens_price'        => $lensPrice,
