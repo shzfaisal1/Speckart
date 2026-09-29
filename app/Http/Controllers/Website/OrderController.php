@@ -31,6 +31,11 @@ class OrderController extends Controller
             return redirect()->route('cart')->with('error', 'Your cart is empty.');
         }
 
+        // Redirect to cart if contains out-of-stock items
+        if (!empty($cartData['has_out_of_stock'])) {
+            return redirect()->route('cart')->with('error', 'Your cart contains out-of-stock frame(s). Please remove them before proceeding to checkout.');
+        }
+
         // Get saved addresses
         $savedAddresses = collect();
         if (auth()->check()) {

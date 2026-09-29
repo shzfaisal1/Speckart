@@ -65,6 +65,10 @@ class CheckoutController extends Controller
             return redirect()->route('cart')->with('error', 'Your cart is empty.');
         }
 
+        if (!empty($cartData['has_out_of_stock'])) {
+            return redirect()->route('cart')->with('error', 'Your cart contains out-of-stock frame(s). Please remove them before completing checkout.');
+        }
+
         // 4. Get authenticated user & resolve/create customer in tbl_customer
         $user = auth()->user();
 

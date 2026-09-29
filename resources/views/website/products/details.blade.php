@@ -821,6 +821,7 @@
                     $stockQty = (int)($product->stock_quantity ?? 0);
                     $allowNeg = !$isContactLens && !$isSolution && !$isAccessory
                         && !empty($product->Allow_Negative_Inventory) && (int)$product->Allow_Negative_Inventory === 1;
+                    $isFrameOutOfStock = ($stockQty <= 0 && !$allowNeg);
                 @endphp
 
                 {{-- Live Stock Availability Badge (Store 6 Sync) --}}
@@ -839,6 +840,13 @@
                         </span>
                     @endif
                 </div>
+
+                @if($isFrameOutOfStock && $isEyeglassFrame)
+                <div class="alert alert-warning py-2 px-3 mt-2 mb-2 d-flex align-items-center gap-2 border-warning-subtle" style="font-size: 13px; border-radius: 6px; background-color: #fffbeb; color: #92400e;">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6"></i>
+                    <span><strong>Notice:</strong> Selected frame is out of stock. Lens package cannot be purchased.</span>
+                </div>
+                @endif
 
                 <!-- Size & Variant Options -->
                 <div class="product-options mt-4">
@@ -938,7 +946,7 @@
                 
                 @if($productTypes->isNotEmpty())
                 <!-- Product Type (Eyeglasses Only) -->
-                <div class="product-type-section mt-4 overflow-hidden" id="product-type-section">
+                <div class="product-type-section mt-4 overflow-hidden {{ $isFrameOutOfStock ? 'opacity-50 pe-none' : '' }}" id="product-type-section">
                     <p class="option-label mb-2">Product Type :</p>
                     <div class="product-type-tabs d-flex gap-2 p-1">
                         @foreach($productTypes as $index => $ptype)
@@ -1833,16 +1841,22 @@
 
                     <!-- ── Step 1: Want to add Lenses? ── -->
                     <div id="step1" class="lens-step">
+                        @if($isFrameOutOfStock)
+                        <div class="alert alert-warning text-center p-3 mb-3 border-warning-subtle" style="font-size: 13.5px; border-radius: 8px;">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                            <strong>Selected frame is out of stock. Lens package cannot be purchased.</strong>
+                        </div>
+                        @endif
                         <div class="lens-step-icon">
                             <img src="{{asset('website/assets/img/productimg/mask1.png')}}" alt="Lens">
                         </div>
                         <h4 class="lens-step-title">Want to add Lenses?</h4>
                         <p class="lens-step-sub">Choose lenses with the frame or buy just the frame</p>
                         <div class="lens-step1-btns">
-                            <button class="lens-main-btn" id="goStep2">
+                            <button class="lens-main-btn" id="goStep2" {{ $isFrameOutOfStock ? 'disabled style=opacity:0.5;cursor:not-allowed;' : '' }}>
                                 <i class="bi bi-eye me-2"></i>Buy with Lenses
                             </button>
-                            <button class="lens-frame-btn" onclick="addToCartAjax('Frame Only', null, null, null)">
+                            <button class="lens-frame-btn" onclick="addToCartAjax('Frame Only', null, null, null)" {{ $isFrameOutOfStock ? 'disabled style=opacity:0.5;cursor:not-allowed;' : '' }}>
                                 <i class="bi bi-border-style me-2"></i>Only the Frame
                             </button>
                         </div>
@@ -1909,6 +1923,13 @@
                                         ->toArray();
                                 }
                             @endphp
+
+                            @if($isFrameOutOfStock)
+                            <div class="alert alert-danger text-center p-3 mb-3 border-danger-subtle" style="font-size: 14px; border-radius: 8px;">
+                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                <strong>Selected frame is out of stock. Lens package cannot be purchased.</strong>
+                            </div>
+                            @endif
 
                             <div class="lens-filters">
                                 <button class="lens-filter active" data-slug="all">
@@ -2002,14 +2023,23 @@
                                         : 0;
                                     $isLensOutOfStock = ($lensStock <= 0);
                                 @endphp
-                                <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white {{ $isLensOutOfStock ? 'lens-package-out-of-stock' : '' }}"
+                                <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white {{ ($isLensOutOfStock || $isFrameOutOfStock) ? 'lens-package-out-of-stock' : '' }}"
                                     data-package-id="{{ $package->id }}"
                                     data-tags="{{ $tagSlugs }}"
                                     data-power-types="{{ $powerTypeIds }}"
                                     data-stock="{{ $lensStock }}"
-                                    data-out-of-stock="{{ $isLensOutOfStock ? '1' : '0' }}"
-                                    style="{{ $isLensOutOfStock ? 'opacity: 0.65; background-color: #fafafa !important; border-color: #e2e8f0 !important;' : '' }}">
-                                    @if($isLensOutOfStock)
+                                    data-out-of-stock="{{ ($isLensOutOfStock || $isFrameOutOfStock) ? '1' : '0' }}"
+                                    style="{{ ($isLensOutOfStock || $isFrameOutOfStock) ? 'opacity: 0.65; background-color: #fafafa !important; border-color: #e2e8f0 !important;' : '' }}">
+                                    @if($isFrameOutOfStock)
+                                    <div class="forwardBtn forwardBtn-disabled text-center d-flex align-items-center justify-content-center"
+                                        style="cursor: not-allowed; min-width: 80px;"
+                                        title="Selected frame is out of stock. Lens package cannot be purchased."
+                                        onclick="Swal.fire({ icon: 'error', title: 'Frame Out of Stock', text: 'Selected frame is out of stock. Lens package cannot be purchased.', confirmButtonColor: '#00a297' })">
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1 fw-semibold" style="font-size: 11px; border-radius: 6px;">
+                                            <i class="fa fa-ban me-1"></i> Unavailable
+                                        </span>
+                                    </div>
+                                    @elseif($isLensOutOfStock)
                                     <div class="forwardBtn forwardBtn-disabled text-center d-flex align-items-center justify-content-center"
                                         style="cursor: not-allowed; min-width: 80px;"
                                         title="Out of stock in e-commerce warehouse"
@@ -2658,6 +2688,8 @@
         const productVariants = [];
         const defaultPrice = {{ $calcMrp }};
         const defaultDiscountPrice = {{ $calcSellingPrice }};
+        const isFrameInStock = {{ $isFrameOutOfStock ? 'false' : 'true' }};
+        let currentFrameStock = {{ $allowNeg ? 999 : $stockQty }};
 
         let selectedColor = $('.color-swatch.active').data('color-label') || '';
         let selectedSize = $('.size-btn.active').data('size') || '{{ $product->Size ?: '' }}';
@@ -3038,6 +3070,17 @@
                 return;
             }
 
+            // Frontend validation: do not allow lens package purchase if frame is out of stock
+            if (lensPackageId && (!isFrameInStock || currentFrameStock <= 0)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return;
+            }
+
             // Get currently active size selection
             const activeSize = $('.size-btn.active').data('size') || selectedSize || '{{ $product->Size ?: 'Medium' }}';
 
@@ -3104,6 +3147,15 @@
                         confirmButtonColor: '#00a297'
                     });
                     activeBtn.prop('disabled', false).html(originalHtml);
+
+                    // If frame is out of stock, close modal if open
+                    if (errMsg.includes('out of stock') || errMsg.includes('cannot be purchased')) {
+                        const modalEl = document.getElementById('lensModal');
+                        if (modalEl) {
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                        }
+                    }
                 }
             });
         }
@@ -3532,7 +3584,18 @@
 
         // Lens Package selection in Step 3
         function selectLensPackage(packageId, freeLensFlag) {
-            // Guard against out of stock selection
+            // Guard against out of stock frame
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
+
+            // Guard against out of stock lens package
             const card = $(`.lens-package-card[data-package-id="${packageId}"]`);
             if (card.length && (card.data('out-of-stock') === 1 || card.data('out-of-stock') === '1')) {
                 const pkgName = card.find('h5').first().text().trim() || 'This lens package';
@@ -4385,6 +4448,16 @@
 
         @if(!$isContactLens && !$isSolution && !$isAccessory && !$isSunglass)
         $('#main-action-btn').on('click', function() {
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
+
             const flowMode     = this.dataset.flowMode || 'modal';
             const isZeroPwr    = this.dataset.isZeroPower === '1';
             const zeroPackId   = this.dataset.zeroPackageId || '';
@@ -4448,12 +4521,31 @@
 
         // Sunglass: "BUY WITH POWER" button opens the standard lens modal starting at Step 2 (Power Type)
         function openLensModal() {
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
             const lensModal = new bootstrap.Modal(document.getElementById('lensModal'));
             lensModal.show();
         }
 
         // Helper function when select button in details modal is clicked
         function selectLensFromDetails(packageId, isFree) {
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
+
             const detailsModalEl = document.getElementById('viewDetailsModal');
             const detailsModal = bootstrap.Modal.getInstance(detailsModalEl) || new bootstrap.Modal(detailsModalEl);
             if (detailsModal) {

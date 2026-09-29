@@ -45,10 +45,60 @@ class CartController extends Controller
 
         $frameId          = $request->input('frame_id');
         $lensPackageId    = $request->input('lens_package_id');
-        $quantity         = $request->input('quantity', 1);
+        $quantity         = max(1, (int)$request->input('quantity', 1));
         $size             = $request->input('size');             // FIX: capture selected frame size
         $lensType         = $request->input('lens_type');        // FIX: pass lens type context to CartService
         $prescriptionData = $request->input('prescription_data');
+
+        // Resolve frame product to validate stock directly
+        $frame = DB::table('tbl_product_code')->where('id', $frameId)->first();
+        if (!$frame) {
+            $frame = DB::table('tbl_product_code')->where('product_id', $frameId)->first();
+        }
+
+        if (!$frame) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Frame product not found.'
+            ], 404);
+        }
+
+        $allowNeg = !empty($frame->Allow_Negative_Inventory) && (int)$frame->Allow_Negative_Inventory === 1;
+        $frameStock = \App\Services\StockSyncService::getLiveStock($frame->product_code);
+
+        // 1. Frame Stock Validation (Backend Rule)
+        // If Frame stock <= 0, do not allow Lens Package purchase/selection
+        if ($frameStock <= 0 && !$allowNeg) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Selected frame is out of stock. Lens package cannot be purchased.'
+            ], 400);
+        }
+
+        // 2. Validate selected Lens Package stock/availability
+        if (!empty($lensPackageId)) {
+            $lensPackage = DB::table('lens_packages')
+                ->where('id', $lensPackageId)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if (!$lensPackage || empty($lensPackage->is_active)) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Selected lens package is currently unavailable.'
+                ], 400);
+            }
+
+            if (!empty($lensPackage->product_code)) {
+                $lensStock = \App\Services\StockSyncService::getLiveStock($lensPackage->product_code);
+                if ($lensStock <= 0) {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'Selected lens package is out of stock.'
+                    ], 400);
+                }
+            }
+        }
 
         if ($request->hasFile('prescription_file')) {
             $file = $request->file('prescription_file');
@@ -109,7 +159,7 @@ class CartController extends Controller
         }
 
         return response()->json([
-            'status'  => 'error',
+            'status'  => false,
             'message' => $result['message']
         ], 400);
     }
