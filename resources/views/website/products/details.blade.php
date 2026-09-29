@@ -577,6 +577,37 @@
             background: #008f85 !important;
             border-color: #008f85 !important;
         }
+
+        /* ── Out-of-Stock Swatch & Button Styling ── */
+        .color-swatch.variant-out-of-stock {
+            position: relative;
+            opacity: 0.55;
+            cursor: pointer;
+            border-color: #cbd5e1;
+        }
+        .color-swatch.variant-out-of-stock:hover {
+            opacity: 0.85;
+            border-color: #ef4444;
+        }
+        .color-swatch .swatch-oos-slash {
+            position: absolute;
+            top: 50%;
+            left: -2px;
+            right: -2px;
+            height: 2px;
+            background-color: #ef4444;
+            transform: rotate(-45deg);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .btn-oos-disabled {
+            background-color: #94a3b8 !important;
+            border-color: #94a3b8 !important;
+            color: #ffffff !important;
+            cursor: not-allowed !important;
+            opacity: 0.85;
+            box-shadow: none !important;
+        }
         /* ── Share Dropdown ── */
         .dt-share-dropdown {
             min-width: 150px !important;
@@ -848,6 +879,22 @@
                 </div>
                 @endif
 
+                @if($isFrameOutOfStock && !empty($colorVariants) && $colorVariants->count() > 1)
+                    @php
+                        $inStockSiblings = $colorVariants->filter(function($v) use ($product) {
+                            $vAllow = !empty($v->Allow_Negative_Inventory) && (int)$v->Allow_Negative_Inventory === 1;
+                            return $v->id != $product->id && ((int)($v->stock_quantity ?? 0) > 0 || $vAllow);
+                        });
+                    @endphp
+                    @if($inStockSiblings->isNotEmpty())
+                        @php $suggestedVariant = $inStockSiblings->first(); @endphp
+                        <div class="alert alert-info py-2 px-3 mt-2 mb-2 d-flex align-items-center gap-2 border-info-subtle" style="font-size: 13px; border-radius: 6px; background-color: #f0fdfa; color: #0d9488;">
+                            <i class="bi bi-info-circle-fill fs-6 text-teal"></i>
+                            <span>This color is currently out of stock. The <a href="{{ $suggestedVariant->detail_url }}" class="fw-bold text-decoration-underline" style="color: #0d9488;">{{ $suggestedVariant->color_name }}</a> variant is in stock!</span>
+                        </div>
+                    @endif
+                @endif
+
                 <!-- Size & Variant Options -->
                 <div class="product-options mt-4">
                     @if(!empty($product->Size))
@@ -901,16 +948,28 @@
                                 $c1 = $variant->color_primary   ?? '#1a1a1a';
                                 $c2 = $variant->color_secondary ?? null;
                                 $variantUrl = $variant->detail_url ?? url('/product/' . ($variant->product_id ?? $variant->id));
+                                $vAllowNeg = !empty($variant->Allow_Negative_Inventory) && (int)$variant->Allow_Negative_Inventory === 1;
+                                $vStock = (int)($variant->stock_quantity ?? 0);
+                                $isVarInStock = ($vStock > 0 || $vAllowNeg);
+
                                 // Build background: split diagonal if dual-color
                                 $bgStyle = $c2
                                     ? "background: linear-gradient(135deg, {$c1} 50%, {$c2} 50%);"
                                     : "background: {$c1};";
+                                $colorTitle = ($variant->color_name ?? 'Color') . ($isVarInStock ? ' (In Stock)' : ' (Out of Stock)');
                             @endphp
-                            <div class="color-swatch {{ $isPrimary ? 'active' : '' }}"
-                                 style="{{ $bgStyle }}"
-                                 data-variant-id="{{ $variant->id }}"
-                                 data-variant-url="{{ $variantUrl }}"
-                                 onclick="window.location.href='{{ $variantUrl }}'">
+                            <div class="position-relative d-inline-block">
+                                <div class="color-swatch {{ $isPrimary ? 'active' : '' }} {{ !$isVarInStock ? 'variant-out-of-stock' : '' }}"
+                                     style="{{ $bgStyle }}"
+                                     data-variant-id="{{ $variant->id }}"
+                                     data-variant-url="{{ $variantUrl }}"
+                                     data-in-stock="{{ $isVarInStock ? '1' : '0' }}"
+                                     title="{{ $colorTitle }}"
+                                     onclick="window.location.href='{{ $variantUrl }}'">
+                                    @if(!$isVarInStock)
+                                        <span class="swatch-oos-slash"></span>
+                                    @endif
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -986,17 +1045,7 @@
                 @endif
 
                 @if($isContactLens)
-                    @if($stockQty <= 0 && !$allowNeg)
-                    <!-- Power Selection Notice when Out of Stock -->
-                    <div class="power-type-section mt-3 p-3 rounded-3 border border-secondary-subtle bg-light text-center" id="power-type-section">
-                        <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-2">
-                            <i class="bi bi-exclamation-circle text-warning fs-5"></i>
-                            <span class="fw-semibold" style="font-size: 13.5px; color: #475569;">
-                                Power selection is currently unavailable because this contact lens is out of stock in Store 6.
-                            </span>
-                        </div>
-                    </div>
-                    @else
+                    @if($stockQty > 0 || $allowNeg)
                     <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
                     <div class="power-type-section mt-3" id="power-type-section">
                         <div class="d-flex align-items-center gap-3 mb-2">
@@ -1273,13 +1322,17 @@
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mt-4" style="gap: 14px !important;">
                     @if($stockQty <= 0 && !$allowNeg)
-                        {{-- Out of stock state --}}
-                        <button type="button" class="btn btn-secondary px-4 py-2.5 fw-semibold" style="opacity: 0.75; cursor: not-allowed; border-radius: 8px;" disabled>
-                            <i class="bi bi-x-circle me-2"></i>Out of Stock
+                        {{-- Out of stock state: Disabled OUT OF STOCK button, NO Notify Me, Try on you preserved --}}
+                        <button type="button" 
+                                class="btn btn-secondary btn-oos-disabled px-4 py-2.5 fw-bold" 
+                                style="border-radius: 8px; font-size: 14px;" 
+                                disabled 
+                                title="This product is currently out of stock">
+                            <i class="bi bi-x-circle me-2"></i>OUT OF STOCK
                         </button>
-                        <button type="button" class="btn btn-outline-secondary px-3 py-2.5 fw-semibold" style="border-radius: 8px;" onclick="if(window.toastr){ toastr.info('We will notify you when this product is back in stock!'); } else { alert('We will notify you when this product is back in stock!'); }">
-                            <i class="bi bi-bell me-2"></i>Notify Me
-                        </button>
+                        @if($isEyeglassFrame || $isSunglass)
+                            <button type="button" class="btn btn-outline-custom">Try on you</button>
+                        @endif
                     @elseif($isSolution || $isAccessory)
                         {{-- Direct purchase — no lenses or power involved --}}
                         <button id="direct-buy-btn"
