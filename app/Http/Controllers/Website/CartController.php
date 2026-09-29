@@ -63,12 +63,20 @@ class CartController extends Controller
             ], 404);
         }
 
-        $allowNeg = !empty($frame->Allow_Negative_Inventory) && (int)$frame->Allow_Negative_Inventory === 1;
-        $frameStock = \App\Services\StockSyncService::getLiveStock($frame->product_code);
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        $hasInventoryRecord = DB::table('tbl_inventory_levels')
+            ->where('product_code', $frame->product_code)
+            ->where('store_id', $ecomStoreId)
+            ->exists();
+        if ($hasInventoryRecord) {
+            $frameStock = \App\Services\StockSyncService::getLiveStock($frame->product_code, $ecomStoreId);
+        } else {
+            $frameStock = (int)($frame->stock_quantity ?? 0);
+        }
 
         // 1. Frame Stock Validation (Backend Rule)
-        // If Frame stock <= 0, do not allow Lens Package purchase/selection
-        if ($frameStock <= 0 && !$allowNeg) {
+        // If Frame stock <= 0, strictly block adding to cart
+        if ($frameStock <= 0) {
             return response()->json([
                 'status'  => false,
                 'message' => 'Selected frame is out of stock. Lens package cannot be purchased.'

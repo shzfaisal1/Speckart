@@ -808,6 +808,88 @@
 }
 
 /* ══════════════════════════════════════
+   CARD OUT-OF-STOCK STATES
+══════════════════════════════════════ */
+
+/* OOS ribbon overlaid on card image */
+.card-oos-ribbon {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(31, 41, 55, 0.85);
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 4;
+    line-height: 1.4;
+}
+
+/* OOS swatch dot: diagonal red slash overlay */
+.card-color-dot.dot-oos {
+    opacity: 0.55;
+    position: relative;
+}
+.card-color-dot.dot-oos::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        transparent 40%,
+        #ef4444 40%,
+        #ef4444 60%,
+        transparent 60%
+    );
+    pointer-events: none;
+}
+
+/* Card CTA button bar */
+.card-cta-bar {
+    padding: 8px 12px 12px 12px;
+    background: #ffffff;
+}
+.card-cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: background 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+    line-height: 1.2;
+}
+.card-cta-instock {
+    background: var(--cat-primary, #329a9a);
+    color: #ffffff;
+}
+.card-cta-instock:hover {
+    background: #277878;
+    color: #ffffff;
+    text-decoration: none;
+}
+.card-cta-oos {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border: 1px solid #e2e8f0;
+}
+.card-cta-oos:disabled {
+    opacity: 1;
+}
+
+/* ══════════════════════════════════════
    PAGINATION STYLING
 ══════════════════════════════════════ */
 .modern-pagination {
@@ -1202,6 +1284,35 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             $strikeRow.hide();
             $banner.hide();
+        }
+
+        // 9. Toggle OOS ribbon & swap CTA button based on stock state
+        const isOOS = ($dot.data('is-oos') == '1' || $dot.data('is-oos') === true);
+
+        // Toggle OOS ribbon
+        const $ribbon = $card.find('.card-oos-ribbon');
+        if (isOOS) {
+            $ribbon.removeClass('d-none');
+        } else {
+            $ribbon.addClass('d-none');
+        }
+
+        // Swap CTA bar
+        const $ctaBar = $card.find('.card-cta-bar');
+        if ($ctaBar.length) {
+            if (isOOS) {
+                $ctaBar.html(
+                    '<button type="button" class="card-cta-btn card-cta-oos" disabled>' +
+                    '<i class="bi bi-slash-circle me-1"></i> OUT OF STOCK' +
+                    '</button>'
+                );
+            } else {
+                $ctaBar.html(
+                    '<a href="' + (newDetailUrl || '#') + '" class="card-cta-btn card-cta-instock">' +
+                    'SELECT LENSES <i class="bi bi-arrow-right ms-1"></i>' +
+                    '</a>'
+                );
+            }
         }
     });
 

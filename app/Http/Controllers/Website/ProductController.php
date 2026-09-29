@@ -477,9 +477,17 @@ class ProductController extends Controller
         }
 
         // Resolve live stock from Store 6 (tbl_inventory_levels)
-        $liveWebStock = \App\Services\StockSyncService::getLiveStock($product->product_code);
-        $product->stock_quantity = $liveWebStock > 0 ? $liveWebStock : (int)($product->stock_quantity ?? 0);
-        $product->stock_status   = $product->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        $hasInventoryRecord = DB::table('tbl_inventory_levels')
+            ->where('product_code', $product->product_code)
+            ->where('store_id', $ecomStoreId)
+            ->exists();
+        if ($hasInventoryRecord) {
+            $product->stock_quantity = \App\Services\StockSyncService::getLiveStock($product->product_code, $ecomStoreId);
+        } else {
+            $product->stock_quantity = (int)($product->stock_quantity ?? 0);
+        }
+        $product->stock_status = $product->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
 
         // Fetch category name
         $categoryName = DB::table('categories')->where('id', $product->category_id)->value('name') ?: 'Products';
@@ -498,7 +506,7 @@ class ProductController extends Controller
                 ->where('is_b2c', 1)
                 ->where('parent_product_code', $product->parent_product_code)
                 ->get()
-                ->map(function($v) {
+                ->map(function($v) use ($ecomStoreId) {
                     $v->image_url   = getProductImageUrl($v, $v->main_image);
                     $v->detail_url  = url('/product/' . (isset($v->product_id) && $v->product_id ? $v->product_id : $v->id));
                     // Color field stores "#hex1" or "#hex1 / #hex2" (primary / secondary)
@@ -510,8 +518,15 @@ class ProductController extends Controller
                     $v->color_name  = $colorRaw ?: 'Default';
 
                     // Resolve live stock for variant from Store 6
-                    $vLive = \App\Services\StockSyncService::getLiveStock($v->product_code);
-                    $v->stock_quantity = $vLive > 0 ? $vLive : (int)($v->stock_quantity ?? 0);
+                    $vHasLive = DB::table('tbl_inventory_levels')
+                        ->where('product_code', $v->product_code)
+                        ->where('store_id', $ecomStoreId)
+                        ->exists();
+                    if ($vHasLive) {
+                        $v->stock_quantity = \App\Services\StockSyncService::getLiveStock($v->product_code, $ecomStoreId);
+                    } else {
+                        $v->stock_quantity = (int)($v->stock_quantity ?? 0);
+                    }
                     $v->stock_status   = $v->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
 
                     return $v;
