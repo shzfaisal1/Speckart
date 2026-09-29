@@ -1438,9 +1438,23 @@
                                                     </div>
                                                     <div class="sc-item-name">{{ $item['frame_name'] }}</div>
                                                     @if(!empty($item['is_out_of_stock']))
-                                                        <div class="alert alert-danger py-1 px-2 mt-1 mb-1 d-flex align-items-center gap-1.5" style="font-size: 11.5px; border-radius: 6px; width: fit-content;">
-                                                            <i class="bi bi-x-circle-fill text-danger me-1"></i>
-                                                            <span>Selected frame is out of stock. Lens package cannot be fulfilled. Please remove this item.</span>
+                                                        @php
+                                                            $hasPaidLens = !empty($item['lens_package_id']) && (float)($item['lens_price'] ?? 0) > 0;
+                                                        @endphp
+                                                        <div class="alert alert-danger py-1.5 px-2.5 mt-2 mb-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="font-size: 12px; border-radius: 6px; border: 1px solid #fecaca; background-color: #fef2f2; color: #991b1b;">
+                                                            <div class="d-flex align-items-center gap-1.5">
+                                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                                <span>
+                                                                    @if($hasPaidLens)
+                                                                        Selected frame is out of stock. Attached lens package cannot be fulfilled.
+                                                                    @else
+                                                                        This frame is currently out of stock.
+                                                                    @endif
+                                                                </span>
+                                                            </div>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-cart-item py-0.5 px-2 fw-semibold d-inline-flex align-items-center gap-1" data-key="{{ $item['key'] }}" style="font-size: 11px; border-radius: 4px;">
+                                                                <i class="bi bi-trash3"></i> Remove Item
+                                                            </button>
                                                         </div>
                                                     @endif
                                                 </div>

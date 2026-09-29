@@ -848,16 +848,14 @@
                     $isFrame = $isEyeglassFrame;
                     $isReading = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
 
-                    // Physical boxed goods (Contact lenses, solutions, accessories) strictly follow physical warehouse stock
+                    // Stock determination: Strictly based on color variant warehouse stock (stock <= 0 = out of stock)
                     $stockQty = (int)($product->stock_quantity ?? 0);
-                    $allowNeg = !$isContactLens && !$isSolution && !$isAccessory
-                        && !empty($product->Allow_Negative_Inventory) && (int)$product->Allow_Negative_Inventory === 1;
-                    $isFrameOutOfStock = ($stockQty <= 0 && !$allowNeg);
+                    $isFrameOutOfStock = ($stockQty <= 0);
                 @endphp
 
                 {{-- Live Stock Availability Badge (Store 6 Sync) --}}
                 <div class="stock-status-wrap mt-2 mb-2" id="product-stock-status">
-                    @if($stockQty > 3 || $allowNeg)
+                    @if($stockQty > 3)
                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
                             <i class="bi bi-check-circle-fill me-1"></i> In Stock
                         </span>
@@ -948,9 +946,8 @@
                                 $c1 = $variant->color_primary   ?? '#1a1a1a';
                                 $c2 = $variant->color_secondary ?? null;
                                 $variantUrl = $variant->detail_url ?? url('/product/' . ($variant->product_id ?? $variant->id));
-                                $vAllowNeg = !empty($variant->Allow_Negative_Inventory) && (int)$variant->Allow_Negative_Inventory === 1;
                                 $vStock = (int)($variant->stock_quantity ?? 0);
-                                $isVarInStock = ($vStock > 0 || $vAllowNeg);
+                                $isVarInStock = ($vStock > 0);
 
                                 // Build background: split diagonal if dual-color
                                 $bgStyle = $c2
@@ -1045,7 +1042,7 @@
                 @endif
 
                 @if($isContactLens)
-                    @if($stockQty > 0 || $allowNeg)
+                    @if($stockQty > 0)
                     <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
                     <div class="power-type-section mt-3" id="power-type-section">
                         <div class="d-flex align-items-center gap-3 mb-2">
@@ -1321,7 +1318,7 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mt-4" style="gap: 14px !important;">
-                    @if($stockQty <= 0 && !$allowNeg)
+                    @if($stockQty <= 0)
                         {{-- Out of stock state: Disabled OUT OF STOCK button, NO Notify Me, Try on you preserved --}}
                         <button type="button" 
                                 class="btn btn-secondary btn-oos-disabled px-4 py-2.5 fw-bold" 
@@ -2742,7 +2739,7 @@
         const defaultPrice = {{ $calcMrp }};
         const defaultDiscountPrice = {{ $calcSellingPrice }};
         const isFrameInStock = {{ $isFrameOutOfStock ? 'false' : 'true' }};
-        let currentFrameStock = {{ $allowNeg ? 999 : $stockQty }};
+        let currentFrameStock = {{ $stockQty }};
 
         let selectedColor = $('.color-swatch.active').data('color-label') || '';
         let selectedSize = $('.size-btn.active').data('size') || '{{ $product->Size ?: '' }}';

@@ -25,11 +25,19 @@ class CartService
 
         // Verify live stock availability in Store 6 (Online Website)
         $quantity = max(1, (int)$quantity);
-        $allowNeg = !empty($frame->Allow_Negative_Inventory) && (int)$frame->Allow_Negative_Inventory === 1;
-        $frameStock = \App\Services\StockSyncService::getLiveStock($frame->product_code);
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        $hasInventoryRecord = DB::table('tbl_inventory_levels')
+            ->where('product_code', $frame->product_code)
+            ->where('store_id', $ecomStoreId)
+            ->exists();
+        if ($hasInventoryRecord) {
+            $frameStock = \App\Services\StockSyncService::getLiveStock($frame->product_code, $ecomStoreId);
+        } else {
+            $frameStock = (int)($frame->stock_quantity ?? 0);
+        }
 
         // Frame Stock Validation: Customer cannot select/purchase Lens Package if Frame is out of stock
-        if ($frameStock <= 0 && !$allowNeg) {
+        if ($frameStock <= 0) {
             if (!empty($lensPackageId)) {
                 return [
                     'status'  => false,
@@ -42,7 +50,7 @@ class CartService
             ];
         }
 
-        if (!$allowNeg && $quantity > $frameStock) {
+        if ($quantity > $frameStock) {
             return ['status' => false, 'message' => "Only {$frameStock} piece(s) available in stock."];
         }
 
@@ -153,7 +161,7 @@ class CartService
             }
         }
 
-        if (!$allowNeg && ($existingQtyInCart + $quantity) > $frameStock) {
+        if (($existingQtyInCart + $quantity) > $frameStock) {
             $msg = $existingQtyInCart > 0 
                 ? "Only {$frameStock} piece(s) available in stock. You already have {$existingQtyInCart} in your cart."
                 : "Only {$frameStock} piece(s) available in stock.";
