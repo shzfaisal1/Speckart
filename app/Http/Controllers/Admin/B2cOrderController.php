@@ -571,6 +571,9 @@ class B2cOrderController extends Controller
         $order->admin_note   = ($order->admin_note ? $order->admin_note . " | " : "") . "Cancelled: " . $request->input('cancellation_reason');
         $order->save();
 
+        // Restock physical inventory in Store 6 and live sync website master catalog
+        \App\Services\StockSyncService::restockOrder($order, 'cancelled');
+
         return redirect()->back()->with('success', "Order has been marked as Cancelled.");
     }
 
@@ -599,6 +602,8 @@ class B2cOrderController extends Controller
             $order->lab_notes  = "FREE LENS REMAKE: " . ($request->input('admin_notes') ?? 'Optical power adjustment');
         } else {
             $order->order_status = 'returned';
+            // Restock physical inventory in Store 6 and live sync website master catalog
+            \App\Services\StockSyncService::restockOrder($order, 'returned');
         }
         $order->save();
 

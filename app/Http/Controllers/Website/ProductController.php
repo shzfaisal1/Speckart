@@ -359,10 +359,32 @@ class ProductController extends Controller
             }
         }
 
-        // Map helper for images, URLs, and color variants
-        $productsList->getCollection()->transform(function ($p) use ($siblingsByParent) {
+        // Fetch live stock for all products on current page from Store 6 (tbl_inventory_levels)
+        $pageProductCodes = $productsList->pluck('product_code')->filter()->toArray();
+        $liveStockMap = [];
+        if (!empty($pageProductCodes)) {
+            $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+            $liveStockMap = DB::table('tbl_inventory_levels')
+                ->where('store_id', $ecomStoreId)
+                ->whereIn('product_code', $pageProductCodes)
+                ->groupBy('product_code')
+                ->select('product_code', DB::raw('SUM(available_quantity) as web_stock'))
+                ->pluck('web_stock', 'product_code')
+                ->toArray();
+        }
+
+        // Map helper for images, URLs, color variants, and live stock
+        $productsList->getCollection()->transform(function ($p) use ($siblingsByParent, $liveStockMap) {
             $p->image_url  = getProductImageUrl($p);
             $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
+
+            // Live stock mapping from Store 6
+            if (isset($liveStockMap[$p->product_code])) {
+                $p->stock_quantity = max(0, (int)$liveStockMap[$p->product_code]);
+            } else {
+                $p->stock_quantity = (int)($p->stock_quantity ?? 0);
+            }
+            $p->stock_status = $p->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
 
             if (!empty($p->parent_product_code) && isset($siblingsByParent[$p->parent_product_code])) {
                 $p->color_variants_list = $siblingsByParent[$p->parent_product_code];
@@ -454,6 +476,11 @@ class ProductController extends Controller
             abort(404, 'Product not found');
         }
 
+        // Resolve live stock from Store 6 (tbl_inventory_levels)
+        $liveWebStock = \App\Services\StockSyncService::getLiveStock($product->product_code);
+        $product->stock_quantity = $liveWebStock > 0 ? $liveWebStock : (int)($product->stock_quantity ?? 0);
+        $product->stock_status   = $product->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
+
         // Fetch category name
         $categoryName = DB::table('categories')->where('id', $product->category_id)->value('name') ?: 'Products';
 
@@ -481,6 +508,12 @@ class ProductController extends Controller
                     $v->color_secondary = $colorParts[1] ?? null;
                     // Human-readable label for tooltip
                     $v->color_name  = $colorRaw ?: 'Default';
+
+                    // Resolve live stock for variant from Store 6
+                    $vLive = \App\Services\StockSyncService::getLiveStock($v->product_code);
+                    $v->stock_quantity = $vLive > 0 ? $vLive : (int)($v->stock_quantity ?? 0);
+                    $v->stock_status   = $v->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
+
                     return $v;
                 });
         }

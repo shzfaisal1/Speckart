@@ -69,8 +69,8 @@ class CheckoutController extends Controller
         $user = auth()->user();
 
         // 5. Generate Order Number from store settings
-        $store = DB::table('tbl_store')->where('id', 6)->first() ?? DB::table('tbl_store')->first();
-        $storeDbId = $store->id ?? 1;
+        $store = \App\Services\StockSyncService::getEcommerceStore();
+        $storeDbId = (int)($store->id ?? 6);
 
         $orderPrefix = $store->order_no_prefix ?? 'WEB';
         $nextOrderNo = (int)($store->next_order_no ?? 1);
@@ -288,6 +288,57 @@ class CheckoutController extends Controller
                     // TOTAL PD
                     'GL_EYE_totalPD'     => $cleanVal($totalPd),
                 ]);
+
+                // Deduct live stock from Store 6 (Online Website) in tbl_inventory_levels
+                if (!empty($item['frame_code'])) {
+                    $invRow = DB::table('tbl_inventory_levels')
+                        ->where('product_code', $item['frame_code'])
+                        ->where('store_id', $storeDbId)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $currentAvail = (int)($invRow->available_quantity ?? 0);
+                    if ($currentAvail < $qty) {
+                        throw new \Exception("Sorry, '" . ($item['frame_name'] ?? $item['frame_code']) . "' is out of stock or does not have enough quantity available.");
+                    }
+
+                    if ($invRow) {
+                        $updateData = ['available_quantity' => DB::raw("GREATEST(0, CAST(available_quantity AS SIGNED) - {$qty})")];
+                        if (($invRow->product_type ?? '') === 'Lens' && !empty($invRow->perbox)) {
+                            $pieces = $qty * (int)$invRow->perbox;
+                            $updateData['tota_lens_qty'] = DB::raw("GREATEST(0, CAST(tota_lens_qty AS SIGNED) - {$pieces})");
+                        }
+                        DB::table('tbl_inventory_levels')
+                            ->where('id', $invRow->id)
+                            ->update($updateData);
+                    }
+
+                    // Sync tbl_product_code master record for website
+                    \App\Services\StockSyncService::syncProductStock($item['frame_code'], $storeDbId);
+                }
+
+                // Deduct lens package stock if lens has a product_code
+                $lensCode = $item['lens_product_code'] ?? null;
+                if (!$lensCode && !empty($item['lens_package_id'])) {
+                    $lensPkg = DB::table('lens_packages')->where('id', $item['lens_package_id'])->first();
+                    $lensCode = $lensPkg->product_code ?? null;
+                }
+                if (!empty($lensCode)) {
+                    $lensInvRow = DB::table('tbl_inventory_levels')
+                        ->where('product_code', $lensCode)
+                        ->where('store_id', $storeDbId)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($lensInvRow) {
+                        DB::table('tbl_inventory_levels')
+                            ->where('id', $lensInvRow->id)
+                            ->decrement('available_quantity', $qty);
+                    }
+
+                    // Sync tbl_product_code master record for website
+                    \App\Services\StockSyncService::syncProductStock($lensCode, $storeDbId);
+                }
             }
 
             // Create SalePayment record
@@ -422,7 +473,7 @@ class CheckoutController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Checkout failed for user ' . ($user->id ?? 'guest') . ': ' . $e->getMessage());
-            return redirect()->route('cart')->with('error', 'Something went wrong while placing your order. Please try again.');
+            return redirect()->route('cart')->with('error', $e->getMessage() ?: 'Something went wrong while placing your order. Please try again.');
         }
 
         $successMessage = 'Order ' . $orderNo . ' placed successfully!';

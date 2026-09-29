@@ -54,6 +54,13 @@ class LensPackageController extends Controller
                         </div>
                     </div>';
             })
+            ->addColumn('product_code', function ($row) {
+                if (!empty($row->product_code)) {
+                    return '<span class="badge badge-light border text-dark" style="font-family:monospace; font-size:11px; font-weight:600; padding:4px 8px; letter-spacing:0.5px;">' . e($row->product_code) . '
+                            </span>';
+                }
+                return '<span class="text-muted" style="font-size:11px;">—</span>';
+            })
             ->addColumn('price', function ($row) {
                 $current  = '₹' . number_format($row->current_price, 2);
                 $original = $row->original_price
@@ -109,7 +116,7 @@ class LensPackageController extends Controller
                         </button>
                     </div>';
             })
-            ->rawColumns(['name', 'price', 'package_mode', 'tags_list', 'is_active', 'action'])
+            ->rawColumns(['name', 'product_code', 'price', 'package_mode', 'tags_list', 'is_active', 'action'])
             ->make(true);
     }
 
@@ -124,7 +131,15 @@ class LensPackageController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:150',
             'slug'              => 'required|string|max:150|unique:lens_packages,slug',
+            'product_code'      => 'nullable|string|max:100',
+            'company'           => 'nullable|string|max:100',
+            'quality'           => 'nullable|string|max:100',
+            'lens_index'        => 'nullable|string|max:50',
+            'coating'           => 'nullable|string|max:100',
+            'material'          => 'nullable|string|max:100',
+            'design'            => 'nullable|string|max:100',
             'short_description' => 'nullable|string',
+            'purchase_price'    => 'nullable|numeric|min:0',
             'current_price'     => 'required|numeric|min:0',
             'original_price'    => 'nullable|numeric|min:0',
             'warranty_months'   => 'nullable|integer|min:0',
@@ -134,6 +149,14 @@ class LensPackageController extends Controller
             'sort_order'        => 'nullable|integer|min:0',
         ]);
 
+        $validated['product_code']    = $request->filled('product_code') ? trim($request->input('product_code')) : null;
+        $validated['company']         = $request->filled('company') ? trim($request->input('company')) : null;
+        $validated['quality']         = $request->filled('quality') ? trim($request->input('quality')) : null;
+        $validated['lens_index']      = $request->filled('lens_index') ? trim($request->input('lens_index')) : null;
+        $validated['coating']         = $request->filled('coating') ? trim($request->input('coating')) : null;
+        $validated['material']        = $request->filled('material') ? trim($request->input('material')) : null;
+        $validated['design']          = $request->filled('design') ? trim($request->input('design')) : null;
+        $validated['purchase_price']  = $request->filled('purchase_price') ? (float)$request->input('purchase_price') : 0;
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
         // Derive is_free_lens from package_type — single source of truth
@@ -143,6 +166,9 @@ class LensPackageController extends Controller
 
         return DB::transaction(function () use ($validated, $request) {
             $package = LensPackage::create($validated);
+
+            // Sync with physical Glass product master tbl_product_code
+            $this->syncWithProductMaster($package);
 
             // Sync tags
             $package->tags()->sync($request->input('tags', []));
@@ -216,7 +242,15 @@ class LensPackageController extends Controller
         $validated = $request->validate([
             'name'              => 'required|string|max:150',
             'slug'              => 'required|string|max:150|unique:lens_packages,slug,' . $id,
+            'product_code'      => 'nullable|string|max:100',
+            'company'           => 'nullable|string|max:100',
+            'quality'           => 'nullable|string|max:100',
+            'lens_index'        => 'nullable|string|max:50',
+            'coating'           => 'nullable|string|max:100',
+            'material'          => 'nullable|string|max:100',
+            'design'            => 'nullable|string|max:100',
             'short_description' => 'nullable|string',
+            'purchase_price'    => 'nullable|numeric|min:0',
             'current_price'     => 'required|numeric|min:0',
             'original_price'    => 'nullable|numeric|min:0',
             'warranty_months'   => 'nullable|integer|min:0',
@@ -226,6 +260,14 @@ class LensPackageController extends Controller
             'sort_order'        => 'nullable|integer|min:0',
         ]);
 
+        $validated['product_code']    = $request->filled('product_code') ? trim($request->input('product_code')) : null;
+        $validated['company']         = $request->filled('company') ? trim($request->input('company')) : null;
+        $validated['quality']         = $request->filled('quality') ? trim($request->input('quality')) : null;
+        $validated['lens_index']      = $request->filled('lens_index') ? trim($request->input('lens_index')) : null;
+        $validated['coating']         = $request->filled('coating') ? trim($request->input('coating')) : null;
+        $validated['material']        = $request->filled('material') ? trim($request->input('material')) : null;
+        $validated['design']          = $request->filled('design') ? trim($request->input('design')) : null;
+        $validated['purchase_price']  = $request->filled('purchase_price') ? (float)$request->input('purchase_price') : 0;
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
         // Derive is_free_lens from package_type — single source of truth
@@ -235,6 +277,9 @@ class LensPackageController extends Controller
 
         return DB::transaction(function () use ($package, $validated, $request) {
             $package->update($validated);
+
+            // Sync with physical Glass product master tbl_product_code
+            $this->syncWithProductMaster($package);
 
             // Sync tags
             $package->tags()->sync($request->input('tags', []));
@@ -412,6 +457,82 @@ class LensPackageController extends Controller
                 'bg_color'   => $badge['bg_color']   ?? '#6c757d',
                 'text_color' => $badge['text_color'] ?? '#ffffff',
                 'sort_order' => $badge['sort_order'] ?? $index,
+            ]);
+        }
+    }
+
+    /**
+     * Auto-sync LensPackage with ERP physical product master (tbl_product_code)
+     * under product_type = 'Glass' so purchases and inventory tracking work seamlessly.
+     */
+    public function syncWithProductMaster(LensPackage $package): void
+    {
+        if (empty($package->product_code)) {
+            return;
+        }
+
+        $detailsParts = array_filter([
+            $package->name,
+            $package->company,
+            $package->quality,
+            $package->material,
+            $package->coating,
+            $package->lens_index,
+        ]);
+        $productDetails = implode(' - ', $detailsParts);
+        if (empty($productDetails)) {
+            $productDetails = $package->name ?: $package->product_code;
+        }
+
+        $existing = DB::table('tbl_product_code')
+            ->where('product_code', $package->product_code)
+            ->first();
+
+        if ($existing) {
+            DB::table('tbl_product_code')
+                ->where('id', $existing->id)
+                ->update([
+                    'product_name'        => $package->name,
+                    'productdetails'      => $productDetails,
+                    'product_type'        => 'Glass',
+                    'Company'             => $package->company ?? $existing->Company,
+                    'Quality'             => $package->quality ?? $existing->Quality,
+                    'Index'               => $package->lens_index ?? $existing->Index,
+                    'Coating'             => $package->coating ?? $existing->Coating,
+                    'Material'            => $package->material ?? $existing->Material,
+                    'Design'              => $package->design ?? $existing->Design,
+                    'Retail_Price'        => (float) $package->current_price,
+                    'Purchase_Price'      => (float) ($package->purchase_price ?? $existing->Purchase_Price ?? 0),
+                    'Purchase_Base_Price' => (float) ($package->purchase_price ?? $existing->Purchase_Base_Price ?? 0),
+                    'updated_at'          => now(),
+                ]);
+        } else {
+            do {
+                $newProductId = random_int(100000, 999999);
+            } while (DB::table('tbl_product_code')->where('product_id', $newProductId)->exists());
+
+            DB::table('tbl_product_code')->insert([
+                'product_id'               => $newProductId,
+                'product_code'             => $package->product_code,
+                'product_name'             => $package->name,
+                'productdetails'           => $productDetails,
+                'product_type'             => 'Glass',
+                'Company'                  => $package->company,
+                'Quality'                  => $package->quality,
+                'Index'                    => $package->lens_index,
+                'Coating'                  => $package->coating,
+                'Material'                 => $package->material,
+                'Design'                   => $package->design,
+                'Retail_Price'             => (float) $package->current_price,
+                'Purchase_Price'           => (float) ($package->purchase_price ?? 0),
+                'Purchase_Base_Price'      => (float) ($package->purchase_price ?? 0),
+                'Track_Inventory'          => 1,
+                'Allow_Negative_Inventory' => 1,
+                'status'                   => 1,
+                'stock_status'             => 'in_stock',
+                'stock_quantity'           => 0,
+                'created_at'               => now(),
+                'updated_at'               => now(),
             ]);
         }
     }

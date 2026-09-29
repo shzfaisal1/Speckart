@@ -23,12 +23,13 @@
                             <thead>
                                 <tr>
                                     <th class="wd-5p">ID</th>
-                                    <th class="wd-30p">Package</th>
-                                    <th class="wd-15p">Price</th>
-                                    <th class="wd-15p">Mode</th>
+                                    <th class="wd-25p">Package</th>
+                                    <th class="wd-15p">Product Code</th>
+                                    <th class="wd-12p">Price</th>
+                                    <th class="wd-13p">Mode</th>
                                     <th class="wd-15p">Tags</th>
-                                    <th class="wd-10p">Status</th>
-                                    <th class="wd-10p">Action</th>
+                                    <th class="wd-8p">Status</th>
+                                    <th class="wd-7p">Action</th>
                                 </tr>
                             </thead>
                         </table>
@@ -64,7 +65,19 @@
 
                     {{-- Row 1: Package Name + Package Mode (side by side) --}}
                     <div class="row">
-                        <div class="col-md-7">
+                           <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="form-label fw-medium">
+                                 Product Code
+                                </label>
+                                <input type="text" class="form-control text-uppercase" id="pkg_product_code" name="product_code"
+                                       placeholder="e.g. GLS-BLU-156">
+                                <small class="text-muted" style="font-size:11px; margin-top:4px; display:block;">
+                                    Lens SKU for inventory
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
                             <div class="form-group">
                                 <label class="form-label fw-medium">
                                     Package Name <span class="text-danger">*</span>
@@ -73,7 +86,8 @@
                                        placeholder="e.g. Premium Blu Cut Coating 1.60" required>
                             </div>
                         </div>
-                        <div class="col-md-5">
+                     
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label fw-medium">Package Mode</label>
                                 <select class="form-control" id="pkg_package_type" name="package_type">
@@ -82,7 +96,7 @@
                                     {{-- <option value="frame_and_lens">Frame + Lens (Paid Combo)</option> --}}
                                 </select>
                                 <small class="text-muted" id="pkg_mode_hint" style="font-size:11px; margin-top:4px; display:block;">
-                                    Lens is FREE. Customer pays only the Frame price. A "Free Lenses" badge is shown automatically.
+                                    Lens is FREE. Customer pays only the Frame price.
                                 </small>
                             </div>
                         </div>
@@ -95,12 +109,74 @@
                         <input type="hidden" id="pkg_sort_order" name="sort_order" value="0">
                     </div>
 
+                    {{-- Row 1.5: Glass / Optical Specifications (Sync with ERP Glass Master) --}}
+                    <div class="card p-3 mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+                        <!-- <h6 class="fw-semibold text-dark mb-2" style="font-size:13px;">
+                            <i class="fa fa-cogs text-primary me-1"></i> Optical / Glass Specifications (ERP Inventory Sync)
+                            <small class="text-muted fw-normal" style="font-size:11px;">(Auto-syncs with Glass Product Master tbl_product_code)</small>
+                        </h6> -->
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-medium" style="font-size:12px;">Company / Brand</label>
+                                    <input type="text" class="form-control form-control-sm" id="pkg_company" name="company" placeholder="e.g. ESSILOR">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-medium" style="font-size:12px;">Quality</label>
+                                    <input type="text" class="form-control form-control-sm" id="pkg_quality" name="quality" placeholder="e.g. Standard">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-medium" style="font-size:12px;">Lens Index</label>
+                                    <input type="text" class="form-control form-control-sm" id="pkg_lens_index" name="lens_index" placeholder="e.g. 1.56">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-medium" style="font-size:12px;">Coating</label>
+                                    <input type="text" class="form-control form-control-sm" id="pkg_coating" name="coating" placeholder="e.g. Blue Cut AR">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-medium" style="font-size:12px;">Material</label>
+                                    <input type="text" class="form-control form-control-sm" id="pkg_material" name="material" placeholder="e.g. CR-39">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-medium" style="font-size:12px;">Design</label>
+                                    <input type="text" class="form-control form-control-sm" id="pkg_design" name="design" placeholder="e.g. Single Vision">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Row 2: Pricing --}}
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label fw-medium">
-                                    Current Price (₹) <span class="text-danger">*</span>
+                                    Purchase Rs (₹)
+                                    <span class="text-muted" style="font-size:11px; font-weight:400;">(Cost Price)</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">₹</span>
+                                    </div>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="pkg_purchase_price"
+                                           name="purchase_price" placeholder="400">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label fw-medium">
+                                    Retail Price (₹) <span class="text-danger">*</span>
+                                    <span class="text-muted" style="font-size:11px; font-weight:400;">(Selling Price)</span>
                                 </label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
@@ -111,11 +187,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label fw-medium">
                                     Original Price (₹)
-                                    <span class="text-muted" style="font-size:11px; font-weight:400;">(MRP / Strike-through)</span>
+                                    <span class="text-muted" style="font-size:11px; font-weight:400;">(MRP / Strike)</span>
                                 </label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
@@ -402,6 +478,7 @@ $(document).ready(function() {
         columns: [
             { data: 'id', name: 'id' },
             { data: 'name', name: 'name' },
+            { data: 'product_code', name: 'product_code' },
             { data: 'price', name: 'current_price' },
             { data: 'package_mode', name: 'package_type', orderable: false },
             { data: 'tags_list', name: 'tags_list', orderable: false, searchable: false },
@@ -522,8 +599,16 @@ $(document).ready(function() {
         $.get(`${baseUrl}/${id}/edit`, function (data) {
             $('#record_id').val(data.id);
             $('#pkg_name').val(data.name);
+            $('#pkg_product_code').val(data.product_code || '');
+            $('#pkg_company').val(data.company || '');
+            $('#pkg_quality').val(data.quality || '');
+            $('#pkg_lens_index').val(data.lens_index || '');
+            $('#pkg_coating').val(data.coating || '');
+            $('#pkg_material').val(data.material || '');
+            $('#pkg_design').val(data.design || '');
             $('#pkg_slug').val(data.slug);
             $('#pkg_description').val(data.short_description);
+            $('#pkg_purchase_price').val(data.purchase_price || '');
             $('#pkg_current_price').val(data.current_price);
             $('#pkg_original_price').val(data.original_price);
             $('#pkg_warranty').val(data.warranty_months);
@@ -783,6 +868,14 @@ $(document).on('input change', '#pkg_badge_custom_label, #pkg_badge_custom_bg, #
 function resetForm() {
     document.getElementById('lensPackageForm').reset();
     document.getElementById('record_id').value = '';
+    $('#pkg_product_code').val('');
+    $('#pkg_company').val('');
+    $('#pkg_quality').val('');
+    $('#pkg_lens_index').val('');
+    $('#pkg_coating').val('');
+    $('#pkg_material').val('');
+    $('#pkg_design').val('');
+    $('#pkg_purchase_price').val('');
     // Reset hidden fields
     $('#pkg_slug').val('');
     $('#pkg_free_lens').val('0');

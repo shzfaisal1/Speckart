@@ -212,6 +212,12 @@ class ProcessStockTransfer implements ShouldQueue
                     }
                     DB::table('tbl_inventory_levels')->insert($insertToData);
                 }
+
+                // If either store is the e-commerce store, synchronize website catalog
+                $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+                if ((int)$this->from_store === $ecomStoreId || (int)$this->to_store === $ecomStoreId) {
+                    \App\Services\StockSyncService::syncProductStock($item['product_code'], $ecomStoreId);
+                }
             }
 
             DB::commit();

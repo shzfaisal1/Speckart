@@ -809,21 +809,36 @@
                                      || ($typeLower === 'other');
 
                     $isSunglass    = str_contains($catLower, 'sunglass')
-                                     || ($typeLower === 'sunglass')
+                                     || in_array($typeLower, ['sunglass', 'sunglasses', 'goggles', 'goggle'])
                                      || !empty($product->polarized);
 
                     // ── Positive classification for Eyeglass Frames ──────────────────────
-                    // FIX: Old negative check ($isFrame = !$isReading && ...) was breaking
-                    // "Computer Glasses" and "Reading Frames" categories — those ARE frames
-                    // and must show the Product Type tabs.
                     $isEyeglassFrame = !$isContactLens && !$isSolution && !$isAccessory && !$isSunglass;
-
-                    // Backward-compat alias used in other sections of this file
                     $isFrame = $isEyeglassFrame;
-
-                    // isReading flag now only controls CTA button text (not tab visibility)
                     $isReading = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
+
+                    // Physical boxed goods (Contact lenses, solutions, accessories) strictly follow physical warehouse stock
+                    $stockQty = (int)($product->stock_quantity ?? 0);
+                    $allowNeg = !$isContactLens && !$isSolution && !$isAccessory
+                        && !empty($product->Allow_Negative_Inventory) && (int)$product->Allow_Negative_Inventory === 1;
                 @endphp
+
+                {{-- Live Stock Availability Badge (Store 6 Sync) --}}
+                <div class="stock-status-wrap mt-2 mb-2" id="product-stock-status">
+                    @if($stockQty > 3 || $allowNeg)
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
+                            <i class="bi bi-check-circle-fill me-1"></i> In Stock
+                        </span>
+                    @elseif($stockQty > 0)
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
+                            <i class="bi bi-lightning-charge-fill me-1"></i> Only {{ $stockQty }} left in stock - Order soon!
+                        </span>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
+                            <i class="bi bi-x-circle-fill me-1"></i> Out of Stock
+                        </span>
+                    @endif
+                </div>
 
                 <!-- Size & Variant Options -->
                 <div class="product-options mt-4">
@@ -963,9 +978,20 @@
                 @endif
 
                 @if($isContactLens)
-                <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
-                <div class="power-type-section mt-3" id="power-type-section">
-                    <div class="d-flex align-items-center gap-3 mb-2">
+                    @if($stockQty <= 0 && !$allowNeg)
+                    <!-- Power Selection Notice when Out of Stock -->
+                    <div class="power-type-section mt-3 p-3 rounded-3 border border-secondary-subtle bg-light text-center" id="power-type-section">
+                        <div class="d-flex align-items-center justify-content-center gap-2 text-muted py-2">
+                            <i class="bi bi-exclamation-circle text-warning fs-5"></i>
+                            <span class="fw-semibold" style="font-size: 13.5px; color: #475569;">
+                                Power selection is currently unavailable because this contact lens is out of stock in Store 6.
+                            </span>
+                        </div>
+                    </div>
+                    @else
+                    <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
+                    <div class="power-type-section mt-3" id="power-type-section">
+                        <div class="d-flex align-items-center gap-3 mb-2">
                         <span class="option-label mb-0" style="color: #7d879c; font-size: 14px; font-weight: 500;">Power Type</span>
                         <div class="d-flex align-items-center gap-2 cl-power-pill-tabs">
                             <!-- Pill 1: Zero Power -->
@@ -999,8 +1025,9 @@
                                     </div>
                                     <div style="min-width: 110px;">
                                         <select id="cl-zero-boxes" class="form-select border-light-subtle rounded-3 py-1.5 text-center" style="font-size: 14px; font-weight:600; border-color: #cbd5e1;">
-                                            @for($b = 1; $b <= 10; $b++)
-                                                <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }}</option>
+                                            @php $maxZero = min(10, max(1, (int)$stockQty)); @endphp
+                                            @for($b = 1; $b <= $maxZero; $b++)
+                                                <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
                                             @endfor
                                         </select>
                                     </div>
@@ -1067,22 +1094,19 @@
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
                                                 <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
                                             </div>
+                                            @php $maxEyeBoxes = min(5, max(1, (int)$stockQty)); @endphp
                                             <div class="col-4">
                                                 <select id="cl-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                         </div>
@@ -1118,20 +1142,16 @@
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-upload-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-upload-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                         </div>
@@ -1200,20 +1220,16 @@
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-later-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-later-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                         </div>
@@ -1227,6 +1243,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Lenses per Pack Section -->
                 <div class="lenses-pack-section mt-3" id="lenses-pack-section">
@@ -1247,7 +1264,15 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mt-4" style="gap: 14px !important;">
-                    @if($isSolution || $isAccessory)
+                    @if($stockQty <= 0 && !$allowNeg)
+                        {{-- Out of stock state --}}
+                        <button type="button" class="btn btn-secondary px-4 py-2.5 fw-semibold" style="opacity: 0.75; cursor: not-allowed; border-radius: 8px;" disabled>
+                            <i class="bi bi-x-circle me-2"></i>Out of Stock
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary px-3 py-2.5 fw-semibold" style="border-radius: 8px;" onclick="if(window.toastr){ toastr.info('We will notify you when this product is back in stock!'); } else { alert('We will notify you when this product is back in stock!'); }">
+                            <i class="bi bi-bell me-2"></i>Notify Me
+                        </button>
+                    @elseif($isSolution || $isAccessory)
                         {{-- Direct purchase — no lenses or power involved --}}
                         <button id="direct-buy-btn"
                             class="btn btn-outline-custom active"
@@ -1869,6 +1894,20 @@
                                     $lensPackagesQuery->whereIn('id', $selectedPackageIds);
                                 }
                                 $lensPackages = $lensPackagesQuery->orderBy('sort_order')->get();
+
+                                // Live stock check for Store 6 (E-commerce store)
+                                $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+                                $lensPackageCodes = $lensPackages->pluck('product_code')->filter()->unique()->toArray();
+                                $lensLiveStockMap = [];
+                                if (!empty($lensPackageCodes)) {
+                                    $lensLiveStockMap = \Illuminate\Support\Facades\DB::table('tbl_inventory_levels')
+                                        ->where('store_id', $ecomStoreId)
+                                        ->whereIn('product_code', $lensPackageCodes)
+                                        ->groupBy('product_code')
+                                        ->select('product_code', \Illuminate\Support\Facades\DB::raw('SUM(available_quantity) as total_stock'))
+                                        ->pluck('total_stock', 'product_code')
+                                        ->toArray();
+                                }
                             @endphp
 
                             <div class="lens-filters">
@@ -1956,10 +1995,30 @@
                                     $mediaUrls = $package->media->map(function($m) {
                                         return asset($m->url);
                                     })->toJson();
+
+                                    $lensProductCode = $package->product_code;
+                                    $lensStock = (!empty($lensProductCode) && isset($lensLiveStockMap[$lensProductCode]))
+                                        ? max(0, (int)$lensLiveStockMap[$lensProductCode])
+                                        : 0;
+                                    $isLensOutOfStock = ($lensStock <= 0);
                                 @endphp
-                                <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white"
+                                <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white {{ $isLensOutOfStock ? 'lens-package-out-of-stock' : '' }}"
+                                    data-package-id="{{ $package->id }}"
                                     data-tags="{{ $tagSlugs }}"
-                                    data-power-types="{{ $powerTypeIds }}">
+                                    data-power-types="{{ $powerTypeIds }}"
+                                    data-stock="{{ $lensStock }}"
+                                    data-out-of-stock="{{ $isLensOutOfStock ? '1' : '0' }}"
+                                    style="{{ $isLensOutOfStock ? 'opacity: 0.65; background-color: #fafafa !important; border-color: #e2e8f0 !important;' : '' }}">
+                                    @if($isLensOutOfStock)
+                                    <div class="forwardBtn forwardBtn-disabled text-center d-flex align-items-center justify-content-center"
+                                        style="cursor: not-allowed; min-width: 80px;"
+                                        title="Out of stock in e-commerce warehouse"
+                                        onclick="handleOutOfStockPackageClick(event, '{{ addslashes($package->name) }}')">
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1 fw-semibold" style="font-size: 11px; border-radius: 6px;">
+                                            <i class="fa fa-ban me-1"></i> Sold Out
+                                        </span>
+                                    </div>
+                                    @else
                                     <div class="forwardBtn" style="cursor:pointer;"
                                         onclick="selectLensPackage({{ $package->id }}, {{ $isFreeLensPackage ? 'true' : 'false' }})">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
@@ -1971,6 +2030,7 @@
                                                 stroke-linejoin="round" />
                                         </svg>
                                     </div>
+                                    @endif
                                     <div class="d-flex align-items-center">
                                         <div class="lens-left position-relative me-3">
                                             <div class="lens-card-left" style="width: 140px;">
@@ -1980,7 +2040,12 @@
                                                     <img src="https://static5.lenskart.com/media/uploads/Antiglare_1_updated.png" class="img-fluid rounded" alt="{{ $package->name }}">
                                                 @endif
                                             </div>
-                                            @if($primaryBadge)
+                                            @if($isLensOutOfStock)
+                                            <div class="lens-badge bg-danger text-white ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
+                                                style="font-size: 10px; font-weight: 700; text-transform: uppercase; background: #dc3545 !important; letter-spacing: 0.5px; z-index: 2;">
+                                                <i class="fa fa-times-circle me-1"></i> Out of Stock
+                                            </div>
+                                            @elseif($primaryBadge)
                                             <div class="lens-badge ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
                                                 style="font-size: 10px; font-weight: 600; background-color: {{ $primaryBadge->bg_color ?? '#198754' }}; color: {{ $primaryBadge->text_color ?? '#ffffff' }}; z-index: 2;">
                                                 {{ $primaryBadge->label }}
@@ -2029,7 +2094,8 @@
                                                     data-coupon="{{ $coupon ? $coupon->code : '' }}"
                                                     data-benefits="{{ $benefitsArray }}"
                                                     data-media="{{ $mediaUrls }}"
-                                                    data-type="{{ $package->package_type ?? ($isFreeLensPackage ? 'frame_only' : 'frame_and_lens') }}">
+                                                    data-type="{{ $package->package_type ?? ($isFreeLensPackage ? 'frame_only' : 'frame_and_lens') }}"
+                                                    data-out-of-stock="{{ $isLensOutOfStock ? '1' : '0' }}">
                                                     View Details
                                                     <span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="14"
@@ -2080,9 +2146,14 @@
                                                         Frame + Lens
                                                     @endif
                                                 </div>
-                                                <span class="new-price fw-bold" style="color: #00b9b9; font-size: 17px;">₹{{ number_format($combinedPrice, 0) }}</span>
+                                                <span class="new-price fw-bold" style="color: {{ $isLensOutOfStock ? '#64748b' : '#00b9b9' }}; font-size: 17px;">₹{{ number_format($combinedPrice, 0) }}</span>
                                                 @if($combinedOriginalPrice > $combinedPrice)
                                                 <span class="old-price text-decoration-line-through text-muted small ms-1">₹{{ number_format($combinedOriginalPrice, 0) }}</span>
+                                                @endif
+                                                @if($isLensOutOfStock)
+                                                <div>
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-1.5 py-0.5 mt-1" style="font-size: 10px; border-radius: 4px;">Out of Stock</span>
+                                                </div>
                                                 @endif
                                             </div>
                                         </div>
@@ -2720,6 +2791,19 @@
             const total = totalBoxes * clUnitPrice;
             $('#cl-total-price').text('Total ₹' + total.toLocaleString());
             $('#cl-price-breakdown').text(totalBoxes + ' x ₹' + clUnitPrice.toLocaleString() + ' per box');
+
+            const availableStock = {{ (int)$stockQty }};
+            if (availableStock > 0 && totalBoxes > availableStock) {
+                if ($('#cl-stock-warning').length === 0) {
+                    $('#cl-total-price').after('<div id="cl-stock-warning" class="text-danger mt-1 fw-semibold" style="font-size: 12px;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Only ' + availableStock + ' box(es) available in stock.</div>');
+                }
+                $('#contact-lens-buy-btn').prop('disabled', true).addClass('opacity-50');
+            } else {
+                $('#cl-stock-warning').remove();
+                if (availableStock > 0) {
+                    $('#contact-lens-buy-btn').prop('disabled', false).removeClass('opacity-50');
+                }
+            }
         }
 
         // Contact lens power pill toggle (Zero Power vs With Power)
@@ -2918,6 +3002,27 @@
                         total_boxes : totalBoxes
                     });
                 }
+            }
+
+            const availableStock = {{ (int)$stockQty }};
+            if (availableStock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Out of Stock',
+                    text: 'Sorry, this contact lens is currently out of stock.',
+                    confirmButtonColor: '#00a297'
+                });
+                return;
+            }
+
+            if (totalBoxes > availableStock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Insufficient Stock',
+                    text: `Only ${availableStock} box(es) available in stock. You have selected ${totalBoxes} boxes across your lenses.`,
+                    confirmButtonColor: '#00a297'
+                });
+                return;
             }
 
             // Pass totalBoxes as quantity to addToCartAjax
@@ -3407,8 +3512,34 @@
             addToCartAjax(selectedLensType, selectedLensPackageId, null, file);
         }
 
+        function handleOutOfStockPackageClick(e, pkgName) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Out of Stock',
+                    text: `"${pkgName}" is currently out of stock in our warehouse. Please select another package.`,
+                    confirmButtonColor: '#00b9b9'
+                });
+            } else {
+                alert(`"${pkgName}" is currently out of stock. Please select another package.`);
+            }
+            return false;
+        }
+
         // Lens Package selection in Step 3
         function selectLensPackage(packageId, freeLensFlag) {
+            // Guard against out of stock selection
+            const card = $(`.lens-package-card[data-package-id="${packageId}"]`);
+            if (card.length && (card.data('out-of-stock') === 1 || card.data('out-of-stock') === '1')) {
+                const pkgName = card.find('h5').first().text().trim() || 'This lens package';
+                handleOutOfStockPackageClick(null, pkgName);
+                return false;
+            }
+
             selectedLensPackageId = packageId;
             isFreeLens = freeLensFlag;
 
@@ -4051,6 +4182,22 @@
             background: #fff;
             transition: all 0.2s ease;
         }
+        .lens-package-card.lens-package-out-of-stock {
+            opacity: 0.65;
+            background: #fafafa !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed;
+            position: relative;
+        }
+        .lens-package-card.lens-package-out-of-stock:hover {
+            border-color: #cbd5e1 !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        .forwardBtn.forwardBtn-disabled {
+            cursor: not-allowed !important;
+            pointer-events: auto !important;
+        }
 
         .lens-pkg-left {
             text-align: left;
@@ -4426,10 +4573,27 @@
                 selector: '.glightbox'
             });
             
-            // Update action button select action
-            modal.find('.select-lens-btn').off('click').on('click', function() {
-                selectLensFromDetails(packageId, free);
-            });
+            // Update action button select action based on live stock
+            const isOutOfStock = btn.data('out-of-stock') === 1 || btn.data('out-of-stock') === '1';
+            const selectBtn = modal.find('.select-lens-btn');
+
+            if (isOutOfStock) {
+                selectBtn.prop('disabled', true).addClass('disabled')
+                    .css({ 'background': '#94a3b8', 'border-color': '#94a3b8', 'cursor': 'not-allowed' })
+                    .html('<i class="fa fa-ban me-1"></i> Out of Stock');
+                selectBtn.off('click').on('click', function(e) {
+                    e.preventDefault();
+                    handleOutOfStockPackageClick(e, name);
+                    return false;
+                });
+            } else {
+                selectBtn.prop('disabled', false).removeClass('disabled')
+                    .css({ 'background': '', 'border-color': '', 'cursor': 'pointer' })
+                    .html('Select This Lens');
+                selectBtn.off('click').on('click', function() {
+                    selectLensFromDetails(packageId, free);
+                });
+            }
 
             // Dynamically set carousel images based on package name or slug
             const carouselInner = modal.find('.carousel-inner');
