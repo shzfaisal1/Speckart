@@ -821,6 +821,17 @@ $(document).ready(function () {
                 $("#modal_lens_batch").val(res.Batch_Number);
                 $("#modal_lens_mfg").val(res.Mfg_Date);
                 $("#modal_lens_expiry").val(res.Expiry_Date);
+                if (res.Pieces_Per_Box || res.perbox) {
+                    $("#modal_perbox").val(res.Pieces_Per_Box || res.perbox);
+                }
+                if (res.No_Of_Boxes) {
+                    $("#modal_noofbox").val(res.No_Of_Boxes);
+                }
+                if ($("#modal_noofbox").val() && $("#modal_perbox").val()) {
+                    let noOfBox = parseInt($("#modal_noofbox").val()) || 0;
+                    let perBox = parseInt($("#modal_perbox").val()) || 0;
+                    $("#modal_lens_quantity").val(noOfBox * perBox);
+                }
                 
                 $("#modal_solution_product_name").val(res.product_name);
                 $("#modal_solution_company").val(res.Company);

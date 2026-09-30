@@ -476,21 +476,104 @@ class ProductController extends Controller
             abort(404, 'Product not found');
         }
 
-        // Resolve live stock from Store 6 (tbl_inventory_levels)
+        // Resolve live stock and perbox from Store 6 (tbl_inventory_levels)
         $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
-        $hasInventoryRecord = DB::table('tbl_inventory_levels')
+        $invRecord = DB::table('tbl_inventory_levels')
             ->where('product_code', $product->product_code)
             ->where('store_id', $ecomStoreId)
-            ->exists();
-        if ($hasInventoryRecord) {
+            ->first();
+        if ($invRecord) {
             $product->stock_quantity = \App\Services\StockSyncService::getLiveStock($product->product_code, $ecomStoreId);
+            if (!empty($invRecord->perbox)) {
+                $product->perbox = (int)$invRecord->perbox;
+            }
         } else {
             $product->stock_quantity = (int)($product->stock_quantity ?? 0);
+        }
+        if (empty($product->Pieces_Per_Box) && !empty($product->perbox)) {
+            $product->Pieces_Per_Box = $product->perbox;
         }
         $product->stock_status = $product->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
 
         // Fetch category name
         $categoryName = DB::table('categories')->where('id', $product->category_id)->value('name') ?: 'Products';
+
+        // Resolve lens pack variants for Contact Lenses
+        $lensPackVariants = collect();
+        $isContactLensType = (strtolower(trim($product->product_type ?? '')) === 'lens') || !empty($product->Modality) || str_contains(strtolower($categoryName ?? ''), 'contact');
+        if ($isContactLensType) {
+            $pQuery = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where('is_b2c', 1)
+                ->where(function($q) {
+                    $q->where('product_type', 'Lens')
+                      ->orWhereNotNull('Modality');
+                });
+
+            if (!empty($product->parent_product_code)) {
+                $pQuery->where('parent_product_code', $product->parent_product_code);
+            } else {
+                $pQuery->where('product_name', $product->product_name);
+            }
+
+            $rawVariants = $pQuery->get();
+            if ($rawVariants->isEmpty()) {
+                $rawVariants = collect([$product]);
+            }
+
+            $lensPackVariants = $rawVariants->map(function ($pv) use ($product, $ecomStoreId) {
+                // Live stock
+                $hasInv = DB::table('tbl_inventory_levels')
+                    ->where('product_code', $pv->product_code)
+                    ->where('store_id', $ecomStoreId)
+                    ->first();
+                $pvStock = $hasInv ? \App\Services\StockSyncService::getLiveStock($pv->product_code, $ecomStoreId) : (int)($pv->stock_quantity ?? 0);
+                $pv->stock_quantity = $pvStock;
+                $pv->in_stock = ($pvStock > 0);
+
+                if (empty($pv->Pieces_Per_Box) && $hasInv && !empty($hasInv->perbox)) {
+                    $pv->Pieces_Per_Box = (int)$hasInv->perbox;
+                }
+
+                // Format pack label
+                $count = null;
+                if (!empty($pv->Pieces_Per_Box) && is_numeric($pv->Pieces_Per_Box) && (int)$pv->Pieces_Per_Box > 0) {
+                    $count = (int)$pv->Pieces_Per_Box;
+                } elseif (!empty($pv->pack_size) && is_numeric($pv->pack_size) && (int)$pv->pack_size > 0) {
+                    $count = (int)$pv->pack_size;
+                } elseif (!empty($pv->Packing_Type) && preg_match('/(\d+)/', (string)$pv->Packing_Type, $m)) {
+                    $count = (int)$m[1];
+                }
+
+                if ($count !== null && $count > 0) {
+                    $pv->pack_label = $count === 1 ? '1 Lens / Box' : ($count . ' Lenses / Box');
+                    $pv->pack_subtitle = $count === 1 ? '1 lens/box' : ($count . ' lens/box');
+                    $pv->pack_count = $count;
+                } elseif (!empty($pv->Packing_Type)) {
+                    $pv->pack_label = trim($pv->Packing_Type);
+                    $pv->pack_subtitle = strtolower(trim($pv->Packing_Type));
+                    $pv->pack_count = 1;
+                } else {
+                    $pv->pack_label = '1 Lens / Box';
+                    $pv->pack_subtitle = '1 lens/box';
+                    $pv->pack_count = 1;
+                }
+
+                // Pricing
+                $pvSellingPrice = (float)($pv->Retail_Price ?? 0);
+                $pvMrp = (float)($pv->Purchase_Price ?? 0);
+                if ($pvMrp <= $pvSellingPrice && $pvSellingPrice > 0) {
+                    $pvMrp = round($pvSellingPrice * 1.35); // 35% markup fallback
+                }
+                $pv->calc_price = $pvSellingPrice;
+                $pv->calc_mrp = $pvMrp;
+                $pv->has_discount = ($pvMrp > $pvSellingPrice);
+                $pv->is_current = ($pv->id == $product->id);
+                $pv->detail_url = url('/product/' . (isset($pv->product_id) && $pv->product_id ? $pv->product_id : $pv->id));
+
+                return $pv;
+            })->sortBy('pack_count')->values();
+        }
 
         // Map main image URL
         $product->image_url = getProductImageUrl($product, $product->main_image);
@@ -561,7 +644,7 @@ class ProductController extends Controller
             $wishlistProductIds = DB::table('wishlists')->where('user_id', \Auth::id())->pluck('product_id')->toArray();
         }
 
-        return view('website.products.details', compact('product', 'categoryName', 'galleryImages', 'colorVariants', 'relatedProducts', 'wishlistProductIds'));
+        return view('website.products.details', compact('product', 'categoryName', 'galleryImages', 'colorVariants', 'relatedProducts', 'wishlistProductIds', 'lensPackVariants'));
     }
 
     public function getSimilarProducts(Request $request, $id)

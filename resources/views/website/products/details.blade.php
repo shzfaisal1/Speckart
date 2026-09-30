@@ -851,6 +851,29 @@
                     // Stock determination: Strictly based on color variant warehouse stock (stock <= 0 = out of stock)
                     $stockQty = (int)($product->stock_quantity ?? 0);
                     $isFrameOutOfStock = ($stockQty <= 0);
+
+                    // ── Resolve Contact Lens Pack Size & Subtitle ────────────────────────
+                    $currentPackCount = null;
+                    if (!empty($product->Pieces_Per_Box) && is_numeric($product->Pieces_Per_Box) && (int)$product->Pieces_Per_Box > 0) {
+                        $currentPackCount = (int)$product->Pieces_Per_Box;
+                    } elseif (!empty($product->perbox) && is_numeric($product->perbox) && (int)$product->perbox > 0) {
+                        $currentPackCount = (int)$product->perbox;
+                    } elseif (!empty($product->pack_size) && is_numeric($product->pack_size) && (int)$product->pack_size > 0) {
+                        $currentPackCount = (int)$product->pack_size;
+                    } elseif (!empty($product->Packing_Type) && preg_match('/(\d+)/', (string)$product->Packing_Type, $m)) {
+                        $currentPackCount = (int)$m[1];
+                    }
+
+                    if ($currentPackCount !== null && $currentPackCount > 0) {
+                        $currentPackLabel = $currentPackCount === 1 ? '1 Lens / Box' : ($currentPackCount . ' Lenses / Box');
+                        $currentPackSubtitle = $currentPackCount === 1 ? '1 lens/box' : ($currentPackCount . ' lens/box');
+                    } elseif (!empty($product->Packing_Type)) {
+                        $currentPackLabel = trim($product->Packing_Type);
+                        $currentPackSubtitle = strtolower(trim($product->Packing_Type));
+                    } else {
+                        $currentPackLabel = '1 Lens / Box';
+                        $currentPackSubtitle = '1 lens/box';
+                    }
                 @endphp
 
                 {{-- Live Stock Availability Badge (Store 6 Sync) --}}
@@ -1075,7 +1098,7 @@
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2">
                                     <div>
                                         <span class="fw-bold" style="color: #0d1430; font-size: 14.5px;">No. of Boxes</span>
-                                        <div class="text-muted" style="font-size: 12px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</div>
+                                        <div class="text-muted" style="font-size: 12px;">{{ $currentPackSubtitle }}</div>
                                     </div>
                                     <div style="min-width: 110px;">
                                         <select id="cl-zero-boxes" class="form-select border-light-subtle rounded-3 py-1.5 text-center" style="font-size: 14px; font-weight:600; border-color: #cbd5e1;">
@@ -1146,7 +1169,7 @@
                                             <!-- No. of Boxes -->
                                             <div class="col-4 d-flex flex-column justify-content-center">
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
-                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $currentPackSubtitle }}</span>
                                             </div>
                                             @php $maxEyeBoxes = min(5, max(1, (int)$stockQty)); @endphp
                                             <div class="col-4">
@@ -1192,7 +1215,7 @@
                                         <div class="row g-2 align-items-center mb-2">
                                             <div class="col-4 d-flex flex-column justify-content-center">
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
-                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $currentPackSubtitle }}</span>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-upload-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
@@ -1270,7 +1293,7 @@
                                         <div class="row g-2 align-items-center mb-2">
                                             <div class="col-4 d-flex flex-column justify-content-center">
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
-                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $currentPackSubtitle }}</span>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-later-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
@@ -1302,16 +1325,39 @@
                 <!-- Lenses per Pack Section -->
                 <div class="lenses-pack-section mt-3" id="lenses-pack-section">
                     <h6 class="fw-bold mb-2" style="color: #0d1430; font-size: 14px;">Lenses per Pack</h6>
-                    <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #00a297; width: 140px; background: #fff;">
-                        <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: #edeafb; font-size: 12.5px; color: #0d1430;">
-                            {{ $product->Packing_Type ?? ($product->pack_size ?? '30 Lenses / Box') }}
-                        </div>
-                        <div class="p-2 px-3 text-start">
-                            @if($hasDiscount)
-                            <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($calcMrp, 0) }}</div>
-                            @endif
-                            <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($calcSellingPrice, 0) }}</div>
-                        </div>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        @if(!empty($lensPackVariants) && $lensPackVariants->count() > 1)
+                            @foreach($lensPackVariants as $pv)
+                            <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block {{ $pv->is_current ? 'active' : '' }}" 
+                                 style="border: {{ $pv->is_current ? '1.5px solid #00a297' : '1.5px solid #e2e8f0' }}; width: 140px; background: #fff; cursor: pointer; transition: all 0.2s ease;"
+                                 onclick="window.location.href='{{ $pv->detail_url }}'">
+                                <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: {{ $pv->is_current ? '#edeafb' : '#f8fafc' }}; font-size: 12.5px; color: #0d1430;">
+                                    {{ $pv->pack_label }}
+                                </div>
+                                <div class="p-2 px-3 text-start">
+                                    @if($pv->has_discount)
+                                    <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($pv->calc_mrp, 0) }}</div>
+                                    @endif
+                                    <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($pv->calc_price, 0) }}</div>
+                                    @if(!$pv->in_stock)
+                                    <span class="badge bg-danger-subtle text-danger" style="font-size: 10px;">Out of Stock</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #00a297; width: 140px; background: #fff;">
+                                <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: #edeafb; font-size: 12.5px; color: #0d1430;">
+                                    {{ $currentPackLabel }}
+                                </div>
+                                <div class="p-2 px-3 text-start">
+                                    @if($hasDiscount)
+                                    <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($calcMrp, 0) }}</div>
+                                    @endif
+                                    <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($calcSellingPrice, 0) }}</div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -1447,7 +1493,7 @@
                                     <div class="col-lg-4 col-md-6 col-12">
                                         <div class="spec-card">
                                             <span class="spec-label">Pack Size</span>
-                                            <span class="spec-value">{{ $product->Packing_Type ?? $product->Size ?? 'Standard Pack' }}</span>
+                                            <span class="spec-value">{{ $currentPackLabel ?? ($product->Packing_Type ?? $product->Size ?? 'Standard Pack') }}</span>
                                         </div>
                                     </div>
                                     <div class="col-lg-4 col-md-6 col-12">
