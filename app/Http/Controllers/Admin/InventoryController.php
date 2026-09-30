@@ -1740,6 +1740,7 @@ class InventoryController extends Controller
                     'Diameter'             => $product_diameter ?? '',
                     'No_Of_Boxes'          => $product_noofbox ?? '',
                     'Pieces_Per_Box'       => $product_perbox ?? '',
+                    'Packing_Type'         => !empty($product_perbox) ? ($product_perbox . ' Lenses / Box') : ($data['modal_solution_packingtype'] ?? ''),
                     'Batch_Number'         => $product_batch ?? '',
                     'Mfg_Date'             => $product_mfg ?? '',
                     'Expiry_Date'          => $product_expiry ?? '',
@@ -1788,6 +1789,15 @@ class InventoryController extends Controller
                     }
                     if (!empty($data['modal_basic_price']) && (float)$data['modal_basic_price'] > 0) {
                         $priceUpdate['Purchase_Base_Price'] = (float)$data['modal_basic_price'];
+                    }
+                    if (!empty($product_perbox)) {
+                        $priceUpdate['Pieces_Per_Box'] = $product_perbox;
+                        if (empty($tbl_product_code->Packing_Type) || $data['product_type'] === 'Lens') {
+                            $priceUpdate['Packing_Type'] = $product_perbox . ' Lenses / Box';
+                        }
+                    }
+                    if (!empty($product_noofbox)) {
+                        $priceUpdate['No_Of_Boxes'] = $product_noofbox;
                     }
                     if (!empty($priceUpdate)) {
                         $priceUpdate['updated_at'] = now();
@@ -2068,6 +2078,7 @@ class InventoryController extends Controller
             if ($inventory) {
                 $query->update([
                     'available_quantity' => $inventory->available_quantity + $box_detail,
+                    'perbox' => $perbox ?: $inventory->perbox,
                     'tota_lens_qty' => $inventory->tota_lens_qty + ($perbox*$box_detail),
                     'updated_at' => now()
                 ]);

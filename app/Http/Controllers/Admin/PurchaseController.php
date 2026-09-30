@@ -210,6 +210,17 @@ class PurchaseController extends Controller
                 $product = DB::table('tbl_product_code')->where('id', $insertedId)->first();
             }
         }
+
+        $invPerbox = null;
+        if (!empty($product->product_code)) {
+            $invPerbox = DB::table('tbl_inventory_levels')
+                ->where('product_code', $product->product_code)
+                ->whereNotNull('perbox')
+                ->where('perbox', '>', 0)
+                ->orderBy('id', 'desc')
+                ->value('perbox');
+        }
+        $piecesPerBox = !empty($product->Pieces_Per_Box) ? $product->Pieces_Per_Box : ($invPerbox ?: '');
     
         return response()->json([
             'product_id'   => $product->product_id ?? '',
@@ -244,6 +255,9 @@ class PurchaseController extends Controller
             'Expiry_Date'  => $product->Expiry_Date ?? '',
             'Variant'      => $product->Variant ?? '',
             'Packing_Type' => $product->Packing_Type ?? '',
+            'Pieces_Per_Box' => $piecesPerBox,
+            'perbox'       => $piecesPerBox,
+            'No_Of_Boxes'  => $product->No_Of_Boxes ?? '',
             'Shape'        => $product->Shape ?? '',
             'Size'         => $product->Size ?? '',
         ]);
@@ -408,6 +422,7 @@ class PurchaseController extends Controller
                         'base_carve'           => $data['product_bc'][$i] ?? '',
                         'Diameter'             => $data['product_diameter'][$i] ?? '',
                         'Power_Type'           => $data['product_powertype'][$i] ?? '',
+                        'Packing_Type'         => !empty($data['product_packingtype'][$i]) ? $data['product_packingtype'][$i] : (!empty($data['product_perbox'][$i]) ? ($data['product_perbox'][$i] . ' Lenses / Box') : ''),
                         'No_Of_Boxes'          => $data['product_noofbox'][$i] ?? '',
                         'Pieces_Per_Box'       => $data['product_perbox'][$i] ?? '',
                         'Batch_Number'         => $data['product_batch'][$i] ?? '',
@@ -429,6 +444,36 @@ class PurchaseController extends Controller
                 {
                     $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $code)->first();
                     $product_id = $tbl_product_code->product_id;
+
+                    $updateProductData = ['updated_at' => now()];
+                    if (!empty($data['product_perbox'][$i])) {
+                        $updateProductData['Pieces_Per_Box'] = $data['product_perbox'][$i];
+                        if (empty($tbl_product_code->Packing_Type) || $type === 'Lens') {
+                            $updateProductData['Packing_Type'] = $data['product_perbox'][$i] . ' Lenses / Box';
+                        }
+                    }
+                    if (!empty($data['product_noofbox'][$i])) {
+                        $updateProductData['No_Of_Boxes'] = $data['product_noofbox'][$i];
+                    }
+                    if (!empty($data['product_powertype'][$i])) {
+                        $updateProductData['Power_Type'] = $data['product_powertype'][$i];
+                    }
+                    if (!empty($data['product_batch'][$i])) {
+                        $updateProductData['Batch_Number'] = $data['product_batch'][$i];
+                    }
+                    if (!empty($data['product_mfg'][$i])) {
+                        $updateProductData['Mfg_Date'] = $data['product_mfg'][$i];
+                    }
+                    if (!empty($data['product_expiry'][$i])) {
+                        $updateProductData['Expiry_Date'] = $data['product_expiry'][$i];
+                    }
+                    if (!empty($data['product_purchase_price'][$i]) && (float)$data['product_purchase_price'][$i] > 0) {
+                        $updateProductData['Purchase_Price'] = (float)$data['product_purchase_price'][$i];
+                    }
+                    if (!empty($data['product_retail_price'][$i]) && (float)$data['product_retail_price'][$i] > 0) {
+                        $updateProductData['Retail_Price'] = (float)$data['product_retail_price'][$i];
+                    }
+                    DB::table('tbl_product_code')->where('id', $tbl_product_code->id)->update($updateProductData);
                 }
                 
 
@@ -545,6 +590,7 @@ class PurchaseController extends Controller
             if ($inventory) {
                 $query->update([
                     'available_quantity' => $inventory->available_quantity + $box_detail,
+                    'perbox' => $perbox ?: $inventory->perbox,
                     'tota_lens_qty' => $inventory->tota_lens_qty + ($perbox*$box_detail),
                     'updated_at' => now()
                 ]);
@@ -2288,7 +2334,24 @@ class PurchaseController extends Controller
                     
                 
                 $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $code)->first();
-                $product_id = $tbl_product_code->product_id;
+                $product_id = $tbl_product_code->product_id ?? null;
+                
+                if ($tbl_product_code) {
+                    $updateChallanPData = ['updated_at' => now()];
+                    if (!empty($data['product_perbox'][$i])) {
+                        $updateChallanPData['Pieces_Per_Box'] = $data['product_perbox'][$i];
+                        if (empty($tbl_product_code->Packing_Type) || $type === 'Lens') {
+                            $updateChallanPData['Packing_Type'] = $data['product_perbox'][$i] . ' Lenses / Box';
+                        }
+                    }
+                    if (!empty($data['product_noofbox'][$i])) {
+                        $updateChallanPData['No_Of_Boxes'] = $data['product_noofbox'][$i];
+                    }
+                    if (!empty($data['product_retail_price'][$i]) && (float)$data['product_retail_price'][$i] > 0) {
+                        $updateChallanPData['Retail_Price'] = (float)$data['product_retail_price'][$i];
+                    }
+                    DB::table('tbl_product_code')->where('id', $tbl_product_code->id)->update($updateChallanPData);
+                }
                 
                 $challanProduct = ChallanProduct::create([
                     'challan_id'          => $challan->id,
