@@ -987,7 +987,13 @@
                 <i class="bi bi-sliders text-teal" style="color:var(--cat-primary);"></i> Filters
             </h5>
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('products', ($activeCategory ?? null) ? ['category' => $activeCategory->slug] : []) }}" class="filter-reset-btn">Clear All</a>
+                @php
+                    $clearParams = [];
+                    if ($activeCategory ?? null) $clearParams['category'] = $activeCategory->slug;
+                    elseif (request('category')) $clearParams['category'] = request('category');
+                    if (request('type')) $clearParams['type'] = request('type');
+                @endphp
+                <a href="{{ route('products', $clearParams) }}" class="filter-reset-btn">Clear All</a>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
         </div>
@@ -1046,7 +1052,7 @@
                     <div class="filter-sidebar">
                         <div class="filter-top-bar">
                             <h6><i class="bi bi-sliders"></i> Filters</h6>
-                            <a href="{{ route('products', ($activeCategory ?? null) ? ['category' => $activeCategory->slug] : []) }}"
+                            <a href="{{ route('products', $clearParams) }}"
                                class="filter-reset-btn">Clear All</a>
                         </div>
                         <div class="active-chips-bar" id="active-chips-bar"></div>
@@ -1419,8 +1425,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const activeSort = $('.sort-item.active').data('sort');
             if (activeSort) params.append('sort', activeSort);
 
-            const currentCategory = "{{ ($activeCategory ?? null) ? $activeCategory->slug : '' }}";
+            const currentCategory = "{{ ($activeCategory ?? null) ? $activeCategory->slug : (request('category') ?: '') }}";
             if (currentCategory) params.append('category', currentCategory);
+
+            const currentType = "{{ request('type') ?: '' }}";
+            if (currentType && !params.has('type')) params.append('type', currentType);
+
+            const currentOffer = "{{ request('offer') ?: '' }}";
+            if (currentOffer && !params.has('offer')) params.append('offer', currentOffer);
+
+            const currentBogo = "{{ request('bogo_eligible') ?: '' }}";
+            if (currentBogo && !params.has('bogo_eligible')) params.append('bogo_eligible', currentBogo);
+
+            const currentTag = "{{ request('tag') ?: '' }}";
+            if (currentTag && !params.has('tag')) params.append('tag', currentTag);
 
             requestUrl = "{{ route('products') }}?" + params.toString();
         }

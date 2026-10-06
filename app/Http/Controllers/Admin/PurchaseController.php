@@ -339,7 +339,7 @@ class PurchaseController extends Controller
         if (!$hasValidProduct) {
             return response()->json([
                 'status' => false,
-                'errors' => 'Please add at least one valid product.'
+                'errors' => 'Please add at least one valid `product`.'
             ], 422);
         }
     
@@ -602,7 +602,7 @@ class PurchaseController extends Controller
                     'product_details' => $product_details,
                     'perbox' => $perbox,
                     'store_id' => $store_id,
-                    'available_quantity' => $box_detail,
+                    'available_quantity' => $box_detail, 
                     'tota_lens_qty' => ($perbox*$box_detail),
                     'created_at' => now(),
                     'updated_at' => now()
