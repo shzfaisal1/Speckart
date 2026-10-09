@@ -1691,26 +1691,55 @@ class InventoryController extends Controller
             
 
             
-            $PCount = DB::table('tbl_product_code')
-                         ->where('product_code', $data['modal_product_code'])->count();
+            $modal_code = trim($data['modal_product_code'] ?? '');
+            $modal_id = trim($data['modal_product_id'] ?? '');
 
+            if (strpos($modal_code, '/') !== false && empty($modal_id)) {
+                $parts = explode('/', $modal_code);
+                $modal_code = trim($parts[0]);
+                $modal_id = trim($parts[1] ?? '');
+            }
+
+            $existingProduct = null;
+            if (!empty($modal_code)) {
+                $existingProduct = DB::table('tbl_product_code')->where('product_code', $modal_code)->first();
+            }
+            if (!$existingProduct && !empty($modal_id)) {
+                $existingProduct = DB::table('tbl_product_code')->where('product_id', $modal_id)->first();
+            }
+
+            if ($existingProduct) {
+                $product_id = $existingProduct->product_id;
+                if (empty($modal_code)) {
+                    $modal_code = $existingProduct->product_code;
+                }
+            } else {
+                $product_id = !empty($modal_id) ? $modal_id : $this->generateUniqueRandomIdProduct(6, 'tbl_product_code', 'product_id');
+                if (empty($modal_code)) {
+                    $modal_code = 'PRD-' . $product_id;
+                }
+            }
+            $data['modal_product_code'] = $modal_code;
+            $data['modal_product_id'] = $product_id;
+
+            $PCount = $existingProduct ? 1 : 0;
             $tCount = DB::table('tbl_product_code')
                          ->where('product_type', $data['product_type'])
-                         ->where('product_code', $data['modal_product_code'])
+                         ->where(function($q) use ($modal_code, $product_id) {
+                             $q->where('product_code', $modal_code)
+                               ->orWhere('product_id', $product_id);
+                         })
                          ->where('productdetails', $product_details)->count();
            
             if($tCount == 0)
             {
-                
-                $idgenerate = $this->generateUniqueRandomIdProduct(6, 'tbl_product_code', 'product_id');
-                if($PCount == 0)
+                if($PCount == 0 && empty($product_id))
                 {
-                    $product_id = $idgenerate;
+                    $product_id = $this->generateUniqueRandomIdProduct(6, 'tbl_product_code', 'product_id');
                 }
-                else
+                elseif ($existingProduct)
                 {
-                    $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['modal_product_code'])->first();
-                    $product_id = $tbl_product_code->product_id;
+                    $product_id = $existingProduct->product_id;
                 }
                 $Product = Product::create([
                     'product_type'         => $data['product_type'],
@@ -1774,8 +1803,11 @@ class InventoryController extends Controller
                 }
                 else
                 {
-                    $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['modal_product_code'])->first();
-                    $product_id = $tbl_product_code->product_id;
+                    $tbl_product_code = DB::table('tbl_product_code')
+                        ->where('product_code', $data['modal_product_code'])
+                        ->orWhere('product_id', $product_id)
+                        ->first();
+                    $product_id = $tbl_product_code ? $tbl_product_code->product_id : $product_id;
 
                     // Sync latest Retail_Price and Purchase_Price to tbl_product_code master
                     $priceUpdate = [];

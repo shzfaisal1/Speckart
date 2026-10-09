@@ -177,7 +177,7 @@
                         <table class="table datatables-basic table-bordered w-100" id="catalogTable">
                             <thead>
                                 <tr>
-                                    <th>Product Code</th>
+                                    <th>Product Code / ID</th>
                                     <th>Product Name</th>
                                     <th>Brand / Company</th>
                                     <th>Type</th>
@@ -236,7 +236,11 @@ $(document).ready(function() {
                     "data": "product_code", 
                     "orderable": false,
                     "render": function(data, type, full) {
-                        return `<a href="javascript:void(0);" class="view-details-btn text-primary" data-id="${full.product_id}" style="font-weight:700; font-size:0.9rem; text-decoration:none;">${data || full.product_id}</a>`;
+                        let skuHtml = data 
+                            ? `<a href="javascript:void(0);" class="view-details-btn text-primary" data-id="${full.product_id}" style="font-weight:700; font-size:0.9rem; text-decoration:none;">${data}</a>` 
+                            : '<span class="text-muted">–</span>';
+                        let idBadge = `<div class="mt-1"><span class="badge" style="background:#e0e7ff; color:#3730a3; font-weight:600; font-size:0.75rem; padding:3px 8px; border-radius:4px; display:inline-block;" title="Numeric Product ID">ID: ${full.product_id || 'N/A'}</span></div>`;
+                        return `<div>${skuHtml}${idBadge}</div>`;
                     }
                 },
                 { 
@@ -395,7 +399,11 @@ $(document).ready(function() {
                 <div class="row" style="font-size:0.88rem;">
                     <div class="col-md-4 mb-2">
                         <span class="text-muted d-block" style="font-size:0.75rem;">PRODUCT FAMILY CODE</span>
-                        <strong>${p.parent_product_code || p.product_id}</strong>
+                        <strong>${p.parent_product_code || '–'}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">PRODUCT ID</span>
+                        <strong class="text-primary">${p.product_id || '–'}</strong>
                     </div>
                     <div class="col-md-4 mb-2">
                         <span class="text-muted d-block" style="font-size:0.75rem;">BRAND / COMPANY</span>

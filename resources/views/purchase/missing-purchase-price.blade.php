@@ -75,7 +75,7 @@ input.loading {
                 </div>
                 <div class="col-lg-3">
                     <div class="form-group">
-                        <input type="text" class="form-control input" placeholder="Company,Barcode,Product Code" id="search" name="search" style="width: 250px;margin-top: 10px;">
+                        <input type="text" class="form-control input" placeholder="Company,Barcode,Product Code,Product ID" id="search" name="search" style="width: 280px;margin-top: 10px;">
                     </div>
                 </div> 
                 @if($usr->roles[0]->name == 'Admin')
@@ -113,6 +113,7 @@ input.loading {
                                 <th class="wd-10p">Date</th>
                                 <th class="wd-10p">Product Type	</th>
                                 <th class="wd-10p">Product Code	</th>
+                                <th class="wd-10p">Product ID	</th>
                                 <th class="wd-10p">Description</th>
                                 <th class="wd-10p">Barcode</th>
                                 <th class="wd-10p">Purchase Price</th>
@@ -308,6 +309,10 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
             },
             {
+                "data": "product_id",
+                orderable: false,
+            },
+            {
                 "data": "product_details",
                 orderable: false,
             },
@@ -347,9 +352,10 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
                 render: function (data, type, full)
                 {
-                    let html = `<a href="#"  onclick="openpurchaseModal('` + full['encryptedId'] + `','` + full['description'] + `')">
+                    let fullEncoded = encodeURIComponent(JSON.stringify(full));
+                    let html = `<a href="javascript:void(0)" onclick="openpurchaseModalRow('` + fullEncoded + `')">
                                         <button type="button" class="btn btn-success btn-sm mb-1">Update Price</button>
-                                    </a>'`;
+                                    </a>`;
             
                     return html;
                 }
@@ -425,6 +431,11 @@ let dataListView = $('.datatables-basic')
         column.search($(this).val()).draw();
     });
     
+    function openpurchaseModalRow(encoded) {
+        let full = JSON.parse(decodeURIComponent(encoded));
+        openpurchaseModal(full.encryptedId, full.description);
+    }
+
     function openpurchaseModal(id, description) 
     {
         $('#description').text('');

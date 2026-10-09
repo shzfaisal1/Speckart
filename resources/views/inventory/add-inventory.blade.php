@@ -132,13 +132,17 @@ input.error
             <div class="row" id="pcode" style="display:none">
                     <div class="col-md-3">
                         <label>Product Code <span class="text-danger">*</span></label>
-                        <input type="text" id="modal_product_code" name="modal_product_code" class="form-control product-code">
+                        <input type="text" id="modal_product_code" name="modal_product_code" class="form-control product-code" placeholder="Enter / search Product Code">
                         <div class="suggestion-box list-group" style="display:none; position:absolute; z-index:1000;"></div>
-                         <span class="error badge text-danger" id="modal_product_codeError"></span>
-
+                        <span class="error badge text-danger" id="modal_product_codeError"></span>
                     </div>
                     
-                    <input type="hidden" id="modal_product_id" name="modal_product_id" class="form-control">
+                    <div class="col-md-3">
+                        <label>Product ID <span class="text-danger">*</span></label>
+                        <input type="text" id="modal_product_id" name="modal_product_id" class="form-control product-id" placeholder="Enter / search Product ID">
+                        <div class="suggestion-box list-group" style="display:none; position:absolute; z-index:1000;"></div>
+                        <span class="error badge text-danger" id="modal_product_idError"></span>
+                    </div>
                 </div>
                 <!----  FRAME OR GOGGLES --------->
                 <div class="row" id="FrameDive" style="display:none;">
@@ -615,6 +619,8 @@ input.error
                       <th>#</th>
                       <th>Supplier Name</th>
                       <th>Purchase Date</th>
+                      <th>Product Code</th>
+                      <th>Product ID</th>
                       <th>Product Details</th>
                       <th>Purchase price</th>
                       <th>Retail price</th>
@@ -623,7 +629,7 @@ input.error
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                    <tr><td colspan="10" class="text-center">Loading...</td></tr>
                   </tbody>
                 </table>
             </div>
@@ -744,8 +750,9 @@ $(document).ready(function () {
     
                     if (Array.isArray(response) && response.length > 0) {
                         response.forEach(function (item) {
+                            let label = (item.product_code ? item.product_code : '') + (item.product_id ? ' (ID: ' + item.product_id + ')' : '') + (item.productdetails ? ' - ' + item.productdetails : '');
                             suggestionBox.append(
-                                `<a href="#" class="list-group-item list-group-item-action" data-code="${item.product_code}">${item.productdetails}</a>`
+                                '<a href="#" class="list-group-item list-group-item-action" data-code="' + (item.product_code || '') + '" data-id="' + (item.product_id || '') + '">' + label + '</a>'
                             );
                         });
                     } else {
@@ -763,16 +770,57 @@ $(document).ready(function () {
         }
     });
 
-    function fetchProductDetails(lookupValue) {
+    $(document).on('keyup', '#modal_product_id', function () {
+        let $input = $(this);
+        let productId = $input.val();
         let productType = $("#product_type").val();
-        if (!lookupValue || !productType) return;
+    
+        if (productId.length >= 2 && productType !== '') {
+            $.ajax({
+                url: "{{ route('admin.get-product-wise-code') }}",
+                method: 'GET',
+                dataType: 'json', 
+                data: {
+                    product_type: productType,
+                    query: productId
+                },
+                success: function (response) {
+                    let suggestionBox = $input.siblings('.suggestion-box');
+                    suggestionBox.empty();
+    
+                    if (Array.isArray(response) && response.length > 0) {
+                        response.forEach(function (item) {
+                            let label = (item.product_id ? 'ID: ' + item.product_id : '') + (item.product_code ? ' | ' + item.product_code : '') + (item.productdetails ? ' - ' + item.productdetails : '');
+                            suggestionBox.append(
+                                '<a href="#" class="list-group-item list-group-item-action" data-code="' + (item.product_code || '') + '" data-id="' + (item.product_id || '') + '">' + label + '</a>'
+                            );
+                        });
+                    } else {
+                        suggestionBox.append('<div class="list-group-item text-muted">No results found</div>');
+                    }
+    
+                    suggestionBox.show();
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX error:", error);
+                }
+            });
+        } else {
+            $input.siblings('.suggestion-box').hide();
+        }
+    });
+
+    function fetchProductDetails(lookupValue, lookupId) {
+        let productType = $("#product_type").val();
+        if ((!lookupValue && !lookupId) || !productType) return;
 
         $.ajax({
             url: "{{ route('admin.get-product-details') }}",
             method: 'GET',
             data: {
                 product_type: productType,
-                productdetails: lookupValue
+                productdetails: lookupValue,
+                productId: lookupId
             },
             success: function (res) 
             {
@@ -781,7 +829,9 @@ $(document).ready(function () {
                 if (res.product_code) {
                     $("#modal_product_code").val(res.product_code);
                 }
-                $("#modal_product_id").val(res.product_id);
+                if (res.product_id) {
+                    $("#modal_product_id").val(res.product_id);
+                }
                 $("#modal_frame_name").val(res.product_name);
                 $("#modal_frame_company").val(res.Company);
                 $("#modal_frame_quality").val(res.Quality);
@@ -855,72 +905,97 @@ $(document).ready(function () {
 
     $(document).on('click', '.suggestion-box a', function (e) {
         e.preventDefault();
-        let selectedCode = $(this).data('code') || $(this).text().trim();
+        let selectedCode = $(this).data('code') || '';
+        let selectedId = $(this).data('id') || '';
         let selectedText = $(this).text().trim();
-        $('#modal_product_code').val(selectedCode);
+        if (selectedCode) $('#modal_product_code').val(selectedCode);
+        if (selectedId) $('#modal_product_id').val(selectedId);
         $(this).closest('.suggestion-box').hide();
-        fetchProductDetails(selectedCode || selectedText);
+        fetchProductDetails(selectedCode || selectedText, selectedId);
     });
 
     $(document).on('change', '#modal_product_code', function () {
         let code = $(this).val().trim();
         if (code.length >= 2) {
-            fetchProductDetails(code);
+            fetchProductDetails(code, $('#modal_product_id').val());
+        }
+    });
+
+    $(document).on('change', '#modal_product_id', function () {
+        let id = $(this).val().trim();
+        if (id.length >= 2) {
+            fetchProductDetails($('#modal_product_code').val(), id);
         }
     });
 
     $(document).on('click', function (e) {
-        if (!$(e.target).closest('#modal_product_code, .suggestion-box').length) {
+        if (!$(e.target).closest('#modal_product_code, #modal_product_id, .suggestion-box').length) {
             $('.suggestion-box').hide();
         }
     });
     
     $(document).on('click', '#getoldvalue', function() 
     {
-        let productType = $("#product_type").val();
-        let productCode = $("#modal_product_code").val();
+        let productType = $("#product_type").val() || '';
+        let productCode = $("#modal_product_code").val() || '';
+        let productId   = $("#modal_product_id").val() || '';
+        let storeId     = $("#store_id").val() || '';
+        
+        let tableBody = $('#oldvalueTable tbody');
+        tableBody.html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
+        $('#OldvalueModal').modal('show');
         
         $.ajax({
             url: "{{ route('admin.get-old-value') }}",  
             method: 'GET',
-            data: { productType: productType,productCode: productCode },
+            data: { 
+                productType: productType, 
+                productCode: productCode, 
+                productId: productId,
+                store_id: storeId
+            },
             success: function(response) {
-                let tableBody = $('#oldvalueTable tbody');
                 tableBody.empty(); // Clear old data
     
                 if (response.data && response.data.length > 0) {
                     response.data.forEach(function(purchasevalue) 
                     {
-                         function formatValue(value) {
-                          return value === null || value === undefined || value === "" ? "-" : value;
-                        }
-    
-                        let row = `
-                            <tr>
-                                <td>
-                                <input type="radio" name="prescriptioneyetest" class="oldvalue-purchase"
-                                        value="1"
-                                        data-product_price="${purchasevalue.product_price}"
-                                        data-product_retail_price="${purchasevalue.product_retail_price}">
-                                </td>
-                                <td>${purchasevalue.supplier_name}</td>
-                                <td>${purchasevalue.purchase_date}</td>
-                                <td>${purchasevalue.product_details}</td>
-                                <td>${purchasevalue.product_price}</td>
-                                <td>${purchasevalue.product_retail_price}</td>
-                                <td>${purchasevalue.hsn_code}</td>
-                                <td>${purchasevalue.gst}</td>
-                            </tr>
-                        `;
+                        let pPrice = purchasevalue.product_price || '0.00';
+                        let pRetail = purchasevalue.product_retail_price || '0.00';
+                        let supplier = purchasevalue.supplier_name || '-';
+                        let pDate = purchasevalue.purchase_date || '-';
+                        let pCode = purchasevalue.product_code || '-';
+                        let pId = purchasevalue.product_id || '-';
+                        let pDetails = purchasevalue.product_details || '-';
+                        let hsn = purchasevalue.hsn_code || '-';
+                        let gst = purchasevalue.gst || '-';
+
+                        let row = '<tr>' +
+                            '<td>' +
+                                '<input type="radio" name="oldvalue_selection" class="oldvalue-purchase" value="1" ' +
+                                    'data-product_price="' + pPrice + '" ' +
+                                    'data-product_retail_price="' + pRetail + '">' +
+                            '</td>' +
+                            '<td>' + supplier + '</td>' +
+                            '<td>' + pDate + '</td>' +
+                            '<td>' + pCode + '</td>' +
+                            '<td>' + pId + '</td>' +
+                            '<td>' + pDetails + '</td>' +
+                            '<td>' + pPrice + '</td>' +
+                            '<td>' + pRetail + '</td>' +
+                            '<td>' + hsn + '</td>' +
+                            '<td>' + gst + '</td>' +
+                        '</tr>';
                         tableBody.append(row);
                     });
                 } 
                 else
                 {
-                    tableBody.append('<tr><td colspan="5" class="text-center">No old value found.</td></tr>');
+                    tableBody.append('<tr><td colspan="10" class="text-center">No old value found.</td></tr>');
                 }
             },
             error: function() {
+                tableBody.html('<tr><td colspan="10" class="text-center text-danger">Failed to fetch old value details.</td></tr>');
                 $.toaster({
                     priority: 'danger',
                     title: 'Error',
@@ -929,10 +1004,6 @@ $(document).ready(function () {
                 });
             }
         });
-        
-        $('#OldvalueModal').modal('show');
-
-        
     });
     
     
@@ -1051,12 +1122,14 @@ $(document).ready(function () {
             isValid = false;
         }
         
-        let modal_product_code = document.getElementById("modal_product_code" + class_name).value.trim();
+        let modal_product_code_el = document.getElementById("modal_product_code" + class_name);
+        let modal_product_id_el = document.getElementById("modal_product_id" + class_name);
+        let modal_product_code = modal_product_code_el ? modal_product_code_el.value.trim() : "";
+        let modal_product_id = modal_product_id_el ? modal_product_id_el.value.trim() : "";
 
-
-        if (modal_product_code === "") {
-            document.getElementById("modal_product_codeError" + class_name).textContent = "Product Code required.";
-            document.getElementById("modal_product_code" + class_name).classList.add("is-invalid");
+        if (modal_product_code === "" && modal_product_id === "") {
+            document.getElementById("modal_product_codeError" + class_name).textContent = "Product Code or Product ID required.";
+            if (modal_product_code_el) modal_product_code_el.classList.add("is-invalid");
             isValid = false;
         }
         

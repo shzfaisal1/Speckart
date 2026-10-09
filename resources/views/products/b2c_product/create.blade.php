@@ -349,6 +349,92 @@ body { background: var(--bg); }
 }
 .btn-remove-variant:hover { background: rgba(239,68,68,.2); }
 
+/* ---------- SKU Input Group & Auto-Generator ---------- */
+.sku-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+.sku-input-group .pb-input {
+    flex: 1;
+}
+.btn-gen-sku {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 16px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: .82rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s ease;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.22);
+    min-height: 42px;
+}
+.btn-gen-sku:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    transform: translateY(-1px);
+}
+.btn-gen-sku:active {
+    transform: translateY(0);
+}
+.btn-gen-sku:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-gen-sku i {
+    font-size: .85rem;
+}
+.btn-gen-sku.btn-spin i {
+    animation: spinSku 0.8s linear infinite;
+}
+
+.btn-gen-all-skus {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #eef2ff;
+    color: #4f46e5;
+    border: 1.5px solid #c7d2fe;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: all .2s;
+}
+.btn-gen-all-skus:hover {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.22);
+}
+
+@keyframes spinSku {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes skuPulse {
+    0% { background-color: #ecfdf5; border-color: #10b981; }
+    50% { background-color: #d1fae5; border-color: #059669; }
+    100% { background-color: #ffffff; border-color: var(--border); }
+}
+
+.sku-input.sku-generated-success,
+#product_code_master.sku-generated-success {
+    animation: skuPulse 1.2s ease-out;
+}
+
 .variant-card-body { padding: 16px; }
 .variant-card-body .row-grid {
     display: grid;
@@ -547,11 +633,13 @@ body { background: var(--bg); }
                     <div class="pb-card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="pb-label">Product Code</label>
-                                <input type="text" name="product_code_master" id="product_code_master"
-                                    class="pb-input" placeholder="e.g. PC-2024-001"
+                                <label class="pb-label">Product ID</label>
+                                <input type="text" class="pb-input" id="display_product_id" readonly
+                                    value="{{ $isEdit ? ($editFirst?->product_id ?? $product_id ?? '') : 'Auto-generated on save' }}"
+                                    style="background: #f8fafc; color: #1e293b; font-weight: 700; cursor: not-allowed;"
+                                    title="Product ID">
+                                <input type="hidden" name="product_code_master" id="product_code_master"
                                     value="{{ $editFirst?->parent_product_code ?? '' }}">
-                                <span class="pb-err" id="product_code_masterError"></span>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="pb-label">Product Name <span class="req">*</span></label>
@@ -975,9 +1063,14 @@ body { background: var(--bg); }
                 <div class="pb-card">
                     <div class="pb-card-header">
                         <h5><span class="icon"><i class="fa fa-cubes"></i></span> Product Variants</h5>
-                        <button type="button" class="btn-add-variant" id="btn-add-variant" onclick="addVariant()">
-                            <i class="fa fa-plus"></i> Add Variant
-                        </button>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button" class="btn-gen-all-skus" id="btn-gen-all-skus" onclick="generateAllVariantSkus()" title="Generate unique SKU for all variants">
+                                <i class="fa fa-magic"></i> Auto-Generate All
+                            </button>
+                            <button type="button" class="btn-add-variant" id="btn-add-variant" onclick="addVariant()">
+                                <i class="fa fa-plus"></i> Add Variant
+                            </button>
+                        </div>
                     </div>
                     <div class="pb-card-body">
                         <div class="variant-list" id="variant-list">
@@ -1105,9 +1198,14 @@ body { background: var(--bg); }
             {{-- SKU --}}
             <div class="mb-3">
                 <label class="pb-label">SKU / Product Code <span class="req">*</span></label>
-                <input type="text" name="variants[__IDX__][product_code]"
-                    class="pb-input sku-input" placeholder="e.g. FR-001-BLK"
-                    oninput="updateSkuLabel(this)">
+                <div class="sku-input-group">
+                    <input type="text" name="variants[__IDX__][product_code]"
+                        class="pb-input sku-input" placeholder="e.g. FR-001-BLK"
+                        oninput="updateSkuLabel(this)">
+                    <button type="button" class="btn-gen-sku" onclick="generateSkuForVariant(this)" title="Generate unique SKU / Product Code">
+                        <i class="fa fa-magic"></i> Generate
+                    </button>
+                </div>
                 <span class="pb-err sku-err"></span>
             </div>
 
@@ -1865,6 +1963,274 @@ function updateSkuLabel(input) {
     const card  = input.closest('.variant-card');
     const label = card.querySelector('.v-sku-label');
     if (label) label.textContent = input.value ? '– ' + input.value : '';
+}
+
+// ============================================================
+// Auto-Generate Product Code & SKU
+// ============================================================
+function applyGeneratedSku(skuInput, sku, card) {
+    if (!skuInput || !sku) return;
+    skuInput.value = sku;
+    skuInput.classList.remove('is-invalid');
+    skuInput.classList.add('sku-generated-success');
+    setTimeout(() => skuInput.classList.remove('sku-generated-success'), 1300);
+
+    // Update variant header label badge
+    if (typeof updateSkuLabel === 'function') {
+        updateSkuLabel(skuInput);
+    } else if (card) {
+        const label = card.querySelector('.v-sku-label');
+        if (label) label.textContent = '– ' + sku;
+    }
+
+    // Clear any previous SKU error message
+    if (card) {
+        const errSpan = card.querySelector('.sku-err');
+        if (errSpan) errSpan.innerHTML = '';
+    }
+
+    // Re-evaluate form completion checklist
+    if (typeof evaluateChecklist === 'function') {
+        evaluateChecklist();
+    }
+}
+
+function generateClientFallbackSku(type, masterCode, vIndex, colorVal, existingSkus, isMaster) {
+    const typeMap = {
+        'frame': 'FR',
+        'sunglass': 'SG',
+        'sunglasses': 'SG',
+        'goggles': 'SG',
+        'lens': 'CL',
+        'solution': 'SL',
+        'glass': 'GL',
+        'accessory': 'AC',
+        'other': 'OT'
+    };
+    const prefix = typeMap[(type || '').toLowerCase()] || 'FR';
+
+    const normalizedExisting = (existingSkus || []).map(s => String(s).toLowerCase().trim());
+
+    if (isMaster) {
+        let code = '';
+        let attempts = 0;
+        do {
+            const rand = Math.floor(100 + Math.random() * 900);
+            code = `${prefix}-${rand}`;
+            attempts++;
+        } while (normalizedExisting.includes(code.toLowerCase()) && attempts < 50);
+        return code;
+    }
+
+    let colorSuffix = '';
+    const hexMap = {
+        '#1a1a1a': 'BLK', '#000000': 'BLK', '#ffffff': 'WHT',
+        '#ffd700': 'GLD', '#c0c0c0': 'SLV', '#0000ff': 'BLU',
+        '#a52a2a': 'BRN', '#808080': 'GRY', '#008000': 'GRN',
+        '#ff0000': 'RED'
+    };
+    if (colorVal) {
+        const cLower = String(colorVal).toLowerCase().trim();
+        if (hexMap[cLower]) {
+            colorSuffix = hexMap[cLower];
+        } else {
+            const cleaned = colorVal.replace(/[^a-zA-Z0-9]/g, '');
+            if (cleaned.length >= 2) {
+                colorSuffix = cleaned.substring(0, 3).toUpperCase();
+            }
+        }
+    }
+
+    const suffix = colorSuffix || String(vIndex).padStart(2, '0');
+
+    if (masterCode) {
+        let code = `${masterCode.toUpperCase()}-${suffix}`;
+        let counter = 1;
+        while (normalizedExisting.includes(code.toLowerCase()) && counter < 50) {
+            code = `${masterCode.toUpperCase()}-${suffix}-${counter}`;
+            counter++;
+        }
+        return code;
+    } else {
+        let code = '';
+        let attempts = 0;
+        do {
+            const num = Math.floor(100 + Math.random() * 900);
+            code = `${prefix}-${num}-${suffix}`;
+            attempts++;
+        } while (normalizedExisting.includes(code.toLowerCase()) && attempts < 50);
+        return code;
+    }
+}
+
+async function generateSkuForVariant(btn) {
+    const card = btn.closest('.variant-card');
+    if (!card) return;
+
+    const skuInput = card.querySelector('.sku-input');
+    if (!skuInput) return;
+
+    // Determine variant index number
+    const vNumEl = card.querySelector('.v-num');
+    const vIndex = vNumEl ? (parseInt(vNumEl.textContent.trim(), 10) || 1) : 1;
+
+    // Master Product Code if available
+    const masterCode = (document.getElementById('product_code_master')?.value || '').trim();
+
+    // Product Type
+    const productType = window.currentProductType || 'Frame';
+
+    // Variant Color (from color hex text, color input, or select)
+    let colorVal = '';
+    const colorHexInput = card.querySelector('.color-hex-text');
+    const colorInput = card.querySelector('input[name$="[Color]"]');
+    if (colorHexInput && colorHexInput.value) {
+        colorVal = colorHexInput.value.trim();
+    } else if (colorInput && colorInput.value) {
+        colorVal = colorInput.value.trim();
+    }
+
+    // Collect all existing skus on the current page to prevent in-form duplicate
+    const existingSkus = [];
+    document.querySelectorAll('.sku-input').forEach(inp => {
+        if (inp !== skuInput && inp.value.trim()) {
+            existingSkus.push(inp.value.trim());
+        }
+    });
+
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('btn-spin');
+    btn.innerHTML = '<i class="fa fa-spinner"></i> Generating...';
+
+    const token = document.querySelector('input[name="_token"]')?.value || '{{ csrf_token() }}';
+
+    try {
+        const response = await fetch('{{ route("admin.products.generate-sku") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                product_type: productType,
+                master_code: masterCode,
+                variant_index: vIndex,
+                color: colorVal,
+                existing_skus: existingSkus,
+                is_master: false
+            })
+        });
+
+        const data = await response.json();
+        if (data && data.success && data.sku) {
+            applyGeneratedSku(skuInput, data.sku, card);
+        } else {
+            const fallback = generateClientFallbackSku(productType, masterCode, vIndex, colorVal, existingSkus, false);
+            applyGeneratedSku(skuInput, fallback, card);
+        }
+    } catch (err) {
+        console.warn('Network error during SKU generation, using fallback:', err);
+        const fallback = generateClientFallbackSku(productType, masterCode, vIndex, colorVal, existingSkus, false);
+        applyGeneratedSku(skuInput, fallback, card);
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('btn-spin');
+        btn.innerHTML = originalHtml;
+    }
+}
+
+async function generateMasterProductCode() {
+    const masterInput = document.getElementById('product_code_master');
+    if (!masterInput) return;
+
+    const btn = masterInput.parentElement.querySelector('.btn-gen-sku');
+    const productType = window.currentProductType || 'Frame';
+
+    const existingSkus = [];
+    if (masterInput.value.trim()) {
+        existingSkus.push(masterInput.value.trim());
+    }
+
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('btn-spin');
+        btn.innerHTML = '<i class="fa fa-spinner"></i> Generating...';
+    }
+
+    const token = document.querySelector('input[name="_token"]')?.value || '{{ csrf_token() }}';
+
+    try {
+        const response = await fetch('{{ route("admin.products.generate-sku") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                product_type: productType,
+                existing_skus: existingSkus,
+                is_master: true
+            })
+        });
+
+        const data = await response.json();
+        if (data && data.success && data.sku) {
+            masterInput.value = data.sku;
+            masterInput.classList.remove('is-invalid');
+            masterInput.classList.add('sku-generated-success');
+            setTimeout(() => masterInput.classList.remove('sku-generated-success'), 1300);
+
+            const err = document.getElementById('product_code_masterError');
+            if (err) err.innerHTML = '';
+        } else {
+            const fallback = generateClientFallbackSku(productType, '', 1, '', existingSkus, true);
+            masterInput.value = fallback;
+        }
+    } catch (err) {
+        console.warn('Network error generating master code, using fallback:', err);
+        const fallback = generateClientFallbackSku(productType, '', 1, '', existingSkus, true);
+        masterInput.value = fallback;
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('btn-spin');
+            btn.innerHTML = originalHtml;
+        }
+        if (typeof evaluateChecklist === 'function') {
+            evaluateChecklist();
+        }
+    }
+}
+
+async function generateAllVariantSkus() {
+    const cards = document.querySelectorAll('.variant-card');
+    if (!cards.length) return;
+
+    const allBtn = document.getElementById('btn-gen-all-skus');
+    const originalHtml = allBtn ? allBtn.innerHTML : '';
+    if (allBtn) {
+        allBtn.disabled = true;
+        allBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Generating...';
+    }
+
+    try {
+        for (let i = 0; i < cards.length; i++) {
+            const card = cards[i];
+            const btn = card.querySelector('.btn-gen-sku');
+            if (btn) {
+                await generateSkuForVariant(btn);
+            }
+        }
+    } finally {
+        if (allBtn) {
+            allBtn.disabled = false;
+            allBtn.innerHTML = originalHtml;
+        }
+    }
 }
 
 // ============================================================

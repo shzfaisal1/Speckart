@@ -48,7 +48,7 @@ input.loading {
                 </div>    
                 <div class="col-lg-3">
                     <div class="form-group">
-                        <input type="text" class="form-control input" placeholder="Bill Number Wise,Supplier Name" id="search" name="search" style="width: 250px;margin-top: 10px;">
+                        <input type="text" class="form-control input" placeholder="Bill Number, Supplier Name, Product ID" id="search" name="search" style="width: 280px;margin-top: 10px;">
                     </div>
                 </div> 
                 @if($usr->roles[0]->name == 'Admin')
@@ -86,7 +86,8 @@ input.loading {
                                 <th class="wd-10p">Sr.No</th>
                                 <th class="wd-15p">Supplier Name</th>
                                 <th class="wd-15p">Purchase Date</th>
-                                <th class="wd-20p">Bill Number</th>
+                                <th class="wd-15p">Bill Number</th>
+                                <th class="wd-15p">Product ID</th>
                                 <th class="wd-10p">Unit Price</th>
                                 <th class="wd-10p">GST Amount</th>
                                 <th class="wd-10p">Quantity</th>
@@ -206,6 +207,10 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
             },
             {
+                "data": "product_id",
+                orderable: false,
+            },
+            {
                 "data": "unit_price",
                 orderable: false,
             },
@@ -253,16 +258,16 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
                 render: function(data, type, full) 
                 {
-                    let viewUrl = `{{ route('admin.purchase.view', ':purchase_id') }}`.replace(':purchase_id', full['encryptedId']);
-                    let editUrl = `{{ route('admin.purchase.edit', ':purchase_id') }}`.replace(':purchase_id', full['encryptedId']);
-                    let barcodeUrl = `{{ route('admin.purchase.barcodegenerate', ':id') }}`.replace(':id', full['purchase_id']);
+                    let viewUrl = "{{ route('admin.purchase.view', ':purchase_id') }}".replace(':purchase_id', full['encryptedId']);
+                    let editUrl = "{{ route('admin.purchase.edit', ':purchase_id') }}".replace(':purchase_id', full['encryptedId']);
+                    let barcodeUrl = "{{ route('admin.purchase.barcodegenerate', ':id') }}".replace(':id', full['purchase_id']);
 
-                    return (`<div class="dropdown"><button type="button" class="btn dropdown-toggle" data-toggle="dropdown">ACTION</button><div class="dropdown-menu">`+
-                                `<a class="dropdown-item" href="${viewUrl}">View</a>` +
-                                `<a class="dropdown-item" href="${editUrl}">Edit</a>` +
-                                `<a class="action-delete dropdown-item" href="#"  data-id="` + full['purchase_id'] + `">Delete</a>`+
-                                `<a class="dropdown-item" href="${barcodeUrl}" target="_blank">Generate Barcode</a>`+
-                            `</div>`
+                    return ('<div class="dropdown"><button type="button" class="btn dropdown-toggle" data-toggle="dropdown">ACTION</button><div class="dropdown-menu">' +
+                                '<a class="dropdown-item" href="' + viewUrl + '">View</a>' +
+                                '<a class="dropdown-item" href="' + editUrl + '">Edit</a>' +
+                                '<a class="action-delete dropdown-item" href="#" data-id="' + full['purchase_id'] + '">Delete</a>' +
+                                '<a class="dropdown-item" href="' + barcodeUrl + '" target="_blank">Generate Barcode</a>' +
+                            '</div>'
                     );
                 }    
             }

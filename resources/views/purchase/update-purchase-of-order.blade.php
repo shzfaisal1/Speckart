@@ -203,6 +203,7 @@ input.error
                                                 <input type="hidden" name="saleproductid[]" value="{{ $product->id }}">
                                                 <input type="hidden" name="product_type[]" value="{{ $product->product_type }}">
                                                 <input type="hidden" name="product_code[]" value="{{ $product->product_code }}">
+                                                <input type="hidden" name="product_id[]" value="{{ $product->product_id ?? '' }}">
                                                 <input type="hidden" name="product_details[]" value="{{ $product_deatils }}">
                                     
                                                 {{ $product->order_no }} <br>
@@ -211,7 +212,7 @@ input.error
                                     
                                             <td>
                                                 Product : {{ $product->product_type }} <br>
-                                                Product Code : {{ $product->product_code }} <br>
+                                                Product Code : {{ $product->product_code }} @if(!empty($product->product_id)) | ID : {{ $product->product_id }} @endif <br>
                                                 Description : {{ $product_deatils }}
                                             </td>
                                     

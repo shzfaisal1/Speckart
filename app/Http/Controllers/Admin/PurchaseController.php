@@ -70,11 +70,12 @@ class PurchaseController extends Controller
         $query = trim($request->input('query', ''));
     
         $products = DB::table('tbl_product_code')
-            ->select('product_code', 'productdetails', 'product_name')
+            ->select('product_id','product_code', 'productdetails', 'product_name')
             ->where('product_type', $productType)
             ->where(function($q) use ($query) {
                 $q->where('product_code', 'LIKE', '%' . $query . '%')
-                  ->orWhere('productdetails', 'LIKE', '%' . $query . '%')
+                  ->orWhere('product_id', 'LIKE', '%' . $query . '%')
+                   ->orWhere('productdetails', 'LIKE', '%' . $query . '%')
                   ->orWhere('product_name', 'LIKE', '%' . $query . '%');
             })
             ->take(25)
@@ -84,12 +85,13 @@ class PurchaseController extends Controller
             $lensPackages = DB::table('lens_packages')
                 ->where(function($q) use ($query) {
                     $q->where('product_code', 'LIKE', '%' . $query . '%')
+                     ->orWhere('product_id', 'LIKE', '%' . $query . '%')
                       ->orWhere('name', 'LIKE', '%' . $query . '%');
                 })
                 ->take(15)
                 ->get();
 
-            $existingCodes = $products->pluck('product_code')->filter()->toArray();
+            $existingCodes = $products->pluck(['product_code','product_id'])->filter()->toArray();
             foreach ($lensPackages as $lp) {
                 if (!empty($lp->product_code) && !in_array($lp->product_code, $existingCodes)) {
                     $detailsParts = array_filter([$lp->name, $lp->company, $lp->material, $lp->coating, $lp->lens_index]);
@@ -106,6 +108,7 @@ class PurchaseController extends Controller
         $result = $products->map(function($p) {
             $displayText = !empty($p->productdetails) ? $p->productdetails : ($p->product_name ?: $p->product_code);
             return [
+                'product_id'   => $p->product_id ?? '',
                 'product_code'   => $p->product_code ?? '',
                 'productdetails' => $displayText,
             ];
@@ -136,20 +139,18 @@ class PurchaseController extends Controller
                 ->where('set_default', 1)
                 ->first();
                 
-            if($product) 
+            if(!$product) 
             {
-                
-                return response()->json([
-                    'hsn_code'   => $product->hsn_code ?? '',
-                    'percentage'        => $product->percentage ?? '',
-                    'productType'   => $productType,
-    
-                ]);
-            } 
-            else
-            {
-                return response()->json([], 404);
+                $product = DB::table('tbl_tax')
+                    ->where('product_type', $productType)
+                    ->first();
             }
+
+            return response()->json([
+                'hsn_code'    => $product->hsn_code ?? '',
+                'percentage'  => $product->percentage ?? '',
+                'productType' => $productType,
+            ]);
         }    
     }
     
@@ -157,22 +158,54 @@ class PurchaseController extends Controller
     {
         $productType = $request->input('product_type');
         $productdetails = trim($request->input('productdetails', ''));
-    
+        $productId = trim($request->input('product_id', ''));
+        $productCode = trim($request->input('product_code', ''));
+       
         $product = DB::table('tbl_product_code')
             ->where('product_type', $productType)
-            ->where(function($q) use ($productdetails) {
-                $q->where('productdetails', $productdetails)
-                  ->orWhere('product_code', $productdetails)
-                  ->orWhere('product_name', $productdetails);
+            ->where(function($q) use ($productdetails, $productId, $productCode) {
+                if (!empty($productId)) {
+                    $q->where('product_id', $productId);
+                } elseif (!empty($productCode)) {
+                    $q->where('product_code', $productCode);
+                } elseif (!empty($productdetails)) {
+                    $q->where('productdetails', $productdetails)
+                      ->orWhere('product_code', $productdetails)
+                      ->orWhere('product_id', $productdetails)
+                      ->orWhere('product_name', $productdetails);
+                }
             })
             ->orderby('id', 'DESC')
             ->first();
 
+        // Fallback search across all identifiers if exact match was not found
+        if (!$product && (!empty($productId) || !empty($productCode) || !empty($productdetails))) {
+            $searchValues = array_values(array_filter([$productId, $productCode, $productdetails]));
+            $product = DB::table('tbl_product_code')
+                ->where('product_type', $productType)
+                ->where(function($q) use ($searchValues) {
+                    foreach ($searchValues as $val) {
+                        $q->orWhere('product_id', $val)
+                          ->orWhere('product_code', $val)
+                          ->orWhere('productdetails', $val)
+                          ->orWhere('product_name', $val);
+                    }
+                })
+                ->orderby('id', 'DESC')
+                ->first();
+        }
+        
         // Fallback for Glass: If not in tbl_product_code yet, search lens_packages and auto-sync
         if (!$product && $productType === 'Glass') {
+            $searchValues = array_values(array_filter([$productId, $productCode, $productdetails]));
             $pkg = DB::table('lens_packages')
-                ->where('product_code', $productdetails)
-                ->orWhere('name', $productdetails)
+                ->where(function($q) use ($searchValues) {
+                    foreach ($searchValues as $val) {
+                        $q->orWhere('product_code', $val)
+                          ->orWhere('product_id', $val)
+                          ->orWhere('name', $val);
+                    }
+                })
                 ->first();
 
             if ($pkg) {
@@ -212,9 +245,16 @@ class PurchaseController extends Controller
         }
 
         $invPerbox = null;
-        if (!empty($product->product_code)) {
+        if (!empty($product) && (!empty($product->product_code) || !empty($product->product_id))) {
             $invPerbox = DB::table('tbl_inventory_levels')
-                ->where('product_code', $product->product_code)
+                ->where(function($q) use ($product) {
+                    if (!empty($product->product_code)) {
+                        $q->where('product_code', $product->product_code);
+                    }
+                    if (!empty($product->product_id)) {
+                        $q->orWhere('product_id', $product->product_id);
+                    }
+                })
                 ->whereNotNull('perbox')
                 ->where('perbox', '>', 0)
                 ->orderBy('id', 'desc')
@@ -269,21 +309,41 @@ class PurchaseController extends Controller
     {
         $productType = $request->input('productType');
         $productCode = $request->input('productCode');
-        $store_id= $request->input('store_id');
+        $productId   = $request->input('productId');
+        $store_id    = $request->input('store_id');
         
 
-        $product = DB::table('tbl_purchase_deatils as pd')
-              ->leftJoin('tbl_purchase as p', 'p.purchase_id', '=', 'pd.purchase_id')
-            ->where('pd.product_type', $productType)
-            ->where('pd.product_code', $productCode)
-            ->where('pd.store_id', $store_id)
-            ->orderBy('pd.id', 'desc')
-            ->get(['pd.bill_no', 'pd.product_price', 'pd.product_retail_price', 'pd.product_details', 'pd.hsn_code', 'pd.gst', 'p.purchase_date', 'p.supplier_name']);
+        $productQuery = DB::table('tbl_purchase_deatils as pd')
+            ->leftJoin('tbl_purchase as p', 'p.purchase_id', '=', 'pd.purchase_id');
+
+        if (!empty($productType)) {
+            $productQuery->where('pd.product_type', $productType);
+        }
+
+        if (!empty($productCode) || !empty($productId)) {
+            $productQuery->where(function($q) use ($productCode, $productId) {
+                if (!empty($productCode)) {
+                    $q->where('pd.product_code', $productCode);
+                }
+                if (!empty($productId)) {
+                    $q->orWhere('pd.product_id', $productId);
+                }
+            });
+        }
+
+        if (!empty($store_id)) {
+            $productQuery->where('pd.store_id', $store_id);
+        }
+
+        $product = $productQuery->orderBy('pd.id', 'desc')
+            ->get(['pd.bill_no', 'pd.product_code', 'pd.product_id', 'pd.product_price', 'pd.product_retail_price', 'pd.product_details', 'pd.hsn_code', 'pd.gst', 'p.purchase_date', 'p.supplier_name']);
 
         return response()->json([
             'data' => $product->map(function ($p) {
                 return [
                     'bill_no' => $p->bill_no,
+                    'product_code' => $p->product_code,
+                    'product_id' => $p->product_id,
                     'product_price' => $p->product_price,
                     'product_retail_price' => $p->product_retail_price,
                     'product_details' => $p->product_details,
@@ -330,7 +390,7 @@ class PurchaseController extends Controller
         // At least one valid product
         $hasValidProduct = false;
         foreach ($request->input('product_type', []) as $i => $type) {
-            if (!empty($type) && !empty($request->input("product_code.$i"))) {
+            if (!empty($type) && (!empty($request->input("product_code.$i")) || !empty($request->input("product_id.$i")))) {
                 $hasValidProduct = true;
                 break;
             }
@@ -370,15 +430,23 @@ class PurchaseController extends Controller
             foreach ($data['product_type'] as $i => $type) 
             {
                 $code = $data['product_code'][$i] ?? null;
-                if (empty($type) || empty($code)) continue;
+                $prodId = $data['product_id'][$i] ?? null;
+                if (empty($type) || (empty($code) && empty($prodId))) continue;
                 
                 $tCount = DB::table('tbl_product_code')
                          ->where('product_type', $type)
-                         ->where('product_code', $code)
-                         ->where('productdetails', $data['product_details'][$i])->count();
+                         ->where(function($q) use ($code, $prodId) {
+                             if (!empty($code)) $q->where('product_code', $code);
+                             if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                         })
+                         ->where('productdetails', $data['product_details'][$i] ?? '')->count();
                          
                 
-                $PCount = DB::table('tbl_product_code')->where('product_code', $code)->count();
+                $PCount = DB::table('tbl_product_code')
+                         ->where(function($q) use ($code, $prodId) {
+                             if (!empty($code)) $q->where('product_code', $code);
+                             if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                         })->count();
                     
                 if($tCount == 0)
                 {
@@ -387,12 +455,20 @@ class PurchaseController extends Controller
                     
                     if($PCount == 0)
                     {
-                        $product_id = $idgenerate;
+                        $product_id = !empty($prodId) ? $prodId : $idgenerate;
                     }
                     else
                     {
-                        $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $code)->first();
+                        $tbl_product_code = DB::table('tbl_product_code')
+                            ->where(function($q) use ($code, $prodId) {
+                                if (!empty($code)) $q->where('product_code', $code);
+                                if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                            })->first();
                         $product_id = $tbl_product_code->product_id;
+                    }
+
+                    if (empty($code)) {
+                        $code = 'PRD-' . $product_id;
                     }
                     
                     $Product = Product::create([
@@ -442,8 +518,15 @@ class PurchaseController extends Controller
                 }
                 else
                 {
-                    $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $code)->first();
-                    $product_id = $tbl_product_code->product_id;
+                    $tbl_product_code = DB::table('tbl_product_code')
+                        ->where(function($q) use ($code, $prodId) {
+                            if (!empty($code)) $q->where('product_code', $code);
+                            if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                        })->first();
+                    $product_id = $tbl_product_code->product_id ?? $prodId;
+                    if (empty($code)) {
+                        $code = $tbl_product_code->product_code ?? ('PRD-' . $product_id);
+                    }
 
                     $updateProductData = ['updated_at' => now()];
                     if (!empty($data['product_perbox'][$i])) {
@@ -814,8 +897,16 @@ class PurchaseController extends Controller
         }
         if ($search1 != '') 
         {
-            $totalData->where('supplier_name', 'like', '%' . $search1 . '%')
-            ->orWhere('p_bill_no', 'like', '%' . $search1 . '%');
+            $totalData->where(function($q) use ($search1) {
+                $q->where('tbl_purchase.supplier_name', 'like', '%' . $search1 . '%')
+                  ->orWhere('tbl_purchase.p_bill_no', 'like', '%' . $search1 . '%')
+                  ->orWhereExists(function ($sub) use ($search1) {
+                      $sub->select(DB::raw(1))
+                          ->from('tbl_purchase_deatils')
+                          ->whereColumn('tbl_purchase_deatils.bill_no', 'tbl_purchase.p_bill_no')
+                          ->where('tbl_purchase_deatils.product_id', 'like', '%' . $search1 . '%');
+                  });
+            });
         }
         $totalData = $totalData->count();
         
@@ -837,34 +928,46 @@ class PurchaseController extends Controller
         }
         if ($search1 != '') 
         {
-            $templates->where('supplier_name', 'like', '%' . $search1 . '%')
-            ->orWhere('p_bill_no', 'like', '%' . $search1 . '%');
+            $templates->where(function($q) use ($search1) {
+                $q->where('tbl_purchase.supplier_name', 'like', '%' . $search1 . '%')
+                  ->orWhere('tbl_purchase.p_bill_no', 'like', '%' . $search1 . '%')
+                  ->orWhereExists(function ($sub) use ($search1) {
+                      $sub->select(DB::raw(1))
+                          ->from('tbl_purchase_deatils')
+                          ->whereColumn('tbl_purchase_deatils.bill_no', 'tbl_purchase.p_bill_no')
+                          ->where('tbl_purchase_deatils.product_id', 'like', '%' . $search1 . '%');
+                  });
+            });
         }
 
-
-        $tem = $tem1 = $templates;
-        $templates = $tem->offset($start)
-        ->limit($limit)
-        ->orderBy('purchase_id', 'DESC')
-        ->get();
         $totalFiltered = $templates->count();
+        $templates = $templates->offset($start)
+            ->limit($limit)
+            ->orderBy('purchase_id', 'DESC')
+            ->get();
          
         $data = [];
         if (! empty($templates))
         {
-            $i=1;
+            $i = $start + 1;
+            $billNos = $templates->pluck('p_bill_no')->filter()->toArray();
+            $purchaseProducts = DB::table('tbl_purchase_deatils')
+                ->whereIn('bill_no', $billNos)
+                ->select('bill_no', 'product_id')
+                ->get()
+                ->groupBy('bill_no');
+
             foreach ($templates as $template) 
             {
-                
                 $created_by = User::find($template->added_by);
                 if($template->store_id == '0')
                 {
-                    $store_name = $created_by->user_type;
+                    $store_name = $created_by->user_type ?? 'Admin';
                 }
                 else
                 {
-                    $store_name = Store::find($template->store_id);
-                    $store_name = $store_name->store_id;
+                    $store = Store::find($template->store_id);
+                    $store_name = $store ? $store->store_id : '-';
                 }
                 
                 $encryptedId = base64_encode($template->p_bill_no);
@@ -873,6 +976,18 @@ class PurchaseController extends Controller
                 $nestedData['supplier_name'] = $template->supplier_name;
                 $nestedData['p_date']  = date("d-m-Y", strtotime($template->purchase_date));
                 $nestedData['bill_no'] = '<span class="badge badge-success">'.$template->p_bill_no.'</span>';
+
+                // Product IDs
+                $products = $purchaseProducts->get($template->p_bill_no, collect());
+                $productIds = $products->pluck('product_id')->filter()->unique()->values();
+                if ($productIds->isNotEmpty()) {
+                    $nestedData['product_id'] = $productIds->map(function($pid) {
+                        return '<span class="badge badge-info">' . e($pid) . '</span>';
+                    })->implode(' ');
+                } else {
+                    $nestedData['product_id'] = '-';
+                }
+
                 $nestedData['unit_price']  = $template->total_unit_amount;
                 $nestedData['gst_amount']  = $template->total_gst_amount;
                 $nestedData['qty']  = $template->total_qty;
@@ -1295,12 +1410,14 @@ class PurchaseController extends Controller
                 $templates->where(function ($query) use ($searchValues) {
                     $query->whereIn('challan_no', $searchValues)
                           ->orWhereIn('product_code', $searchValues)
+                          ->orWhereIn('product_id', $searchValues)
                           ->orWhereIn('barcode_no', $searchValues);
                 });
             } else {
                 $templates->where(function ($query) use ($search) {
                     $query->where('p_bill_no', 'like', "%{$search}%")
                           ->orWhere('product_code', 'like', "%{$search}%")
+                          ->orWhere('product_id', 'like', "%{$search}%")
                           ->orWhere('barcode_no', 'like', "%{$search}%");
                 });
             }
@@ -1497,6 +1614,7 @@ class PurchaseController extends Controller
                 'Barcode' => 'tbl_barcode.barcode_no',
                 'Description' => 'tbl_barcode.product_details',
                 'Product Code' => 'tbl_barcode.product_code',
+                'Product ID' => 'tbl_barcode.product_id',
                 'Purchase Bill Number' => 'tbl_barcode.p_bill_no',
                 'Challan Number' => 'tbl_barcode.challan_no',
             ];
@@ -2284,7 +2402,7 @@ class PurchaseController extends Controller
         // At least one valid product
         $hasValidProduct = false;
         foreach ($request->input('product_type', []) as $i => $type) {
-            if (!empty($type) && !empty($request->input("product_code.$i"))) {
+            if (!empty($type) && (!empty($request->input("product_code.$i")) || !empty($request->input("product_id.$i")))) {
                 $hasValidProduct = true;
                 break;
             }
@@ -2322,19 +2440,26 @@ class PurchaseController extends Controller
             foreach ($data['product_type'] as $i => $type) 
             {
                 $code = $data['product_code'][$i] ?? null;
-                if (empty($type) || empty($code)) continue;
+                $prodId = $data['product_id'][$i] ?? null;
+                if (empty($type) || (empty($code) && empty($prodId))) continue;
                 
                 $tCount = DB::table('tbl_product_code')
                          ->where('product_type', $type)
-                         ->where('product_code', $code)
-                         ->where('productdetails', $data['product_details'][$i])->count();
+                         ->where(function($q) use ($code, $prodId) {
+                             if (!empty($code)) $q->where('product_code', $code);
+                             if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                         })
+                         ->where('productdetails', $data['product_details'][$i] ?? '')->count();
                          
-                
-                $PCount = DB::table('tbl_product_code')->where('product_code', $code)->count();
-                    
-                
-                $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $code)->first();
-                $product_id = $tbl_product_code->product_id ?? null;
+                $tbl_product_code = DB::table('tbl_product_code')
+                    ->where(function($q) use ($code, $prodId) {
+                        if (!empty($code)) $q->where('product_code', $code);
+                        if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                    })->first();
+                $product_id = $tbl_product_code->product_id ?? $prodId;
+                if (empty($code)) {
+                    $code = $tbl_product_code->product_code ?? ('PRD-' . $product_id);
+                }
                 
                 if ($tbl_product_code) {
                     $updateChallanPData = ['updated_at' => now()];
@@ -2892,8 +3017,9 @@ class PurchaseController extends Controller
             foreach ($data['product_type'] as $i => $type)
             {
                 $code = $data['product_code'][$i] ?? null;
+                $prodId = $data['product_id'][$i] ?? null;
     
-                if (empty($type) || empty($code))
+                if (empty($type) || (empty($code) && empty($prodId)))
                 {
                     continue;
                 }
@@ -2910,6 +3036,11 @@ class PurchaseController extends Controller
                 if (!$ChallanProduct)
                 {
                     continue;
+                }
+
+                if (empty($code))
+                {
+                    $code = $ChallanProduct->product_code ?: ('PRD-' . $ChallanProduct->product_id);
                 }
     
                 // ==========================
@@ -3201,13 +3332,15 @@ class PurchaseController extends Controller
             if (count($searchValues) > 1 && count($searchValues) <= 100) {
     
                 $templates->where(function ($query) use ($searchValues) {
-                    $query->whereIn('tsp.product_code', $searchValues);
+                    $query->whereIn('tsp.product_code', $searchValues)
+                        ->orWhereIn('tsp.product_id', $searchValues);
                 });
     
             } else {
     
                 $templates->where(function ($query) use ($search) {
                     $query->where('tsp.product_code', 'like', "%{$search}%")
+                        ->orWhere('tsp.product_id', 'like', "%{$search}%")
                         ->orWhere('tsp.product_deatils', 'like', "%{$search}%");
                 });
             }
@@ -3266,6 +3399,7 @@ class PurchaseController extends Controller
                 $nestedData['product_type'] = $product_type;
     
                 $nestedData['product_code'] = $template->product_code;
+                $nestedData['product_id'] = $template->product_id ?? '-';
     
                 $nestedData['description'] = $product_deatils ?? '';
     
@@ -3399,8 +3533,9 @@ class PurchaseController extends Controller
             foreach ($data['product_type'] as $i => $type)
             {
                 $code = $data['product_code'][$i] ?? null;
+                $prodId = $data['product_id'][$i] ?? null;
     
-                if (empty($type) || empty($code))
+                if (empty($type) || (empty($code) && empty($prodId)))
                 {
                     continue;
                 }
@@ -3416,7 +3551,12 @@ class PurchaseController extends Controller
                     continue;
                 }
     
-                $product_id = $SaleProduct->product_id;
+                $product_id = $SaleProduct->product_id ?? $prodId;
+
+                if (empty($code))
+                {
+                    $code = $SaleProduct->product_code ?: ('PRD-' . $product_id);
+                }
     
                 // ==========================
                 // GET ORDER NO
@@ -3918,7 +4058,8 @@ class PurchaseController extends Controller
             ->orWhere('bill_no', 'like', '%' . $search1 . '%')
             ->orWhere('return_date', 'like', '%' . $search1 . '%')
             ->orWhere('barcode_no', 'like', '%' . $search1 . '%')
-            ->orWhere('product_code', 'like', '%' . $search1 . '%');
+            ->orWhere('product_code', 'like', '%' . $search1 . '%')
+            ->orWhere('product_id', 'like', '%' . $search1 . '%');
         }
         $totalData = $totalData->count();
         
@@ -3948,7 +4089,8 @@ class PurchaseController extends Controller
             ->orWhere('bill_no', 'like', '%' . $search1 . '%')
             ->orWhere('return_date', 'like', '%' . $search1 . '%')
             ->orWhere('barcode_no', 'like', '%' . $search1 . '%')
-            ->orWhere('product_code', 'like', '%' . $search1 . '%');
+            ->orWhere('product_code', 'like', '%' . $search1 . '%')
+            ->orWhere('product_id', 'like', '%' . $search1 . '%');
         }
 
 
@@ -3972,6 +4114,7 @@ class PurchaseController extends Controller
                 $nestedData['bill_no'] = '<span class="badge badge-success">'.$template->bill_no.'</span>';
                 $nestedData['product_type']  = $template->product_type;
                 $nestedData['product_code']  = $template->product_code;
+                $nestedData['product_id']    = $template->product_id ?? '-';
                 $nestedData['description']  = $template->description;
                 $nestedData['qty']  = $template->qty;
                 $nestedData['total_purchase']  = 'Rs '.$template->total_purchase;
@@ -4019,32 +4162,35 @@ class PurchaseController extends Controller
         if ($product_type) {
             $query->where('pd.product_type', $product_type);
         }
-    
-        if ($search_by) 
+         if ($search_by) 
         {
             if($search_text)
             {
-                if($search_text == '1')
+                if($search_by == '1' || $search_text == '1')
                 {
-                    $query->where('p.supplier_name', $search_text);
+                    $query->where('p.supplier_name', 'like', '%' . $search_text . '%');
                 }
-                elseif($search_text == '2')
+                elseif($search_by == '2' || $search_text == '2')
                 {
                     $query->where('pd.product_code', $search_text);
                 }
-                elseif($search_text == '3')
+                elseif($search_by == '7')
+                {
+                    $query->where('pd.product_id', $search_text);
+                }
+                elseif($search_by == '3' || $search_text == '3')
                 {
                     $query->where('b.barcode_no', $search_text);
                 }
-                elseif($search_text == '4')
+                elseif($search_by == '4' || $search_text == '4')
                 {
                      $query->where('p.p_bill_no', $search_text);
                 }
-                elseif($search_text == '5')
+                elseif($search_by == '5' || $search_text == '5')
                 {
                     $query->where('pd.company_detail', $search_text);
                 }
-                elseif($search_text == '6')
+                elseif($search_by == '6' || $search_text == '6')
                 {
                     $query->where('p.purchase_date', $search_text);
                 }
@@ -4094,6 +4240,7 @@ class PurchaseController extends Controller
                     <th>Purchase Date</th>
                     <th>Product</th>
                     <th>Product Code</th>
+                    <th>Product ID</th>
                     <th>Description</th>
                     <th>Total Purchase</th>
                     <th>Barcode</th>
@@ -4107,8 +4254,8 @@ class PurchaseController extends Controller
                 <tr>
                      <td>
                         <input type="checkbox"
-                               class="row-checkbox"
-                               value="'.$product->bid.'">
+                                class="row-checkbox"
+                                value="'.$product->bid.'">
                      </td>
     
                      <td>'.$product->supplier_name.'</td>
@@ -4116,6 +4263,7 @@ class PurchaseController extends Controller
                      <td>'.$product->purchase_date.'</td>
                      <td>'.$product->product_type.'</td>
                      <td>'.$product->product_code.'</td>
+                     <td>'.($product->product_id ?? '-').'</td>
                      <td>'.$product->product_details.'</td>
                      <td>'.$product->product_purchase_price.'</td>
                      <td>'.$product->barcode_no.'</td>
@@ -4202,6 +4350,7 @@ class PurchaseController extends Controller
                     'return_date'     => date("Y-m-d"),
                     'product_type'    => $barcode->product_type,
                     'product_code'    => $barcode->product_code, 
+                    'product_id'      => $barcode->product_id,
                     'description'     => $barcode->product_details,
                     'qty'             => 1,
                     'total_purchase'  => $barcode->purchase_price,
@@ -4452,12 +4601,22 @@ class PurchaseController extends Controller
 
                         $product_detailsP = implode(' - ', $filteredFieldsProduct); 
 
+                        $code = $data['product_code'] ?? null;
+                        $prodId = $data['product_id'] ?? null;
+
                         $tCount = DB::table('tbl_product_code')
                          ->where('product_type', 'Glass')
-                         ->where('product_code', $data['product_code'])
+                         ->where(function($q) use ($code, $prodId) {
+                             if (!empty($code)) $q->where('product_code', $code);
+                             if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                         })
                          ->where('productdetails', $product_detailsP)->count();
                      
-                        $PCount = DB::table('tbl_product_code')->where('product_code', $data['product_code'])->count();
+                        $PCount = DB::table('tbl_product_code')
+                         ->where(function($q) use ($code, $prodId) {
+                             if (!empty($code)) $q->where('product_code', $code);
+                             if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                         })->count();
                         
                         if($tCount == 0)
                         {
@@ -4466,17 +4625,25 @@ class PurchaseController extends Controller
                             
                             if($PCount == 0)
                             {
-                                $product_id = $idgenerate;
+                                $product_id = !empty($prodId) ? $prodId : $idgenerate;
                             }
                             else
                             {
-                                $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['product_code'])->first();
-                                $product_id = $tbl_product_code->product_id;
+                                $tbl_product_code = DB::table('tbl_product_code')
+                                    ->where(function($q) use ($code, $prodId) {
+                                        if (!empty($code)) $q->where('product_code', $code);
+                                        if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                                    })->first();
+                                $product_id = $tbl_product_code->product_id ?? $prodId;
+                            }
+
+                            if (empty($code)) {
+                                $code = 'PRD-' . $product_id;
                             }
                             
                             $Product = Product::create([
                                 'product_type'         => 'Glass',
-                                'product_code'         => $data['product_code'],
+                                'product_code'         => $code,
                                 'product_id' => $product_id,
                                 'productdetails'       => $product_detailsP,
                                 'product_name'         => $data['product_details'] ?? '',
@@ -4502,8 +4669,15 @@ class PurchaseController extends Controller
                         }
                         else
                         {
-                            $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['product_code'])->first();
-                            $product_id = $tbl_product_code->product_id;
+                            $tbl_product_code = DB::table('tbl_product_code')
+                                ->where(function($q) use ($code, $prodId) {
+                                    if (!empty($code)) $q->where('product_code', $code);
+                                    if (!empty($prodId)) $q->orWhere('product_id', $prodId);
+                                })->first();
+                            $product_id = $tbl_product_code->product_id ?? $prodId;
+                            if (empty($code)) {
+                                $code = $tbl_product_code->product_code ?? ('PRD-' . $product_id);
+                            }
                         }
                         
    
@@ -4513,7 +4687,7 @@ class PurchaseController extends Controller
                             'purchase_id'         => $purchase->id,
                             'bill_no'             => $data['p_bill_no'],
                             'product_type'        => 'Glass',
-                            'product_code'        => $data['product_code'],
+                            'product_code'        => $code,
                             'product_id'          => $product_id,
                             'product_details'     => $product_details,
                             'quality_detail'      => $data['quality_detail'] ?? '',
@@ -4815,7 +4989,8 @@ class PurchaseController extends Controller
         if ($search1 != '') 
         {
             $totalData->where('product_details', 'like', '%' . $search1 . '%')
-            ->orWhere('product_code', 'like', '%' . $search1 . '%');
+            ->orWhere('product_code', 'like', '%' . $search1 . '%')
+            ->orWhere('product_id', 'like', '%' . $search1 . '%');
         }
         $totalData = $totalData->count();
         
@@ -4839,7 +5014,8 @@ class PurchaseController extends Controller
         if ($search1 != '') 
         {
             $templates->where('product_details', 'like', '%' . $search1 . '%')
-            ->orWhere('product_code', 'like', '%' . $search1 . '%');
+            ->orWhere('product_code', 'like', '%' . $search1 . '%')
+            ->orWhere('product_id', 'like', '%' . $search1 . '%');
         }
 
 
@@ -4872,6 +5048,7 @@ class PurchaseController extends Controller
                 $nestedData['purchase_date'] = $template->purchase_date;
                 $nestedData['product_type'] = $template->product_type;
                 $nestedData['product_code']  = $template->product_code;
+                $nestedData['product_id']    = $template->product_id ?? '-';
                 $nestedData['product_details'] = $description;
                 $nestedData['barcode_no']  =   '<span class="badge badge-info">'.$template->barcode_no.'</span>';
                 $nestedData['purchase_price']  = $template->purchase_price;
