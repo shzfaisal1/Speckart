@@ -80,6 +80,7 @@ input.loading {
                                 <option value="Barcode">Barcode</option>
                                 <option value="Description">Description</option>
                                 <option value="Product Code">Product Code</option>
+                                <option value="Product ID">Product ID</option>
                                 <option value="Supplier Name">Supplier Name</option>
                                 <option value="Import Reference Number">Import Reference Number</option>
                                 <option value="Purchase Bill Number">Purchase Bill Number</option>
@@ -89,7 +90,7 @@ input.loading {
 
                         <div class="col-md-2">
                             <label for="payment_method" class="form-label">Search</label>
-                            <input type="text" class="form-control input" placeholder="Bill Number Wise,Barcode No,Product Code" id="search" name="search" style="width: 250px;">
+                            <input type="text" class="form-control input" placeholder="Bill Number Wise,Barcode No,Product Code,Product ID" id="search" name="search" style="width: 250px;">
                         </div>
                     </div>
                 </div>

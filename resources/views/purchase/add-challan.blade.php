@@ -191,6 +191,7 @@ input.error
                                             <th>#</th>
                                             <th>Product</th>
                                             <th>Product Code</th>
+                                            <th>Product ID</th>
                                             <th>Product Description</th>
                                             <th>Qty</th>
                                             <th>Purchase Rs</th>
@@ -216,9 +217,11 @@ input.error
                                                 </select>
 
                                             </td>
-                                            <td class="tax-col">
+                                            <td>
                                                 <input type="text" style="width:120px" class="form-control product-code" name="product_code[]" readonly>
-                                                <input type="hidden" style="width:120px" class="form-control product-id" name="product_id[]" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="text" style="width:100px" class="form-control product-id" name="product_id[]" readonly>
                                                 <input type="hidden" style="width:120px" class="form-control product-name" name="product_name[]" readonly>
                                                 <input type="hidden" style="width:120px" class="form-control product-company" name="product_company[]" readonly>
                                                 <input type="hidden" style="width:120px" class="form-control product-quality" name="product_quality[]" readonly>
@@ -355,18 +358,20 @@ input.error
             <div class="modal-body">
                 
                 <div class="row">
-                    <div class="col-md-2">
-                        <label>Product Code <span class="text-danger">*</span></label>
-                        <input type="text" id="modal_product_code" class="form-control">
+                    <div class="col-md-3">
+                        <label>Product Code</label>
+                        <input type="text" id="modal_product_code" class="form-control" placeholder="Enter / search Product Code">
                         <div class="suggestion-box list-group" style="display:none; position:absolute; z-index:1000;"></div>
-
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
+                        <label>Product ID</label>
+                        <input type="text" id="modal_product_id" class="form-control" placeholder="Enter / search Product ID">
+                        <div class="suggestion-box list-group" style="display:none; position:absolute; z-index:1000;"></div>
+                    </div>
+                    <div class="col-md-3">
                         <label>Product Type <span class="text-danger">*</span></label>
-                        <input type="text" id="modal_product_type" class="form-control">
-
+                        <input type="text" id="modal_product_type" class="form-control" readonly>
                     </div>
-                    <input type="hidden" id="modal_product_id" class="form-control">
                 </div>
                 <!----  FRAME OR GOGGLES --------->
                 <div class="row" id="FrameDive">
@@ -820,6 +825,8 @@ input.error
                       <th>#</th>
                       <th>Supplier Name</th>
                       <th>Purchase Date</th>
+                      <th>Product Code</th>
+                      <th>Product ID</th>
                       <th>Product Details</th>
                       <th>Purchase price</th>
                       <th>Retail price</th>
@@ -828,7 +835,7 @@ input.error
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                    <tr><td colspan="10" class="text-center">Loading...</td></tr>
                   </tbody>
                 </table>
             </div>
@@ -976,9 +983,11 @@ $(document).ready(function () {
                 </select>
 
             </td>
-            <td class="tax-col">
+            <td>
                 <input type="text" style="width:120px" class="form-control product-code" name="product_code[]" readonly>
-                <input type="hidden" style="width:120px" class="form-control product-id" name="product_id[]" readonly>
+            </td>
+            <td>
+                <input type="text" style="width:100px" class="form-control product-id" name="product_id[]" readonly>
                 <input type="hidden" style="width:120px" class="form-control product-name" name="product_name[]" readonly>
                 <input type="hidden" style="width:120px" class="form-control product-company" name="product_company[]" readonly>
                 <input type="hidden" style="width:120px" class="form-control product-quality" name="product_quality[]" readonly>
@@ -1090,6 +1099,11 @@ $(document).ready(function () {
     {
         let $row = $(this).closest("tr");
         let selectedType = $(this).val();
+
+        if (!selectedType) return;
+
+        $("#saleTable tbody tr").removeClass("active");
+        $row.addClass("active");
         
         $.ajax({
             url: "{{ route('admin.get-gst-details') }}",
@@ -1100,19 +1114,24 @@ $(document).ready(function () {
             },
             success: function (res) 
             {
-               
                 $("#modal_product_type").val(selectedType);
-                $("#modal_hsn_code").val(res.hsn_code);
-                $("#modal_gst").val(res.percentage);
+                $("#modal_hsn_code").val(res.hsn_code || '');
+                $("#modal_gst").val(res.percentage || '0');
                 handleProductType(selectedType);
                 $("#modalTitle").text("Add " + selectedType + " Details");
                 $("#productModal").modal("show");
-           
+            },
+            error: function () {
+                $("#modal_product_type").val(selectedType);
+                $("#modal_hsn_code").val('');
+                $("#modal_gst").val('0');
+                handleProductType(selectedType);
+                $("#modalTitle").text("Add " + selectedType + " Details");
+                $("#productModal").modal("show");
             },
             complete: function () {
                 $("#ajaxLoader").fadeOut(); 
             }
-            
         });
 
     });
@@ -1172,88 +1191,27 @@ $(document).ready(function () {
         }
     }
 
-    /** ==============================
-     *  Product Code Wise Product Details
+      /** ==============================
+     *  Fetch and Populate Product Details
      *  ============================== */
-     
-    $(document).on('keyup', '#modal_product_code', function () {
-        let $input = $(this);
-        let productCode = $input.val();
+    function fetchProductDetails(lookupValue) {
         let productType = $("#modal_product_type").val();
-    
-        if (productCode.length >= 2 && productType !== '') {
-            $.ajax({
-                url: "{{ route('admin.get-product-wise-code') }}",
-                method: 'GET',
-                dataType: 'json', 
-                data: {
-                    product_type: productType,
-                    query: productCode
-                },
-                success: function (response) {
-                    let suggestionBox = $input.siblings('.suggestion-box');
-                    suggestionBox.empty();
-    
-                    if (Array.isArray(response) && response.length > 0) {
-                        response.forEach(function (item) {
-                            suggestionBox.append(
-                                `<a href="#" class="list-group-item list-group-item-action">${item.productdetails}</a>`
-                            );
-                        });
-                    } else {
-                        suggestionBox.append('<div class="list-group-item text-muted">No results found</div>');
-                    }
-    
-                    suggestionBox.show();
-                },
-                error: function (xhr, status, error) {
-                    console.error("AJAX error:", error);
-                }
-            });
-        } else {
-            $input.siblings('.suggestion-box').hide();
-        }
-    });
-    
-    $(document).on('click', '.suggestion-box a', function (e) {
-        e.preventDefault();
-        let selectedText = $(this).text();
-        $('#modal_product_code').val(selectedText);
-        $(this).closest('.suggestion-box').hide();
-    });
-    
-    $(document).on('click', function (e) {
-        if (!$(e.target).closest('#modal_product_code, .suggestion-box').length) {
-            $('.suggestion-box').hide();
-        }
-    });
-
-    
-    
-    $(document).on('click', '.suggestion-box a', function (e) {
-        e.preventDefault();
-    
-        let $this = $(this);
-        let selectedCode = $this.text().trim();
-        let $input = $this.closest('.suggestion-box').prev('.product-code');
-        let productType = $("#modal_product_type").val();
-
-    
-        $input.val(selectedCode);
-        $this.closest('.suggestion-box').hide();
-    
+        if (!lookupValue || !productType) return;
 
         $.ajax({
             url: "{{ route('admin.get-product-details') }}",
             method: 'GET',
             data: {
                 product_type: productType,
-                productdetails: selectedCode
+                productdetails: lookupValue,
+                product_id: $("#modal_product_id").val(),
+                product_code: $("#modal_product_code").val()
             },
             success: function (res) 
             {
-                $("#modal_product_code").val(res.product_code);
-                $("#modal_product_id").val(res.product_id);
+                if (!res) return;
+                $("#modal_product_code").val(res.product_code || '');
+                $("#modal_product_id").val(res.product_id || '');
                 $("#modal_frame_name").val(res.product_name);
                 $("#modal_frame_company").val(res.Company);
                 $("#modal_frame_quality").val(res.Quality);
@@ -1261,7 +1219,7 @@ $(document).ready(function () {
                 $('input[name="modal_Negative_Inventory"][value="' + res.Allow_Negative_Inventory + '"]').prop('checked', true);
                 $("#modal_purchase_price").val(res.Purchase_Price);
                 $("#modal_retail_price").val(res.Retail_Price);
-                $("#modal_glass_details").val(res.product_name);
+                $("#modal_glass_details").val(res.productdetails || res.product_name);
                 $("#modal_glass_company").val(res.Company);
                 $("#modal_glass_quality").val(res.Quality);
                 $("#modal_glass_color").val(res.Color);
@@ -1323,56 +1281,187 @@ $(document).ready(function () {
 
                 calculateProductModal();
             }
-            
         });
+    }
+
+    $(document).on('keyup', '#modal_product_code', function ()
+    {
+        let $input = $(this);
+        let productCode = $input.val();
+        let productType = $("#modal_product_type").val();
+    
+        if (productCode.length >= 2 && productType !== '') {
+            $.ajax({
+                url: "{{ route('admin.get-product-wise-code') }}",
+                method: 'GET',
+                dataType: 'json', 
+                data: {
+                    product_type: productType,
+                    query: productCode
+                },
+                success: function (response) {
+                    let suggestionBox = $input.siblings('.suggestion-box');
+                    suggestionBox.empty();
+    
+                    if (Array.isArray(response) && response.length > 0) {
+                        response.forEach(function (item) {
+                            let label = (item.product_code ? item.product_code : '') + (item.product_id ? ' (ID: ' + item.product_id + ')' : '') + (item.productdetails ? ' - ' + item.productdetails : '');
+                            suggestionBox.append(
+                                '<a href="#" class="list-group-item list-group-item-action" data-code="' + (item.product_code || '') + '" data-id="' + (item.product_id || '') + '">' + label + '</a>'
+                            );
+                        });
+                    } else {
+                        suggestionBox.append('<div class="list-group-item text-muted">No results found</div>');
+                    }
+    
+                    suggestionBox.show();
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX error:", error);
+                }
+            });
+        } else {
+            $input.siblings('.suggestion-box').hide();
+        }
+    });
+
+    $(document).on('keyup', '#modal_product_id', function ()
+    {
+        let $input = $(this);
+        let productId = $input.val();
+        let productType = $("#modal_product_type").val();
+    
+        if (productId.length >= 2 && productType !== '') {
+            $.ajax({
+                url: "{{ route('admin.get-product-wise-code') }}",
+                method: 'GET',
+                dataType: 'json', 
+                data: {
+                    product_type: productType,
+                    query: productId
+                },
+                success: function (response) {
+                    let suggestionBox = $input.siblings('.suggestion-box');
+                    suggestionBox.empty();
+    
+                    if (Array.isArray(response) && response.length > 0) {
+                        response.forEach(function (item) {
+                            let label = (item.product_id ? 'ID: ' + item.product_id : '') + (item.product_code ? ' | ' + item.product_code : '') + (item.productdetails ? ' - ' + item.productdetails : '');
+                            suggestionBox.append(
+                                '<a href="#" class="list-group-item list-group-item-action" data-code="' + (item.product_code || '') + '" data-id="' + (item.product_id || '') + '">' + label + '</a>'
+                            );
+                        });
+                    } else {
+                        suggestionBox.append('<div class="list-group-item text-muted">No results found</div>');
+                    }
+    
+                    suggestionBox.show();
+                },
+                error: function (xhr, status, error) {
+                    console.error("AJAX error:", error);
+                }
+            });
+        } else {
+            $input.siblings('.suggestion-box').hide();
+        }
     });
     
+    $(document).on('click', '.suggestion-box a', function (e) {
+        e.preventDefault();
+        let $this = $(this);
+        let selectedCode = $this.data('code') || '';
+        let selectedId = $this.data('id') || '';
+        let selectedText = $this.text().trim();
+
+        if (selectedCode) $('#modal_product_code').val(selectedCode);
+        if (selectedId) $('#modal_product_id').val(selectedId);
+        $this.closest('.suggestion-box').hide();
+
+        fetchProductDetails(selectedId || selectedCode || selectedText);
+    });
+
+    $(document).on('change', '#modal_product_code', function () {
+        let val = $(this).val().trim();
+        if (val.length >= 2) {
+            fetchProductDetails(val);
+        }
+    });
+
+    $(document).on('change', '#modal_product_id', function () {
+        let val = $(this).val().trim();
+        if (val.length >= 2) {
+            fetchProductDetails(val);
+        }
+    });
+    
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#modal_product_code, #modal_product_id, .suggestion-box').length) {
+            $('.suggestion-box').hide();
+        }
+    });
+
     $(document).on('click', '#getoldvalue', function() 
     {
-        let productType = $("#modal_product_type").val();
-        let productCode = $("#modal_product_code").val();
+        let productType = $("#modal_product_type").val() || '';
+        let productCode = $("#modal_product_code").val() || '';
+        let productId   = $("#modal_product_id").val() || '';
+        let storeId     = $("#store_id").val() || '';
         
+        let tableBody = $('#oldvalueTable tbody');
+        tableBody.html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
+        $('#OldvalueModal').modal('show');
+
         $.ajax({
             url: "{{ route('admin.get-old-value') }}",  
             method: 'GET',
-            data: { productType: productType,productCode: productCode },
+            data: { 
+                productType: productType,
+                productCode: productCode,
+                productId: productId,
+                store_id: storeId
+            },
             success: function(response) {
-                let tableBody = $('#oldvalueTable tbody');
                 tableBody.empty(); // Clear old data
     
                 if (response.data && response.data.length > 0) {
                     response.data.forEach(function(purchasevalue) 
                     {
-                         function formatValue(value) {
-                          return value === null || value === undefined || value === "" ? "-" : value;
-                        }
-    
-                        let row = `
-                            <tr>
-                                <td>
-                                <input type="radio" name="prescriptioneyetest" class="oldvalue-purchase"
-                                        value="1"
-                                        data-product_price="${purchasevalue.product_price}"
-                                        data-product_retail_price="${purchasevalue.product_retail_price}">
-                                </td>
-                                <td>${purchasevalue.supplier_name}</td>
-                                <td>${purchasevalue.purchase_date}</td>
-                                <td>${purchasevalue.product_details}</td>
-                                <td>${purchasevalue.product_price}</td>
-                                <td>${purchasevalue.product_retail_price}</td>
-                                <td>${purchasevalue.hsn_code}</td>
-                                <td>${purchasevalue.gst}</td>
-                            </tr>
-                        `;
+                        let pPrice = purchasevalue.product_price || '0.00';
+                        let pRetail = purchasevalue.product_retail_price || '0.00';
+                        let supplier = purchasevalue.supplier_name || '-';
+                        let pDate = purchasevalue.purchase_date || '-';
+                        let pCode = purchasevalue.product_code || '-';
+                        let pId = purchasevalue.product_id || '-';
+                        let pDetails = purchasevalue.product_details || '-';
+                        let hsn = purchasevalue.hsn_code || '-';
+                        let gst = purchasevalue.gst || '-';
+
+                        let row = '<tr>' +
+                            '<td>' +
+                                '<input type="radio" name="oldvalue_selection" class="oldvalue-purchase" value="1" ' +
+                                    'data-product_price="' + pPrice + '" ' +
+                                    'data-product_retail_price="' + pRetail + '">' +
+                            '</td>' +
+                            '<td>' + supplier + '</td>' +
+                            '<td>' + pDate + '</td>' +
+                            '<td>' + pCode + '</td>' +
+                            '<td>' + pId + '</td>' +
+                            '<td>' + pDetails + '</td>' +
+                            '<td>' + pPrice + '</td>' +
+                            '<td>' + pRetail + '</td>' +
+                            '<td>' + hsn + '</td>' +
+                            '<td>' + gst + '</td>' +
+                        '</tr>';
                         tableBody.append(row);
                     });
                 } 
                 else
                 {
-                    tableBody.append('<tr><td colspan="5" class="text-center">No old value found.</td></tr>');
+                    tableBody.append('<tr><td colspan="10" class="text-center">No old value found.</td></tr>');
                 }
             },
             error: function() {
+                tableBody.html('<tr><td colspan="10" class="text-center text-danger">Failed to fetch old value details.</td></tr>');
                 $.toaster({
                     priority: 'danger',
                     title: 'Error',
@@ -1381,10 +1470,6 @@ $(document).ready(function () {
                 });
             }
         });
-        
-        $('#OldvalueModal').modal('show');
-
-        
     });
     
     
@@ -1500,6 +1585,7 @@ $(document).ready(function () {
     {
         let product_type = $("#modal_product_type").val();
         let product_code = $("#modal_product_code").val();
+        let product_id = $("#modal_product_id").val();
         let purchasePrice = parseFloat($("#modal_purchase_price").val()) || 0;
         let retailPrice = parseFloat($("#modal_retail_price").val()) || 0;
         let gst = $("#modal_gst").val();
@@ -1508,11 +1594,11 @@ $(document).ready(function () {
         let modal_lens_invoicedescription = $("#modal_lens_invoicedescription").val();
         let modal_solution_invoicedescription = $("#modal_solution_invoicedescription").val();
         
-        if (!product_code) { 
+        if (!product_code && !product_id) { 
             $.toaster({
                 priority: 'danger',
                 title: 'Error',
-                message: 'Product code required.',
+                message: 'Product Code or Product ID required.',
                 timeout: 3000
             }); 
             return; 
@@ -1859,6 +1945,7 @@ $(document).ready(function () {
         
         // Loop through all IDs and clear their values
         idsToClear.forEach(id => modal.find(id).val(""));
+        modal.find(".suggestion-box").hide().empty();
 
 
         

@@ -100,7 +100,7 @@ input.loading {
                                 </div>
                             </div>
                             <tr>
-                                <th colspan="9" style="color: #FF0000;" colspan="2">Select checkbox and click on "Add Purchase" button to Add Purchase <strong>OR</strong> click on "Add Challan" to Add Challan</td>
+                                <th colspan="10" style="color: #FF0000;" colspan="2">Select checkbox and click on "Add Purchase" button to Add Purchase <strong>OR</strong> click on "Add Challan" to Add Challan</td>
                             </tr>
                             <tr>
                                 <th style="width: 0px;"></th>
@@ -111,6 +111,7 @@ input.loading {
                                 <th class="wd-20p">Customer  Name</th>
                                 <th class="wd-10p">Product Type </th>
                                 <th class="wd-10p">Product Code</th>
+                                <th class="wd-10p">Product ID</th>
                                 <th class="wd-10p">Description</th>
                             </tr>
                         </thead>
@@ -238,7 +239,10 @@ let dataListView = $('.datatables-basic')
                 "data": "product_code",
                 orderable: false,
             },
-
+            {
+                "data": "product_id",
+                orderable: false,
+            },
             
             {
                 "data": "description",

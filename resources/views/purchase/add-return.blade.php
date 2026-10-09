@@ -61,6 +61,7 @@ input.loading {
                       <option value="">Search By</option>    
                       <option value="1">Supplier Name</option>    
                       <option value="2">Product Code</option>
+                      <option value="7">Product ID</option>
                       <option value="3">Barcode</option>
                       <option value="4">Purchase Bill No</option>
                       <option value="5">Company Name</option>

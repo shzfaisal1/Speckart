@@ -165,6 +165,7 @@ input.error
                       <th>#</th>
                       <th>Products</th>
                       <th>Product Code	</th>
+                      <th>Product ID</th>
                       <th>Product Details</th>
                       <th>Price Details	</th>
                       @if($purchase->tax_rule != 'Not Applicable')
@@ -183,6 +184,7 @@ input.error
                           <td></td>
                           <td>{{$product['product_type']}}</td>
                           <td>{{$product['product_code']}}</td>
+                          <td>{{$product['product_id'] ?? '-'}}</td>
                           <td>{{$product['product_details']}}</td>
                           <td>Unit Price :{{$product['product_price']}} <BR> Base Price : {{$product['product_base_price']}} </td>
                           @if($purchase->tax_rule != 'Not Applicable')
@@ -199,6 +201,7 @@ input.error
                           <td></td>
                           <td>{{$product['product_type']}}</td>
                           <td>{{$product['product_code']}}</td>
+                          <td>{{$product['product_id'] ?? '-'}}</td>
                           <td>{{$product['product_details']}}</td>
                           <td>Unit Price :{{$product['product_price']}} <BR> Base Price : {{$product['product_base_price']}} </td>
                           @if($purchase->tax_rule != 'Not Applicable')
@@ -212,7 +215,7 @@ input.error
                       @endif
                      @endforeach
                      <tr class="pageText">
-                        <td colspan="10">
+                        <td colspan="{{ $purchase->tax_rule != 'Not Applicable' ? 12 : 11 }}">
                             <table width="100%" border="0" cellpadding="0" cellspacing="0">
                                 <tbody><tr>
                                     <td style="vertical-align: top;">

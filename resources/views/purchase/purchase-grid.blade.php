@@ -151,13 +151,17 @@ table input {
                     <div class="product-row">
                         <div class="row">
                             <div class="col-md-3">
-                                <label>Product Code <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control product-code" name="product_code" id="product_code">
+                                <label>Product Code</label>
+                                <input type="text" class="form-control product-code" name="product_code" id="product_code" placeholder="Enter / search Code">
                                 <span class="error badge text-danger" id="product_codeError"></span>
                             </div>
-                            <input type="hidden" class="form-control product-id" name="product_id" id="product_id">
+                            <div class="col-md-3">
+                                <label>Product ID</label>
+                                <input type="text" class="form-control product-id" name="product_id" id="product_id" placeholder="Enter / search Product ID">
+                                <span class="error badge text-danger" id="product_idError"></span>
+                            </div>
                             
-                            <div class="col-md-9">
+                            <div class="col-md-6">
                                 <label>Details <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control product-detail" name="product_details" id="product_details">
                                 <span class="error badge text-danger" id="product_detailsError"></span>
@@ -555,6 +559,64 @@ $(document).ready(function ()
         $('#supplierListName').hide();
     });
 
+    function fetchGridProductDetails(lookupValue, code, id) {
+        let tax_rule = $('#tax_rule').val().trim();
+        let productType = 'Glass';
+
+        $.ajax({
+            url: "{{ route('admin.get-product-details') }}",
+            method: 'GET',
+            data: {
+                product_type: productType,
+                tax_rule: tax_rule,
+                productdetails: lookupValue,
+                product_code: code || '',
+                product_id: id || ''
+            },
+            success: function (response) {
+                if (!response) return;
+
+                const fieldMap = {
+                    '.product-code': 'product_code',
+                    '.product-detail': 'product_name',
+                    '.company-detail': 'Company',
+                    '.quality-detail': 'Quality',
+                    '.color-detail': 'Color',
+                    '.material-detail': 'Material',
+                    '.coating-detail': 'Coating',
+                    '.design-detail': 'Design',
+                    '.index-detail': 'Index',
+                    '.product-price': 'Purchase_Price',
+                    '.product-retail-price': 'Retail_Price',
+                    '.product-id': 'product_id',
+                };
+
+                let $container = $('.product-row');
+
+                for (const [selector, key] of Object.entries(fieldMap)) {
+                    let $field = $container.find(selector);
+                    if ($field.length) {
+                        if ($field.is(':visible')) {
+                            $field.val(response[key] ?? '').prop('disabled', false);
+                        } else if ($field.is('[type="hidden"]')) {
+                            $field.val(response[key] ?? '');
+                        }
+                    }
+                }
+
+                calculateRow($container);
+            },
+            error: function (xhr) {
+                console.error("Failed to fetch product details:", xhr.responseText);
+                $.toaster({
+                    priority: 'danger',
+                    title: 'Error',
+                    message: 'Failed to fetch product details.'
+                });
+            }
+        });
+    }
+
     $(document).on('keyup', '#product_code', function () {
         let $input = $(this);
         let productCode = $input.val();
@@ -571,14 +633,53 @@ $(document).ready(function ()
                 success: function (response) {
                     let suggestionBox = $input.siblings('.suggestion-box');
                     if (suggestionBox.length === 0) {
-                        suggestionBox = $('<div class="suggestion-box list-group position-absolute w-100"></div>');
+                        suggestionBox = $('<div class="suggestion-box list-group position-absolute w-100" style="z-index: 1000;"></div>');
                         $input.after(suggestionBox);
                     }
 
                     suggestionBox.empty();
                     if (response.length > 0) {
                         response.forEach(function (item) {
-                            suggestionBox.append(`<a href="#" class="list-group-item list-group-item-action">${item.productdetails}</a>`);
+                            let label = (item.product_code ? item.product_code : '') + (item.product_id ? ' (ID: ' + item.product_id + ')' : '') + (item.productdetails ? ' - ' + item.productdetails : '');
+                            suggestionBox.append('<a href="#" class="list-group-item list-group-item-action" data-code="' + (item.product_code || '') + '" data-id="' + (item.product_id || '') + '">' + label + '</a>');
+                        });
+                    } else {
+                        suggestionBox.append('<div class="list-group-item text-muted">No results</div>');
+                    }
+
+                    suggestionBox.show();
+                }
+            });
+        } else {
+            $input.siblings('.suggestion-box').hide();
+        }
+    });
+
+    $(document).on('keyup', '#product_id', function () {
+        let $input = $(this);
+        let productId = $input.val();
+        let productType = 'Glass';
+
+        if (productId.length >= 2 && productType !== '') {
+            $.ajax({
+                url: "{{ route('admin.get-product-wise-code') }}",
+                method: 'GET',
+                data: {
+                    product_type: productType,
+                    query: productId
+                },
+                success: function (response) {
+                    let suggestionBox = $input.siblings('.suggestion-box');
+                    if (suggestionBox.length === 0) {
+                        suggestionBox = $('<div class="suggestion-box list-group position-absolute w-100" style="z-index: 1000;"></div>');
+                        $input.after(suggestionBox);
+                    }
+
+                    suggestionBox.empty();
+                    if (response.length > 0) {
+                        response.forEach(function (item) {
+                            let label = (item.product_id ? 'ID: ' + item.product_id : '') + (item.product_code ? ' | ' + item.product_code : '') + (item.productdetails ? ' - ' + item.productdetails : '');
+                            suggestionBox.append('<a href="#" class="list-group-item list-group-item-action" data-code="' + (item.product_code || '') + '" data-id="' + (item.product_id || '') + '">' + label + '</a>');
                         });
                     } else {
                         suggestionBox.append('<div class="list-group-item text-muted">No results</div>');
@@ -594,67 +695,36 @@ $(document).ready(function ()
     
     $(document).on('click', '.suggestion-box a', function (e) {
         e.preventDefault();
-    
         let $this = $(this);
-        let selectedCode = $this.text().trim();
-        let $input = $this.closest('.suggestion-box').prev('.product-code');
-        let tax_rule = $('#tax_rule').val().trim();
-    
-        $input.val(selectedCode);
-        $this.closest('.suggestion-box').hide();
-    
-        let productType = 'Glass';
-    
-        $.ajax({
-            url: "{{ route('admin.get-product-details') }}",
-            method: 'GET',
-            data: {
-                product_type: productType,
-                tax_rule: tax_rule,
-                productdetails: selectedCode
-            },
-            success: function (response) {
-                if (!response) return;
-    
-                const fieldMap = {
-                    '.product-code': 'product_code',
-                    '.product-detail': 'product_name',
-                    '.company-detail': 'Company',
-                    '.quality-detail': 'Quality',
-                    '.color-detail': 'Color',
-                    '.material-detail': 'Material',
-                    '.coating-detail': 'Coating',
-                    '.design-detail': 'Design',
-                    '.index-detail': 'Index',
-                    '.product-price': 'Purchase_Price',
-                    '.product-retail-price': 'Retail_Price',
-                    '.product-id': 'product_id',
-                };
-    
-                let $container = $input.closest('.product-row');
-    
-                for (const [selector, key] of Object.entries(fieldMap)) {
-                    let $field = $container.find(selector);
-                    if ($field.length) {
-                        if ($field.is(':visible')) {
-                            $field.val(response[key] ?? '').prop('disabled', false);
-                        } else if ($field.is('[type="hidden"]')) {
-                            $field.val(response[key] ?? '');
-                        }
-                    }
-                }
-    
-                calculateRow($container); // Pass row to calculate specific row
-            },
-            error: function (xhr) {
-                console.error("Failed to fetch product details:", xhr.responseText);
-                $.toaster({
-                    priority: 'danger',
-                    title: 'Error',
-                    message: 'Failed to fetch product details.'
-                });
-            }
-        });
+        let selectedCode = $this.data('code') || '';
+        let selectedId = $this.data('id') || '';
+        let selectedText = $this.text().trim();
+
+        if (selectedCode) $('#product_code').val(selectedCode);
+        if (selectedId) $('#product_id').val(selectedId);
+        $('.suggestion-box').hide();
+
+        fetchGridProductDetails(selectedId || selectedCode || selectedText, selectedCode, selectedId);
+    });
+
+    $(document).on('change', '#product_code', function () {
+        let val = $(this).val().trim();
+        if (val.length >= 2) {
+            fetchGridProductDetails(val, val, $('#product_id').val());
+        }
+    });
+
+    $(document).on('change', '#product_id', function () {
+        let val = $(this).val().trim();
+        if (val.length >= 2) {
+            fetchGridProductDetails(val, $('#product_code').val(), val);
+        }
+    });
+
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#product_code, #product_id, .suggestion-box').length) {
+            $('.suggestion-box').hide();
+        }
     });
     
      $(document).on('input', '.product-price, .gst, .product-qty, .product-base-price', function () {
@@ -726,6 +796,7 @@ $(document).ready(function ()
         let supplier_name = document.getElementById("supplier_name" + class_name).value.trim();
         let p_bill_no = document.getElementById("p_bill_no" + class_name).value.trim();
         let product_code = document.getElementById("product_code" + class_name).value.trim();
+        let product_id   = document.getElementById("product_id" + class_name).value.trim();
         let store_id = document.getElementById("store_id" + class_name).value.trim();
 
         if (supplier_name === "") {
@@ -740,9 +811,10 @@ $(document).ready(function ()
             isValid = false;
         }
     
-        if (product_code === "") {
-            document.getElementById("product_codeError" + class_name).textContent = "Product Code.";
+        if (product_code === "" && product_id === "") {
+            document.getElementById("product_codeError" + class_name).textContent = "Product Code or Product ID required.";
             document.getElementById("product_code" + class_name).classList.add("is-invalid");
+            document.getElementById("product_id" + class_name).classList.add("is-invalid");
             isValid = false;
         }
         

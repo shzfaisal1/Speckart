@@ -191,6 +191,152 @@ class ProductController extends Controller
     }
 
     /**
+     * Generate a unique, professional SKU or Product Code.
+     */
+    public function generateSku(Request $request)
+    {
+        $type         = $request->input('product_type', 'Frame');
+        $masterCode   = trim($request->input('master_code', ''));
+        $variantIndex = (int) $request->input('variant_index', 1);
+        $color        = trim($request->input('color', ''));
+        $existingSkus = (array) $request->input('existing_skus', []);
+        $isMaster     = filter_var($request->input('is_master', false), FILTER_VALIDATE_BOOLEAN);
+
+        // Normalize existing SKUs to lower case for in-array check
+        $existingNormalized = array_map(function ($s) {
+            return strtolower(trim((string)$s));
+        }, $existingSkus);
+
+        // Map product types to prefix
+        $typePrefixMap = [
+            'frame'     => 'FR',
+            'sunglass'  => 'SG',
+            'sunglasses'=> 'SG',
+            'goggles'   => 'SG',
+            'lens'      => 'CL',
+            'solution'  => 'SL',
+            'glass'     => 'GL',
+            'accessory' => 'AC',
+            'other'     => 'OT',
+        ];
+        $typeKey = strtolower(trim($type));
+        $prefix  = $typePrefixMap[$typeKey] ?? 'FR';
+
+        // Color abbreviation mapping
+        $colorAbbrMap = [
+            'black'       => 'BLK',
+            'gold'        => 'GLD',
+            'silver'      => 'SLV',
+            'blue'        => 'BLU',
+            'brown'       => 'BRN',
+            'gray'        => 'GRY',
+            'grey'        => 'GRY',
+            'green'       => 'GRN',
+            'red'         => 'RED',
+            'white'       => 'WHT',
+            'gunmetal'    => 'GUN',
+            'tortoise'    => 'TOR',
+            'clear'       => 'CLR',
+            'pink'        => 'PNK',
+            'purple'      => 'PUR',
+            'yellow'      => 'YEL',
+            'rose gold'   => 'RGLD',
+            'transparent' => 'CLR',
+            'matte black' => 'MBLK',
+            'matte blue'  => 'MBLU',
+            'havana'      => 'HAV',
+        ];
+
+        // Hex to common color fallback
+        $hexMap = [
+            '#1a1a1a' => 'BLK',
+            '#000000' => 'BLK',
+            '#ffffff' => 'WHT',
+            '#ffd700' => 'GLD',
+            '#c0c0c0' => 'SLV',
+            '#0000ff' => 'BLU',
+            '#a52a2a' => 'BRN',
+            '#808080' => 'GRY',
+            '#008000' => 'GRN',
+            '#ff0000' => 'RED',
+        ];
+
+        $colorSuffix = '';
+        if (!empty($color)) {
+            $cLower = strtolower($color);
+            if (isset($colorAbbrMap[$cLower])) {
+                $colorSuffix = $colorAbbrMap[$cLower];
+            } elseif (isset($hexMap[$cLower])) {
+                $colorSuffix = $hexMap[$cLower];
+            } else {
+                $cleaned = preg_replace('/[^A-Za-z0-9]/', '', $color);
+                if (strlen($cleaned) >= 2) {
+                    $colorSuffix = strtoupper(substr($cleaned, 0, 3));
+                }
+            }
+        }
+
+        // Generate Master Product Code
+        if ($isMaster) {
+            $attempts = 0;
+            do {
+                $rand = random_int(100, 9999);
+                $code = $prefix . '-' . sprintf('%03d', $rand);
+                $exists = DB::table('tbl_product_code')
+                    ->where('product_code', $code)
+                    ->orWhere('parent_product_code', $code)
+                    ->exists() || in_array(strtolower($code), $existingNormalized, true);
+                $attempts++;
+            } while ($exists && $attempts < 100);
+
+            return response()->json(['success' => true, 'sku' => $code]);
+        }
+
+        // Generate Variant SKU
+        $attempts    = 0;
+        $maxAttempts = 150;
+        $candidate   = '';
+
+        if (!empty($masterCode)) {
+            // Base on master code: e.g. FR-001-BLK or FR-001-01
+            $base = strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '', $masterCode));
+            $variantSuffix = !empty($colorSuffix) ? $colorSuffix : sprintf('%02d', max(1, $variantIndex));
+            $candidate = $base . '-' . $variantSuffix;
+            $counter = 1;
+
+            while ((DB::table('tbl_product_code')->where('product_code', $candidate)->exists()
+                   || in_array(strtolower($candidate), $existingNormalized, true))
+                   && $attempts < $maxAttempts) {
+                $attempts++;
+                if (!empty($colorSuffix)) {
+                    $candidate = $base . '-' . $colorSuffix . ($counter > 1 ? '-' . $counter : '');
+                } else {
+                    $candidate = $base . '-' . sprintf('%02d', max(1, $variantIndex) + $counter - 1);
+                }
+                $counter++;
+            }
+        } else {
+            // Standalone variant code matching placeholder format: e.g. FR-001-BLK or FR-102-01
+            $baseNum = random_int(1, 999);
+            $variantSuffix = !empty($colorSuffix) ? $colorSuffix : sprintf('%02d', max(1, $variantIndex));
+            $candidate = $prefix . '-' . sprintf('%03d', $baseNum) . '-' . $variantSuffix;
+
+            while ((DB::table('tbl_product_code')->where('product_code', $candidate)->exists()
+                   || in_array(strtolower($candidate), $existingNormalized, true))
+                   && $attempts < $maxAttempts) {
+                $attempts++;
+                $baseNum = random_int(1, 999);
+                $candidate = $prefix . '-' . sprintf('%03d', $baseNum) . '-' . $variantSuffix;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'sku'     => $candidate,
+        ]);
+    }
+
+    /**
      * Store a new product with one or more variants.
      * parent_product_code is auto-generated here — never sent from the form.
      */
