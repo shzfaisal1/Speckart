@@ -474,7 +474,7 @@ body { background: var(--bg); }
     font-size: .875rem;
     cursor: pointer;
     transition: opacity .2s, transform .15s;
-    box-shadow: 0 4px 12px rgba(79,70,229,.3);
+    box-shadow: 0 4px 12px rgba(91, 82, 250, 0.3);
 }
 .btn-add-variant:hover { opacity: .9; transform: translateY(-1px); }
 .btn-add-variant:active { transform: none; }

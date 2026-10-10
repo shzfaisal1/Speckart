@@ -143,11 +143,18 @@ class CartService
             }
         }
 
-        // Set Frame Price: Sale price if lens is free, MRP if lens is a paid upgrade
-        if ($isFreeLens) {
+        // Set Frame and Lens prices based on package mode:
+        $pkgType = $lens ? ($lens->package_type ?? ($isFreeLens ? 'free_lens' : 'frame_and_lens')) : null;
+        if ($pkgType === 'free_frame') {
+            $framePrice = 0;
+            $lensPrice  = (float) ($lens->current_price ?? $lensPrice);
+        } elseif ($isFreeLens || $pkgType === 'free_lens' || $pkgType === 'frame_only') {
             $framePrice = $frameSalePrice;
+            $lensPrice  = 0;
         } else {
-            $framePrice = $frameMrp;
+            // Frame & Lens Package Paid (Both Paid): Customer pays for both Frame and Lens Package
+            $framePrice = $frameSalePrice;
+            $lensPrice  = (float) ($lens ? ($lens->current_price ?? $lensPrice) : $lensPrice);
         }
 
         // Dynamic Frame Image Path
