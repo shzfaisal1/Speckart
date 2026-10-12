@@ -93,7 +93,7 @@
                                 <select class="form-control" id="pkg_package_type" name="package_type">
                                     <option value="free_lens" selected>Free Lens (Pay Frame Only)</option>
                                     <option value="free_frame">Free Frame (Pay Lens Package Only)</option>
-                                    {{-- <option value="frame_and_lens">Frame + Lens (Paid Combo)</option> --}}
+                                    <option value="frame_and_lens">Frame & Lens Package Paid (Pay Both)</option>
                                 </select>
                                 <small class="text-muted" id="pkg_mode_hint" style="font-size:11px; margin-top:4px; display:block;">
                                     Lens is FREE. Customer pays only the Frame price.
@@ -820,7 +820,7 @@ function openModal(mode) {
 
 /* ── Package Mode → auto-sync is_free_lens + hint text ── */
 var packageModeHints = {
-    'frame_and_lens': 'Customer pays for Frame + Lens upgrade price combined.',
+    'frame_and_lens': 'Customer pays for both Frame and Lens Package (Full price combo).',
     'free_lens':      'Lens is FREE. Customer pays only the Frame price. A "Free Lenses" badge is shown automatically.',
     'free_frame':     'Frame is FREE. Customer pays only the Lens Package price. A "Free Frame" badge is shown automatically.'
 };

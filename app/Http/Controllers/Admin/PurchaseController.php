@@ -85,8 +85,10 @@ class PurchaseController extends Controller
             $lensPackages = DB::table('lens_packages')
                 ->where(function($q) use ($query) {
                     $q->where('product_code', 'LIKE', '%' . $query . '%')
-                     ->orWhere('product_id', 'LIKE', '%' . $query . '%')
                       ->orWhere('name', 'LIKE', '%' . $query . '%');
+                    if (is_numeric($query)) {
+                        $q->orWhere('id', (int)$query);
+                    }
                 })
                 ->take(15)
                 ->get();
@@ -202,8 +204,10 @@ class PurchaseController extends Controller
                 ->where(function($q) use ($searchValues) {
                     foreach ($searchValues as $val) {
                         $q->orWhere('product_code', $val)
-                          ->orWhere('product_id', $val)
                           ->orWhere('name', $val);
+                        if (is_numeric($val)) {
+                            $q->orWhere('id', (int)$val);
+                        }
                     }
                 })
                 ->first();

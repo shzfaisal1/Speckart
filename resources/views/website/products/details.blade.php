@@ -2186,6 +2186,11 @@
                                                 style="font-size: 10px; font-weight: 700; text-transform: uppercase; background: #0052cc !important; letter-spacing: 0.5px; z-index: 2;">
                                                 Free Lenses
                                             </div>
+                                            @elseif($pkgType === 'frame_and_lens')
+                                            <div class="lens-badge text-white ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
+                                                style="font-size: 10px; font-weight: 700; text-transform: uppercase; background: #0d6efd !important; letter-spacing: 0.5px; z-index: 2;">
+                                                Frame + Lens
+                                            </div>
                                             @endif
                                         </div>
 
