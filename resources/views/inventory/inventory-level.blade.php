@@ -758,6 +758,8 @@ input.error
                       <th>#</th>
                       <th>Supplier Name</th>
                       <th>Purchase Date</th>
+                      <th>Product Code</th>
+                      <th>Product ID</th>
                       <th>Product Details</th>
                       <th>Purchase price</th>
                       <th>Retail price</th>
@@ -766,7 +768,7 @@ input.error
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                    <tr><td colspan="10" class="text-center">Loading...</td></tr>
                   </tbody>
                 </table>
             </div>
@@ -1384,23 +1386,24 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
                 render: function (data, type, full)
                 {
+                    let fullEncoded = encodeURIComponent(JSON.stringify(full));
                     let html = `
                         <div class="dropdown">
                             <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">ACTION</button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item pointer"  onclick="openpurchaseModal('` + full['encryptedId'] + `','` + full['product_type'] + `','` + full['product_code']+ `','` + full['product_id'] + `','` + full['product_details'] + `','` + full['store_name'] + `','` + full['store_id'] + `')">Add Purchase</a>
-                                <a class="dropdown-item pointer"  onclick="openinventoryModal('` + full['encryptedId'] + `','` + full['product_type'] + `','` + full['product_code']+ `','` + full['product_id'] + `','` + full['product_details'] + `','` + full['store_name'] + `','` + full['store_id'] + `')">Add Inventory</a>
-                                <a class="dropdown-item pointer"  onclick="openchallanModal('` + full['encryptedId'] + `','` + full['product_type'] + `','` + full['product_code']+ `','` + full['product_id'] + `','` + full['product_details'] + `','` + full['store_name'] + `','` + full['store_id'] + `','` + full['perbox'] + `')">Add Challan</a>
+                                <a class="dropdown-item pointer" onclick="openpurchaseModalRow('` + fullEncoded + `')">Add Purchase</a>
+                                <a class="dropdown-item pointer" onclick="openinventoryModalRow('` + fullEncoded + `')">Add Inventory</a>
+                                <a class="dropdown-item pointer" onclick="openchallanModalRow('` + fullEncoded + `')">Add Challan</a>
                     `;
             
                     if (parseFloat(full['qty_av']) < 0) {
-                        html += `<a class="dropdown-item pointer" onclick="openadjustModal('` + full['encryptedId'] + `','` + full['product_type'] + `','` + full['product_code']+ `','` + full['product_details'] + `','` + full['store_id'] + `')">Adjust Stock</a>`;
+                        html += `<a class="dropdown-item pointer" onclick="openadjustModalRow('` + fullEncoded + `')">Adjust Stock</a>`;
                     }
             
                     if (parseFloat(full['qty_av']) > 0) 
                     {
-                        let deleteUrl = `{{ route('admin.inventory.delete', ':inventory_id') }}`.replace(':inventory_id', full['encryptedId']);
-                        html += `<a href="${deleteUrl}" class="dropdown-item">Delete</a>`;
+                        let deleteUrl = "{{ route('admin.inventory.delete', ':inventory_id') }}".replace(':inventory_id', full['encryptedId']);
+                        html += '<a href="' + deleteUrl + '" class="dropdown-item">Delete</a>';
                     }
             
                     html += `
@@ -1485,6 +1488,26 @@ let dataListView = $('.datatables-basic')
     });
     
     
+
+    function openpurchaseModalRow(encoded) {
+        let full = JSON.parse(decodeURIComponent(encoded));
+        openpurchaseModal(full.encryptedId, full.product_type, full.product_code, full.product_id, full.product_details, full.store_name, full.store_id);
+    }
+
+    function openinventoryModalRow(encoded) {
+        let full = JSON.parse(decodeURIComponent(encoded));
+        openinventoryModal(full.encryptedId, full.product_type, full.product_code, full.product_id, full.product_details, full.store_name, full.store_id);
+    }
+
+    function openchallanModalRow(encoded) {
+        let full = JSON.parse(decodeURIComponent(encoded));
+        openchallanModal(full.encryptedId, full.product_type, full.product_code, full.product_id, full.product_details, full.store_name, full.store_id, full.perbox);
+    }
+
+    function openadjustModalRow(encoded) {
+        let full = JSON.parse(decodeURIComponent(encoded));
+        openadjustModal(full.encryptedId, full.product_type, full.product_code, full.product_details, full.store_id);
+    }
 
     function openinventoryModal(id, product_type, product_code, product_id,description,store_name,store_id) 
     {
@@ -1907,51 +1930,66 @@ let dataListView = $('.datatables-basic')
     
     $(document).on('click', '#getoldvalue', function() 
     {
-        let productType = $("#producttype_p").val();
-        let productCode = $("#productcode_p").val();
-        let store_id = $("#storeid_p").val();
+        let productType = $("#producttype_p").val() || '';
+        let productCode = $("#productcode_p").val() || '';
+        let productId   = $("#productid_p").val() || '';
+        let store_id    = $("#storeid_p").val() || '';
         
+        let tableBody = $('#oldvalueTable tbody');
+        tableBody.html('<tr><td colspan="10" class="text-center">Loading...</td></tr>');
+        $('#OldvalueModal').modal('show');
+
         $.ajax({
             url: "{{ route('admin.get-old-value') }}",  
             method: 'GET',
-            data: { productType: productType,productCode: productCode,store_id: store_id },
+            data: { 
+                productType: productType,
+                productCode: productCode,
+                productId: productId,
+                store_id: store_id 
+            },
             success: function(response) {
-                let tableBody = $('#oldvalueTable tbody');
                 tableBody.empty(); // Clear old data
     
                 if (response.data && response.data.length > 0) {
                     response.data.forEach(function(purchasevalue) 
                     {
-                         function formatValue(value) {
-                          return value === null || value === undefined || value === "" ? "-" : value;
-                        }
-    
-                        let row = `
-                            <tr>
-                                <td>
-                                <input type="radio" name="prescriptioneyetest" class="oldvalue-purchase"
-                                        value="1"
-                                        data-product_price="${purchasevalue.product_price}"
-                                        data-product_retail_price="${purchasevalue.product_retail_price}">
-                                </td>
-                                <td>${purchasevalue.supplier_name}</td>
-                                <td>${purchasevalue.purchase_date}</td>
-                                <td>${purchasevalue.product_details}</td>
-                                <td>${purchasevalue.product_price}</td>
-                                <td>${purchasevalue.product_retail_price}</td>
-                                <td>${purchasevalue.hsn_code}</td>
-                                <td>${purchasevalue.gst}</td>
-                            </tr>
-                        `;
+                        let pPrice = purchasevalue.product_price || '0.00';
+                        let pRetail = purchasevalue.product_retail_price || '0.00';
+                        let supplier = purchasevalue.supplier_name || '-';
+                        let pDate = purchasevalue.purchase_date || '-';
+                        let pCode = purchasevalue.product_code || '-';
+                        let pId = purchasevalue.product_id || '-';
+                        let pDetails = purchasevalue.product_details || '-';
+                        let hsn = purchasevalue.hsn_code || '-';
+                        let gst = purchasevalue.gst || '-';
+
+                        let row = '<tr>' +
+                            '<td>' +
+                                '<input type="radio" name="oldvalue_selection" class="oldvalue-purchase" value="1" ' +
+                                    'data-product_price="' + pPrice + '" ' +
+                                    'data-product_retail_price="' + pRetail + '">' +
+                            '</td>' +
+                            '<td>' + supplier + '</td>' +
+                            '<td>' + pDate + '</td>' +
+                            '<td>' + pCode + '</td>' +
+                            '<td>' + pId + '</td>' +
+                            '<td>' + pDetails + '</td>' +
+                            '<td>' + pPrice + '</td>' +
+                            '<td>' + pRetail + '</td>' +
+                            '<td>' + hsn + '</td>' +
+                            '<td>' + gst + '</td>' +
+                        '</tr>';
                         tableBody.append(row);
                     });
                 } 
                 else
                 {
-                    tableBody.append('<tr><td colspan="5" class="text-center">No old value found.</td></tr>');
+                    tableBody.append('<tr><td colspan="10" class="text-center">No old value found.</td></tr>');
                 }
             },
             error: function() {
+                tableBody.html('<tr><td colspan="10" class="text-center text-danger">Failed to fetch old value details.</td></tr>');
                 $.toaster({
                     priority: 'danger',
                     title: 'Error',
@@ -1960,10 +1998,6 @@ let dataListView = $('.datatables-basic')
                 });
             }
         });
-        
-        $('#OldvalueModal').modal('show');
-
-        
     });
     
     

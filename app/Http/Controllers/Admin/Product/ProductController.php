@@ -42,57 +42,48 @@ class ProductController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('product_name', 'like', "%{$search}%")
                   ->orWhere('product_code', 'like', "%{$search}%")
-                  ->orWhere('Company', 'like', "%{$search}%")
-                  ->orWhere('Description', 'like', "%{$search}%")
                   ->orWhere('parent_product_code', 'like', "%{$search}%")
+                  ->orWhere('Company', 'like', "%{$search}%")
+                  ->orWhere('Color', 'like', "%{$search}%")
+                  ->orWhere('Description', 'like', "%{$search}%")
                   ->orWhere('product_id', 'like', "%{$search}%");
             });
         }
 
-        $totalData     = Product::where('is_b2c', 1)->distinct()->count(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id)'));
-        $totalFiltered = (clone $query)->distinct()->count(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id)'));
+        $totalData     = Product::where('is_b2c', 1)->count();
+        $totalFiltered = (clone $query)->count();
 
-        $parentCodes = (clone $query)->select(DB::raw('COALESCE(NULLIF(parent_product_code, ""), product_id) as group_key'))
-            ->distinct()
+        $products = (clone $query)
+            ->orderBy('id', 'desc')
             ->offset($start)
             ->limit($limit)
-            ->pluck('group_key');
-
-        $products = Product::where('is_b2c', 1)
-            ->where(function($q) use ($parentCodes) {
-                $q->whereIn('parent_product_code', $parentCodes)
-                  ->orWhereIn('product_id', $parentCodes);
-            })
             ->get();
-            
-        $grouped = $products->groupBy(function($item) {
-            return !empty($item->parent_product_code) ? $item->parent_product_code : $item->product_id;
-        });
 
         $data = [];
-        foreach ($parentCodes as $pkey) {
-            $variants = $grouped->get($pkey);
-            if (!$variants || $variants->isEmpty()) continue;
-
-            $first    = $variants->first();
-            $isActive = $variants->contains('status', '1');
-            $skus     = $variants->pluck('product_code')->filter()->unique()->values()->toArray();
+        foreach ($products as $p) {
+            $typeLower  = strtolower($p->product_type ?: 'frame');
+            $parentCode = $p->parent_product_code ?: $p->product_id;
+            $uploadBase = asset("uploads/{$typeLower}/product/{$parentCode}");
 
             $data[] = [
-                'id'                  => $first->id,
-                'product_id'          => $first->product_id,
-                'product_code'        => $first->parent_product_code ?: $first->product_code,
-                'product_name'        => $first->product_name,
-                'Company'             => $first->Company ?? 'N/A',
-                'product_type'        => $first->product_type,
-                'parent_product_code' => $first->parent_product_code,
-                'skus'                => $skus,
-                'status'              => $isActive ? 1 : 0,
-                'is_b2c'              => $first->is_b2c,
-                'created_at'          => $first->created_at
-                    ? ($first->created_at instanceof \Carbon\Carbon
-                        ? $first->created_at->format('d M, Y')
-                        : date('d M, Y', strtotime($first->created_at)))
+                'id'                  => $p->id,
+                'product_id'          => $p->product_id,
+                'product_code'        => $p->product_code, // Variant SKU: Exercitation sunt pr, demo-1312
+                'parent_product_code' => $p->parent_product_code ?: '–',
+                'product_name'        => $p->product_name,
+                'Company'             => $p->Company ?? 'N/A',
+                'product_type'        => $p->product_type,
+                'color'               => $p->Color,
+                'size'                => $p->Size,
+                'retail_price'        => $p->Retail_Price,
+                'discount_price'      => $p->discount_price,
+                'main_image_url'      => !empty($p->main_image) ? $uploadBase . '/' . $p->main_image : null,
+                'status'              => (int) $p->status,
+                'is_b2c'              => $p->is_b2c,
+                'created_at'          => $p->created_at
+                    ? ($p->created_at instanceof \Carbon\Carbon
+                        ? $p->created_at->format('d M, Y')
+                        : date('d M, Y', strtotime($p->created_at)))
                     : 'N/A',
             ];
         }
@@ -197,6 +188,152 @@ class ProductController extends Controller
 
         $exists = $query->exists();
         return response()->json(['exists' => $exists]);
+    }
+
+    /**
+     * Generate a unique, professional SKU or Product Code.
+     */
+    public function generateSku(Request $request)
+    {
+        $type         = $request->input('product_type', 'Frame');
+        $masterCode   = trim($request->input('master_code', ''));
+        $variantIndex = (int) $request->input('variant_index', 1);
+        $color        = trim($request->input('color', ''));
+        $existingSkus = (array) $request->input('existing_skus', []);
+        $isMaster     = filter_var($request->input('is_master', false), FILTER_VALIDATE_BOOLEAN);
+
+        // Normalize existing SKUs to lower case for in-array check
+        $existingNormalized = array_map(function ($s) {
+            return strtolower(trim((string)$s));
+        }, $existingSkus);
+
+        // Map product types to prefix
+        $typePrefixMap = [
+            'frame'     => 'FR',
+            'sunglass'  => 'SG',
+            'sunglasses'=> 'SG',
+            'goggles'   => 'SG',
+            'lens'      => 'CL',
+            'solution'  => 'SL',
+            'glass'     => 'GL',
+            'accessory' => 'AC',
+            'other'     => 'OT',
+        ];
+        $typeKey = strtolower(trim($type));
+        $prefix  = $typePrefixMap[$typeKey] ?? 'FR';
+
+        // Color abbreviation mapping
+        $colorAbbrMap = [
+            'black'       => 'BLK',
+            'gold'        => 'GLD',
+            'silver'      => 'SLV',
+            'blue'        => 'BLU',
+            'brown'       => 'BRN',
+            'gray'        => 'GRY',
+            'grey'        => 'GRY',
+            'green'       => 'GRN',
+            'red'         => 'RED',
+            'white'       => 'WHT',
+            'gunmetal'    => 'GUN',
+            'tortoise'    => 'TOR',
+            'clear'       => 'CLR',
+            'pink'        => 'PNK',
+            'purple'      => 'PUR',
+            'yellow'      => 'YEL',
+            'rose gold'   => 'RGLD',
+            'transparent' => 'CLR',
+            'matte black' => 'MBLK',
+            'matte blue'  => 'MBLU',
+            'havana'      => 'HAV',
+        ];
+
+        // Hex to common color fallback
+        $hexMap = [
+            '#1a1a1a' => 'BLK',
+            '#000000' => 'BLK',
+            '#ffffff' => 'WHT',
+            '#ffd700' => 'GLD',
+            '#c0c0c0' => 'SLV',
+            '#0000ff' => 'BLU',
+            '#a52a2a' => 'BRN',
+            '#808080' => 'GRY',
+            '#008000' => 'GRN',
+            '#ff0000' => 'RED',
+        ];
+
+        $colorSuffix = '';
+        if (!empty($color)) {
+            $cLower = strtolower($color);
+            if (isset($colorAbbrMap[$cLower])) {
+                $colorSuffix = $colorAbbrMap[$cLower];
+            } elseif (isset($hexMap[$cLower])) {
+                $colorSuffix = $hexMap[$cLower];
+            } else {
+                $cleaned = preg_replace('/[^A-Za-z0-9]/', '', $color);
+                if (strlen($cleaned) >= 2) {
+                    $colorSuffix = strtoupper(substr($cleaned, 0, 3));
+                }
+            }
+        }
+
+        // Generate Master Product Code
+        if ($isMaster) {
+            $attempts = 0;
+            do {
+                $rand = random_int(100, 9999);
+                $code = $prefix . '-' . sprintf('%03d', $rand);
+                $exists = DB::table('tbl_product_code')
+                    ->where('product_code', $code)
+                    ->orWhere('parent_product_code', $code)
+                    ->exists() || in_array(strtolower($code), $existingNormalized, true);
+                $attempts++;
+            } while ($exists && $attempts < 100);
+
+            return response()->json(['success' => true, 'sku' => $code]);
+        }
+
+        // Generate Variant SKU
+        $attempts    = 0;
+        $maxAttempts = 150;
+        $candidate   = '';
+
+        if (!empty($masterCode)) {
+            // Base on master code: e.g. FR-001-BLK or FR-001-01
+            $base = strtoupper(preg_replace('/[^A-Za-z0-9\-_]/', '', $masterCode));
+            $variantSuffix = !empty($colorSuffix) ? $colorSuffix : sprintf('%02d', max(1, $variantIndex));
+            $candidate = $base . '-' . $variantSuffix;
+            $counter = 1;
+
+            while ((DB::table('tbl_product_code')->where('product_code', $candidate)->exists()
+                   || in_array(strtolower($candidate), $existingNormalized, true))
+                   && $attempts < $maxAttempts) {
+                $attempts++;
+                if (!empty($colorSuffix)) {
+                    $candidate = $base . '-' . $colorSuffix . ($counter > 1 ? '-' . $counter : '');
+                } else {
+                    $candidate = $base . '-' . sprintf('%02d', max(1, $variantIndex) + $counter - 1);
+                }
+                $counter++;
+            }
+        } else {
+            // Standalone variant code matching placeholder format: e.g. FR-001-BLK or FR-102-01
+            $baseNum = random_int(1, 999);
+            $variantSuffix = !empty($colorSuffix) ? $colorSuffix : sprintf('%02d', max(1, $variantIndex));
+            $candidate = $prefix . '-' . sprintf('%03d', $baseNum) . '-' . $variantSuffix;
+
+            while ((DB::table('tbl_product_code')->where('product_code', $candidate)->exists()
+                   || in_array(strtolower($candidate), $existingNormalized, true))
+                   && $attempts < $maxAttempts) {
+                $attempts++;
+                $baseNum = random_int(1, 999);
+                $candidate = $prefix . '-' . sprintf('%03d', $baseNum) . '-' . $variantSuffix;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'sku'     => $candidate,
+        ]);
     }
 
     /**

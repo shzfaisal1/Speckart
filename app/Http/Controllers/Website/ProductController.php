@@ -11,8 +11,7 @@ class ProductController extends Controller
 {
     public function products(Request $request, $any = null){
         $query = DB::table('tbl_product_code')
-            ->where('status', 1)
-            ->where('is_b2c', 1);
+            ->where('status', 1);
 
         // Apply BOGO Eligible Filter (e.g. ?bogo_eligible=1 from cart CTA)
         if ($request->filled('bogo_eligible') && $request->input('bogo_eligible') == 1) {
@@ -123,22 +122,90 @@ class ProductController extends Controller
             }
         }
 
-        // Apply Category Filter (by slug from URL e.g. ?category=women)
+        // Apply Category Filter (by slug from URL e.g. ?category=eyeglasses)
         $activeCategory = null;
         if ($request->filled('category')) {
-            $activeCategory = Category::where('slug', $request->input('category'))
+            $catInput = strtolower(trim($request->input('category')));
+            $activeCategory = Category::where('slug', $catInput)
                                       ->where('is_active', true)
                                       ->first();
-            if ($activeCategory) {
-                $query->where('category_id', $activeCategory->id);
-            }
+            $query->where(function($q) use ($catInput, $activeCategory) {
+                if ($activeCategory) {
+                    $q->where('category_id', $activeCategory->id);
+                }
+                if ($catInput === 'eyeglasses' || $catInput === 'frames') {
+                    $q->orWhere('product_type', 'Frame')
+                      ->orWhere('category_id', 9)
+                      ->orWhere('category_id', 4)
+                      ->orWhere('category_id', 8);
+                } elseif ($catInput === 'sunglasses' || $catInput === 'sun-glasses' || $catInput === 'goggles') {
+                    $q->orWhere('product_type', 'Goggles')
+                      ->orWhere('category_id', 5)
+                      ->orWhere('product_name', 'LIKE', '%sunglass%');
+                } elseif (str_contains($catInput, 'contact') || $catInput === 'lens' || $catInput === 'contactlense') {
+                    $q->orWhere('product_type', 'Lens')
+                      ->orWhere('product_type', 'Solution')
+                      ->orWhere('category_id', 7)
+                      ->orWhereNotNull('Modality');
+                } elseif ($catInput === 'kids') {
+                    $q->orWhere('category_id', 3)
+                      ->orWhere('Gender', 'LIKE', '%Kid%')
+                      ->orWhere('age', 'LIKE', '%Kid%')
+                      ->orWhere('product_name', 'LIKE', '%Kid%');
+                } elseif ($catInput === 'computer-glasses' || $catInput === 'computer_glasses') {
+                    $q->orWhere('category_id', 8)
+                      ->orWhere('product_name', 'LIKE', '%computer%')
+                      ->orWhere('tags', 'LIKE', '%computer%')
+                      ->orWhere('product_type', 'Frame');
+                } elseif ($catInput === 'reading-glasses') {
+                    $q->orWhere('category_id', 4)
+                      ->orWhere('product_name', 'LIKE', '%reading%')
+                      ->orWhere('product_type', 'Frame');
+                } elseif ($catInput === 'men') {
+                    $q->orWhere('category_id', 6)
+                      ->orWhere(function($sub) {
+                          $sub->whereIn('product_type', ['Frame', 'Goggles'])
+                              ->where(function($gQ) {
+                                  $gQ->where('Gender', 'Men')
+                                     ->orWhere('Gender', 'LIKE', '%Unisex%')
+                                     ->orWhere('Gender', '')
+                                     ->orWhereNull('Gender');
+                              });
+                      });
+                } elseif ($catInput === 'women') {
+                    $q->orWhere('category_id', 2)
+                      ->orWhere(function($sub) {
+                          $sub->whereIn('product_type', ['Frame', 'Goggles'])
+                              ->where(function($gQ) {
+                                  $gQ->where('Gender', 'LIKE', '%Women%')
+                                     ->orWhere('Gender', 'LIKE', '%Unisex%')
+                                     ->orWhere('Gender', '')
+                                     ->orWhereNull('Gender');
+                              });
+                      });
+                }
+            });
         }
 
-        // Apply product type filters (Frame/Goggles)
         // Apply product type filters (Frame/Goggles/Contact Lens)
         if ($request->filled('type')) {
             $types = array_filter(array_map('trim', explode(',', $request->input('type'))));
-            $query->whereIn('product_type', $types);
+            $query->where(function($q) use ($types) {
+                foreach ($types as $t) {
+                    $tLower = strtolower($t);
+                    if (str_contains($tLower, 'contact') || $tLower === 'lens') {
+                        $q->orWhere('product_type', 'Lens')
+                          ->orWhere('product_type', 'Solution')
+                          ->orWhereNotNull('Modality');
+                    } elseif (str_contains($tLower, 'sunglass') || $tLower === 'goggles') {
+                        $q->orWhere('product_type', 'Goggles');
+                    } elseif (str_contains($tLower, 'frame') || str_contains($tLower, 'eyeglass')) {
+                        $q->orWhere('product_type', 'Frame');
+                    } else {
+                        $q->orWhere('product_type', $t);
+                    }
+                }
+            });
         }
 
         // Apply Frame Type Filter (Full Rim / Half Rim / Rimless)
@@ -146,7 +213,24 @@ class ProductController extends Controller
             $frameTypes = array_filter(array_map('trim', explode(',', $request->input('frame_type'))));
             $query->where(function($q) use ($frameTypes) {
                 foreach ($frameTypes as $ft) {
-                    $q->orWhere('Type', 'LIKE', '%' . $ft . '%');
+                    $tokens = [$ft];
+                    if (stripos($ft, 'half') !== false) {
+                        $tokens[] = 'Semi-Rim';
+                        $tokens[] = 'Semi Rim';
+                        $tokens[] = 'Half-Rim';
+                    } elseif (stripos($ft, 'full') !== false) {
+                        $tokens[] = 'Full Rim';
+                        $tokens[] = 'Full-Rim';
+                    } elseif (stripos($ft, 'rimless') !== false) {
+                        $tokens[] = 'Rimless';
+                        $tokens[] = 'Rim Less';
+                    }
+                    foreach ($tokens as $tok) {
+                        $q->orWhere('Type', 'LIKE', '%' . $tok . '%')
+                          ->orWhere('product_name', 'LIKE', '%' . $tok . '%')
+                          ->orWhere('productdetails', 'LIKE', '%' . $tok . '%')
+                          ->orWhere('Description', 'LIKE', '%' . $tok . '%');
+                    }
                 }
             });
         }
@@ -156,7 +240,13 @@ class ProductController extends Controller
             $shapes = array_filter(array_map('trim', explode(',', $request->input('shape'))));
             $query->where(function($q) use ($shapes) {
                 foreach ($shapes as $sh) {
-                    $q->orWhere('Shape', 'LIKE', '%' . $sh . '%');
+                    $clean = trim(str_replace('-', ' ', $sh));
+                    $q->orWhere('Shape', 'LIKE', '%' . $sh . '%')
+                      ->orWhere('Shape', 'LIKE', '%' . $clean . '%')
+                      ->orWhere('product_name', 'LIKE', '%' . $sh . '%')
+                      ->orWhere('product_name', 'LIKE', '%' . $clean . '%')
+                      ->orWhere('productdetails', 'LIKE', '%' . $clean . '%')
+                      ->orWhere('Description', 'LIKE', '%' . $clean . '%');
                 }
             });
         }
@@ -171,10 +261,19 @@ class ProductController extends Controller
             });
         }
 
-        // Apply Brand/Company Filter
+        // Apply Brand/Company Filter (robust normalization e.g. Ray-Ban -> RAYBAN, Scott -> SCOTT)
         if ($request->filled('brand')) {
             $brands = array_filter(array_map('trim', explode(',', $request->input('brand'))));
-            $query->whereIn('Company', $brands);
+            $query->where(function($q) use ($brands) {
+                foreach ($brands as $b) {
+                    $norm = strtolower(str_replace([' ', '-', '_', '.'], '', $b));
+                    $q->orWhere('Company', $b)
+                      ->orWhere('Company', 'LIKE', '%' . $b . '%')
+                      ->orWhereRaw("LOWER(REPLACE(REPLACE(REPLACE(Company, ' ', ''), '-', ''), '_', '')) LIKE ?", ['%' . $norm . '%'])
+                      ->orWhere('product_name', 'LIKE', '%' . $b . '%')
+                      ->orWhereRaw("LOWER(REPLACE(REPLACE(REPLACE(product_name, ' ', ''), '-', ''), '_', '')) LIKE ?", ['%' . $norm . '%']);
+                }
+            });
         }
 
         // Apply Modality Filter (Contact Lenses Disposability)
@@ -262,7 +361,7 @@ class ProductController extends Controller
                 foreach ($genders as $g) {
                     $gLower = strtolower($g);
                     if ($gLower === 'men') {
-                        // Match 'Men', 'Unisex', or comma-separated lists without matching 'Women'
+                        // Match 'Men', 'Unisex', or unassigned frames/goggles suitable for men
                         $q->orWhere(function($subQ) {
                             $subQ->where('Gender', 'Men')
                                  ->orWhere('Gender', 'LIKE', '%Unisex%')
@@ -279,6 +378,11 @@ class ProductController extends Controller
                                  ->orWhere('Gender', '')
                                  ->orWhereNull('Gender');
                         });
+                    } elseif ($gLower === 'kids') {
+                        $q->orWhere('Gender', 'LIKE', '%Kid%')
+                          ->orWhere('age', 'LIKE', '%Kid%')
+                          ->orWhere('product_name', 'LIKE', '%Kid%')
+                          ->orWhere('category_id', 3);
                     } else {
                         $q->orWhere('Gender', 'LIKE', "%{$g}%")
                           ->orWhere('Gender', 'LIKE', '%Unisex%')
@@ -348,7 +452,6 @@ class ProductController extends Controller
         if (!empty($parentCodes)) {
             $allSiblings = DB::table('tbl_product_code')
                 ->where('status', 1)
-                ->where('is_b2c', 1)
                 ->whereIn('parent_product_code', $parentCodes)
                 ->get();
 
@@ -359,10 +462,32 @@ class ProductController extends Controller
             }
         }
 
-        // Map helper for images, URLs, and color variants
-        $productsList->getCollection()->transform(function ($p) use ($siblingsByParent) {
+        // Fetch live stock for all products on current page from Store 6 (tbl_inventory_levels)
+        $pageProductCodes = $productsList->pluck('product_code')->filter()->toArray();
+        $liveStockMap = [];
+        if (!empty($pageProductCodes)) {
+            $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+            $liveStockMap = DB::table('tbl_inventory_levels')
+                ->where('store_id', $ecomStoreId)
+                ->whereIn('product_code', $pageProductCodes)
+                ->groupBy('product_code')
+                ->select('product_code', DB::raw('SUM(available_quantity) as web_stock'))
+                ->pluck('web_stock', 'product_code')
+                ->toArray();
+        }
+
+        // Map helper for images, URLs, color variants, and live stock
+        $productsList->getCollection()->transform(function ($p) use ($siblingsByParent, $liveStockMap) {
             $p->image_url  = getProductImageUrl($p);
             $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
+
+            // Live stock mapping from Store 6
+            if (isset($liveStockMap[$p->product_code])) {
+                $p->stock_quantity = max(0, (int)$liveStockMap[$p->product_code]);
+            } else {
+                $p->stock_quantity = (int)($p->stock_quantity ?? 0);
+            }
+            $p->stock_status = $p->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
 
             if (!empty($p->parent_product_code) && isset($siblingsByParent[$p->parent_product_code])) {
                 $p->color_variants_list = $siblingsByParent[$p->parent_product_code];
@@ -386,47 +511,67 @@ class ProductController extends Controller
             'ages'       => ['Kids', 'Teen', 'Adult', 'Senior'],
         ];
 
-        if ($activeCategory) {
-            // Use DB-configured allowed_filters first
-            $dbFilters = $activeCategory->allowed_filters ?: [];
+        $catInput = strtolower(trim($request->input('category', $activeCategory->slug ?? '')));
+        $isLensCat = str_contains($catInput, 'lens') || str_contains($catInput, 'contact');
 
-            // If no filters configured in DB yet, use smart defaults based on category name
-            if (empty($dbFilters)) {
-                $catNameLower = strtolower($activeCategory->name);
-                $isLensCat = str_contains($catNameLower, 'lens')
-                    || str_contains($catNameLower, 'contact');
-
-                if ($isLensCat) {
-                    $dbFilters = ['modality', 'brand', 'color', 'price_range', 'collections'];
-                } else {
-                    // Frame / Sunglasses / Computer Glasses etc.
-                    $dbFilters = [
-                        'brand', 'frame_type', 'shape', 'gender', 'occasion',
-                        'age', 'color', 'material', 'size', 'price_range', 'collections'
-                    ];
-                }
-            }
-
-            $allowedFilters = $dbFilters;
-
-            $baseProductQuery = DB::table('tbl_product_code')
-                ->where('status', 1)
-                ->where('is_b2c', 1)
-                ->where('category_id', $activeCategory->id);
-
-            $filterData['brands']     = (clone $baseProductQuery)->whereNotNull('Company')->where('Company', '!=', '')->distinct()->pluck('Company')->toArray();
-            $filterData['colors']     = (clone $baseProductQuery)->whereNotNull('Color')->where('Color', '!=', '')->distinct()->pluck('Color')->toArray();
-            $filterData['sizes']      = (clone $baseProductQuery)->whereNotNull('Size')->where('Size', '!=', '')->distinct()->pluck('Size')->toArray();
-            $filterData['shapes']     = (clone $baseProductQuery)->whereNotNull('Shape')->where('Shape', '!=', '')->distinct()->pluck('Shape')->toArray();
-            $filterData['modalities'] = (clone $baseProductQuery)->whereNotNull('Modality')->where('Modality', '!=', '')->distinct()->pluck('Modality')->toArray();
-            $filterData['materials']  = (clone $baseProductQuery)->whereNotNull('Material')->where('Material', '!=', '')->distinct()->pluck('Material')->toArray();
+        if ($activeCategory && !empty($activeCategory->allowed_filters)) {
+            $allowedFilters = $activeCategory->allowed_filters;
+        } elseif ($isLensCat) {
+            $allowedFilters = ['modality', 'brand', 'color', 'price_range', 'collections'];
         } else {
-            // Default filters if no category is active — show all frame filters
             $allowedFilters = [
                 'brand', 'frame_type', 'shape', 'gender', 'occasion',
                 'age', 'color', 'material', 'size', 'price_range', 'collections'
             ];
         }
+
+        // Build base query for dynamic filter sidebar options
+        $baseProductQuery = DB::table('tbl_product_code')->where('status', 1);
+        if ($catInput === 'eyeglasses' || $catInput === 'frames') {
+            $baseProductQuery->where(function($q) use ($activeCategory) {
+                if ($activeCategory) $q->where('category_id', $activeCategory->id);
+                $q->orWhere('product_type', 'Frame');
+            });
+        } elseif ($catInput === 'sunglasses' || $catInput === 'goggles') {
+            $baseProductQuery->where(function($q) use ($activeCategory) {
+                if ($activeCategory) $q->where('category_id', $activeCategory->id);
+                $q->orWhere('product_type', 'Goggles')->orWhere('product_name', 'LIKE', '%sunglass%');
+            });
+        } elseif ($isLensCat) {
+            $baseProductQuery->where(function($q) use ($activeCategory) {
+                if ($activeCategory) $q->where('category_id', $activeCategory->id);
+                $q->orWhereIn('product_type', ['Lens', 'Solution'])->orWhereNotNull('Modality');
+            });
+        } elseif ($catInput === 'kids') {
+            $baseProductQuery->where(function($q) use ($activeCategory) {
+                if ($activeCategory) $q->where('category_id', $activeCategory->id);
+                $q->orWhere('Gender', 'LIKE', '%Kid%')->orWhere('age', 'LIKE', '%Kid%')->orWhere('product_name', 'LIKE', '%Kid%');
+            });
+        } elseif ($activeCategory) {
+            $baseProductQuery->where('category_id', $activeCategory->id);
+        }
+
+        // Curate distinct, popular brands for sidebar display
+        $brandCounts = (clone $baseProductQuery)
+            ->whereNotNull('Company')
+            ->where('Company', '!=', '')
+            ->select('Company', DB::raw('count(*) as count'))
+            ->groupBy('Company')
+            ->orderByDesc('count')
+            ->get();
+
+        $curatedBrands = [];
+        foreach ($brandCounts as $bc) {
+            $bName = trim($bc->Company);
+            if (strlen($bName) > 25 || preg_match('/[0-9]{3,}/', $bName) || is_numeric($bName)) continue;
+            $curatedBrands[] = $bName;
+        }
+        $filterData['brands']     = array_values(array_unique($curatedBrands));
+        $filterData['colors']     = (clone $baseProductQuery)->whereNotNull('Color')->where('Color', '!=', '')->distinct()->pluck('Color')->toArray();
+        $filterData['sizes']      = (clone $baseProductQuery)->whereNotNull('Size')->where('Size', '!=', '')->distinct()->pluck('Size')->toArray();
+        $filterData['shapes']     = (clone $baseProductQuery)->whereNotNull('Shape')->where('Shape', '!=', '')->distinct()->pluck('Shape')->toArray();
+        $filterData['modalities'] = (clone $baseProductQuery)->whereNotNull('Modality')->where('Modality', '!=', '')->distinct()->pluck('Modality')->toArray();
+        $filterData['materials']  = (clone $baseProductQuery)->whereNotNull('Material')->where('Material', '!=', '')->distinct()->pluck('Material')->toArray();
 
         $wishlistProductIds = [];
         if (\Auth::check()) {
@@ -442,7 +587,6 @@ class ProductController extends Controller
     public function details($slug){
         $product = DB::table('tbl_product_code')
             ->where('status', 1)
-            ->where('is_b2c', 1)
             ->where(function($query) use ($slug) {
                 $query->where('product_id', $slug)
                       ->orWhere('id', $slug)
@@ -451,11 +595,118 @@ class ProductController extends Controller
             ->first();
 
         if (!$product) {
+            $cleanSlug = str_replace('-', ' ', $slug);
+            $product = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where(function($query) use ($slug, $cleanSlug) {
+                    $query->where('product_name', $slug)
+                          ->orWhere('product_name', 'LIKE', $cleanSlug)
+                          ->orWhere('product_code', 'LIKE', str_replace('-', '', $slug));
+                })
+                ->first();
+        }
+
+        if (!$product) {
             abort(404, 'Product not found');
         }
 
+        // Resolve live stock and perbox from Store 6 (tbl_inventory_levels)
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        $invRecord = DB::table('tbl_inventory_levels')
+            ->where('product_code', $product->product_code)
+            ->where('store_id', $ecomStoreId)
+            ->first();
+        if ($invRecord) {
+            $product->stock_quantity = \App\Services\StockSyncService::getLiveStock($product->product_code, $ecomStoreId);
+            if (!empty($invRecord->perbox)) {
+                $product->perbox = (int)$invRecord->perbox;
+            }
+        } else {
+            $product->stock_quantity = (int)($product->stock_quantity ?? 0);
+        }
+        if (empty($product->Pieces_Per_Box) && !empty($product->perbox)) {
+            $product->Pieces_Per_Box = $product->perbox;
+        }
+        $product->stock_status = $product->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
+
         // Fetch category name
         $categoryName = DB::table('categories')->where('id', $product->category_id)->value('name') ?: 'Products';
+
+        // Resolve lens pack variants for Contact Lenses
+        $lensPackVariants = collect();
+        $isContactLensType = (strtolower(trim($product->product_type ?? '')) === 'lens') || !empty($product->Modality) || str_contains(strtolower($categoryName ?? ''), 'contact');
+        if ($isContactLensType) {
+            $pQuery = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->where(function($q) {
+                    $q->where('product_type', 'Lens')
+                      ->orWhereNotNull('Modality');
+                });
+
+            if (!empty($product->parent_product_code)) {
+                $pQuery->where('parent_product_code', $product->parent_product_code);
+            } else {
+                $pQuery->where('product_name', $product->product_name);
+            }
+
+            $rawVariants = $pQuery->get();
+            if ($rawVariants->isEmpty()) {
+                $rawVariants = collect([$product]);
+            }
+
+            $lensPackVariants = $rawVariants->map(function ($pv) use ($product, $ecomStoreId) {
+                // Live stock
+                $hasInv = DB::table('tbl_inventory_levels')
+                    ->where('product_code', $pv->product_code)
+                    ->where('store_id', $ecomStoreId)
+                    ->first();
+                $pvStock = $hasInv ? \App\Services\StockSyncService::getLiveStock($pv->product_code, $ecomStoreId) : (int)($pv->stock_quantity ?? 0);
+                $pv->stock_quantity = $pvStock;
+                $pv->in_stock = ($pvStock > 0);
+
+                if (empty($pv->Pieces_Per_Box) && $hasInv && !empty($hasInv->perbox)) {
+                    $pv->Pieces_Per_Box = (int)$hasInv->perbox;
+                }
+
+                // Format pack label
+                $count = null;
+                if (!empty($pv->Pieces_Per_Box) && is_numeric($pv->Pieces_Per_Box) && (int)$pv->Pieces_Per_Box > 0) {
+                    $count = (int)$pv->Pieces_Per_Box;
+                } elseif (!empty($pv->pack_size) && is_numeric($pv->pack_size) && (int)$pv->pack_size > 0) {
+                    $count = (int)$pv->pack_size;
+                } elseif (!empty($pv->Packing_Type) && preg_match('/(\d+)/', (string)$pv->Packing_Type, $m)) {
+                    $count = (int)$m[1];
+                }
+
+                if ($count !== null && $count > 0) {
+                    $pv->pack_label = $count === 1 ? '1 Lens / Box' : ($count . ' Lenses / Box');
+                    $pv->pack_subtitle = $count === 1 ? '1 lens/box' : ($count . ' lens/box');
+                    $pv->pack_count = $count;
+                } elseif (!empty($pv->Packing_Type)) {
+                    $pv->pack_label = trim($pv->Packing_Type);
+                    $pv->pack_subtitle = strtolower(trim($pv->Packing_Type));
+                    $pv->pack_count = 1;
+                } else {
+                    $pv->pack_label = '1 Lens / Box';
+                    $pv->pack_subtitle = '1 lens/box';
+                    $pv->pack_count = 1;
+                }
+
+                // Pricing
+                $pvSellingPrice = (float)($pv->Retail_Price ?? 0);
+                $pvMrp = (float)($pv->Purchase_Price ?? 0);
+                if ($pvMrp <= $pvSellingPrice && $pvSellingPrice > 0) {
+                    $pvMrp = round($pvSellingPrice * 1.35); // 35% markup fallback
+                }
+                $pv->calc_price = $pvSellingPrice;
+                $pv->calc_mrp = $pvMrp;
+                $pv->has_discount = ($pvMrp > $pvSellingPrice);
+                $pv->is_current = ($pv->id == $product->id);
+                $pv->detail_url = url('/product/' . (isset($pv->product_id) && $pv->product_id ? $pv->product_id : $pv->id));
+
+                return $pv;
+            })->sortBy('pack_count')->values();
+        }
 
         // Map main image URL
         $product->image_url = getProductImageUrl($product, $product->main_image);
@@ -468,10 +719,9 @@ class ProductController extends Controller
         if (!empty($product->parent_product_code)) {
             $colorVariants = DB::table('tbl_product_code')
                 ->where('status', 1)
-                ->where('is_b2c', 1)
                 ->where('parent_product_code', $product->parent_product_code)
                 ->get()
-                ->map(function($v) {
+                ->map(function($v) use ($ecomStoreId) {
                     $v->image_url   = getProductImageUrl($v, $v->main_image);
                     $v->detail_url  = url('/product/' . (isset($v->product_id) && $v->product_id ? $v->product_id : $v->id));
                     // Color field stores "#hex1" or "#hex1 / #hex2" (primary / secondary)
@@ -481,6 +731,19 @@ class ProductController extends Controller
                     $v->color_secondary = $colorParts[1] ?? null;
                     // Human-readable label for tooltip
                     $v->color_name  = $colorRaw ?: 'Default';
+
+                    // Resolve live stock for variant from Store 6
+                    $vHasLive = DB::table('tbl_inventory_levels')
+                        ->where('product_code', $v->product_code)
+                        ->where('store_id', $ecomStoreId)
+                        ->exists();
+                    if ($vHasLive) {
+                        $v->stock_quantity = \App\Services\StockSyncService::getLiveStock($v->product_code, $ecomStoreId);
+                    } else {
+                        $v->stock_quantity = (int)($v->stock_quantity ?? 0);
+                    }
+                    $v->stock_status   = $v->stock_quantity > 0 ? 'in_stock' : 'out_of_stock';
+
                     return $v;
                 });
         }
@@ -497,7 +760,6 @@ class ProductController extends Controller
         // Fetch related products (same type, excluding current)
         $relatedProducts = DB::table('tbl_product_code')
             ->where('status', 1)
-            ->where('is_b2c', 1)
             ->where('product_type', $product->product_type)
             ->where('id', '!=', $product->id)
             ->limit(10)
@@ -513,14 +775,13 @@ class ProductController extends Controller
             $wishlistProductIds = DB::table('wishlists')->where('user_id', \Auth::id())->pluck('product_id')->toArray();
         }
 
-        return view('website.products.details', compact('product', 'categoryName', 'galleryImages', 'colorVariants', 'relatedProducts', 'wishlistProductIds'));
+        return view('website.products.details', compact('product', 'categoryName', 'galleryImages', 'colorVariants', 'relatedProducts', 'wishlistProductIds', 'lensPackVariants'));
     }
 
     public function getSimilarProducts(Request $request, $id)
     {
         $product = DB::table('tbl_product_code')
             ->where('status', 1)
-            ->where('is_b2c', 1)
             ->where(function($query) use ($id) {
                 $query->where('product_id', $id)
                       ->orWhere('id', $id)
@@ -535,7 +796,6 @@ class ProductController extends Controller
         // Query similar products based on category, shape, rim type or company
         $query = DB::table('tbl_product_code')
             ->where('status', 1)
-            ->where('is_b2c', 1)
             ->where('id', '!=', $product->id);
 
         if (!empty($product->category_id)) {
@@ -579,7 +839,6 @@ class ProductController extends Controller
             $existingIds = $similarProducts->pluck('id')->push($product->id)->toArray();
             $fallback = DB::table('tbl_product_code')
                 ->where('status', 1)
-                ->where('is_b2c', 1)
                 ->whereNotIn('id', $existingIds)
                 ->when(!empty($product->category_id), function($q) use ($product) {
                     return $q->where('category_id', $product->category_id);
@@ -603,7 +862,6 @@ class ProductController extends Controller
         if (!empty($parentCodes)) {
             $allSiblings = DB::table('tbl_product_code')
                 ->where('status', 1)
-                ->where('is_b2c', 1)
                 ->whereIn('parent_product_code', $parentCodes)
                 ->get();
 
@@ -672,7 +930,6 @@ class ProductController extends Controller
         // Return matched products
         $products = DB::table('tbl_product_code')
             ->where('status', 1)
-            ->where('is_b2c', 1)
             ->where(function ($q) use ($search) {
                 $q->where('product_name', 'like', "%{$search}%")
                   ->orWhere('product_code', 'like', "%{$search}%")

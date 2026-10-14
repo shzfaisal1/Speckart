@@ -57,7 +57,7 @@ input.loading {
                 </div>
                 <div class="col-lg-3">
                     <div class="form-group">
-                        <input type="text" class="form-control input" placeholder="Bill Number,Supplier,Barcode,Product Code" id="search" name="search" style="width: 250px;margin-top: 10px;">
+                        <input type="text" class="form-control input" placeholder="Bill Number,Supplier,Barcode,Product Code,Product ID" id="search" name="search" style="width: 280px;margin-top: 10px;">
                     </div>
                 </div> 
                 @if($usr->roles[0]->name == 'Admin')
@@ -98,6 +98,7 @@ input.loading {
                                 <th class="wd-20p">Bill No</th>
                                 <th class="wd-10p">Product</th>
                                 <th class="wd-10p">Product Code</th>
+                                <th class="wd-10p">Product ID</th>
                                 <th class="wd-10p">Description</th>
                                 <th class="wd-10p">Qty</th>
                                 <th class="wd-10p">Total Purchase</th>
@@ -259,6 +260,10 @@ let dataListView = $('.datatables-basic')
                 "data": "product_code",
                 orderable: false,
             },
+            {
+                "data": "product_id",
+                orderable: false,
+            },
 
             {
                 "data": "description",
@@ -299,9 +304,10 @@ let dataListView = $('.datatables-basic')
                 title: 'Actions',
                 orderable: false,
                 render: function(data, type, full)  {
+                    let commentEncoded = encodeURIComponent(full['comment'] || '');
                     return `
                         <span class="badge badge-info pointer"
-                           onclick="opencommentModal('` + full['comment'] + `')">
+                           onclick="opencommentModal(decodeURIComponent('` + commentEncoded + `'))">
                             Comment
                         </span>
                     `;

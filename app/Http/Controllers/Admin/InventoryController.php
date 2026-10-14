@@ -538,7 +538,12 @@ class InventoryController extends Controller
                         'updated_at'   => now()
                     ]);
                 }
-                
+
+                // If either store is the e-commerce store, synchronize website catalog
+                $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+                if ((int)$from_store === $ecomStoreId || (int)$to_store === $ecomStoreId) {
+                    \App\Services\StockSyncService::syncProductStock($product->product_code, $ecomStoreId);
+                }
                 
                 // Transfer Barcode
                 for ($j = 0; $j < $product->transfer_quantity; $j++) 
@@ -1500,21 +1505,21 @@ class InventoryController extends Controller
                 
                 $product_details = implode(' - ', $filteredFields); 
 
-                $product_qty =  $data['modal_glass_qty'];
+                $product_qty =  $data['modal_glass_qty'] ?? 1;
                 
-                $product_name =  $data['modal_glass_details'];
-                $product_company =  $data['modal_glass_company'];
-                $product_quality =  $data['modal_glass_quality'];
+                $product_name =  $data['modal_glass_details'] ?? '';
+                $product_company =  $data['modal_glass_company'] ?? '';
+                $product_quality =  $data['modal_glass_quality'] ?? '';
                 
-                $product_color =  $data['modal_glass_color'];
-                $product_material =  $data['modal_glass_Material'];
-                $product_coating =  $data['modal_glass_Coating'];
-                $product_design =  $data['modal_glass_Design'];
-                $product_index =  $data['modal_glass_Index'];
-                $product_sph =  $data['modal_glass_SPH'];
-                $product_cyl =  $data['modal_glass_CYL'];
-                $product_addition =  $data['modal_glass_Addition'];
-                $product_axis =  $data['modal_glass_Axis'];
+                $product_color =  $data['modal_glass_color'] ?? '';
+                $product_material =  $data['modal_glass_Material'] ?? '';
+                $product_coating =  $data['modal_glass_Coating'] ?? '';
+                $product_design =  $data['modal_glass_Design'] ?? '';
+                $product_index =  $data['modal_glass_Index'] ?? '';
+                $product_sph =  $data['modal_glass_SPH'] ?? '';
+                $product_cyl =  $data['modal_glass_CYL'] ?? '';
+                $product_addition =  $data['modal_glass_Addition'] ?? '';
+                $product_axis =  $data['modal_glass_Axis'] ?? '';
                 
                 $product_bc =  '';
                 $product_diameter =  '';
@@ -1686,23 +1691,55 @@ class InventoryController extends Controller
             
 
             
+            $modal_code = trim($data['modal_product_code'] ?? '');
+            $modal_id = trim($data['modal_product_id'] ?? '');
+
+            if (strpos($modal_code, '/') !== false && empty($modal_id)) {
+                $parts = explode('/', $modal_code);
+                $modal_code = trim($parts[0]);
+                $modal_id = trim($parts[1] ?? '');
+            }
+
+            $existingProduct = null;
+            if (!empty($modal_code)) {
+                $existingProduct = DB::table('tbl_product_code')->where('product_code', $modal_code)->first();
+            }
+            if (!$existingProduct && !empty($modal_id)) {
+                $existingProduct = DB::table('tbl_product_code')->where('product_id', $modal_id)->first();
+            }
+
+            if ($existingProduct) {
+                $product_id = $existingProduct->product_id;
+                if (empty($modal_code)) {
+                    $modal_code = $existingProduct->product_code;
+                }
+            } else {
+                $product_id = !empty($modal_id) ? $modal_id : $this->generateUniqueRandomIdProduct(6, 'tbl_product_code', 'product_id');
+                if (empty($modal_code)) {
+                    $modal_code = 'PRD-' . $product_id;
+                }
+            }
+            $data['modal_product_code'] = $modal_code;
+            $data['modal_product_id'] = $product_id;
+
+            $PCount = $existingProduct ? 1 : 0;
             $tCount = DB::table('tbl_product_code')
                          ->where('product_type', $data['product_type'])
-                         ->where('product_code', $data['modal_product_code'])
+                         ->where(function($q) use ($modal_code, $product_id) {
+                             $q->where('product_code', $modal_code)
+                               ->orWhere('product_id', $product_id);
+                         })
                          ->where('productdetails', $product_details)->count();
            
             if($tCount == 0)
             {
-                
-                $idgenerate = $this->generateUniqueRandomIdProduct(6, 'tbl_product_code', 'product_id');
-                if($PCount == 0)
+                if($PCount == 0 && empty($product_id))
                 {
-                    $product_id = $idgenerate;
+                    $product_id = $this->generateUniqueRandomIdProduct(6, 'tbl_product_code', 'product_id');
                 }
-                else
+                elseif ($existingProduct)
                 {
-                    $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['modal_product_code'])->first();
-                    $product_id = $tbl_product_code->product_id;
+                    $product_id = $existingProduct->product_id;
                 }
                 $Product = Product::create([
                     'product_type'         => $data['product_type'],
@@ -1732,6 +1769,7 @@ class InventoryController extends Controller
                     'Diameter'             => $product_diameter ?? '',
                     'No_Of_Boxes'          => $product_noofbox ?? '',
                     'Pieces_Per_Box'       => $product_perbox ?? '',
+                    'Packing_Type'         => !empty($product_perbox) ? ($product_perbox . ' Lenses / Box') : ($data['modal_solution_packingtype'] ?? ''),
                     'Batch_Number'         => $product_batch ?? '',
                     'Mfg_Date'             => $product_mfg ?? '',
                     'Expiry_Date'          => $product_expiry ?? '',
@@ -1765,8 +1803,52 @@ class InventoryController extends Controller
                 }
                 else
                 {
-                    $tbl_product_code = DB::table('tbl_product_code')->where('product_code', $data['modal_product_code'])->first();
-                    $product_id = $tbl_product_code->product_id;
+                    $tbl_product_code = DB::table('tbl_product_code')
+                        ->where('product_code', $data['modal_product_code'])
+                        ->orWhere('product_id', $product_id)
+                        ->first();
+                    $product_id = $tbl_product_code ? $tbl_product_code->product_id : $product_id;
+
+                    // Sync latest Retail_Price and Purchase_Price to tbl_product_code master
+                    $priceUpdate = [];
+                    if (!empty($data['modal_retail_price']) && (float)$data['modal_retail_price'] > 0) {
+                        $priceUpdate['Retail_Price'] = (float)$data['modal_retail_price'];
+                    }
+                    if (!empty($data['modal_total_price']) && (float)$data['modal_total_price'] > 0) {
+                        $priceUpdate['Purchase_Price'] = (float)$data['modal_total_price'];
+                    } elseif (!empty($data['modal_purchase_price']) && (float)$data['modal_purchase_price'] > 0) {
+                        $priceUpdate['Purchase_Price'] = (float)$data['modal_purchase_price'];
+                    }
+                    if (!empty($data['modal_basic_price']) && (float)$data['modal_basic_price'] > 0) {
+                        $priceUpdate['Purchase_Base_Price'] = (float)$data['modal_basic_price'];
+                    }
+                    if (!empty($product_perbox)) {
+                        $priceUpdate['Pieces_Per_Box'] = $product_perbox;
+                        if (empty($tbl_product_code->Packing_Type) || $data['product_type'] === 'Lens') {
+                            $priceUpdate['Packing_Type'] = $product_perbox . ' Lenses / Box';
+                        }
+                    }
+                    if (!empty($product_noofbox)) {
+                        $priceUpdate['No_Of_Boxes'] = $product_noofbox;
+                    }
+                    if (!empty($priceUpdate)) {
+                        $priceUpdate['updated_at'] = now();
+                        DB::table('tbl_product_code')->where('id', $tbl_product_code->id)->update($priceUpdate);
+                    }
+
+                    // Also keep lens_packages in sync if product_type is Glass
+                    if ($data['product_type'] === 'Glass') {
+                        $lensPkgUpdate = [];
+                        if (!empty($data['modal_retail_price']) && (float)$data['modal_retail_price'] > 0) {
+                            $lensPkgUpdate['current_price'] = (float)$data['modal_retail_price'];
+                        }
+                        if (!empty($data['modal_purchase_price']) && (float)$data['modal_purchase_price'] > 0) {
+                            $lensPkgUpdate['purchase_price'] = (float)$data['modal_purchase_price'];
+                        }
+                        if (!empty($lensPkgUpdate)) {
+                            DB::table('lens_packages')->where('product_code', $data['modal_product_code'])->update($lensPkgUpdate);
+                        }
+                    }
                 }
             }
             
@@ -2028,6 +2110,7 @@ class InventoryController extends Controller
             if ($inventory) {
                 $query->update([
                     'available_quantity' => $inventory->available_quantity + $box_detail,
+                    'perbox' => $perbox ?: $inventory->perbox,
                     'tota_lens_qty' => $inventory->tota_lens_qty + ($perbox*$box_detail),
                     'updated_at' => now()
                 ]);

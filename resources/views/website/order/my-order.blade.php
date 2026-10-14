@@ -485,6 +485,200 @@
     border-color: #dc2626;
 }
 
+/* ── Cancelled Order Notes & Reason Badge ── */
+.order-cancelled-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.order-cancel-reason-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px dashed #fca5a5;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-top: 2px;
+    width: fit-content;
+}
+
+/* ── Cancellation Reason Modal ── */
+.cancel-modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+    overflow: hidden;
+    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+.cancel-modal-header {
+    background: linear-gradient(135deg, #07484A 0%, #0a5658 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    border-bottom: none;
+    flex-shrink: 0;
+}
+
+.cancel-modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.cancel-modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+.cancel-modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cancel-modal-icon-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.cancel-modal-body {
+    padding: 16px 20px;
+    background: #ffffff;
+    overflow-y: auto !important;
+    flex: 1 1 auto;
+    max-height: calc(100vh - 190px);
+}
+
+.cancel-reasons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 14px;
+}
+
+.cancel-reason-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--order-border);
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0;
+}
+
+.cancel-reason-label:hover {
+    border-color: var(--order-teal);
+    background: #f0fdfa;
+}
+
+.cancel-reason-label input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--order-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.cancel-reason-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.cancel-reason-label.active {
+    border-color: var(--order-primary);
+    background: #f0fdfa;
+    box-shadow: 0 0 0 1px var(--order-primary);
+}
+
+.cancel-reason-label.active .cancel-reason-icon {
+    background: var(--order-primary);
+    color: #ffffff;
+}
+
+.cancel-reason-text {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--order-text-main);
+    line-height: 1.3;
+}
+
+.cancel-comment-box {
+    margin-top: 10px;
+}
+
+.cancel-comment-box label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.cancel-comment-box textarea {
+    border-radius: 8px;
+    border: 1.5px solid var(--order-border);
+    font-size: 12.5px;
+    padding: 7px 10px;
+    transition: border-color 0.2s ease;
+}
+
+.cancel-comment-box textarea:focus {
+    border-color: var(--order-primary);
+    box-shadow: 0 0 0 3px rgba(7, 72, 74, 0.1);
+}
+
+.cancel-notice-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 11px;
+    color: #92400e;
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.cancel-modal-footer {
+    padding: 12px 20px;
+    background: #ffffff;
+    border-top: 1.5px solid var(--order-border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+}
+
 /* ── Empty State Card ── */
 .order-empty-card {
     background: #ffffff;
@@ -754,7 +948,14 @@
                             @if($dataStatus === 'delivered')
                                 <i class="bi bi-check-circle-fill text-success"></i> Package has been delivered successfully
                             @elseif($dataStatus === 'cancelled')
-                                <i class="bi bi-x-circle-fill text-danger"></i> This order was cancelled
+                                <div class="order-cancelled-box">
+                                    <span class="text-danger fw-semibold"><i class="bi bi-x-circle-fill text-danger me-1"></i> This order was cancelled</span>
+                                    @if(!empty($order->cancellation_reason))
+                                        <div class="order-cancel-reason-text">
+                                            <i class="bi bi-chat-left-quote me-1"></i> <strong>Reason:</strong> {{ $order->cancellation_reason }}
+                                        </div>
+                                    @endif
+                                </div>
                             @else
                                 <i class="bi bi-truck text-primary"></i> Est. Delivery by: <strong>{{ \Carbon\Carbon::parse($order->sale_date ?? now())->addDays(4)->format('d M Y') }}</strong>
                             @endif
@@ -762,12 +963,12 @@
 
                         <div class="order-action-btns">
                             @if($dataStatus === 'processing' || $dataStatus === 'transit')
-                                <form action="{{ route('my-orders.cancel', $orderId) }}" method="POST" class="cancel-order-form" data-order-no="{{ $orderNo }}">
-                                    @csrf
-                                    <button type="submit" class="btn-order-cancel">
-                                        <i class="bi bi-x-lg"></i> Cancel Order
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-order-cancel btn-open-cancel-modal" 
+                                    data-order-id="{{ $orderId }}" 
+                                    data-order-no="{{ $orderNo }}"
+                                    data-cancel-url="{{ route('my-orders.cancel', $orderId) }}">
+                                    <i class="bi bi-x-lg"></i> Cancel Order
+                                </button>
                             @else
                                 <form action="{{ route('my-orders.reorder', $orderId) }}" method="POST">
                                     @csrf
@@ -820,6 +1021,124 @@
 
     </div>
 </section>
+
+<!-- ==========================================================================
+     CANCEL ORDER REASON MODAL
+     ========================================================================== -->
+<div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-labelledby="cancelReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 520px;">
+        <form action="" method="POST" id="cancelOrderForm" class="modal-content cancel-modal-content">
+            @csrf
+            <!-- Modal Header -->
+            <div class="modal-header cancel-modal-header">
+                <div class="cancel-modal-title-wrap">
+                    <div class="cancel-modal-icon-badge">
+                        <i class="bi bi-x-octagon-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="cancelReasonModalLabel" style="font-size: 16px;">
+                            Cancel Order <span id="cancelOrderNoText"></span>
+                        </h5>
+                        <p class="mb-0 text-white-50" style="font-size: 11.5px; margin-top: 1px;">
+                            Please let us know why you would like to cancel
+                        </p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body cancel-modal-body">
+                <!-- Validation Alert (hidden by default) -->
+                <div class="alert alert-danger d-none d-flex align-items-center py-2 px-3 mb-2 rounded-3" id="cancelReasonAlert" role="alert" style="font-size: 12px;">
+                    <i class="bi bi-exclamation-circle-fill me-2 fs-6"></i>
+                    <span>Please select a reason for cancelling your order.</span>
+                </div>
+
+                <label class="form-label fw-bold text-dark mb-2" style="font-size: 12.5px;">
+                    Why do you want to cancel this order? <span class="text-danger">*</span>
+                </label>
+
+                <div class="cancel-reasons-list">
+                    <!-- Option 1 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Incorrect prescription or lens power entered">
+                        <div class="cancel-reason-icon"><i class="bi bi-eyeglasses"></i></div>
+                        <div class="cancel-reason-text">Incorrect prescription or lens power entered</div>
+                    </label>
+
+                    <!-- Option 2 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Want to change frame, colour or lens package">
+                        <div class="cancel-reason-icon"><i class="bi bi-palette"></i></div>
+                        <div class="cancel-reason-text">Want to change frame, colour or lens package</div>
+                    </label>
+
+                    <!-- Option 3 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Expected faster delivery / Delivery time too long">
+                        <div class="cancel-reason-icon"><i class="bi bi-clock-history"></i></div>
+                        <div class="cancel-reason-text">Expected faster delivery / Urgent requirement</div>
+                    </label>
+
+                    <!-- Option 4 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Need to change shipping address or contact number">
+                        <div class="cancel-reason-icon"><i class="bi bi-geo-alt"></i></div>
+                        <div class="cancel-reason-text">Need to update shipping address or contact info</div>
+                    </label>
+
+                    <!-- Option 5 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Ordered by mistake / Duplicate order">
+                        <div class="cancel-reason-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div class="cancel-reason-text">Ordered by mistake / Duplicate order placed</div>
+                    </label>
+
+                    <!-- Option 6 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Found better price or alternative elsewhere">
+                        <div class="cancel-reason-icon"><i class="bi bi-tag"></i></div>
+                        <div class="cancel-reason-text">Found better price or alternative elsewhere</div>
+                    </label>
+
+                    <!-- Option 7 -->
+                    <label class="cancel-reason-label">
+                        <input type="radio" name="cancellation_reason" value="Other reason">
+                        <div class="cancel-reason-icon"><i class="bi bi-pencil-square"></i></div>
+                        <div class="cancel-reason-text">Other reason</div>
+                    </label>
+                </div>
+
+                <!-- Additional Details Textarea -->
+                <div class="cancel-comment-box">
+                    <label for="cancelCommentInput">
+                        Additional remarks or feedback <span class="text-muted fw-normal">(Optional)</span>
+                    </label>
+                    <textarea class="form-control" name="cancellation_comment" id="cancelCommentInput" rows="2" placeholder="Tell us more about your cancellation..."></textarea>
+                </div>
+
+                <!-- Information Alert -->
+                <div class="cancel-notice-box">
+                    <i class="bi bi-info-circle-fill text-warning fs-6 flex-shrink-0"></i>
+                    <div>
+                        If already prepaid, any eligible refund will be credited back to your original payment method in 3–5 business days.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer (Always visible & fixed) -->
+            <div class="modal-footer cancel-modal-footer">
+                <button type="button" class="btn btn-outline-secondary rounded-3 px-3 py-2 fw-semibold" data-bs-dismiss="modal" style="font-size: 13px;">
+                    Keep Order
+                </button>
+                <button type="submit" class="btn btn-danger rounded-3 px-4 py-2 fw-semibold" id="btnConfirmCancel" style="font-size: 13px;">
+                    <i class="bi bi-x-circle-fill me-1"></i> Confirm Cancellation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -880,27 +1199,80 @@
             });
         }
 
-        // Cancel order confirmation with SweetAlert2
-        document.querySelectorAll('.cancel-order-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
+        // Cancel order modal handling
+        const cancelModalEl = document.getElementById('cancelReasonModal');
+        let cancelModalInstance = null;
+        if (cancelModalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            cancelModalInstance = new bootstrap.Modal(cancelModalEl);
+        }
+        const cancelForm = document.getElementById('cancelOrderForm');
+        const cancelOrderNoText = document.getElementById('cancelOrderNoText');
+        const cancelReasonAlert = document.getElementById('cancelReasonAlert');
+        const cancelCommentInput = document.getElementById('cancelCommentInput');
+        const btnConfirmCancel = document.getElementById('btnConfirmCancel');
+
+        document.querySelectorAll('.btn-open-cancel-modal').forEach(btn => {
+            btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const orderNo = this.dataset.orderNo || '';
-                Swal.fire({
-                    title: 'Cancel Order?',
-                    text: 'Are you sure you want to cancel order #' + orderNo + '?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Yes, cancel order',
-                    cancelButtonText: 'No, keep order'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
+                const cancelUrl = this.dataset.cancelUrl || '';
+
+                if (cancelOrderNoText) cancelOrderNoText.textContent = '#' + orderNo;
+                if (cancelForm) cancelForm.action = cancelUrl;
+                if (cancelReasonAlert) cancelReasonAlert.classList.add('d-none');
+                if (cancelCommentInput) cancelCommentInput.value = '';
+
+                // Reset radios
+                document.querySelectorAll('input[name="cancellation_reason"]').forEach(radio => {
+                    radio.checked = false;
+                    const label = radio.closest('.cancel-reason-label');
+                    if (label) label.classList.remove('active');
                 });
+
+                if (btnConfirmCancel) {
+                    btnConfirmCancel.disabled = false;
+                    btnConfirmCancel.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i> Confirm Cancellation';
+                }
+
+                if (cancelModalInstance) {
+                    cancelModalInstance.show();
+                } else if (typeof jQuery !== 'undefined' && $('#cancelReasonModal').modal) {
+                    $('#cancelReasonModal').modal('show');
+                }
             });
         });
+
+        // Radio option change listener to highlight selected tile
+        document.querySelectorAll('input[name="cancellation_reason"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.cancel-reason-label').forEach(lbl => lbl.classList.remove('active'));
+                if (this.checked) {
+                    const label = this.closest('.cancel-reason-label');
+                    if (label) label.classList.add('active');
+                    if (cancelReasonAlert) cancelReasonAlert.classList.add('d-none');
+                }
+            });
+        });
+
+        // Cancel Form submit validation & loader
+        if (cancelForm) {
+            cancelForm.addEventListener('submit', function(e) {
+                const selectedReason = document.querySelector('input[name="cancellation_reason"]:checked');
+                if (!selectedReason) {
+                    e.preventDefault();
+                    if (cancelReasonAlert) {
+                        cancelReasonAlert.classList.remove('d-none');
+                        cancelReasonAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    return false;
+                }
+
+                if (btnConfirmCancel) {
+                    btnConfirmCancel.disabled = true;
+                    btnConfirmCancel.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Cancelling Order...';
+                }
+            });
+        }
     });
 </script>
 @endsection

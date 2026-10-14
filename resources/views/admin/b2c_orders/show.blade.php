@@ -225,6 +225,18 @@
     </div>
     @endif
 
+    @if($order->order_status == 'cancelled')
+    <div class="alert alert-danger d-flex align-items-center mb-3" role="alert" style="border-radius: 12px; background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 14px 18px;">
+        <i class="fa fa-ban fa-2x mr-3 text-danger"></i>
+        <div>
+            <div class="font-weight-bold" style="font-size: 14px;">This Order has been Cancelled</div>
+            <div style="font-size: 13px; color: #7f1d1d; margin-top: 2px;">
+                <strong>Cancellation Reason:</strong> {{ $order->cancellation_reason ?? ($order->customer_note ?? 'Cancelled by customer') }}
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Header Card -->
     <div class="order-header-card d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
@@ -323,7 +335,7 @@
                                 <td><strong>{{ $item->GL_EYE_RC_D !== null ? sprintf('%+.2f', $item->GL_EYE_RC_D) : '0.00' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_RA_D ?? '—' }}{{ $item->GL_EYE_RA_D ? '°' : '' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_RADD !== null ? sprintf('+%.2f', $item->GL_EYE_RADD) : '—' }}</strong></td>
-                                <td><strong>{{ $item->GL_EYE_RPD ?? '—' }} mm</strong></td>
+                                <td><strong>{{ $item->GL_EYE_RPD ?? ($item->GL_EYE_RP_D ?? '—') }} mm</strong></td>
                                 <td><strong>{{ $item->fitting_height ?? '—' }} mm</strong></td>
                             </tr>
                             <tr>
@@ -332,7 +344,7 @@
                                 <td><strong>{{ $item->GL_EYE_LC_D !== null ? sprintf('%+.2f', $item->GL_EYE_LC_D) : '0.00' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_LA_D ?? '—' }}{{ $item->GL_EYE_LA_D ? '°' : '' }}</strong></td>
                                 <td><strong>{{ $item->GL_EYE_LADD !== null ? sprintf('+%.2f', $item->GL_EYE_LADD) : '—' }}</strong></td>
-                                <td><strong>{{ $item->GL_EYE_LPD ?? '—' }} mm</strong></td>
+                                <td><strong>{{ $item->GL_EYE_LPD ?? ($item->GL_EYE_LP_D ?? '—') }} mm</strong></td>
                                 <td><strong>{{ $item->fitting_height ?? '—' }} mm</strong></td>
                             </tr>
                         </tbody>

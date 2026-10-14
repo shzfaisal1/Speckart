@@ -23,12 +23,65 @@ class CartService
             return ['status' => false, 'message' => 'Frame product not found.'];
         }
 
-        // Fetch Lens Package if selected
+        // Verify live stock availability in Store 6 (Online Website)
+        $quantity = max(1, (int)$quantity);
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        $hasInventoryRecord = DB::table('tbl_inventory_levels')
+            ->where('product_code', $frame->product_code)
+            ->where('store_id', $ecomStoreId)
+            ->exists();
+        if ($hasInventoryRecord) {
+            $frameStock = \App\Services\StockSyncService::getLiveStock($frame->product_code, $ecomStoreId);
+        } else {
+            $frameStock = (int)($frame->stock_quantity ?? 0);
+        }
+
+        // Frame Stock Validation: Customer cannot select/purchase Lens Package if Frame is out of stock
+        if ($frameStock <= 0) {
+            if (!empty($lensPackageId)) {
+                return [
+                    'status'  => false,
+                    'message' => 'Selected frame is out of stock. Lens package cannot be purchased.'
+                ];
+            }
+            return [
+                'status'  => false,
+                'message' => 'Sorry, this product is currently out of stock.'
+            ];
+        }
+
+        if ($quantity > $frameStock) {
+            return ['status' => false, 'message' => "Only {$frameStock} piece(s) available in stock."];
+        }
+
+        // Fetch & Validate Lens Package if selected
         $lens = null;
-        if ($lensPackageId) {
-            $lens = DB::table('lens_packages')->where('id', $lensPackageId)->first();
+        if (!empty($lensPackageId)) {
+            $lens = DB::table('lens_packages')
+                ->where('id', $lensPackageId)
+                ->whereNull('deleted_at')
+                ->first();
             if (!$lens) {
                 $lens = DB::table('tbl_lens_package')->where('package_id', $lensPackageId)->first();
+            }
+
+            if (!$lens || (isset($lens->is_active) && empty($lens->is_active))) {
+                return [
+                    'status'  => false,
+                    'message' => 'Selected lens package is currently unavailable.'
+                ];
+            }
+
+            // Verify live stock of lens package if product_code exists
+            $lensCode = $lens->product_code ?? null;
+            if (!empty($lensCode)) {
+                $lensStock = \App\Services\StockSyncService::getLiveStock($lensCode);
+                if ($lensStock <= 0) {
+                    return [
+                        'status'  => false,
+                        'message' => 'Selected lens package is out of stock.'
+                    ];
+                }
             }
         }
 
@@ -90,15 +143,37 @@ class CartService
             }
         }
 
-        // Set Frame Price: Sale price if lens is free, MRP if lens is a paid upgrade
-        if ($isFreeLens) {
+        // Set Frame and Lens prices based on package mode:
+        $pkgType = $lens ? ($lens->package_type ?? ($isFreeLens ? 'free_lens' : 'frame_and_lens')) : null;
+        if ($pkgType === 'free_frame') {
+            $framePrice = 0;
+            $lensPrice  = (float) ($lens->current_price ?? $lensPrice);
+        } elseif ($isFreeLens || $pkgType === 'free_lens' || $pkgType === 'frame_only') {
             $framePrice = $frameSalePrice;
+            $lensPrice  = 0;
         } else {
-            $framePrice = $frameMrp;
+            // Frame & Lens Package Paid (Both Paid): Customer pays for both Frame and Lens Package
+            $framePrice = $frameSalePrice;
+            $lensPrice  = (float) ($lens ? ($lens->current_price ?? $lensPrice) : $lensPrice);
         }
 
         // Dynamic Frame Image Path
         $imageUrl = getProductImageUrl($frame);
+
+        // Sum existing quantity of this product code across all cart items
+        $existingQtyInCart = 0;
+        foreach ($cart as $cItem) {
+            if (($cItem['frame_code'] ?? null) === $frame->product_code) {
+                $existingQtyInCart += (int)($cItem['quantity'] ?? 0);
+            }
+        }
+
+        if (($existingQtyInCart + $quantity) > $frameStock) {
+            $msg = $existingQtyInCart > 0 
+                ? "Only {$frameStock} piece(s) available in stock. You already have {$existingQtyInCart} in your cart."
+                : "Only {$frameStock} piece(s) available in stock.";
+            return ['status' => false, 'message' => $msg];
+        }
 
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $quantity;
@@ -113,6 +188,7 @@ class CartService
                 'frame_image'       => $imageUrl,
                 'size'              => $size ?: (explode(',', $frame->Size ?? 'Medium')[0]), // FIX: use customer-selected size
                 'lens_package_id'   => $lensIdKey,
+                'lens_product_code' => $lens->product_code ?? null,
                 'lens_type'         => $lensType,
                 'lens_name'         => $lensName,
                 'lens_details'      => $lensDetails,
@@ -168,7 +244,22 @@ class CartService
                     $this->removeDbCartItem($dbCart->id, $itemToRemove);
                 } catch (\Throwable $e) {}
             } else {
-                $cart[$cartKey]['quantity'] = (int) $quantity;
+                $requestedQty = max(1, (int) $quantity);
+                $item = $cart[$cartKey] ?? [];
+                $frameCode = $item['frame_code'] ?? null;
+                if ($frameCode) {
+                    $liveStock = \App\Services\StockSyncService::getLiveStock($frameCode);
+                    $otherQty = 0;
+                    foreach ($cart as $k => $cItem) {
+                        if ($k !== $cartKey && ($cItem['frame_code'] ?? null) === $frameCode) {
+                            $otherQty += (int)($cItem['quantity'] ?? 0);
+                        }
+                    }
+                    if (($otherQty + $requestedQty) > $liveStock) {
+                        return false;
+                    }
+                }
+                $cart[$cartKey]['quantity'] = $requestedQty;
                 session()->put('cart', $cart);
 
                 try {
@@ -509,6 +600,7 @@ class CartService
                             'frame_image'       => $imageUrl,
                             'size'              => $frame->Size ?? 'Medium',
                             'lens_package_id'   => $lensIdKey,
+                            'lens_product_code' => $lens->product_code ?? null,
                             'lens_name'         => $lensName,
                             'lens_details'      => $lensDetails,
                             'lens_price'        => $lensPrice,
@@ -556,6 +648,7 @@ class CartService
         $items         = [];
         $bogoFallbackMessage = null;
         $bogoEligibleCount = 0;
+        $hasOutOfStockItems = false;
 
         $membershipBogoEnabled = false;
         $membershipCouponPercent = 0;
@@ -672,6 +765,20 @@ class CartService
             $item['discounted_frame_price'] = $fPrice;
             $item['is_bogo_free'] = false;
             $item['is_bogo_half'] = false;
+
+            // Check live stock for frame to handle stale cart items
+            $frameCode = $item['frame_code'] ?? null;
+            $itemOutOfStock = false;
+            if (!empty($frameCode) && empty($item['is_membership'])) {
+                $itemLiveStock = \App\Services\StockSyncService::getLiveStock($frameCode);
+                $item['frame_stock'] = $itemLiveStock;
+                if ($itemLiveStock <= 0) {
+                    $itemOutOfStock = true;
+                    $hasOutOfStockItems = true;
+                }
+            }
+            $item['is_out_of_stock'] = $itemOutOfStock;
+
             $items[$key] = $item;
         }
 
@@ -1161,6 +1268,7 @@ class CartService
             'applied_voucher'           => session()->get('applied_voucher', null),
             'available_vouchers'        => $this->getAvailableVouchers(),
             'available_coupons'         => $this->getAvailableCoupons(),
+            'has_out_of_stock'          => $hasOutOfStockItems,
         ];
     }
 

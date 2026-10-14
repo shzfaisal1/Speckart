@@ -13,12 +13,13 @@ class LensPackage extends Model
     protected $table = 'lens_packages';
 
     protected $fillable = [
-        'name', 'slug', 'short_description',
-        'current_price', 'original_price', 'warranty_months',
+        'name', 'slug', 'product_code', 'company', 'quality', 'lens_index', 'coating', 'material', 'design',
+        'short_description', 'purchase_price', 'current_price', 'original_price', 'warranty_months',
         'is_free_lens', 'package_type', 'sort_order', 'is_active',
     ];
 
     protected $casts = [
+        'purchase_price' => 'decimal:2',
         'current_price'  => 'decimal:2',
         'original_price' => 'decimal:2',
         'is_free_lens'   => 'boolean',

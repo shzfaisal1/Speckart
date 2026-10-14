@@ -13,6 +13,7 @@ input.loading {
     display: inline-block;
 }
 
+
 .tooltip-text {
     visibility: hidden;
     background-color: #000;
@@ -54,6 +55,244 @@ input.loading {
     font-weight: 400;
     margin: 10px;
 }
+
+/* Cancelled order row highlight in red */
+.row-cancelled, 
+table.dataTable tbody tr.row-cancelled, 
+table.dataTable tbody tr.row-cancelled > td,
+table.dataTable tbody tr.row-cancelled:hover,
+table.dataTable tbody tr.row-cancelled:hover > td,
+table.dataTable.table-striped tbody tr.row-cancelled:nth-of-type(odd),
+table.dataTable.table-striped tbody tr.row-cancelled:nth-of-type(odd) > td {
+    background-color: #ffdada !important;
+}
+table.dataTable tbody tr.row-cancelled {
+    border-left: 6px solid #dc2626 !important;
+}
+
+/* Action button for viewing cancellation reason */
+.action-icon-cancel-reason {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #dc2626;
+    color: #ffffff !important;
+    margin: 2px;
+    font-size: 11px;
+    vertical-align: middle;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.4);
+    transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+.action-icon-cancel-reason:hover {
+    background-color: #b91c1c;
+    transform: scale(1.15);
+    color: #ffffff !important;
+}
+.action-icon-cancel-reason i {
+    color: #ffffff !important;
+}
+
+/* Disabled action buttons for cancelled orders */
+.icon-disabled-cancelled {
+    filter: grayscale(100%) opacity(0.28) !important;
+    cursor: not-allowed !important;
+}
+.icon-disabled-cancelled img,
+.icon-disabled-cancelled i {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+
+
+    .prescription-card {
+        background: #fff;
+        border: 1px solid #e1e5ea;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .prescription-card-header {
+        background: #f7f9fc;
+        border-bottom: 1px solid #e1e5ea;
+        padding: 15px 20px;
+    }
+
+    .prescription-card-header h4 {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 600;
+        color: #2f3b52;
+    }
+
+    .prescription-card-body {
+        padding: 20px;
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2f3b52;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #f0f2f5;
+    }
+
+    .info-box {
+        background: #f8fafc;
+        border: 1px solid #e7ebf0;
+        border-radius: 7px;
+        padding: 12px 15px;
+        height: 100%;
+    }
+
+    .info-box label {
+        display: block;
+        font-size: 12px;
+        color: #7a8494;
+        margin-bottom: 3px;
+    }
+
+    .info-box .value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #252b35;
+    }
+
+    .eye-card {
+        border: 1px solid #dee3e8;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .eye-card-header {
+        background: #f5f7fa;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .eye-card-header i {
+        color: #ff7200;
+        cursor: pointer;
+        margin: 0 8px;
+    }
+
+    .eye-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+    .eye-table th,
+    .eye-table td {
+        border: 1px solid #edf0f3;
+        padding: 7px 5px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .eye-table th {
+        background: #fafbfc;
+        font-weight: 600;
+        color: #5f6875;
+    }
+
+    .eye-table td:first-child {
+        text-align: left;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .eye-table input {
+        width: 55px !important;
+        height: 30px;
+        padding: 3px 5px;
+        text-align: center;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .rx-image-container {
+        overflow: auto;
+        border: 1px solid #ddd;
+        max-height: 400px;
+        text-align: center;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 7px;
+    }
+
+    .rx-prescription-img {
+        max-width: 100%;
+        transition: transform 0.15s ease;
+        cursor: zoom-in;
+    }
+
+    .rx-image-toolbar {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .parameter-box {
+        border: 1px solid #e1e5ea;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fff;
+    }
+
+    .form-label-custom {
+        font-size: 12px;
+        font-weight: 600;
+        color: #5c6675;
+        margin-bottom: 5px;
+    }
+
+    .lens-types {
+        background: #f8fafc;
+        border: 1px solid #e7ebf0;
+        border-radius: 7px;
+        padding: 12px;
+    }
+
+    .lens-types .form-check {
+        margin-right: 12px;
+        margin-bottom: 7px;
+    }
+
+    .prescription-footer {
+        background: #f8f9fb;
+        border-top: 1px solid #e1e5ea;
+        padding: 15px 20px;
+    }
+
+    .mandatory {
+        color: red;
+    }
+
+    @media (max-width: 768px) {
+        .prescription-card-body {
+            padding: 12px;
+        }
+
+        .eye-table {
+            min-width: 650px;
+        }
+
+        .eye-card {
+            overflow-x: auto;
+        }
+    }
 </style>  
 
 @endsection
@@ -98,12 +337,26 @@ input.loading {
                 </div>    
                 <div class="col-lg-3">
                     <div class="form-group">
-                        <input type="text" class="form-control input" placeholder="Bill Number,Customer Name,MobileNo" id="search" name="search" style="width: 250px;margin-top: 10px;">
+                        <input type="text" class="form-control input" placeholder="Bill Number,Customer Name,MobileNo" id="search" name="search" style="margin-top: 10px;">
                     </div>
                 </div> 
+                
+                @if(auth()->user()->user_type == "Admin")
+                <div  class="col-lg-3" style="margin-top:10px">
+                    <select name="store_id" id="filter_store_id" class="form-control select" style="height: 36px !important;" >
+                        <option value="">All Stores</option>
+                    
+                        @foreach($stores as $store)
+                            <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
+                                {{ $store->store_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
                 <div class="col-lg-3" style="margin-top:10px">
                     <div class="form-group">
-                        <select class="form-control select" style="height: 32px !important;" id="sale_person" name="sale_person">
+                        <select class="form-control select" style="height: 36px !important;" id="sale_person" name="sale_person">
                             <option value="">Select Person</option>
                           <?php  $tbl_users =  DB::table("users")->where('status',1)->get();  ?>
                            @foreach($tbl_users as $tbl_users)

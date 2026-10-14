@@ -74,7 +74,7 @@ input.loading {
 
                         <div class="col-md-2">
                             <label for="payment_method" class="form-label">Search</label>
-                            <input type="text" class="form-control input" placeholder="Bill Number Wise,Barcode No,Product Code" id="search" name="search" style="width: 250px;">
+                            <input type="text" class="form-control input" placeholder="Bill Number Wise,Barcode No,Product Code,Product ID" id="search" name="search" style="width: 250px;">
                         </div>
                     </div>
                 </div>
@@ -391,14 +391,13 @@ let dataListView = $('.datatables-basic')
                 orderable: false,
                 render: function(data, type, full) 
                 {
+                    let fullEncoded = encodeURIComponent(JSON.stringify(full));
                     return `
                          <span class="badge badge-dark pointer"
-                          onclick="openubarcodeModal('` + full['barcode_id'] + `','` + full['barcode'] + `','` + full['retail_price']+ `','` + full['pdeatils'] + `')">
+                          onclick="openubarcodeModalRow('` + fullEncoded + `')">
                             <i class="fa fa-cog" aria-hidden="true"></i>
                         </span>
                     `;
-                    
-                    
                 }
             },
 
@@ -540,6 +539,11 @@ dataListView.on('draw.dt', function () {
 });
  //------------------------------
 
+
+function openubarcodeModalRow(encoded) {
+    let full = JSON.parse(decodeURIComponent(encoded));
+    openubarcodeModal(full.barcode_id, full.barcode, full.retail_price, full.pdeatils);
+}
 
 function openubarcodeModal(id, barcode, retail_price, pdeatils) {
     $('#retail_text_price').text('');

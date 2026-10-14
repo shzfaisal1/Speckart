@@ -577,6 +577,37 @@
             background: #008f85 !important;
             border-color: #008f85 !important;
         }
+
+        /* ── Out-of-Stock Swatch & Button Styling ── */
+        .color-swatch.variant-out-of-stock {
+            position: relative;
+            opacity: 0.55;
+            cursor: pointer;
+            border-color: #cbd5e1;
+        }
+        .color-swatch.variant-out-of-stock:hover {
+            opacity: 0.85;
+            border-color: #ef4444;
+        }
+        .color-swatch .swatch-oos-slash {
+            position: absolute;
+            top: 50%;
+            left: -2px;
+            right: -2px;
+            height: 2px;
+            background-color: #ef4444;
+            transform: rotate(-45deg);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .btn-oos-disabled {
+            background-color: #94a3b8 !important;
+            border-color: #94a3b8 !important;
+            color: #ffffff !important;
+            cursor: not-allowed !important;
+            opacity: 0.85;
+            box-shadow: none !important;
+        }
         /* ── Share Dropdown ── */
         .dt-share-dropdown {
             min-width: 150px !important;
@@ -809,21 +840,81 @@
                                      || ($typeLower === 'other');
 
                     $isSunglass    = str_contains($catLower, 'sunglass')
-                                     || ($typeLower === 'sunglass')
+                                     || in_array($typeLower, ['sunglass', 'sunglasses', 'goggles', 'goggle'])
                                      || !empty($product->polarized);
 
                     // ── Positive classification for Eyeglass Frames ──────────────────────
-                    // FIX: Old negative check ($isFrame = !$isReading && ...) was breaking
-                    // "Computer Glasses" and "Reading Frames" categories — those ARE frames
-                    // and must show the Product Type tabs.
                     $isEyeglassFrame = !$isContactLens && !$isSolution && !$isAccessory && !$isSunglass;
-
-                    // Backward-compat alias used in other sections of this file
                     $isFrame = $isEyeglassFrame;
-
-                    // isReading flag now only controls CTA button text (not tab visibility)
                     $isReading = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
+
+                    // Stock determination: Strictly based on color variant warehouse stock (stock <= 0 = out of stock)
+                    $stockQty = (int)($product->stock_quantity ?? 0);
+                    $isFrameOutOfStock = ($stockQty <= 0);
+
+                    // ── Resolve Contact Lens Pack Size & Subtitle ────────────────────────
+                    $currentPackCount = null;
+                    if (!empty($product->Pieces_Per_Box) && is_numeric($product->Pieces_Per_Box) && (int)$product->Pieces_Per_Box > 0) {
+                        $currentPackCount = (int)$product->Pieces_Per_Box;
+                    } elseif (!empty($product->perbox) && is_numeric($product->perbox) && (int)$product->perbox > 0) {
+                        $currentPackCount = (int)$product->perbox;
+                    } elseif (!empty($product->pack_size) && is_numeric($product->pack_size) && (int)$product->pack_size > 0) {
+                        $currentPackCount = (int)$product->pack_size;
+                    } elseif (!empty($product->Packing_Type) && preg_match('/(\d+)/', (string)$product->Packing_Type, $m)) {
+                        $currentPackCount = (int)$m[1];
+                    }
+
+                    if ($currentPackCount !== null && $currentPackCount > 0) {
+                        $currentPackLabel = $currentPackCount === 1 ? '1 Lens / Box' : ($currentPackCount . ' Lenses / Box');
+                        $currentPackSubtitle = $currentPackCount === 1 ? '1 lens/box' : ($currentPackCount . ' lens/box');
+                    } elseif (!empty($product->Packing_Type)) {
+                        $currentPackLabel = trim($product->Packing_Type);
+                        $currentPackSubtitle = strtolower(trim($product->Packing_Type));
+                    } else {
+                        $currentPackLabel = '1 Lens / Box';
+                        $currentPackSubtitle = '1 lens/box';
+                    }
                 @endphp
+
+                {{-- Live Stock Availability Badge (Store 6 Sync) --}}
+                <div class="stock-status-wrap mt-2 mb-2" id="product-stock-status">
+                    @if($stockQty > 3)
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
+                            <i class="bi bi-check-circle-fill me-1"></i> In Stock
+                        </span>
+                    @elseif($stockQty > 0)
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
+                            <i class="bi bi-lightning-charge-fill me-1"></i> Only {{ $stockQty }} left in stock - Order soon!
+                        </span>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1 fw-semibold" style="font-size: 12px; border-radius: 6px;">
+                            <i class="bi bi-x-circle-fill me-1"></i> Out of Stock
+                        </span>
+                    @endif
+                </div>
+
+                @if($isFrameOutOfStock && $isEyeglassFrame)
+                <div class="alert alert-warning py-2 px-3 mt-2 mb-2 d-flex align-items-center gap-2 border-warning-subtle" style="font-size: 13px; border-radius: 6px; background-color: #fffbeb; color: #92400e;">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6"></i>
+                    <span><strong>Notice:</strong> Selected frame is out of stock. Lens package cannot be purchased.</span>
+                </div>
+                @endif
+
+                @if($isFrameOutOfStock && !empty($colorVariants) && $colorVariants->count() > 1)
+                    @php
+                        $inStockSiblings = $colorVariants->filter(function($v) use ($product) {
+                            $vAllow = !empty($v->Allow_Negative_Inventory) && (int)$v->Allow_Negative_Inventory === 1;
+                            return $v->id != $product->id && ((int)($v->stock_quantity ?? 0) > 0 || $vAllow);
+                        });
+                    @endphp
+                    @if($inStockSiblings->isNotEmpty())
+                        @php $suggestedVariant = $inStockSiblings->first(); @endphp
+                        <div class="alert alert-info py-2 px-3 mt-2 mb-2 d-flex align-items-center gap-2 border-info-subtle" style="font-size: 13px; border-radius: 6px; background-color: #f0fdfa; color: #0d9488;">
+                            <i class="bi bi-info-circle-fill fs-6 text-teal"></i>
+                            <span>This color is currently out of stock. The <a href="{{ $suggestedVariant->detail_url }}" class="fw-bold text-decoration-underline" style="color: #0d9488;">{{ $suggestedVariant->color_name }}</a> variant is in stock!</span>
+                        </div>
+                    @endif
+                @endif
 
                 <!-- Size & Variant Options -->
                 <div class="product-options mt-4">
@@ -878,16 +969,27 @@
                                 $c1 = $variant->color_primary   ?? '#1a1a1a';
                                 $c2 = $variant->color_secondary ?? null;
                                 $variantUrl = $variant->detail_url ?? url('/product/' . ($variant->product_id ?? $variant->id));
+                                $vStock = (int)($variant->stock_quantity ?? 0);
+                                $isVarInStock = ($vStock > 0);
+
                                 // Build background: split diagonal if dual-color
                                 $bgStyle = $c2
                                     ? "background: linear-gradient(135deg, {$c1} 50%, {$c2} 50%);"
                                     : "background: {$c1};";
+                                $colorTitle = ($variant->color_name ?? 'Color') . ($isVarInStock ? ' (In Stock)' : ' (Out of Stock)');
                             @endphp
-                            <div class="color-swatch {{ $isPrimary ? 'active' : '' }}"
-                                 style="{{ $bgStyle }}"
-                                 data-variant-id="{{ $variant->id }}"
-                                 data-variant-url="{{ $variantUrl }}"
-                                 onclick="window.location.href='{{ $variantUrl }}'">
+                            <div class="position-relative d-inline-block">
+                                <div class="color-swatch {{ $isPrimary ? 'active' : '' }} {{ !$isVarInStock ? 'variant-out-of-stock' : '' }}"
+                                     style="{{ $bgStyle }}"
+                                     data-variant-id="{{ $variant->id }}"
+                                     data-variant-url="{{ $variantUrl }}"
+                                     data-in-stock="{{ $isVarInStock ? '1' : '0' }}"
+                                     title="{{ $colorTitle }}"
+                                     onclick="window.location.href='{{ $variantUrl }}'">
+                                    @if(!$isVarInStock)
+                                        <span class="swatch-oos-slash"></span>
+                                    @endif
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -923,7 +1025,7 @@
                 
                 @if($productTypes->isNotEmpty())
                 <!-- Product Type (Eyeglasses Only) -->
-                <div class="product-type-section mt-4 overflow-hidden" id="product-type-section">
+                <div class="product-type-section mt-4 overflow-hidden {{ $isFrameOutOfStock ? 'opacity-50 pe-none' : '' }}" id="product-type-section">
                     <p class="option-label mb-2">Product Type :</p>
                     <div class="product-type-tabs d-flex gap-2 p-1">
                         @foreach($productTypes as $index => $ptype)
@@ -963,9 +1065,10 @@
                 @endif
 
                 @if($isContactLens)
-                <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
-                <div class="power-type-section mt-3" id="power-type-section">
-                    <div class="d-flex align-items-center gap-3 mb-2">
+                    @if($stockQty > 0)
+                    <!-- Power Type & Manual Power Selection Section (Only for Contact Lenses) -->
+                    <div class="power-type-section mt-3" id="power-type-section">
+                        <div class="d-flex align-items-center gap-3 mb-2">
                         <span class="option-label mb-0" style="color: #7d879c; font-size: 14px; font-weight: 500;">Power Type</span>
                         <div class="d-flex align-items-center gap-2 cl-power-pill-tabs">
                             <!-- Pill 1: Zero Power -->
@@ -995,12 +1098,13 @@
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2">
                                     <div>
                                         <span class="fw-bold" style="color: #0d1430; font-size: 14.5px;">No. of Boxes</span>
-                                        <div class="text-muted" style="font-size: 12px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</div>
+                                        <div class="text-muted" style="font-size: 12px;">{{ $currentPackSubtitle }}</div>
                                     </div>
                                     <div style="min-width: 110px;">
                                         <select id="cl-zero-boxes" class="form-select border-light-subtle rounded-3 py-1.5 text-center" style="font-size: 14px; font-weight:600; border-color: #cbd5e1;">
-                                            @for($b = 1; $b <= 10; $b++)
-                                                <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }}</option>
+                                            @php $maxZero = min(10, max(1, (int)$stockQty)); @endphp
+                                            @for($b = 1; $b <= $maxZero; $b++)
+                                                <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
                                             @endfor
                                         </select>
                                     </div>
@@ -1065,24 +1169,21 @@
                                             <!-- No. of Boxes -->
                                             <div class="col-4 d-flex flex-column justify-content-center">
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
-                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $currentPackSubtitle }}</span>
                                             </div>
+                                            @php $maxEyeBoxes = min(5, max(1, (int)$stockQty)); @endphp
                                             <div class="col-4">
                                                 <select id="cl-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                         </div>
@@ -1114,24 +1215,20 @@
                                         <div class="row g-2 align-items-center mb-2">
                                             <div class="col-4 d-flex flex-column justify-content-center">
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
-                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $currentPackSubtitle }}</span>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-upload-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-upload-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                         </div>
@@ -1196,24 +1293,20 @@
                                         <div class="row g-2 align-items-center mb-2">
                                             <div class="col-4 d-flex flex-column justify-content-center">
                                                 <span class="fw-bold" style="color: #0d1430; font-size: 13px;">No. of Boxes</span>
-                                                <span class="text-muted" style="font-size: 11px;">{{ $product->Packing_Type ?? ($product->pack_size ?? '2 lens/box') }}</span>
+                                                <span class="text-muted" style="font-size: 11px;">{{ $currentPackSubtitle }}</span>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-later-right-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                             <div class="col-4">
                                                 <select id="cl-later-left-boxes" class="form-select border-light-subtle rounded-2 py-1 text-muted" style="font-size: 13px; height: 38px;">
-                                                    <option value="1" selected>1 Box</option>
-                                                    <option value="2">2 Boxes</option>
-                                                    <option value="3">3 Boxes</option>
-                                                    <option value="4">4 Boxes</option>
-                                                    <option value="5">5 Boxes</option>
+                                                    @for($b = 1; $b <= $maxEyeBoxes; $b++)
+                                                        <option value="{{ $b }}" {{ $b == 1 ? 'selected' : '' }}>{{ $b }} {{ $b == 1 ? 'Box' : 'Boxes' }}</option>
+                                                    @endfor
                                                 </select>
                                             </div>
                                         </div>
@@ -1227,27 +1320,63 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Lenses per Pack Section -->
                 <div class="lenses-pack-section mt-3" id="lenses-pack-section">
                     <h6 class="fw-bold mb-2" style="color: #0d1430; font-size: 14px;">Lenses per Pack</h6>
-                    <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #00a297; width: 140px; background: #fff;">
-                        <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: #edeafb; font-size: 12.5px; color: #0d1430;">
-                            {{ $product->Packing_Type ?? ($product->pack_size ?? '30 Lenses / Box') }}
-                        </div>
-                        <div class="p-2 px-3 text-start">
-                            @if($hasDiscount)
-                            <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($calcMrp, 0) }}</div>
-                            @endif
-                            <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($calcSellingPrice, 0) }}</div>
-                        </div>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        @if(!empty($lensPackVariants) && $lensPackVariants->count() > 1)
+                            @foreach($lensPackVariants as $pv)
+                            <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block {{ $pv->is_current ? 'active' : '' }}" 
+                                 style="border: {{ $pv->is_current ? '1.5px solid #00a297' : '1.5px solid #e2e8f0' }}; width: 140px; background: #fff; cursor: pointer; transition: all 0.2s ease;"
+                                 onclick="window.location.href='{{ $pv->detail_url }}'">
+                                <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: {{ $pv->is_current ? '#edeafb' : '#f8fafc' }}; font-size: 12.5px; color: #0d1430;">
+                                    {{ $pv->pack_label }}
+                                </div>
+                                <div class="p-2 px-3 text-start">
+                                    @if($pv->has_discount)
+                                    <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($pv->calc_mrp, 0) }}</div>
+                                    @endif
+                                    <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($pv->calc_price, 0) }}</div>
+                                    @if(!$pv->in_stock)
+                                    <span class="badge bg-danger-subtle text-danger" style="font-size: 10px;">Out of Stock</span>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="lens-pack-card rounded-3 overflow-hidden d-inline-block" style="border: 1.5px solid #00a297; width: 140px; background: #fff;">
+                                <div class="px-3 py-1.5 text-start fw-semibold" style="background-color: #edeafb; font-size: 12.5px; color: #0d1430;">
+                                    {{ $currentPackLabel }}
+                                </div>
+                                <div class="p-2 px-3 text-start">
+                                    @if($hasDiscount)
+                                    <div class="text-muted text-decoration-line-through" style="font-size: 11px; color: #94a3b8;">₹{{ number_format($calcMrp, 0) }}</div>
+                                    @endif
+                                    <div class="fw-bold" style="color: #0d1430; font-size: 17px;">₹{{ number_format($calcSellingPrice, 0) }}</div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 @endif
 
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mt-4" style="gap: 14px !important;">
-                    @if($isSolution || $isAccessory)
+                    @if($stockQty <= 0)
+                        {{-- Out of stock state: Disabled OUT OF STOCK button, NO Notify Me, Try on you preserved --}}
+                        <button type="button" 
+                                class="btn btn-secondary btn-oos-disabled px-4 py-2.5 fw-bold" 
+                                style="border-radius: 8px; font-size: 14px;" 
+                                disabled 
+                                title="This product is currently out of stock">
+                            <i class="bi bi-x-circle me-2"></i>OUT OF STOCK
+                        </button>
+                        @if($isEyeglassFrame || $isSunglass)
+                            <button type="button" class="btn btn-outline-custom">Try on you</button>
+                        @endif
+                    @elseif($isSolution || $isAccessory)
                         {{-- Direct purchase — no lenses or power involved --}}
                         <button id="direct-buy-btn"
                             class="btn btn-outline-custom active"
@@ -1364,7 +1493,7 @@
                                     <div class="col-lg-4 col-md-6 col-12">
                                         <div class="spec-card">
                                             <span class="spec-label">Pack Size</span>
-                                            <span class="spec-value">{{ $product->Packing_Type ?? $product->Size ?? 'Standard Pack' }}</span>
+                                            <span class="spec-value">{{ $currentPackLabel ?? ($product->Packing_Type ?? $product->Size ?? 'Standard Pack') }}</span>
                                         </div>
                                     </div>
                                     <div class="col-lg-4 col-md-6 col-12">
@@ -1808,16 +1937,22 @@
 
                     <!-- ── Step 1: Want to add Lenses? ── -->
                     <div id="step1" class="lens-step">
+                        @if($isFrameOutOfStock)
+                        <div class="alert alert-warning text-center p-3 mb-3 border-warning-subtle" style="font-size: 13.5px; border-radius: 8px;">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                            <strong>Selected frame is out of stock. Lens package cannot be purchased.</strong>
+                        </div>
+                        @endif
                         <div class="lens-step-icon">
                             <img src="{{asset('website/assets/img/productimg/mask1.png')}}" alt="Lens">
                         </div>
                         <h4 class="lens-step-title">Want to add Lenses?</h4>
                         <p class="lens-step-sub">Choose lenses with the frame or buy just the frame</p>
                         <div class="lens-step1-btns">
-                            <button class="lens-main-btn" id="goStep2">
+                            <button class="lens-main-btn" id="goStep2" {{ $isFrameOutOfStock ? 'disabled style=opacity:0.5;cursor:not-allowed;' : '' }}>
                                 <i class="bi bi-eye me-2"></i>Buy with Lenses
                             </button>
-                            <button class="lens-frame-btn" onclick="addToCartAjax('Frame Only', null, null, null)">
+                            <button class="lens-frame-btn" onclick="addToCartAjax('Frame Only', null, null, null)" {{ $isFrameOutOfStock ? 'disabled style=opacity:0.5;cursor:not-allowed;' : '' }}>
                                 <i class="bi bi-border-style me-2"></i>Only the Frame
                             </button>
                         </div>
@@ -1869,7 +2004,28 @@
                                     $lensPackagesQuery->whereIn('id', $selectedPackageIds);
                                 }
                                 $lensPackages = $lensPackagesQuery->orderBy('sort_order')->get();
+
+                                // Live stock check for Store 6 (E-commerce store)
+                                $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+                                $lensPackageCodes = $lensPackages->pluck('product_code')->filter()->unique()->toArray();
+                                $lensLiveStockMap = [];
+                                if (!empty($lensPackageCodes)) {
+                                    $lensLiveStockMap = \Illuminate\Support\Facades\DB::table('tbl_inventory_levels')
+                                        ->where('store_id', $ecomStoreId)
+                                        ->whereIn('product_code', $lensPackageCodes)
+                                        ->groupBy('product_code')
+                                        ->select('product_code', \Illuminate\Support\Facades\DB::raw('SUM(available_quantity) as total_stock'))
+                                        ->pluck('total_stock', 'product_code')
+                                        ->toArray();
+                                }
                             @endphp
+
+                            @if($isFrameOutOfStock)
+                            <div class="alert alert-danger text-center p-3 mb-3 border-danger-subtle" style="font-size: 14px; border-radius: 8px;">
+                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                <strong>Selected frame is out of stock. Lens package cannot be purchased.</strong>
+                            </div>
+                            @endif
 
                             <div class="lens-filters">
                                 <button class="lens-filter active" data-slug="all">
@@ -1956,10 +2112,39 @@
                                     $mediaUrls = $package->media->map(function($m) {
                                         return asset($m->url);
                                     })->toJson();
+
+                                    $lensProductCode = $package->product_code;
+                                    $lensStock = (!empty($lensProductCode) && isset($lensLiveStockMap[$lensProductCode]))
+                                        ? max(0, (int)$lensLiveStockMap[$lensProductCode])
+                                        : 0;
+                                    $isLensOutOfStock = ($lensStock <= 0);
                                 @endphp
-                                <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white"
+                                <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white {{ ($isLensOutOfStock || $isFrameOutOfStock) ? 'lens-package-out-of-stock' : '' }}"
+                                    data-package-id="{{ $package->id }}"
                                     data-tags="{{ $tagSlugs }}"
-                                    data-power-types="{{ $powerTypeIds }}">
+                                    data-power-types="{{ $powerTypeIds }}"
+                                    data-stock="{{ $lensStock }}"
+                                    data-out-of-stock="{{ ($isLensOutOfStock || $isFrameOutOfStock) ? '1' : '0' }}"
+                                    style="{{ ($isLensOutOfStock || $isFrameOutOfStock) ? 'opacity: 0.65; background-color: #fafafa !important; border-color: #e2e8f0 !important;' : '' }}">
+                                    @if($isFrameOutOfStock)
+                                    <div class="forwardBtn forwardBtn-disabled text-center d-flex align-items-center justify-content-center"
+                                        style="cursor: not-allowed; min-width: 80px;"
+                                        title="Selected frame is out of stock. Lens package cannot be purchased."
+                                        onclick="Swal.fire({ icon: 'error', title: 'Frame Out of Stock', text: 'Selected frame is out of stock. Lens package cannot be purchased.', confirmButtonColor: '#00a297' })">
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1 fw-semibold" style="font-size: 11px; border-radius: 6px;">
+                                            <i class="fa fa-ban me-1"></i> Unavailable
+                                        </span>
+                                    </div>
+                                    @elseif($isLensOutOfStock)
+                                    <div class="forwardBtn forwardBtn-disabled text-center d-flex align-items-center justify-content-center"
+                                        style="cursor: not-allowed; min-width: 80px;"
+                                        title="Out of stock in e-commerce warehouse"
+                                        onclick="handleOutOfStockPackageClick(event, '{{ addslashes($package->name) }}')">
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1 fw-semibold" style="font-size: 11px; border-radius: 6px;">
+                                            <i class="fa fa-ban me-1"></i> Sold Out
+                                        </span>
+                                    </div>
+                                    @else
                                     <div class="forwardBtn" style="cursor:pointer;"
                                         onclick="selectLensPackage({{ $package->id }}, {{ $isFreeLensPackage ? 'true' : 'false' }})">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"
@@ -1971,6 +2156,7 @@
                                                 stroke-linejoin="round" />
                                         </svg>
                                     </div>
+                                    @endif
                                     <div class="d-flex align-items-center">
                                         <div class="lens-left position-relative me-3">
                                             <div class="lens-card-left" style="width: 140px;">
@@ -1980,7 +2166,12 @@
                                                     <img src="https://static5.lenskart.com/media/uploads/Antiglare_1_updated.png" class="img-fluid rounded" alt="{{ $package->name }}">
                                                 @endif
                                             </div>
-                                            @if($primaryBadge)
+                                            @if($isLensOutOfStock)
+                                            <div class="lens-badge bg-danger text-white ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
+                                                style="font-size: 10px; font-weight: 700; text-transform: uppercase; background: #dc3545 !important; letter-spacing: 0.5px; z-index: 2;">
+                                                <i class="fa fa-times-circle me-1"></i> Out of Stock
+                                            </div>
+                                            @elseif($primaryBadge)
                                             <div class="lens-badge ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
                                                 style="font-size: 10px; font-weight: 600; background-color: {{ $primaryBadge->bg_color ?? '#198754' }}; color: {{ $primaryBadge->text_color ?? '#ffffff' }}; z-index: 2;">
                                                 {{ $primaryBadge->label }}
@@ -1994,6 +2185,11 @@
                                             <div class="lens-badge bg-primary text-white ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
                                                 style="font-size: 10px; font-weight: 700; text-transform: uppercase; background: #0052cc !important; letter-spacing: 0.5px; z-index: 2;">
                                                 Free Lenses
+                                            </div>
+                                            @elseif($pkgType === 'frame_and_lens')
+                                            <div class="lens-badge text-white ps-2 pe-3 py-1 rounded rounded-start-0 position-absolute top-0 start-0 shadow-sm"
+                                                style="font-size: 10px; font-weight: 700; text-transform: uppercase; background: #0d6efd !important; letter-spacing: 0.5px; z-index: 2;">
+                                                Frame + Lens
                                             </div>
                                             @endif
                                         </div>
@@ -2029,7 +2225,8 @@
                                                     data-coupon="{{ $coupon ? $coupon->code : '' }}"
                                                     data-benefits="{{ $benefitsArray }}"
                                                     data-media="{{ $mediaUrls }}"
-                                                    data-type="{{ $package->package_type ?? ($isFreeLensPackage ? 'frame_only' : 'frame_and_lens') }}">
+                                                    data-type="{{ $package->package_type ?? ($isFreeLensPackage ? 'frame_only' : 'frame_and_lens') }}"
+                                                    data-out-of-stock="{{ $isLensOutOfStock ? '1' : '0' }}">
                                                     View Details
                                                     <span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="14"
@@ -2080,9 +2277,14 @@
                                                         Frame + Lens
                                                     @endif
                                                 </div>
-                                                <span class="new-price fw-bold" style="color: #00b9b9; font-size: 17px;">₹{{ number_format($combinedPrice, 0) }}</span>
+                                                <span class="new-price fw-bold" style="color: {{ $isLensOutOfStock ? '#64748b' : '#00b9b9' }}; font-size: 17px;">₹{{ number_format($combinedPrice, 0) }}</span>
                                                 @if($combinedOriginalPrice > $combinedPrice)
                                                 <span class="old-price text-decoration-line-through text-muted small ms-1">₹{{ number_format($combinedOriginalPrice, 0) }}</span>
+                                                @endif
+                                                @if($isLensOutOfStock)
+                                                <div>
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-1.5 py-0.5 mt-1" style="font-size: 10px; border-radius: 4px;">Out of Stock</span>
+                                                </div>
                                                 @endif
                                             </div>
                                         </div>
@@ -2172,19 +2374,18 @@
                         <div id="manual-power-form" style="display:none;">
                             <div class="prescription-card p-3 p-md-4">
 
-                                <!-- Top Checkboxes (Lenskart style) -->
-                                <div class="lenskart-rx-checkboxes mb-4 text-start">
-                                    <div class="form-check custom-lenskart-check mb-2">
+                                <!-- Top Bar (Same power checkbox + Quick Upload Switch) -->
+                                <div class="lenskart-rx-checkboxes mb-4 text-start d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2 border-bottom">
+                                    <div class="form-check custom-lenskart-check mb-0">
                                         <input class="form-check-input" type="checkbox" id="rx_same_power">
                                         <label class="form-check-label fw-semibold" for="rx_same_power" style="color: #1e293b; font-size: 14px; cursor: pointer;">
                                             I have same power for both eyes
                                         </label>
                                     </div>
-                                    <div class="form-check custom-lenskart-check">
-                                        <input class="form-check-input" type="checkbox" id="rx_has_cyl">
-                                        <label class="form-check-label fw-semibold" for="rx_has_cyl" style="color: #1e293b; font-size: 14px; cursor: pointer;">
-                                            I have cylindrical power
-                                        </label>
+                                    <div>
+                                        <button type="button" class="btn btn-sm text-decoration-none fw-semibold p-0" style="color:#00a297; font-size:13px;" onclick="selectPowerOption('upload')">
+                                            <i class="bi bi-cloud-arrow-up me-1"></i> Upload Prescription Image Instead
+                                        </button>
                                     </div>
                                 </div>
 
@@ -2199,100 +2400,165 @@
                                     <!-- Row 1: SPH -->
                                     <div class="row align-items-center mb-3">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
-                                            SPH
+                                            SPH <span class="text-danger">*</span>
                                         </div>
                                         <div class="col-4 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_sph">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($p = -12.00; $p <= -0.25; $p += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $p) }}">{{ sprintf('%.2f', $p) }}</option>
-                                                @endfor
-                                                @for($p = 0.25; $p <= 6.00; $p += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $p) }}">{{ sprintf('+%.2f', $p) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-sph-input"
+                                                   id="rx_right_sph"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="rx-error-msg" id="rx_right_sph_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_sph">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($p = -12.00; $p <= -0.25; $p += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $p) }}">{{ sprintf('%.2f', $p) }}</option>
-                                                @endfor
-                                                @for($p = 0.25; $p <= 6.00; $p += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $p) }}">{{ sprintf('+%.2f', $p) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-sph-input"
+                                                   id="rx_left_sph"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="same-as-right-label" id="rx_left_sph_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_sph_error"></div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 2: CYL (Hidden by default until "I have cylindrical power" is checked) -->
-                                    <div class="row align-items-center mb-3 rx-cyl-row" style="display:none;">
+                                    <!-- Row 2: CYL (Always visible, optional unless entered) -->
+                                    <div class="row align-items-center mb-3 rx-cyl-row">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
                                             CYL
                                         </div>
                                         <div class="col-4 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_cyl">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($c = -4.00; $c <= -0.25; $c += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $c) }}">{{ sprintf('%.2f', $c) }}</option>
-                                                @endfor
-                                                @for($c = 0.25; $c <= 4.00; $c += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $c) }}">{{ sprintf('+%.2f', $c) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-cyl-input"
+                                                   id="rx_right_cyl"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="rx-error-msg" id="rx_right_cyl_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
-                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_cyl">
-                                                <option value="0.00" selected>0.00</option>
-                                                @for($c = -4.00; $c <= -0.25; $c += 0.25)
-                                                    <option value="{{ sprintf('%.2f', $c) }}">{{ sprintf('%.2f', $c) }}</option>
-                                                @endfor
-                                                @for($c = 0.25; $c <= 4.00; $c += 0.25)
-                                                    <option value="{{ sprintf('+%.2f', $c) }}">{{ sprintf('+%.2f', $c) }}</option>
-                                                @endfor
-                                            </select>
+                                            <input type="text"
+                                                   class="form-control custom-lenskart-input text-center rx-cyl-input"
+                                                   id="rx_left_cyl"
+                                                   placeholder="0.00"
+                                                   inputmode="decimal">
+                                            <div class="same-as-right-label" id="rx_left_cyl_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_cyl_error"></div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 3: Axis (Hidden by default until "I have cylindrical power" is checked) -->
-                                    <div class="row align-items-center mb-3 rx-axis-row" style="display:none;">
+                                    <!-- Row 3: Axis (Always visible, optional unless CYL is entered) -->
+                                    <div class="row align-items-center mb-3 rx-axis-row">
                                         <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 14px;">
                                             Axis
                                         </div>
                                         <div class="col-4 col-sm-5">
                                             <input type="text"
-                                                   class="form-control custom-lenskart-input rx-axis-field text-center"
+                                                   class="form-control custom-lenskart-input text-center rx-axis-field"
                                                    id="rx_right_axis"
                                                    placeholder="1 - 180"
                                                    maxlength="3"
                                                    inputmode="numeric">
+                                            <div class="rx-error-msg" id="rx_right_axis_error"></div>
                                         </div>
                                         <div class="col-5 col-sm-5">
                                             <input type="text"
-                                                   class="form-control custom-lenskart-input rx-axis-field text-center"
+                                                   class="form-control custom-lenskart-input text-center rx-axis-field"
                                                    id="rx_left_axis"
                                                    placeholder="1 - 180"
                                                    maxlength="3"
                                                    inputmode="numeric">
+                                            <div class="same-as-right-label" id="rx_left_axis_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_axis_error"></div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Pupillary Distance (PD) -->
-                                {{-- <div class="pd-section p-3 rounded-3 mb-4" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-start">
-                                        <label for="rx_pd" class="form-label fw-bold mb-0" style="color:#07484A; font-size:13.5px;">
-                                            <i class="bi bi-arrows-expand me-1"></i> Pupillary Distance (PD)
-                                        </label>
-                                        <div style="min-width: 140px;">
-                                            <select class="form-select custom-lenskart-select" id="rx_pd" style="height:40px;">
-                                                @for($pd = 50; $pd <= 80; $pd++)
-                                                    <option value="{{ $pd }}" {{ $pd == 63 ? 'selected' : '' }}>{{ $pd }} mm</option>
+                                    <!-- Row 4: VA (Visual Acuity - Distance) -->
+                                    <div class="row align-items-center mb-3 rx-va-row">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13.5px;" title="Visual Acuity">
+                                            VA <span class="text-muted fw-normal" style="font-size:11px;">(Opt.)</span>
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text fw-bold text-muted" style="border-radius:10px 0 0 10px; background:#f8fafc; border:1.5px solid #cbd5e1; border-right:none; font-size:13px; height:48px;">6/</span>
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-va-input"
+                                                       id="rx_right_va"
+                                                       placeholder="6"
+                                                       maxlength="2"
+                                                       inputmode="numeric"
+                                                       style="border-radius:0 10px 10px 0;">
+                                            </div>
+                                            <div class="rx-error-msg" id="rx_right_va_error"></div>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text fw-bold text-muted" style="border-radius:10px 0 0 10px; background:#f8fafc; border:1.5px solid #cbd5e1; border-right:none; font-size:13px; height:48px;">6/</span>
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-va-input"
+                                                       id="rx_left_va"
+                                                       placeholder="6"
+                                                       maxlength="2"
+                                                       inputmode="numeric"
+                                                       style="border-radius:0 10px 10px 0;">
+                                            </div>
+                                            <div class="same-as-right-label" id="rx_left_va_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_va_error"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 5: PD (Pupillary Distance) - Integrated below VA in 3-column table -->
+                                    <div class="row align-items-center mb-3 rx-pd-row">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13px;" title="Pupillary Distance">
+                                            PD <span class="text-danger">*</span><br><span class="text-muted fw-normal" style="font-size:11px;">(mm)</span>
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <div class="input-group">
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-pd-input"
+                                                       id="rx_right_pd"
+                                                       placeholder="e.g. 31.5"
+                                                       inputmode="decimal">
+                                                <span class="input-group-text fw-semibold text-muted" style="border-radius:0 10px 10px 0; background:#f8fafc; border:1.5px solid #cbd5e1; border-left:none; font-size:12px; height:48px;">mm</span>
+                                            </div>
+                                            <div class="rx-error-msg" id="rx_right_pd_error"></div>
+                                        </div>
+                                        <div class="col-5 col-sm-5">
+                                            <div class="input-group">
+                                                <input type="text"
+                                                       class="form-control custom-lenskart-input text-center rx-pd-input"
+                                                       id="rx_left_pd"
+                                                       placeholder="e.g. 31.5"
+                                                       inputmode="decimal">
+                                                <span class="input-group-text fw-semibold text-muted" style="border-radius:0 10px 10px 0; background:#f8fafc; border:1.5px solid #cbd5e1; border-left:none; font-size:12px; height:48px;">mm</span>
+                                            </div>
+                                            <div class="same-as-right-label" id="rx_left_pd_same">Same as right</div>
+                                            <div class="rx-error-msg" id="rx_left_pd_error"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 6: ADD (Near Addition for Bifocal / Progressive) -->
+                                    <div class="row align-items-center mb-3 rx-add-row" id="rx_add_container" style="display:none;">
+                                        <div class="col-3 col-sm-2 text-start fw-bold" style="color: #334155; font-size: 13.5px;">
+                                            ADD <span class="text-muted fw-normal" style="font-size:11px;">(Near)</span>
+                                        </div>
+                                        <div class="col-4 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_right_add">
+                                                <option value="" selected>None</option>
+                                                @for($add = 0.75; $add <= 3.50; $add += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $add) }}">{{ sprintf('+%.2f', $add) }}</option>
                                                 @endfor
                                             </select>
                                         </div>
+                                        <div class="col-5 col-sm-5">
+                                            <select class="form-select custom-lenskart-select text-center" id="rx_left_add">
+                                                <option value="" selected>None</option>
+                                                @for($add = 0.75; $add <= 3.50; $add += 0.25)
+                                                    <option value="{{ sprintf('+%.2f', $add) }}">{{ sprintf('+%.2f', $add) }}</option>
+                                                @endfor
+                                            </select>
+                                            <div class="same-as-right-label" id="rx_left_add_same">Same as right</div>
+                                        </div>
                                     </div>
-                                </div> --}}
+                                </div>
 
                                 <div class="d-flex gap-2 justify-content-end mt-4 action-buttons">
                                     <button type="button"
@@ -2523,6 +2789,8 @@
         const productVariants = [];
         const defaultPrice = {{ $calcMrp }};
         const defaultDiscountPrice = {{ $calcSellingPrice }};
+        const isFrameInStock = {{ $isFrameOutOfStock ? 'false' : 'true' }};
+        let currentFrameStock = {{ $stockQty }};
 
         let selectedColor = $('.color-swatch.active').data('color-label') || '';
         let selectedSize = $('.size-btn.active').data('size') || '{{ $product->Size ?: '' }}';
@@ -2656,6 +2924,19 @@
             const total = totalBoxes * clUnitPrice;
             $('#cl-total-price').text('Total ₹' + total.toLocaleString());
             $('#cl-price-breakdown').text(totalBoxes + ' x ₹' + clUnitPrice.toLocaleString() + ' per box');
+
+            const availableStock = {{ (int)$stockQty }};
+            if (availableStock > 0 && totalBoxes > availableStock) {
+                if ($('#cl-stock-warning').length === 0) {
+                    $('#cl-total-price').after('<div id="cl-stock-warning" class="text-danger mt-1 fw-semibold" style="font-size: 12px;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Only ' + availableStock + ' box(es) available in stock.</div>');
+                }
+                $('#contact-lens-buy-btn').prop('disabled', true).addClass('opacity-50');
+            } else {
+                $('#cl-stock-warning').remove();
+                if (availableStock > 0) {
+                    $('#contact-lens-buy-btn').prop('disabled', false).removeClass('opacity-50');
+                }
+            }
         }
 
         // Contact lens power pill toggle (Zero Power vs With Power)
@@ -2856,6 +3137,27 @@
                 }
             }
 
+            const availableStock = {{ (int)$stockQty }};
+            if (availableStock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Out of Stock',
+                    text: 'Sorry, this contact lens is currently out of stock.',
+                    confirmButtonColor: '#00a297'
+                });
+                return;
+            }
+
+            if (totalBoxes > availableStock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Insufficient Stock',
+                    text: `Only ${availableStock} box(es) available in stock. You have selected ${totalBoxes} boxes across your lenses.`,
+                    confirmButtonColor: '#00a297'
+                });
+                return;
+            }
+
             // Pass totalBoxes as quantity to addToCartAjax
             addToCartAjax('Contact Lens', null, rxData, fileToSend, totalBoxes);
         }
@@ -2866,6 +3168,17 @@
             const frameId = currentVariantId || '{{ $product->id }}';
             if (!frameId) {
                 if (typeof toastr !== 'undefined') toastr.error('Please select a valid frame product.');
+                return;
+            }
+
+            // Frontend validation: do not allow lens package purchase if frame is out of stock
+            if (lensPackageId && (!isFrameInStock || currentFrameStock <= 0)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
                 return;
             }
 
@@ -2935,6 +3248,15 @@
                         confirmButtonColor: '#00a297'
                     });
                     activeBtn.prop('disabled', false).html(originalHtml);
+
+                    // If frame is out of stock, close modal if open
+                    if (errMsg.includes('out of stock') || errMsg.includes('cannot be purchased')) {
+                        const modalEl = document.getElementById('lensModal');
+                        if (modalEl) {
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if (modal) modal.hide();
+                        }
+                    }
                 }
             });
         }
@@ -2964,49 +3286,274 @@
             $('#step4-sub').text("Choose how you'd like to provide your prescription");
         }
 
-        function submitManualPrescription() {
-            const hasCyl = $('#rx_has_cyl').is(':checked');
-            const isSame = $('#rx_same_power').is(':checked');
+        // ── Real-time Input Sanitization & Validation Helpers ──
+        function setRxError(fieldId, errorMsg) {
+            const $field = $('#' + fieldId);
+            $field.addClass('is-invalid');
+            const $err = $('#' + fieldId + '_error');
+            if ($err.length) {
+                $err.text(errorMsg).show();
+            }
+        }
 
-            let rightSph = $('#rx_right_sph').val() || '0.00';
-            let leftSph  = isSame ? rightSph : ($('#rx_left_sph').val() || '0.00');
+        function clearRxError(fieldId) {
+            const $field = $('#' + fieldId);
+            $field.removeClass('is-invalid');
+            const $err = $('#' + fieldId + '_error');
+            if ($err.length) {
+                $err.text('').hide();
+            }
+        }
 
-            let rightCyl = hasCyl ? ($('#rx_right_cyl').val() || '0.00') : '0.00';
-            let leftCyl  = hasCyl ? (isSame ? rightCyl : ($('#rx_left_cyl').val() || '0.00')) : '0.00';
+        function sanitizeSignedDecimal(input) {
+            let val = $(input).val();
+            let isNeg = val.startsWith('-');
+            let clean = val.replace(/[^0-9.]/g, '');
+            let dotIdx = clean.indexOf('.');
+            if (dotIdx !== -1) {
+                clean = clean.substring(0, dotIdx + 1) + clean.substring(dotIdx + 1).replace(/\./g, '');
+            }
+            let res = (isNeg ? '-' : '') + clean;
+            if (val !== res) {
+                $(input).val(res);
+            }
+            return res;
+        }
 
-            let rightAxis = hasCyl ? ($('#rx_right_axis').val() || '').trim() : '';
-            let leftAxis  = hasCyl ? (isSame ? rightAxis : ($('#rx_left_axis').val() || '').trim()) : '';
+        function sanitizeUnsignedDecimal(input) {
+            let val = $(input).val();
+            let clean = val.replace(/[^0-9.]/g, '');
+            let dotIdx = clean.indexOf('.');
+            if (dotIdx !== -1) {
+                clean = clean.substring(0, dotIdx + 1) + clean.substring(dotIdx + 1).replace(/\./g, '');
+            }
+            if (val !== clean) {
+                $(input).val(clean);
+            }
+            return clean;
+        }
 
-            // Axis Validation: If CYL is selected (> 0.00 or < 0.00), Axis is mandatory (1 - 180)
-            if (hasCyl) {
-                if (rightCyl !== '0.00' && rightCyl !== '') {
-                    let rAxisNum = parseInt(rightAxis, 10);
-                    if (isNaN(rAxisNum) || rAxisNum < 1 || rAxisNum > 180) {
-                        toastr.warning('Please enter a valid Axis (1 to 180) for the Right Eye.');
-                        $('#rx_right_axis').focus();
-                        return;
-                    }
-                }
-                if (leftCyl !== '0.00' && leftCyl !== '') {
-                    let lAxisNum = parseInt(leftAxis, 10);
-                    if (isNaN(lAxisNum) || lAxisNum < 1 || lAxisNum > 180) {
-                        toastr.warning('Please enter a valid Axis (1 to 180) for the Left Eye.');
-                        $('#rx_left_axis').focus();
-                        return;
-                    }
-                }
+        function sanitizeDigitsOnly(input, maxLen) {
+            let val = $(input).val().replace(/\D/g, '');
+            if (maxLen && val.length > maxLen) {
+                val = val.substring(0, maxLen);
+            }
+            if ($(input).val() !== val) {
+                $(input).val(val);
+            }
+            return val;
+        }
+
+        function validateRxField(fieldId) {
+            const $field = $('#' + fieldId);
+            if (!$field.length) return true;
+
+            // Exclude disabled fields (e.g. Left eye when "Same power" is checked)
+            if ($field.prop('disabled')) {
+                clearRxError(fieldId);
+                return true;
             }
 
+            const val = $field.val().trim();
+
+            // ── SPH (-20 to +20) ── (Mandatory)
+            if (fieldId === 'rx_right_sph' || fieldId === 'rx_left_sph') {
+                if (val === '') {
+                    setRxError(fieldId, 'Enter a number between -20 and 20');
+                    return false;
+                }
+                let num = Number(val);
+                if (isNaN(num) || num < -20 || num > 20) {
+                    setRxError(fieldId, 'Enter a number between -20 and 20');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── CYL (-10 to +10) ── (Optional; but if entered must be between -10 and 10)
+            if (fieldId === 'rx_right_cyl' || fieldId === 'rx_left_cyl') {
+                if (val === '' || val === '0' || val === '0.00' || val === '+0.00' || val === '-0.00') {
+                    clearRxError(fieldId);
+                    return true;
+                }
+                let num = Number(val);
+                if (isNaN(num) || num < -10 || num > 10) {
+                    setRxError(fieldId, 'Enter a number between -10 and 10');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── Axis (1 to 180 whole numbers) ── (Mandatory only if CYL is entered and non-zero)
+            if (fieldId === 'rx_right_axis' || fieldId === 'rx_left_axis') {
+                let side = (fieldId === 'rx_right_axis') ? 'right' : 'left';
+                let cylRaw = $('#rx_' + side + '_cyl').val().trim();
+                let hasCylValue = (cylRaw !== '' && !isNaN(Number(cylRaw)) && Number(cylRaw) !== 0);
+
+                if (val === '') {
+                    if (hasCylValue) {
+                        setRxError(fieldId, 'Axis is required (1 to 180)');
+                        return false;
+                    }
+                    clearRxError(fieldId);
+                    return true;
+                }
+
+                // If user entered Axis, check that CYL is also provided
+                if (!hasCylValue) {
+                    setRxError(fieldId, 'Enter CYL power for this Axis');
+                    return false;
+                }
+
+                let num = parseInt(val, 10);
+                if (isNaN(num) || !/^\d+$/.test(val) || num < 1 || num > 180) {
+                    setRxError(fieldId, 'Enter a whole number between 1 and 180');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── VA (4 to 60 whole numbers) ── (Optional)
+            if (fieldId === 'rx_right_va' || fieldId === 'rx_left_va') {
+                if (val === '') {
+                    clearRxError(fieldId);
+                    return true;
+                }
+                let num = parseInt(val, 10);
+                if (isNaN(num) || !/^\d+$/.test(val) || num < 4 || num > 60) {
+                    setRxError(fieldId, 'Enter a number between 4 and 60');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            // ── PD (20 to 40mm) ── (Mandatory)
+            if (fieldId === 'rx_right_pd' || fieldId === 'rx_left_pd') {
+                if (val === '') {
+                    setRxError(fieldId, 'Enter PD between 20 and 40 mm');
+                    return false;
+                }
+                let num = Number(val);
+                if (isNaN(num) || num < 20 || num > 40) {
+                    setRxError(fieldId, 'Enter a value between 20 and 40 mm');
+                    return false;
+                }
+                clearRxError(fieldId);
+                return true;
+            }
+
+            clearRxError(fieldId);
+            return true;
+        }
+
+        function submitManualPrescription() {
+            const isSame = $('#rx_same_power').is(':checked');
+
+            // Fields to validate in order
+            let fieldsToValidate = ['rx_right_sph'];
+            if (!isSame) {
+                fieldsToValidate.push('rx_left_sph');
+            }
+            fieldsToValidate.push('rx_right_cyl');
+            if (!isSame) fieldsToValidate.push('rx_left_cyl');
+            fieldsToValidate.push('rx_right_axis');
+            if (!isSame) fieldsToValidate.push('rx_left_axis');
+            fieldsToValidate.push('rx_right_va');
+            if (!isSame) fieldsToValidate.push('rx_left_va');
+            fieldsToValidate.push('rx_right_pd');
+            if (!isSame) fieldsToValidate.push('rx_left_pd');
+
+            let firstInvalidField = null;
+            let hasError = false;
+
+            fieldsToValidate.forEach(function(fieldId) {
+                let valid = validateRxField(fieldId);
+                if (!valid) {
+                    hasError = true;
+                    if (!firstInvalidField) {
+                        firstInvalidField = $('#' + fieldId);
+                    }
+                }
+            });
+
+            if (hasError) {
+                if (firstInvalidField && firstInvalidField.length) {
+                    firstInvalidField[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalidField.focus();
+                }
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('Please fix the highlighted errors in the prescription form.');
+                }
+                return;
+            }
+
+            let rightSph = $('#rx_right_sph').val().trim();
+            let leftSph  = isSame ? rightSph : $('#rx_left_sph').val().trim();
+
+            let rightCylRaw = $('#rx_right_cyl').val().trim();
+            let leftCylRaw  = isSame ? rightCylRaw : $('#rx_left_cyl').val().trim();
+            let rightCyl = (rightCylRaw !== '' && !isNaN(Number(rightCylRaw))) ? rightCylRaw : '0.00';
+            let leftCyl  = (leftCylRaw !== '' && !isNaN(Number(leftCylRaw))) ? leftCylRaw : '0.00';
+
+            let rightAxisRaw = $('#rx_right_axis').val().trim();
+            let leftAxisRaw  = isSame ? rightAxisRaw : $('#rx_left_axis').val().trim();
+            let rightAxis = rightAxisRaw ? parseInt(rightAxisRaw, 10) : null;
+            let leftAxis  = leftAxisRaw ? parseInt(leftAxisRaw, 10) : null;
+
+            let rightVaInput = $('#rx_right_va').val().trim();
+            let leftVaInput  = isSame ? rightVaInput : $('#rx_left_va').val().trim();
+            let rightVa = rightVaInput ? ('6/' + rightVaInput) : null;
+            let leftVa  = leftVaInput ? ('6/' + leftVaInput) : null;
+
+            let rightAdd = $('#rx_right_add').val() || null;
+            let leftAdd  = isSame ? rightAdd : ($('#rx_left_add').val() || null);
+
+            let rightPd = parseFloat($('#rx_right_pd').val().trim()).toFixed(1);
+            let leftPd  = parseFloat((isSame ? $('#rx_right_pd') : $('#rx_left_pd')).val().trim()).toFixed(1);
+            let totalPd = (parseFloat(rightPd) + parseFloat(leftPd)).toFixed(1);
+
             const rxData = {
-                right_eye_sph: rightSph,
-                right_eye_cyl: rightCyl,
-                right_eye_axis: rightAxis ? parseInt(rightAxis, 10) : 0,
-                right_eye_ap: '',
-                left_eye_sph: leftSph,
-                left_eye_cyl: leftCyl,
-                left_eye_axis: leftAxis ? parseInt(leftAxis, 10) : 0,
-                left_eye_ap: '',
-                pd: $('#rx_pd').val() || '63'
+                // Exact database column keys for tbl_sale_products
+                GL_EYE_RS_D    : rightSph,
+                GL_EYE_RC_D    : rightCyl,
+                GL_EYE_RA_D    : rightAxis,
+                GL_EYE_RP_D    : rightPd,
+                GL_EYE_RV_D    : rightVa,
+                GL_EYE_RADD    : rightAdd,
+
+                GL_EYE_LS_D    : leftSph,
+                GL_EYE_LC_D    : leftCyl,
+                GL_EYE_LA_D    : leftAxis,
+                GL_EYE_LP_D    : leftPd,
+                GL_EYE_LV_D    : leftVa,
+                GL_EYE_LADD    : leftAdd,
+
+                GL_EYE_totalPD : totalPd,
+
+                // Dual PD & Compatibility aliases
+                right_pd       : rightPd,
+                left_pd        : leftPd,
+                pd             : totalPd,
+                right_va       : rightVa,
+                left_va        : leftVa,
+                re_sph         : rightSph,
+                re_cyl         : rightCyl,
+                re_axis        : rightAxis,
+                re_add         : rightAdd,
+                le_sph         : leftSph,
+                le_cyl         : leftCyl,
+                le_axis        : leftAxis,
+                le_add         : leftAdd,
+                right_eye_sph  : rightSph,
+                right_eye_cyl  : rightCyl,
+                right_eye_axis : rightAxis || 0,
+                left_eye_sph   : leftSph,
+                left_eye_cyl   : leftCyl,
+                left_eye_axis  : leftAxis || 0
             };
 
             addToCartAjax(selectedLensType, selectedLensPackageId, JSON.stringify(rxData), null);
@@ -3014,20 +3561,65 @@
 
         // ── Lenskart Prescription Interactive Handlers ──
         $(document).ready(function() {
-            // Axis field: numbers only & max 180 validation
-            $(document).on('input', '.rx-axis-field', function() {
-                let val = $(this).val().replace(/\D/g, ''); // numbers only
-                if (val !== '') {
-                    let num = parseInt(val, 10);
-                    if (num > 180) {
-                        val = '180';
+            // SPH & CYL: Signed decimals only, block non-numeric characters in real-time
+            $(document).on('input', '.rx-sph-input, .rx-cyl-input', function() {
+                sanitizeSignedDecimal(this);
+
+                // If "same power" is checked, mirror to left eye immediately
+                if ($('#rx_same_power').is(':checked')) {
+                    if ($(this).attr('id') === 'rx_right_sph') {
+                        $('#rx_left_sph').val($(this).val());
+                        clearRxError('rx_left_sph');
+                    } else if ($(this).attr('id') === 'rx_right_cyl') {
+                        $('#rx_left_cyl').val($(this).val());
+                        clearRxError('rx_left_cyl');
                     }
                 }
-                $(this).val(val);
+            });
 
-                // If same power is active, sync right to left
+            // Axis: Whole numbers only (1 - 180), max 3 digits
+            $(document).on('input', '.rx-axis-field', function() {
+                sanitizeDigitsOnly(this, 3);
                 if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_axis') {
-                    $('#rx_left_axis').val(val);
+                    $('#rx_left_axis').val($(this).val());
+                    clearRxError('rx_left_axis');
+                }
+            });
+
+            // VA: Whole numbers only (4 - 60), max 2 digits
+            $(document).on('input', '.rx-va-input', function() {
+                sanitizeDigitsOnly(this, 2);
+                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_va') {
+                    $('#rx_left_va').val($(this).val());
+                    clearRxError('rx_left_va');
+                }
+            });
+
+            // PD: Decimals allowed (20 - 40 mm)
+            $(document).on('input', '.rx-pd-input', function() {
+                sanitizeUnsignedDecimal(this);
+                if ($('#rx_same_power').is(':checked') && $(this).attr('id') === 'rx_right_pd') {
+                    $('#rx_left_pd').val($(this).val());
+                    clearRxError('rx_left_pd');
+                }
+            });
+
+            // On Blur: Validate individual field
+            $(document).on('blur', '.rx-sph-input, .rx-cyl-input, .rx-axis-field, .rx-va-input, .rx-pd-input', function() {
+                validateRxField($(this).attr('id'));
+            });
+
+            // Clear errors as soon as user types valid input
+            $(document).on('keyup', '.rx-sph-input, .rx-cyl-input, .rx-axis-field, .rx-va-input, .rx-pd-input', function() {
+                if ($(this).hasClass('is-invalid')) {
+                    validateRxField($(this).attr('id'));
+                }
+            });
+
+            // ADD select change handler
+            $(document).on('change', '#rx_right_add', function() {
+                if ($('#rx_same_power').is(':checked')) {
+                    $('#rx_left_add').val($(this).val());
                 }
             });
 
@@ -3038,34 +3630,27 @@
                     $('#rx_left_sph').val($('#rx_right_sph').val());
                     $('#rx_left_cyl').val($('#rx_right_cyl').val());
                     $('#rx_left_axis').val($('#rx_right_axis').val());
-                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis').prop('disabled', true).addClass('bg-light');
+                    $('#rx_left_va').val($('#rx_right_va').val());
+                    $('#rx_left_pd').val($('#rx_right_pd').val());
+                    $('#rx_left_add').val($('#rx_right_add').val());
+
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_pd, #rx_left_add')
+                        .prop('disabled', true)
+                        .addClass('bg-light');
+
+                    clearRxError('rx_left_sph');
+                    clearRxError('rx_left_cyl');
+                    clearRxError('rx_left_axis');
+                    clearRxError('rx_left_va');
+                    clearRxError('rx_left_pd');
+
+                    $('.same-as-right-label').show();
                 } else {
-                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis').prop('disabled', false).removeClass('bg-light');
-                }
-            });
+                    $('#rx_left_sph, #rx_left_cyl, #rx_left_axis, #rx_left_va, #rx_left_pd, #rx_left_add')
+                        .prop('disabled', false)
+                        .removeClass('bg-light');
 
-            // Sync right eye changes to left eye when same power is checked
-            $(document).on('change', '#rx_right_sph', function() {
-                if ($('#rx_same_power').is(':checked')) {
-                    $('#rx_left_sph').val($(this).val());
-                }
-            });
-
-            $(document).on('change', '#rx_right_cyl', function() {
-                if ($('#rx_same_power').is(':checked')) {
-                    $('#rx_left_cyl').val($(this).val());
-                }
-            });
-
-            // Has Cylindrical power checkbox toggle
-            $(document).on('change', '#rx_has_cyl', function() {
-                const hasCyl = $(this).is(':checked');
-                if (hasCyl) {
-                    $('.rx-cyl-row, .rx-axis-row').show();
-                } else {
-                    $('.rx-cyl-row, .rx-axis-row').hide();
-                    $('#rx_right_cyl, #rx_left_cyl').val('0.00');
-                    $('#rx_right_axis, #rx_left_axis').val('');
+                    $('.same-as-right-label').hide();
                 }
             });
         });
@@ -3080,12 +3665,57 @@
             addToCartAjax(selectedLensType, selectedLensPackageId, null, file);
         }
 
+        function handleOutOfStockPackageClick(e, pkgName) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Out of Stock',
+                    text: `"${pkgName}" is currently out of stock in our warehouse. Please select another package.`,
+                    confirmButtonColor: '#00b9b9'
+                });
+            } else {
+                alert(`"${pkgName}" is currently out of stock. Please select another package.`);
+            }
+            return false;
+        }
+
         // Lens Package selection in Step 3
         function selectLensPackage(packageId, freeLensFlag) {
+            // Guard against out of stock frame
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
+
+            // Guard against out of stock lens package
+            const card = $(`.lens-package-card[data-package-id="${packageId}"]`);
+            if (card.length && (card.data('out-of-stock') === 1 || card.data('out-of-stock') === '1')) {
+                const pkgName = card.find('h5').first().text().trim() || 'This lens package';
+                handleOutOfStockPackageClick(null, pkgName);
+                return false;
+            }
+
             selectedLensPackageId = packageId;
             isFreeLens = freeLensFlag;
 
             console.log('Selected Package ID:', selectedLensPackageId, 'Type:', selectedLensType);
+
+            // Conditionally show ADD row if Bifocal or Progressive
+            if (selectedLensType && (selectedLensType.toLowerCase().includes('progressive') || selectedLensType.toLowerCase().includes('bifocal'))) {
+                $('#rx_add_container').show();
+            } else {
+                $('#rx_add_container').hide();
+                $('#rx_right_add, #rx_left_add').val('');
+            }
 
             if (selectedLensType === 'Zero Power' || (selectedLensType && selectedLensType.toLowerCase().includes('zero'))) {
                 addToCartAjax('Zero Power', selectedLensPackageId, null, null);
@@ -3289,6 +3919,47 @@
             color: #64748b !important;
             cursor: not-allowed;
             border-color: #e2e8f0;
+        }
+        .custom-lenskart-select.is-invalid, .custom-lenskart-input.is-invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+        }
+        .rx-error-msg {
+            color: #ef4444;
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: none;
+            text-align: center;
+        }
+        .same-as-right-label {
+            font-size: 11px;
+            color: #00a297;
+            font-weight: 600;
+            font-style: italic;
+            margin-top: 4px;
+            display: none;
+            text-align: center;
+        }
+        .input-group > .custom-lenskart-input:first-child {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        .input-group > .custom-lenskart-input:last-child {
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+        }
+        .input-group > .input-group-text:first-child {
+            border-top-left-radius: 10px !important;
+            border-bottom-left-radius: 10px !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        .input-group > .input-group-text:last-child {
+            border-top-right-radius: 10px !important;
+            border-bottom-right-radius: 10px !important;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
         }
 
         /* ── Contact Lens Power Tabs ── */
@@ -3675,6 +4346,22 @@
             background: #fff;
             transition: all 0.2s ease;
         }
+        .lens-package-card.lens-package-out-of-stock {
+            opacity: 0.65;
+            background: #fafafa !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed;
+            position: relative;
+        }
+        .lens-package-card.lens-package-out-of-stock:hover {
+            border-color: #cbd5e1 !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        .forwardBtn.forwardBtn-disabled {
+            cursor: not-allowed !important;
+            pointer-events: auto !important;
+        }
 
         .lens-pkg-left {
             text-align: left;
@@ -3862,6 +4549,16 @@
 
         @if(!$isContactLens && !$isSolution && !$isAccessory && !$isSunglass)
         $('#main-action-btn').on('click', function() {
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
+
             const flowMode     = this.dataset.flowMode || 'modal';
             const isZeroPwr    = this.dataset.isZeroPower === '1';
             const zeroPackId   = this.dataset.zeroPackageId || '';
@@ -3925,12 +4622,31 @@
 
         // Sunglass: "BUY WITH POWER" button opens the standard lens modal starting at Step 2 (Power Type)
         function openLensModal() {
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
             const lensModal = new bootstrap.Modal(document.getElementById('lensModal'));
             lensModal.show();
         }
 
         // Helper function when select button in details modal is clicked
         function selectLensFromDetails(packageId, isFree) {
+            if (!isFrameInStock || currentFrameStock <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Frame Out of Stock',
+                    text: 'Selected frame is out of stock. Lens package cannot be purchased.',
+                    confirmButtonColor: '#00a297'
+                });
+                return false;
+            }
+
             const detailsModalEl = document.getElementById('viewDetailsModal');
             const detailsModal = bootstrap.Modal.getInstance(detailsModalEl) || new bootstrap.Modal(detailsModalEl);
             if (detailsModal) {
@@ -4050,10 +4766,27 @@
                 selector: '.glightbox'
             });
             
-            // Update action button select action
-            modal.find('.select-lens-btn').off('click').on('click', function() {
-                selectLensFromDetails(packageId, free);
-            });
+            // Update action button select action based on live stock
+            const isOutOfStock = btn.data('out-of-stock') === 1 || btn.data('out-of-stock') === '1';
+            const selectBtn = modal.find('.select-lens-btn');
+
+            if (isOutOfStock) {
+                selectBtn.prop('disabled', true).addClass('disabled')
+                    .css({ 'background': '#94a3b8', 'border-color': '#94a3b8', 'cursor': 'not-allowed' })
+                    .html('<i class="fa fa-ban me-1"></i> Out of Stock');
+                selectBtn.off('click').on('click', function(e) {
+                    e.preventDefault();
+                    handleOutOfStockPackageClick(e, name);
+                    return false;
+                });
+            } else {
+                selectBtn.prop('disabled', false).removeClass('disabled')
+                    .css({ 'background': '', 'border-color': '', 'cursor': 'pointer' })
+                    .html('Select This Lens');
+                selectBtn.off('click').on('click', function() {
+                    selectLensFromDetails(packageId, free);
+                });
+            }
 
             // Dynamically set carousel images based on package name or slug
             const carouselInner = modal.find('.carousel-inner');

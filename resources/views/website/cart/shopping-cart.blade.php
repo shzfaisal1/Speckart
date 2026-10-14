@@ -1437,6 +1437,26 @@
                                                         @endif
                                                     </div>
                                                     <div class="sc-item-name">{{ $item['frame_name'] }}</div>
+                                                    @if(!empty($item['is_out_of_stock']))
+                                                        @php
+                                                            $hasPaidLens = !empty($item['lens_package_id']) && (float)($item['lens_price'] ?? 0) > 0;
+                                                        @endphp
+                                                        <div class="alert alert-danger py-1.5 px-2.5 mt-2 mb-2 d-flex align-items-center justify-content-between flex-wrap gap-2" style="font-size: 12px; border-radius: 6px; border: 1px solid #fecaca; background-color: #fef2f2; color: #991b1b;">
+                                                            <div class="d-flex align-items-center gap-1.5">
+                                                                <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                                <span>
+                                                                    @if($hasPaidLens)
+                                                                        Selected frame is out of stock. Attached lens package cannot be fulfilled.
+                                                                    @else
+                                                                        This frame is currently out of stock.
+                                                                    @endif
+                                                                </span>
+                                                            </div>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger remove-cart-item py-0.5 px-2 fw-semibold d-inline-flex align-items-center gap-1" data-key="{{ $item['key'] }}" style="font-size: 11px; border-radius: 4px;">
+                                                                <i class="bi bi-trash3"></i> Remove Item
+                                                            </button>
+                                                        </div>
+                                                    @endif
                                                 </div>
 
                                                 <div class="sc-price-block flex-shrink-0 text-end">
@@ -1989,7 +2009,16 @@
 
                                 {{-- Desktop Checkout Button --}}
                                 <div class="sc-desktop-checkout py-2">
-                                    @if(auth()->check())
+                                    @if(!empty($cartData['has_out_of_stock']))
+                                        <div class="alert alert-danger py-2 px-3 mb-2 text-start" style="font-size: 12.5px; border-radius: 6px;">
+                                            <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                                            Your cart contains out-of-stock frame(s). Please remove them before proceeding.
+                                        </div>
+                                        <button type="button" class="sc-btn-checkout" style="opacity: 0.5; cursor: not-allowed;" disabled>
+                                            <span>Proceed to Checkout</span>
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+                                    @elseif(auth()->check())
                                         <a href="{{ route('shipping-details') }}" class="sc-btn-checkout">
                                             <span>Proceed to Checkout</span>
                                             <i class="bi bi-arrow-right"></i>
@@ -2085,7 +2114,11 @@
                     <div class="sc-total-label">Total</div>
                     <div class="sc-total-value">₹{{ number_format($cartData['grand_total'], 2) }}</div>
                 </div>
-                @if(auth()->check())
+                @if(!empty($cartData['has_out_of_stock']))
+                    <button type="button" class="sc-btn-checkout" style="opacity: 0.5; cursor: not-allowed;" disabled>
+                        Out of Stock <i class="bi bi-slash-circle"></i>
+                    </button>
+                @elseif(auth()->check())
                     <a href="{{ route('shipping-details') }}" class="sc-btn-checkout">
                         Checkout <i class="bi bi-arrow-right"></i>
                     </a>

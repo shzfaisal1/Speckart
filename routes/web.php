@@ -547,6 +547,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
      
       Route::get('/products/subcategories',     [ProductController::class, 'getSubcategories'])->name('products.subcategories');
         Route::post('/products/check-sku',        [ProductController::class, 'checkSku'])->name('products.check-sku');
+        Route::post('/products/generate-sku',     [ProductController::class, 'generateSku'])->name('products.generate-sku');
         // ── BANNERS MODULE ──
     Route::controller(\App\Http\Controllers\Admin\BannerController::class)
      ->prefix('banners')

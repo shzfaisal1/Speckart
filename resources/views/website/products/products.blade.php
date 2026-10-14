@@ -808,6 +808,88 @@
 }
 
 /* ══════════════════════════════════════
+   CARD OUT-OF-STOCK STATES
+══════════════════════════════════════ */
+
+/* OOS ribbon overlaid on card image */
+.card-oos-ribbon {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(31, 41, 55, 0.85);
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 4;
+    line-height: 1.4;
+}
+
+/* OOS swatch dot: diagonal red slash overlay */
+.card-color-dot.dot-oos {
+    opacity: 0.55;
+    position: relative;
+}
+.card-color-dot.dot-oos::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        transparent 40%,
+        #ef4444 40%,
+        #ef4444 60%,
+        transparent 60%
+    );
+    pointer-events: none;
+}
+
+/* Card CTA button bar */
+.card-cta-bar {
+    padding: 8px 12px 12px 12px;
+    background: #ffffff;
+}
+.card-cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: background 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+    line-height: 1.2;
+}
+.card-cta-instock {
+    background: var(--cat-primary, #329a9a);
+    color: #ffffff;
+}
+.card-cta-instock:hover {
+    background: #277878;
+    color: #ffffff;
+    text-decoration: none;
+}
+.card-cta-oos {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border: 1px solid #e2e8f0;
+}
+.card-cta-oos:disabled {
+    opacity: 1;
+}
+
+/* ══════════════════════════════════════
    PAGINATION STYLING
 ══════════════════════════════════════ */
 .modern-pagination {
@@ -905,7 +987,13 @@
                 <i class="bi bi-sliders text-teal" style="color:var(--cat-primary);"></i> Filters
             </h5>
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ route('products', ($activeCategory ?? null) ? ['category' => $activeCategory->slug] : []) }}" class="filter-reset-btn">Clear All</a>
+                @php
+                    $clearParams = [];
+                    if ($activeCategory ?? null) $clearParams['category'] = $activeCategory->slug;
+                    elseif (request('category')) $clearParams['category'] = request('category');
+                    if (request('type')) $clearParams['type'] = request('type');
+                @endphp
+                <a href="{{ route('products', $clearParams) }}" class="filter-reset-btn">Clear All</a>
                 <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
         </div>
@@ -964,7 +1052,7 @@
                     <div class="filter-sidebar">
                         <div class="filter-top-bar">
                             <h6><i class="bi bi-sliders"></i> Filters</h6>
-                            <a href="{{ route('products', ($activeCategory ?? null) ? ['category' => $activeCategory->slug] : []) }}"
+                            <a href="{{ route('products', $clearParams) }}"
                                class="filter-reset-btn">Clear All</a>
                         </div>
                         <div class="active-chips-bar" id="active-chips-bar"></div>
@@ -1203,6 +1291,35 @@ document.addEventListener('DOMContentLoaded', function() {
             $strikeRow.hide();
             $banner.hide();
         }
+
+        // 9. Toggle OOS ribbon & swap CTA button based on stock state
+        const isOOS = ($dot.data('is-oos') == '1' || $dot.data('is-oos') === true);
+
+        // Toggle OOS ribbon
+        const $ribbon = $card.find('.card-oos-ribbon');
+        if (isOOS) {
+            $ribbon.removeClass('d-none');
+        } else {
+            $ribbon.addClass('d-none');
+        }
+
+        // Swap CTA bar
+        const $ctaBar = $card.find('.card-cta-bar');
+        if ($ctaBar.length) {
+            if (isOOS) {
+                $ctaBar.html(
+                    '<button type="button" class="card-cta-btn card-cta-oos" disabled>' +
+                    '<i class="bi bi-slash-circle me-1"></i> OUT OF STOCK' +
+                    '</button>'
+                );
+            } else {
+                $ctaBar.html(
+                    '<a href="' + (newDetailUrl || '#') + '" class="card-cta-btn card-cta-instock">' +
+                    'SELECT LENSES <i class="bi bi-arrow-right ms-1"></i>' +
+                    '</a>'
+                );
+            }
+        }
     });
 
     // Open Similar Products Modal Click Handler
@@ -1308,8 +1425,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const activeSort = $('.sort-item.active').data('sort');
             if (activeSort) params.append('sort', activeSort);
 
-            const currentCategory = "{{ ($activeCategory ?? null) ? $activeCategory->slug : '' }}";
+            const currentCategory = "{{ ($activeCategory ?? null) ? $activeCategory->slug : (request('category') ?: '') }}";
             if (currentCategory) params.append('category', currentCategory);
+
+            const currentType = "{{ request('type') ?: '' }}";
+            if (currentType && !params.has('type')) params.append('type', currentType);
+
+            const currentOffer = "{{ request('offer') ?: '' }}";
+            if (currentOffer && !params.has('offer')) params.append('offer', currentOffer);
+
+            const currentBogo = "{{ request('bogo_eligible') ?: '' }}";
+            if (currentBogo && !params.has('bogo_eligible')) params.append('bogo_eligible', currentBogo);
+
+            const currentTag = "{{ request('tag') ?: '' }}";
+            if (currentTag && !params.has('tag')) params.append('tag', currentTag);
 
             requestUrl = "{{ route('products') }}?" + params.toString();
         }

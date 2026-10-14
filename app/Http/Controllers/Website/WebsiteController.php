@@ -179,25 +179,28 @@ class WebSiteController extends Controller
 
         // 5. Sunglasses
         $sunglassesList = DB::table('tbl_product_code')
-            ->join('categories', 'categories.id', '=', 'tbl_product_code.category_id')
-            ->where('tbl_product_code.status', 1)
-            ->where('tbl_product_code.is_b2c', 1)
-            ->where('categories.slug', 'sunglasses')
-            ->orderByRaw('CASE WHEN tbl_product_code.main_image IS NOT NULL AND tbl_product_code.main_image != "" THEN 0 ELSE 1 END')
-            ->orderBy('tbl_product_code.id', 'desc')
-            ->select('tbl_product_code.*')
+            ->where('status', 1)
+            ->where('is_b2c', 1)
+            ->where(function($q) {
+                $q->where('product_type', 'Goggles')
+                  ->orWhere('category_id', 5)
+                  ->orWhere('product_name', 'LIKE', '%sunglass%');
+            })
+            ->orderByRaw('CASE WHEN main_image IS NOT NULL AND main_image != "" THEN 0 ELSE 1 END')
+            ->orderBy('id', 'desc')
             ->limit(8)
             ->get();
 
         // 6. Eyeglasses
         $eyeglassesList = DB::table('tbl_product_code')
-            ->join('categories', 'categories.id', '=', 'tbl_product_code.category_id')
-            ->where('tbl_product_code.status', 1)
-            ->where('tbl_product_code.is_b2c', 1)
-            ->where('categories.slug', 'eyeglasses')
-            ->orderByRaw('CASE WHEN tbl_product_code.main_image IS NOT NULL AND tbl_product_code.main_image != "" THEN 0 ELSE 1 END')
-            ->orderBy('tbl_product_code.id', 'desc')
-            ->select('tbl_product_code.*')
+            ->where('status', 1)
+            ->where('is_b2c', 1)
+            ->where(function($q) {
+                $q->where('product_type', 'Frame')
+                  ->orWhere('category_id', 9);
+            })
+            ->orderByRaw('CASE WHEN main_image IS NOT NULL AND main_image != "" THEN 0 ELSE 1 END')
+            ->orderBy('id', 'desc')
             ->limit(8)
             ->get();
 

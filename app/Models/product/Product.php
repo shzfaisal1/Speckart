@@ -21,7 +21,8 @@ class Product extends Model
         'age', 'occasion', 'face_shape', 'lens_width', 'temple_length', 'frame_width', 
         'stock_quantity', 'stock_status', 'polarized', 'uv_protection', 'barcode',
         'discount_price', 'hsn_code', 'base_carve', 'Diameter', 'supported_product_types',
-        'selected_lens_packages'
+        'selected_lens_packages', 'No_Of_Boxes', 'Pieces_Per_Box', 'Power_Type', 'Batch_Number',
+        'Mfg_Date', 'Expiry_Date', 'invoice_description', 'sunglass_colour', 'tax_hsn_code'
     ];
 
     protected $casts = [

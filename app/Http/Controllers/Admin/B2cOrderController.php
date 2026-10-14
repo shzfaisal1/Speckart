@@ -32,6 +32,7 @@ class B2cOrderController extends Controller
             $dateFrom = Carbon::now()->startOfMonth()->toDateString();
             $dateTo   = Carbon::now()->toDateString();
         }
+        
         // ── Existing KPI cards (Orders Today, Revenue Today etc.) ─────────
         $today = Carbon::today();
         $startOfMonth = Carbon::now()->startOfMonth();
@@ -227,7 +228,7 @@ class B2cOrderController extends Controller
             ->get();
 
 
-        // ── Salesperson-wise (already correct, just for completeness) ─────────
+        // ── Salesperson-wise  ─────────
         $salespersonWise = DB::table('tbl_sales as s')
             ->leftJoin('users as u', 'u.id', '=', 's.sale_person')
             ->where('s.sales_type', 0)
@@ -244,7 +245,7 @@ class B2cOrderController extends Controller
             ->orderByDesc('revenue')
             ->get();
             
-        // ── Existing Order List Query (filters) ────────────────────────────
+        // ── Existing Order List Query ────────────────────────────
         $query = Sale::b2c()->with(['products', 'user', 'payments'])
             ->latest('created_at');
     
@@ -566,8 +567,12 @@ class B2cOrderController extends Controller
 
         $order = Sale::findOrFail($id);
         $order->order_status = 'cancelled';
+        $order->cancellation_reason = $request->input('cancellation_reason');
         $order->admin_note   = ($order->admin_note ? $order->admin_note . " | " : "") . "Cancelled: " . $request->input('cancellation_reason');
         $order->save();
+
+        // Restock physical inventory in Store 6 and live sync website master catalog
+        \App\Services\StockSyncService::restockOrder($order, 'cancelled');
 
         return redirect()->back()->with('success', "Order has been marked as Cancelled.");
     }
@@ -597,6 +602,8 @@ class B2cOrderController extends Controller
             $order->lab_notes  = "FREE LENS REMAKE: " . ($request->input('admin_notes') ?? 'Optical power adjustment');
         } else {
             $order->order_status = 'returned';
+            // Restock physical inventory in Store 6 and live sync website master catalog
+            \App\Services\StockSyncService::restockOrder($order, 'returned');
         }
         $order->save();
 

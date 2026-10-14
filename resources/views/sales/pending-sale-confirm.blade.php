@@ -118,7 +118,7 @@ input.error
                     <div class="row">
                         <div class="col-md-3">
                             <label for="">Sales Person<span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" value="{{$salePerson->name}}"  readonly>
+                            <input type="text" class="form-control" value="{{$salePerson->name ?? 'N/A'}}"  readonly>
                             
                         </div>
                         <div class="col-md-3">

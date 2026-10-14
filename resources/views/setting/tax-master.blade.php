@@ -24,7 +24,7 @@ input.loading {
                         <h3>Tax Master</h3>
                         <input type="text" class="form-control input" placeholder="Search By,Company Name,Contact,gst no,state" id="search"
                                 name="search" style="width:320px">
-                        <a href="#" class=" btn" data-toggle="modal" data-target="#taxModal">
+                      <a href="javascript:void(0)" class="btn" onclick="openCreateModal()">
                             <span><i class="fa fa-plus" title="" data-original-title="fa fa-plus"></i></span>
                             Create Tax Master
                         </a>
@@ -77,7 +77,7 @@ input.loading {
                 </button>
             </div>
             <div class="modal-body">
-                <form id="taxForm" method="POST" method="POST" enctype="multipart/form-data">
+                <form id="taxForm" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="_method" id="formMethod" value="POST">
                     <input type="hidden" name="id" id="uid">
@@ -105,8 +105,12 @@ input.loading {
                                           <option value="Lens">Contact Lens</option>
                                           <option value="Solution">Solution</option>
                                           <option value="Other">Other</option>
-                                          <option value="Repair">Repair</option>
-                                          <option value="Non Chargeable">Non Chargeable</option> 
+                                            <option value="Repair">Repair</option>
+                                            <option value="Non Chargeable">Non Chargeable</option> 
+                                            <option value="ContactLense">ContactLense</option>
+                                            <option value="Reading Glasses">Reading Glasses</option>
+                                            <option value="Sunglasses">Sunglasses</option>
+                                            <option value="Eyeglasses">Eyeglasses</option>
                                     </select>
                                     <span class="error badge text-danger" id="product_typeError"></span>
                                 </div>
@@ -167,14 +171,16 @@ function openCreateModal()
     document.getElementById('taxForm').action = '{{ route('admin.tax-master.store') }}';
     document.getElementById('formMethod').value = 'POST';
     document.getElementById('taxForm').reset();
+    document.getElementById('uid').value = '';
+    $('#product_type').val('').trigger('change'); // Resets Select2 display
     $('#taxModal').modal('show');
 }
 
-function openEditModal(tax) {
+function openEditModalold(tax) {
     var tax = JSON.parse(decodeURIComponent(tax));
     
     document.getElementById('modalTitle').innerText = 'Edit Tax Master';
-    document.getElementById('taxForm').action = `{{ url('/tax-master/` + tax.id + `') }}`;
+    document.getElementById('taxForm').action = `{{ url('admin/tax-master/` + tax.id + `') }}`;
     document.getElementById('formMethod').value = 'PUT';
     document.getElementById('hsn_code').value = tax.hsn_code || '';
     document.getElementById('percentage').value = tax.percentage_t || '';
@@ -202,12 +208,44 @@ function openEditModal(tax) {
 
     $('#taxModal').modal('show');
 }
+function openEditModal(tax) {
+    var tax = JSON.parse(decodeURIComponent(tax));
+    
+    document.getElementById('modalTitle').innerText = 'Edit Tax Master';
+    // 1. Correct route URL (prevents 404 error)
+    document.getElementById('taxForm').action = "{{ route('admin.tax-master.update', ':id') }}".replace(':id', tax.id);
+    document.getElementById('formMethod').value = 'POST';
 
+    // 2. Strip any HTML tags to keep only clean HSN code
+    let cleanHsn = tax.hsn_code_t || (tax.hsn_code ? tax.hsn_code.replace(/<[^>]*>?/gm, '').trim() : '');
+    document.getElementById('hsn_code').value = cleanHsn;
+
+    document.getElementById('percentage').value = tax.percentage_t || '';
+    document.getElementById('description').value = tax.description || '';
+    document.getElementById('set_default').checked = tax.set_default == 1 ? true : false;
+    document.getElementById('uid').value = tax.id;
+    
+    // 3. Update Product Type & trigger Select2
+    const productType = (tax.product_type || '').trim();
+    if (productType) {
+        // If option is missing in the dropdown (e.g., ContactLense), add it dynamically
+        if (!$('#product_type option[value="' + productType + '"]').length) {
+            $('#product_type').append(new Option(productType, productType, true, true));
+        }
+        $('#product_type').val(productType).trigger('change');
+    } else {
+        $('#product_type').val('').trigger('change');
+    }
+
+    $('#taxModal').modal('show');
+}
 
 $("#taxForm").submit(function(e)
 {
+
+
     e.preventDefault(); 
-    
+
     let isValid = true;
     let class_name = '';
 
@@ -239,7 +277,7 @@ $("#taxForm").submit(function(e)
     }
 
 
-    
+   console.log($(this).attr("action")); 
 
     if (!isValid) {
         return;
@@ -247,7 +285,7 @@ $("#taxForm").submit(function(e)
 
     let form = $("#taxForm")[0];
     let data = new FormData(form);
-
+   console.log($(this).attr("action")); 
     $.ajax({
         type: 'POST',
         url: $(this).attr("action"),
@@ -505,7 +543,8 @@ let dataListView = $('.datatables-basic')
             }).then(function(result) {
                 if (result.value) {
                     $.ajax({
-                        url: "{{ url('/tax') }}" + '/' + id + '/destroy',
+                      
+                        url: "{{ url('admin/tax-master') }}" + '/' + id + '/destroy',
                         type: "POST",
                         data: {
                             _token: "{{ csrf_token() }}"

@@ -14,9 +14,16 @@
                 </div>
 
                 {{-- PRODUCT LINK & IMAGE --}}
+                @php
+                    $cardStockQty = (int)($product->stock_quantity ?? 0);
+                    $cardIsOOS    = ($cardStockQty <= 0);
+                @endphp
                 <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
                     <div class="product-image">
                         <img src="{{ $product->image_url }}" alt="{{ $product->product_name ?: $product->product_code }}" class="img-default" onerror="this.onerror=null;this.src='{{ asset('website/assets/img/bg/Sunglasses1.png') }}';">
+
+                        {{-- OOS ribbon: server-rendered for initial state, toggled by JS when swatch clicked --}}
+                        <div class="card-oos-ribbon {{ $cardIsOOS ? '' : 'd-none' }}">OUT OF STOCK</div>
                     </div>
                 </a>
 
@@ -70,6 +77,7 @@
                             : [$product];
 
                         foreach ($rawList as $varObj) {
+                            $vStockQty = (int)($varObj->stock_quantity ?? 0);
                             $variantsToDisplay[] = [
                                 'id'             => $varObj->id,
                                 'product_id'     => $varObj->product_id ?: $varObj->id,
@@ -84,6 +92,7 @@
                                 'purchase_price' => (float)($varObj->Purchase_Price ?? 0),
                                 'discount_price' => (float)($varObj->discount_price ?? 0),
                                 'is_current'     => ($varObj->id == $product->id),
+                                'is_oos'         => ($vStockQty <= 0),
                             ];
                         }
 
@@ -93,7 +102,7 @@
 
                     <div class="color-options-wrap">
                         @foreach($displayVariants as $vItem)
-                            <span class="card-color-dot {{ $vItem['is_current'] ? 'active' : '' }}"
+                            <span class="card-color-dot {{ $vItem['is_current'] ? 'active' : '' }} {{ $vItem['is_oos'] ? 'dot-oos' : '' }}"
                                   style="background: {{ $vItem['swatch_bg'] }};"
                                   data-image-url="{{ $vItem['image_url'] }}"
                                   data-detail-url="{{ $vItem['detail_url'] }}"
@@ -104,7 +113,8 @@
                                   data-retail-price="{{ $vItem['retail_price'] }}"
                                   data-purchase-price="{{ $vItem['purchase_price'] }}"
                                   data-discount-price="{{ $vItem['discount_price'] }}"
-                                  title="{{ $vItem['color'] ?: 'Color option' }}">
+                                  data-is-oos="{{ $vItem['is_oos'] ? '1' : '0' }}"
+                                  title="{{ $vItem['color'] ?: 'Color option' }}{{ $vItem['is_oos'] ? ' (Out of Stock)' : '' }}">
                             </span>
                         @endforeach
                         @if($remainingVariantCount > 0)
@@ -114,7 +124,7 @@
                 </div>
 
                 {{-- PRODUCT DETAILS --}}
-                <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
+                <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none card-info-link">
                     <div class="product-info">
                         <div class="brand-name">{{ $product->Company ?: 'Speckart' }}</div>
                         <h6 class="product-title">{{ $product->product_name ?: $product->product_code }}</h6>
@@ -167,22 +177,27 @@
                     </div>
                 </a>
 
-                {{-- BOTTOM ON-SALE / PROMO STRIP --}}
-                {{-- @if($hasDiscount)
-                <div class="card-bottom-banner">
-                    <i class="bi bi-percent-circle-fill"></i> on sale price applied!
+                {{-- CARD CTA BUTTON: dynamic via JS when swatch clicked, server-rendered initial state --}}
+                <div class="card-cta-bar">
+                    @if($cardIsOOS)
+                        {{-- OOS state: disabled button, no link --}}
+                        <button type="button" class="card-cta-btn card-cta-oos" disabled>
+                            <i class="bi bi-slash-circle me-1"></i> OUT OF STOCK
+                        </button>
+                    @else
+                        {{-- In-stock state: link to product detail --}}
+                        <a href="{{ $product->detail_url }}" class="card-cta-btn card-cta-instock">
+                            SELECT LENSES <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    @endif
                 </div>
-                @else
-                <div class="card-bottom-banner" style="display:none;">
-                    <i class="bi bi-percent-circle-fill"></i> on sale price applied!
-                </div>
-                @endif --}}
+
             </div>
         </div>
         @endforeach
 
         <div class="col-12 mt-5 d-flex justify-content-center">
-            @if($productsList->hasPages())
+            @if(method_exists($productsList, 'hasPages') && $productsList->hasPages())
             <nav aria-label="Page navigation">
                 <ul class="pagination modern-pagination">
                     {{-- Previous Page Link --}}
@@ -356,4 +371,7 @@
             }
         </style>
     @endif
+
 </div>
+
+

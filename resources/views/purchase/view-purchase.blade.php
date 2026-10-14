@@ -108,6 +108,7 @@
 									<th class="text-center w-5">#</th>
 									<th>Product</th>
 									<th class="w-10" >Product Code</th>
+									<th class="w-10" >Product ID</th>
 									<th class="w-30" >Product Deatils</th>
 									<th class="text-right w-5">Price</th>
 									<th class="text-right w-5">Base Price</th>
@@ -232,6 +233,7 @@
 									<td class="text-center">{{ $loop->iteration }}</td>
 									<td>{{ $product['product_type'] }}</td>
 									<td>{{ $product['product_code'] }}</td>
+									<td>{{ $product['product_id'] ?? '-' }}</td>
 									<td>
 									    <p class="font-w600 mb-1">{{ $product_details }}</p>
 										<div class="text-muted">HSN Code : {{ $product['hsn_code'] }}</div>
@@ -247,31 +249,31 @@
 								@endforeach
 
 								<tr>
-									<td colspan="10" class="font-w600 text-right">Total Qty</td>
+									<td colspan="11" class="font-w600 text-right">Total Qty</td>
 									<td class="text-right">{{$purchase->total_qty}}</td>
 								</tr>
 								<tr>
-									<td colspan="10" class="font-w600 text-right">Total Unit Amount</td>
+									<td colspan="11" class="font-w600 text-right">Total Unit Amount</td>
 									<td class="text-right">Rs {{$purchase->total_unit_amount}}</td>
 								</tr>
 								<tr>
-									<td colspan="10" class="font-w600 text-right">Total Base Price</td>
+									<td colspan="11" class="font-w600 text-right">Total Base Price</td>
 									<td class="text-right">Rs {{$purchase->total_base_amount}}</td>
 								</tr>
 								<tr>
-									<td colspan="10" class="font-w600 text-right">Total GST Amount</td>
+									<td colspan="11" class="font-w600 text-right">Total GST Amount</td>
 									<td class="text-right">Rs {{$purchase->total_gst_amount}}</td>
 								</tr>
 								<tr>
-									<td colspan="10" class="font-w600 text-right">Total Purchase</td>
+									<td colspan="11" class="font-w600 text-right">Total Purchase</td>
 									<td class="text-right">Rs {{$purchase->total_p_amount}}</td>
 								</tr>
 								<tr>
-									<td colspan="10" class="font-w600 text-right">Round Off : (+/-)</td>
+									<td colspan="11" class="font-w600 text-right">Round Off : (+/-)</td>
 									<td class="text-right">Rs {{$purchase->round_off}}</td>
 								</tr>
 									<tr>
-									<td colspan="10" class="font-w600 text-right">Total Net Purchase</td>
+									<td colspan="11" class="font-w600 text-right">Total Net Purchase</td>
 									<td class="text-right">Rs {{$purchase->net_purchase_amount}}</td>
 								</tr>
 

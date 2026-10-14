@@ -35,7 +35,7 @@ class Sale extends Model
         'user_id',
 
         // ── B2C Status ───────────────────────────────────────────────────
-        'order_status', 'payment_status',
+        'order_status', 'payment_status', 'cancellation_reason',
 
         // ── Prescription / RX Verification ───────────────────────────────
         'rx_verification_status', 'is_rx_required',

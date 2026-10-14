@@ -1,8 +1,6 @@
 <?php
 namespace App\Http\Controllers\Admin;
-
 use App\Http\Controllers\Controller;
-
 use App\Models\Store;
 use App\Models\State;
 use App\Models\City;
@@ -740,15 +738,15 @@ class SalesController extends Controller
                 'pay_amount'          => $request->pay_amount ?? 0,
                 'pending_amount'      => $request->pending_amount ?? 0,
                 'extrnal_warranty'    => $request->extrnal_warranty,
-                'pay_method'    => $request->pay_method,
-                'pay_deatils'    => $request->pay_deatils,
+                'pay_method'          => $request->pay_method,
+                'pay_deatils'         => $request->pay_deatils,
                 'added_by'            => $user->id,
                 'store_id'            => $request->store_id,
                 'sales_type'          => 0,
                 'delivery_date'       => $request->delivery_date,
-                'sales_status'    => $request->submit_type,
-                'customer_account'       => $request->customer_account,
-                'advance_amount'       => $request->advance_amount,
+                'sales_status'        => $request->submit_type,
+                'customer_account'    => $request->customer_account,
+                'advance_amount'      => $request->advance_amount,
             ]);
             
             $custData = DB::table('tbl_customer')->where('contact_no', $request->contact_no)->first();
@@ -2181,6 +2179,12 @@ class SalesController extends Controller
             'created_at'      => now(),
             'updated_at'      => now()
         ]);
+
+        // If sale was made from e-commerce store, synchronize website master catalog
+        $ecomStoreId = \App\Services\StockSyncService::getEcommerceStoreId();
+        if ((int)$store_id === $ecomStoreId) {
+            \App\Services\StockSyncService::syncProductStock($product_code, $ecomStoreId);
+        }
     }
     
     
@@ -2286,12 +2290,14 @@ class SalesController extends Controller
             ['link' => url("/"), 'name' => 'Home'],
             ['name' => $setting['page_title']],
         ];
+        $setting['stores'] = Store::where('status', 1)->orderBy('store_name')->get();
         return view($this->view_route.'/pending-order',$setting);
     }
     
     
     public function salesPendingDatatable(Request $request)
     {
+       
         $store_id = auth()->user()->store_id;
         $limit = $request->input('length');
         $start = $request->input('start');
@@ -2301,15 +2307,26 @@ class SalesController extends Controller
         $date_to = $request->input('date_to');
         $search1 = $request->input('search1');
         $sale_person = $request->input('sale_person');
-        
-        if($store_id == '0')
-        {
-            $totalData = DB::table('tbl_sales')->where('sales_status', 0)->where('is_deleted', 0);
+     
+        $filter_store_id = $request->input('store_id');
+    
+        if ($store_id == '0') {
+            
+            // Admin - can see all stores
+            $totalData = DB::table('tbl_sales')
+                ->whereIn('sales_status', [0, 3])
+                ->where('is_deleted', 0);
+            if (!empty($filter_store_id)) {
+                $totalData->where('store_id', $filter_store_id);
+            }
+        } else {
+            // Normal user - only own store
+            $totalData = DB::table('tbl_sales')
+                ->where('store_id', $store_id)
+                ->whereIn('sales_status', [0, 3])
+                ->where('is_deleted', 0);
         }
-        else
-        {
-            $totalData = DB::table('tbl_sales')->where('store_id', $store_id)->where('sales_status', 0)->where('is_deleted', 0);
-        }
+
         if ($sale_person != '')
         {
             $totalData->where('sale_person', [$sale_person]);
@@ -2320,20 +2337,28 @@ class SalesController extends Controller
 
         if ($search1 != '') 
         {
-            $totalData->where('order_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_id', 'like', '%' . $search1 . '%')
-            ->orWhere('contact_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            $totalData->where(function($q) use ($search1) {
+                $q->where('order_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_id', 'like', '%' . $search1 . '%')
+                  ->orWhere('contact_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            });
         }
         $totalData = $totalData->count();
         
         if($store_id == '0')
         {
-            $templates = DB::table('tbl_sales')->where('sales_status', 0)->where('is_deleted', 0);
+            $templates = DB::table('tbl_sales')
+                ->whereIn('sales_status', [0, 3])
+                ->where('is_deleted', 0);
+        
+            if (!empty($filter_store_id)) {
+                $templates->where('store_id', $filter_store_id);
+            }
         }
         else
         {
-            $templates = DB::table('tbl_sales')->where('store_id', $store_id)->where('sales_status', 0)->where('is_deleted', 0);
+            $templates = DB::table('tbl_sales')->where('store_id', $store_id)->whereIn('sales_status', [0, 3])->where('is_deleted', 0);
         }
         if ($sale_person != '')
         {
@@ -2346,10 +2371,12 @@ class SalesController extends Controller
 
         if ($search1 != '') 
         {
-            $templates->where('order_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_id', 'like', '%' . $search1 . '%')
-            ->orWhere('contact_no', 'like', '%' . $search1 . '%')
-            ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            $templates->where(function($q) use ($search1) {
+                $q->where('order_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_id', 'like', '%' . $search1 . '%')
+                  ->orWhere('contact_no', 'like', '%' . $search1 . '%')
+                  ->orWhere('cust_name', 'like', '%' . $search1 . '%');
+            });
         }
 
 
@@ -2370,6 +2397,10 @@ class SalesController extends Controller
                 $tbl_store   = Store::find($template->store_id);
                 $encryptedId = base64_encode($template->sale_id);
                 
+                $isCancelled = ($template->order_status === 'cancelled' || $template->sales_status == 3) ? 1 : 0;
+                $cancelBadge = $isCancelled ? '<br><span class="badge badge-danger" style="background-color: #dc2626; color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 700;"><i class="fa fa-ban mr-1"></i> CANCELLED</span>' : '';
+                $cancelText  = $isCancelled ? '<br><span style="color: #dc2626; font-weight: 700; font-size: 12px;"><i class="fa fa-times-circle mr-1"></i> Order Cancelled</span>' : '';
+
                 if($template->sales_type == '1')
                 {
                     $sales_type = '<div class="tooltip">
@@ -2384,8 +2415,8 @@ class SalesController extends Controller
                 
                 $encryptedId = base64_encode($template->sale_id);
                 $nestedData['sr_no']    = $i++;
-                $nestedData['order_details']     = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR> <strong>Delivery Date</strong> :'.date('d M, Y h:i A', strtotime($template->delivery_date));
-                $nestedData['bill_details']      = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR><strong>Bill No : </strong> : '.$template->order_no.'<br>'.$sales_type;
+                $nestedData['order_details']     = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR> <strong>Delivery Date</strong> :'.date('d M, Y h:i A', strtotime($template->delivery_date)) . $cancelText;
+                $nestedData['bill_details']      = '<strong>Order Date</strong> :'.date('d M, Y h:i A', strtotime($template->created_at)).'<BR><strong>Bill No : </strong> : '.$template->order_no.'<br>'.$sales_type . $cancelBadge;
                 $nestedData['customer_details']  = '<strong>Customer Name</strong> :'.$template->cust_name.'<BR><strong>Mobile No :</strong>'.$template->contact_no.'<BR><strong>Cust ID : </strong> : '.$template->cust_id;
                 $nestedData['invoice_details']   = '
                                                   <strong>Order Value : </strong>'.$template->total_item_price.'
@@ -2393,12 +2424,15 @@ class SalesController extends Controller
                                                   <BR><strong>Total Payable : </strong>'.$template->total_payable.'
                                                   <BR><strong>Advance Paid : </strong>'.$template->pay_amount.'
                                                   <BR><strong>Balance Paid  : </strong>'.$template->pending_amount.'';
-                $nestedData['store_name']   = $tbl_store->store_name;
+                $nestedData['store_name']   = $tbl_store->store_name ?? 'N/A';
                 $nestedData['sale_person']  = !empty($sale_person) ? $sale_person->name : '';
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
                 $nestedData['ready_reminder_sms']  = $template->ready_reminder_sms;
+                $nestedData['is_cancelled']  = $isCancelled;
+                $nestedData['cancellation_reason']  = $template->cancellation_reason ?? '';
+                $nestedData['customer_name']  = $template->cust_name ?? '';
                 $data[]  = $nestedData;
             }
         }
@@ -2423,6 +2457,7 @@ class SalesController extends Controller
             ['name' => $setting['page_title']],
         ];
         //dd($this->view_route);
+        $setting['stores'] = Store::where('status', 1)->orderBy('store_name')->get();
         return view($this->view_route.'/sale-histroy',$setting);
     }
     
@@ -2438,10 +2473,15 @@ class SalesController extends Controller
         $date_to = $request->input('date_to');
         $search1 = $request->input('search1');
         $sale_person = $request->input('sale_person');
-        
+        $filter_store_id = $request->input('store_id');
+        $filter_store_id = $request->input('store_id');
+    
         if($store_id == '0')
         {
             $totalData = DB::table('tbl_sales')->where('sales_status', 1)->where('is_deleted', 0);
+            if (!empty($filter_store_id)) {
+                $totalData->where('store_id', $filter_store_id);
+            }
         }
         else
         {
@@ -2467,6 +2507,9 @@ class SalesController extends Controller
         if($store_id == '0')
         {
             $templates = DB::table('tbl_sales')->where('sales_status', 1)->where('is_deleted', 0);
+            if (!empty($filter_store_id)) {
+                $templates->where('store_id', $filter_store_id);
+            }
         }
         else
         {
@@ -2489,12 +2532,11 @@ class SalesController extends Controller
             ->orWhere('cust_name', 'like', '%' . $search1 . '%');
         }
 
-
         $tem = $tem1 = $templates;
         $templates = $tem->offset($start)
-        ->limit($limit)
-        ->orderBy('sale_id', 'DESC')
-        ->get();
+            ->limit($limit)
+            ->orderBy('sale_id', 'DESC')
+            ->get();
         $totalFiltered = $templates->count();
          
         $data = [];
@@ -2534,10 +2576,14 @@ class SalesController extends Controller
                                                   <BR><strong>Advance Paid : </strong>'.$template->pay_amount.'
                                                   <BR><strong>Balance Paid  : </strong>'.$template->pending_amount.'';
                 $nestedData['store_name']   = $tbl_store->store_name;
-                $nestedData['sale_person']  = $sale_person->name;
+                $nestedData['sale_person']  = $sale_person->name ?? 'N/A';
                 $nestedData['encryptedId']  = $encryptedId;
                 $nestedData['sales_type']   = $template->sales_type;
                 $nestedData['oid']  = $template->order_no;
+                $nestedData['inter_sale']  = $template->inter_sale ?? 0;
+                $nestedData['is_cancelled']  = ($template->order_status === 'cancelled') ? 1 : 0;
+                $nestedData['cancellation_reason']  = $template->cancellation_reason ?? '';
+                $nestedData['customer_name']  = $template->cust_name ?? '';
                 $data[]  = $nestedData;
             }
         }
@@ -4532,20 +4578,66 @@ class SalesController extends Controller
     {
         $oid = $request->oid;
 
-        $saleproduct = DB::table('tbl_sales_product')->where('order_no', $oid)
+        $order = DB::table('tbl_sales')->where('order_no', $oid)->first();
+        if (!$order) {
+            $order = DB::table('tbl_sales')->where('sale_id', $oid)->first();
+        }
+
+        $saleproduct = DB::table('tbl_sales_product')
+            ->where(function($q) use ($oid, $order) {
+                $q->where('order_no', $oid);
+                if ($order) {
+                    $q->orWhere('sale_id', $order->sale_id);
+                }
+            })
             ->orderBy('id', 'ASC')
             ->get();
 
         return response()->json([
+            'order' => $order ? [
+                'sale_id'             => $order->sale_id,
+                'order_no'            => $order->order_no,
+                'cust_name'           => $order->cust_name,
+                'contact_no'          => $order->contact_no,
+                'email_id'            => $order->email_id ?? '',
+                'order_status'        => $order->order_status,
+                'sales_status'        => $order->sales_status,
+                'cancellation_reason' => $order->cancellation_reason ?? '',
+                'total_item_price'    => $order->total_item_price,
+                'total_discount'      => $order->total_discount,
+                'total_payable'       => $order->total_payable,
+                'pay_amount'          => $order->pay_amount,
+                'pending_amount'      => $order->pending_amount,
+                'sale_date'           => $order->sale_date,
+                'created_at'          => $order->created_at,
+            ] : null,
             'data' => $saleproduct->map(function ($p) 
             {
                 return [
-                    'pid' => $p->id,
-                    'product_type' => $p->product_type,
-                    'product_code' => $p->product_code,
-                    'product_deatils' => $p->product_deatils,
-                    'purchase_price' => $p->purchase_price,
-                    'qty' => $p->qty,
+                    'pid'                 => $p->id,
+                    'product_type'        => $p->product_type,
+                    'product_code'        => $p->product_code,
+                    'product_deatils'     => $p->product_deatils,
+                    'purchase_price'      => $p->purchase_price,
+                    'sale_price'          => $p->sale_price ?? $p->base_price,
+                    'base_price'          => $p->base_price,
+                    'qty'                 => $p->qty,
+                    'item_status'         => $p->item_status,
+                    'cancellation_reason' => $p->cancellation_reason ?? '',
+                    'has_prescription'    => (!empty($p->GL_EYE_RS_D) || !empty($p->GL_EYE_LS_D) || !empty($p->prescription_file_url)),
+                    'rx' => [
+                        'r_sph'  => $p->GL_EYE_RS_D,
+                        'r_cyl'  => $p->GL_EYE_RC_D,
+                        'r_axis' => $p->GL_EYE_RA_D,
+                        'r_add'  => $p->GL_EYE_RADD,
+                        'l_sph'  => $p->GL_EYE_LS_D,
+                        'l_cyl'  => $p->GL_EYE_LC_D,
+                        'l_axis' => $p->GL_EYE_LA_D,
+                        'l_add'  => $p->GL_EYE_LADD,
+                        'total_pd' => $p->GL_EYE_totalPD,
+                        'file_url' => $p->prescription_file_url,
+                        'notes'    => $p->prescription_notes,
+                    ],
                 ];
             })
         ]);
@@ -5305,7 +5397,15 @@ class SalesController extends Controller
         $oid = $request->oid;
     
         $prescription = SaleProduct::where('order_no', $oid)
-            ->where('product_type', 'Glass')
+            ->where(function ($query) {
+                $query->where('product_type', 'Glass')
+                    ->orWhere('store_id', 6); 
+                })
+            ->where(function ($query) {
+                $query->where('GL_EYE_RS_D', '!=', null)
+                    ->orWhere('prescription_file_url', '!=', null); 
+                })    
+            
             ->orderBy('id', 'asc')
             ->get()
             ->unique(function ($item) {
@@ -5320,20 +5420,203 @@ class SalesController extends Controller
                        $item->product_deatils;
             })
             ->values();
-    
+
         return response()->json([
             'data' => $prescription
         ]);
+        
+        
     }
     
     
     public function prescriptionupdate(Request $request)
     {
-        
+        try {
+ 
+            $request->validate([
+                'pid' => 'required',
+                //'pid.*' => ['required', 'integer', 'exists:tbl_sales_product,id'],
+            // ]
+            ]);
+    
+            $pids = is_array($request->pid)
+                ? $request->pid
+                : [$request->pid];
+   
+            foreach ($pids as $index => $pid) {
+    
+                $product = SaleProduct::find($pid);
+    
+                if (!$product) {
+                    continue;
+                }
+    
+                $rules = [
+                    "GL_EYE_RS_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RC_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RA_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RP_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RV_D_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_RS_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RC_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RA_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RP_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_RV_N_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_RADD_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_totalPD_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_LS_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LC_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LA_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LP_D_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LV_D_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_LS_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LC_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LA_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LP_N_{$index}" => ['nullable', 'string', 'max:11'],
+                    "GL_EYE_LV_N_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    "GL_EYE_LADD_{$index}" => ['nullable', 'string', 'max:11'],
+    
+                    // Frame
+                    "frame_fh_{$index}" => ['nullable', 'string', 'max:11'],
+                    "frame_asize_{$index}" => ['nullable', 'string', 'max:50'],
+                    "frame_bsize_{$index}" => ['nullable', 'string', 'max:50'],
+                    "frame_dbl_{$index}" => ['nullable', 'string', 'max:11'],
+                    "frame_ed_{$index}" => ['nullable', 'string', 'max:11'],
+                    "frametypeglass_{$index}" => ['nullable', 'string', 'max:100'],
+    
+                    // Other
+                    "modal_rightleft_{$index}" => ['nullable'],
+                    "patient_name_{$index}" => ['nullable', 'string', 'max:100'],
+                    "doc_name_{$index}" => ['nullable', 'string', 'max:100'],
+                    "prescription_notes_{$index}" => ['nullable', 'string'],
+                    "count_eye_test_{$index}" => ['nullable', 'string', 'max:11'],
+                ];
+    
+                $messages = [];
+    
+                foreach ($rules as $field => $fieldRules) {
+                    $messages["{$field}.max"] =
+                        'Prescription value is too long. Maximum allowed is :max characters.';
+                }
+    
+                $validator = \Validator::make(
+                    $request->all(),
+                    $rules,
+                    $messages
+                );
+    
+                if ($validator->fails()) {
+    
+                    $errors = $validator->errors();
+    
+                    return redirect()
+                        ->back()
+                        ->withErrors($errors)
+                        ->withInput()
+                        ->with('error', 'Please correct the prescription values and try again.');
+                }
+    
+                $wearingType = $request->input("glassWearingType_{$index}", []);
+    
+                if (is_array($wearingType)) {
+                    $wearingType = implode(',', $wearingType);
+                }
+    
+                $rightLeft = $request->input("modal_rightleft_{$index}", []);
+    
+                if (is_array($rightLeft)) {
+                    $rightLeft = implode(',', $rightLeft);
+                }
+    
+                if ($rightLeft !== '' && $rightLeft !== null) {
+    
+                    $rightLeftValues = is_array($request->input("modal_rightleft_{$index}"))
+                        ? $request->input("modal_rightleft_{$index}")
+                        : [$rightLeft];
+    
+                    foreach ($rightLeftValues as $value) {
+    
+                        if (!in_array($value, ['Right', 'Left'], true)) {
+    
+                            return redirect()
+                                ->back()
+                                ->withInput()
+                                ->with(
+                                    'error',
+                                    'Invalid eye selection. Only Right or Left is allowed.'
+                                );
+                        }
+                    }
+                }
+    
+                $product->update([
+    
+                    // Right Eye
+                    'GL_EYE_RS_D' => $request->input("GL_EYE_RS_D_{$index}"),
+                    'GL_EYE_RC_D' => $request->input("GL_EYE_RC_D_{$index}"),
+                    'GL_EYE_RA_D' => $request->input("GL_EYE_RA_D_{$index}"),
+                    'GL_EYE_RP_D' => $request->input("GL_EYE_RP_D_{$index}"),
+                    'GL_EYE_RV_D' => $request->input("GL_EYE_RV_D_{$index}"),
+    
+                    'GL_EYE_RS_N' => $request->input("GL_EYE_RS_N_{$index}"),
+                    'GL_EYE_RC_N' => $request->input("GL_EYE_RC_N_{$index}"),
+                    'GL_EYE_RA_N' => $request->input("GL_EYE_RA_N_{$index}"),
+                    'GL_EYE_RP_N' => $request->input("GL_EYE_RP_N_{$index}"),
+                    'GL_EYE_RV_N' => $request->input("GL_EYE_RV_N_{$index}"),
+    
+                    'GL_EYE_RADD' => $request->input("GL_EYE_RADD_{$index}"),
+                    'GL_EYE_totalPD' => $request->input("GL_EYE_totalPD_{$index}"),
+    
+                    // Left Eye
+                    'GL_EYE_LS_D' => $request->input("GL_EYE_LS_D_{$index}"),
+                    'GL_EYE_LC_D' => $request->input("GL_EYE_LC_D_{$index}"),
+                    'GL_EYE_LA_D' => $request->input("GL_EYE_LA_D_{$index}"),
+                    'GL_EYE_LP_D' => $request->input("GL_EYE_LP_D_{$index}"),
+                    'GL_EYE_LV_D' => $request->input("GL_EYE_LV_D_{$index}"),
+    
+                    'GL_EYE_LS_N' => $request->input("GL_EYE_LS_N_{$index}"),
+                    'GL_EYE_LC_N' => $request->input("GL_EYE_LC_N_{$index}"),
+                    'GL_EYE_LA_N' => $request->input("GL_EYE_LA_N_{$index}"),
+                    'GL_EYE_LP_N' => $request->input("GL_EYE_LP_N_{$index}"),
+                    'GL_EYE_LV_N' => $request->input("GL_EYE_LV_N_{$index}"),
+    
+                    'GL_EYE_LADD' => $request->input("GL_EYE_LADD_{$index}"),
+    
+                    // Frame
+                    'frame_fh' => $request->input("frame_fh_{$index}"),
+                    'frame_asize' => $request->input("frame_asize_{$index}"),
+                    'frame_bsize' => $request->input("frame_bsize_{$index}"),
+                    'frame_dbl' => $request->input("frame_dbl_{$index}"),
+                    'frame_ed' => $request->input("frame_ed_{$index}"),
+                    'frametypeglass' => $request->input("frametypeglass_{$index}"),
+    
+                    // Other
+                    'right_left' => $rightLeft,
+                    'patient_name' => $request->input("patient_name_{$index}"),
+                    'doc_name' => $request->input("doc_name_{$index}"),
+                    'wearing_type' => $wearingType,
+                    'prescription_notes' => $request->input("prescription_notes_{$index}"),
+                    'count_eye_test' => $request->input("count_eye_test_{$index}"),
+                ]);
+            }
+    
+            return redirect()
+                ->back()
+                ->with('success', 'Prescription updated successfully.');
+    
+        } catch (\Exception $e) {
+    
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Unable to update prescription: ' . $e->getMessage());
+        }
     }
-    
-
-    
     
     
     public function interStoreSale()
@@ -9605,44 +9888,51 @@ class SalesController extends Controller
         return view($this->view_route.'/pending-courier',$setting);
     }
     
-    
-    
+  
     public function pendingCourierDatatable(Request $request)
     {
         $store_id = auth()->user()->store_id;
     
-        $limit = $request->input('length');
-        $start = $request->input('start');
+        $limit   = $request->input('length', 10);
+        $start   = $request->input('start', 0);
         $search1 = $request->input('search1');
-        $sid = $request->input('store_id');
+        $sid     = $request->input('store_id');
     
-        /*
-        |--------------------------------------------------------------------------
-        | Base Query with Join & Counts
-        |--------------------------------------------------------------------------
-        */
-        
         $ready = (int) config('constants.PRODUCT_READY');
-
-        $query = DB::table('tbl_sales as s')
-            ->join('tbl_sales_product as sp', 'sp.sale_id', '=', 's.sale_id')
+    
+        $productCounts = DB::table('tbl_sales_product as sp')
             ->select(
-                's.*',
+                'sp.sale_id',
                 DB::raw('COUNT(sp.id) as total_product'),
-                DB::raw("SUM(CASE WHEN sp.product_tracking = {$ready} THEN 1 ELSE 0 END) as total_product_ready"),
-                DB::raw('SUM(CASE WHEN sp.courier_status = 0 THEN 1 ELSE 0 END) as total_courier_status')
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN sp.product_tracking = {$ready}
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) as total_product_ready
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN sp.courier_status = 0
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) as total_courier_status
+                ")
             )
+            ->groupBy('sp.sale_id');
+    
+        $query = DB::table('tbl_sales as s')
+            ->joinSub($productCounts, 'pc', function ($join) {
+                $join->on('pc.sale_id', '=', 's.sale_id');
+            })
             ->where('s.sales_status', 1)
             ->where('s.is_deleted', 0)
-            ->groupBy('s.sale_id')
-            ->having('total_courier_status', '>', 0);
-
+            ->where('pc.total_courier_status', '>', 0);
     
-        /*
-        |--------------------------------------------------------------------------
-        | Store Filtering
-        |--------------------------------------------------------------------------
-        */
         if ($store_id != '0') {
             $query->where('s.store_id', $store_id);
         }
@@ -9651,90 +9941,83 @@ class SalesController extends Controller
             $query->where('s.store_id', $sid);
         }
     
-        /*
-        |--------------------------------------------------------------------------
-        | Search Filtering
-        |--------------------------------------------------------------------------
-        */
         if ($search1 != '') {
             $query->where(function ($q) use ($search1) {
-                $q->where('s.order_no', 'like', "%$search1%")
-                  ->orWhere('s.cust_id', 'like', "%$search1%")
-                  ->orWhere('s.contact_no', 'like', "%$search1%")
-                  ->orWhere('s.cust_name', 'like', "%$search1%");
-                  
+                $q->where('s.order_no', 'like', "%{$search1}%")
+                    ->orWhere('s.cust_id', 'like', "%{$search1}%")
+                    ->orWhere('s.contact_no', 'like', "%{$search1}%")
+                    ->orWhere('s.cust_name', 'like', "%{$search1}%");
             });
         }
     
-        /*
-        |--------------------------------------------------------------------------
-        | Total Records Count
-        |--------------------------------------------------------------------------
-        */
-        $totalData = (clone $query)->count();
+        $totalData = (clone $query)->count('s.sale_id');
     
-        /*
-        |--------------------------------------------------------------------------
-        | Pagination
-        |--------------------------------------------------------------------------
-        */
         $templates = $query
+            ->select(
+                's.*',
+                'pc.total_product',
+                'pc.total_product_ready',
+                'pc.total_courier_status'
+            )
             ->orderBy('s.sale_id', 'DESC')
             ->offset($start)
             ->limit($limit)
             ->get();
     
-        $totalFiltered = $templates->count();
-    
-        /*
-        |--------------------------------------------------------------------------
-        | Data Formatting
-        |--------------------------------------------------------------------------
-        */
         $data = [];
-        $i = 1;
+        $i = $start + 1;
     
         foreach ($templates as $template) {
     
             $tbl_store = Store::find($template->store_id);
     
+            $nestedData = [];
+    
             $nestedData['sr_no'] = $i++;
-            $nestedData['order_date'] = date('d M, Y h:i A', strtotime($template->sale_date));
-            $nestedData['delivery_date'] = date('d M, Y h:i A', strtotime($template->delivery_date));
+    
+            $nestedData['order_date'] = $template->sale_date
+                ? date('d M, Y h:i A', strtotime($template->sale_date))
+                : '';
+    
+            $nestedData['delivery_date'] = $template->delivery_date
+                ? date('d M, Y h:i A', strtotime($template->delivery_date))
+                : '';
     
             $nestedData['customer_details'] =
-                '<strong>Customer Name</strong>: '.$template->cust_name.
-                '<br><strong>Mobile No</strong>: '.$template->contact_no.
-                '<br><strong>Cust ID</strong>: '.$template->cust_id;
+                '<strong>Customer Name</strong>: ' . $template->cust_name .
+                '<br><strong>Mobile No</strong>: ' . $template->contact_no .
+                '<br><strong>Cust ID</strong>: ' . $template->cust_id;
     
             $nestedData['store_name'] = $tbl_store->store_name ?? '';
+    
             $nestedData['order_no'] = $template->order_no;
+    
             $nestedData['order_amount'] = $template->total_payable;
     
             $nestedData['total_product'] = $template->total_product;
-            $nestedData['total_product_ready'] = $template->total_product_ready;
-            $nestedData['total_courier_status'] = $template->total_courier_status;
     
-            $nestedData['encryptedId'] = base64_encode($template->sale_id);
+            $nestedData['total_product_ready'] =
+                $template->total_product_ready;
+    
+            $nestedData['total_courier_status'] =
+                $template->total_courier_status;
+    
+            $nestedData['encryptedId'] =
+                base64_encode($template->sale_id);
+    
             $nestedData['oid'] = $template->order_no;
     
             $data[] = $nestedData;
         }
     
-        /*
-        |--------------------------------------------------------------------------
-        | Datatable Response
-        |--------------------------------------------------------------------------
-        */
         return response()->json([
-            "draw"            => intval($request->input('draw')),
-            "recordsTotal"    => $totalData,
-            "recordsFiltered" => $totalFiltered,
-            "data"            => $data,
+            'draw'            => intval($request->input('draw')),
+            'recordsTotal'    => $totalData,
+            'recordsFiltered' => $totalData,
+            'data'            => $data,
         ]);
     }
-    
-    
+
     public function getpendingcourierproduct(Request $request)
     {
         $oid = $request->oid;
