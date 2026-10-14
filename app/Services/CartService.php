@@ -666,6 +666,9 @@ class CartService
             if (!empty($cartMembership['card_id'])) {
                 $membershipCard = DB::table('tbl_membership_card')->where('card_id', $cartMembership['card_id'])->first();
             }
+            if (!$membershipCard) {
+                $membershipCard = (object) $cartMembership;
+            }
         }
 
         // Check authenticated user's membership & customer profile (if logged in)
@@ -706,11 +709,9 @@ class CartService
             if (\Carbon\Carbon::parse($sessMembership['expiry'])->isFuture()) {
                 $membershipBogoEnabled = true;
                 $dbCard = DB::table('tbl_membership_card')->where('card_id', $sessMembership['card_id'])->first();
-                if ($dbCard) {
-                    $membershipCard = $dbCard;
-                    if (!empty($dbCard->coupon_percent)) {
-                        $membershipCouponPercent = max($membershipCouponPercent, (float) $dbCard->coupon_percent);
-                    }
+                $membershipCard = $dbCard ?: (object) $sessMembership;
+                if (!empty($membershipCard->coupon_percent)) {
+                    $membershipCouponPercent = max($membershipCouponPercent, (float) $membershipCard->coupon_percent);
                 }
             }
         }
@@ -960,7 +961,15 @@ class CartService
                     $couponDiscount = min($netFrameSubtotal, (float) $appliedCoupon['discount_amount']);
                 }
             } elseif ($membershipCouponPercent > 0) {
-                $couponDiscount = ($netFrameSubtotal * $membershipCouponPercent) / 100;
+                $couponMinOrder    = (float)($membershipCard->coupon_min_order_amount ?? 0);
+                $couponMaxDiscount = !empty($membershipCard->coupon_max_discount) ? (float)$membershipCard->coupon_max_discount : null;
+
+                if ($couponMinOrder <= 0 || $netFrameSubtotal >= $couponMinOrder) {
+                    $couponDiscount = ($netFrameSubtotal * $membershipCouponPercent) / 100;
+                    if ($couponMaxDiscount !== null && $couponMaxDiscount > 0) {
+                        $couponDiscount = min($couponDiscount, $couponMaxDiscount);
+                    }
+                }
             }
         }
 
@@ -1049,7 +1058,24 @@ class CartService
             ? (float) $autoLoyaltyConfig->order_use_loyalty
             : 100.0;
 
+        // If user has a membership card with loyalty_use_percent, use it
+        if ($membershipCard && isset($membershipCard->loyalty_use_percent) && (float)$membershipCard->loyalty_use_percent > 0) {
+            $adminCapPercent = (float) $membershipCard->loyalty_use_percent;
+        }
+
         $maxCapRupees = ($preliminaryTotal * $adminCapPercent) / 100.0;
+
+        // Membership card loyalty max discount capping (₹)
+        if ($membershipCard && !empty($membershipCard->loyalty_max_discount) && (float)$membershipCard->loyalty_max_discount > 0) {
+            $maxCapRupees = min($maxCapRupees, (float)$membershipCard->loyalty_max_discount);
+        }
+
+        // Membership card loyalty minimum order amount (₹)
+        if ($membershipCard && !empty($membershipCard->loyalty_min_order_amount) && (float)$membershipCard->loyalty_min_order_amount > 0) {
+            if ($preliminaryTotal < (float)$membershipCard->loyalty_min_order_amount) {
+                $maxCapRupees = 0;
+            }
+        }
 
         // Business Rule: Cap points redemption by:
         //  1. Admin-configured order_use_loyalty % of order total
@@ -1258,7 +1284,11 @@ class CartService
             'bogo_fallback_message'     => $bogoFallbackMessage,
             'has_membership_in_cart'    => $hasMembershipInCart,
             'membership_bogo_enabled'   => $membershipBogoEnabled,
-            'membership_coupon_percent' => $membershipCouponPercent,
+            'membership_coupon_percent'    => $membershipCouponPercent,
+            'membership_loyalty_min_order' => (float)($membershipCard->loyalty_min_order_amount ?? 0),
+            'membership_loyalty_max_cap'   => !empty($membershipCard->loyalty_max_discount) ? (float)$membershipCard->loyalty_max_discount : null,
+            'membership_coupon_min_order'  => (float)($membershipCard->coupon_min_order_amount ?? 0),
+            'membership_coupon_max_cap'    => !empty($membershipCard->coupon_max_discount) ? (float)$membershipCard->coupon_max_discount : null,
             'pending_cashback'          => $orderRewardPts,
             'cashback_percent'          => $cashbackPercent,
             'cashback_delay_days'       => $cashbackDelayDays,

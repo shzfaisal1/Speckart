@@ -15,7 +15,7 @@ input.loading {
 
 .tooltip-text {
     visibility: hidden;
-    background-color: #000;
+    background-color: #000000ff;
     color: #fff;
     text-align: center;
     padding: 6px 10px;
