@@ -1496,13 +1496,18 @@ class SettingMasterController extends Controller
     public function membershipcardAdd(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'card_name'        => 'required|string|max:255',
-            'price'            => 'required|string|max:100',
-            'validity_days'            => 'required|string|max:100',
-            'loyalty_earn_first'            => 'required|string|max:100',
-            'loyalty_earn_repeat'            => 'required|string|max:100',
-            'loyalty_use_percent'            => 'required|string|max:100',
-            'coupon_percent'            => 'required|string|max:100',
+            'card_name'                 => 'required|string|max:255',
+            'price'                     => 'required|numeric|min:0',
+            'validity_days'             => 'required|integer|min:1',
+            'loyalty_earn_first'        => 'required|numeric|min:0|max:100',
+            'loyalty_earn_repeat'       => 'required|numeric|min:0|max:100',
+            'loyalty_use_percent'       => 'required|numeric|min:0|max:100',
+            'loyalty_min_order_amount'  => 'nullable|numeric|min:0',
+            'loyalty_max_discount'      => 'nullable|numeric|min:0',
+            'coupon_percent'            => 'required|numeric|min:0|max:100',
+            'coupon_min_order_amount'   => 'nullable|numeric|min:0',
+            'coupon_max_discount'       => 'nullable|numeric|min:0',
+            'voucher_validity_days'     => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails())
@@ -1512,44 +1517,33 @@ class SettingMasterController extends Controller
             ]);
         }
         
+        $data = [
+            'card_name'                => $request->card_name,
+            'price'                    => $request->price,
+            'validity_days'            => $request->validity_days,
+            'loyalty_earn_first'       => $request->loyalty_earn_first,
+            'loyalty_earn_repeat'      => $request->loyalty_earn_repeat,
+            'loyalty_use_percent'      => $request->loyalty_use_percent,
+            'loyalty_min_order_amount' => $request->filled('loyalty_min_order_amount') ? $request->loyalty_min_order_amount : 0,
+            'loyalty_max_discount'     => $request->filled('loyalty_max_discount') ? $request->loyalty_max_discount : null,
+            'coupon_percent'           => $request->coupon_percent,
+            'coupon_min_order_amount'  => $request->filled('coupon_min_order_amount') ? $request->coupon_min_order_amount : 0,
+            'coupon_max_discount'      => $request->filled('coupon_max_discount') ? $request->coupon_max_discount : null,
+            'voucher_validity_days'    => $request->filled('voucher_validity_days') ? $request->voucher_validity_days : 0,
+            'updated_at'               => now(),
+        ];
         
         if ($request->card_id) {
-    
             DB::table('tbl_membership_card')
                 ->where('card_id', $request->card_id)
-                ->update([
-                    'card_name' => $request->card_name,
-                    'price' => $request->price,
-                    'validity_days' => $request->validity_days,
-                    'loyalty_earn_first' => $request->loyalty_earn_first,
-                    'loyalty_earn_repeat' => $request->loyalty_earn_repeat,
-                    'loyalty_use_percent' => $request->loyalty_use_percent,
-                    'coupon_percent' => $request->coupon_percent,
-                    'voucher_validity_days' => $request->voucher_validity_days,
-                    'updated_at'      => now()
-                ]);
-    
+                ->update($data);
         } else {
-    
-            DB::table('tbl_membership_card')->insert([
-                'card_name' => $request->card_name,
-                'price' => $request->price,
-                'validity_days' => $request->validity_days,
-                'loyalty_earn_first' => $request->loyalty_earn_first,
-                'loyalty_earn_repeat' => $request->loyalty_earn_repeat,
-                'loyalty_use_percent' => $request->loyalty_use_percent,
-                'coupon_percent' => $request->coupon_percent,
-                'voucher_validity_days' => $request->voucher_validity_days,
-                'added_by' => auth()->id(),
-                'created_at'      => now(),
-                'updated_at'      => now()
-            ]);
+            $data['added_by']   = auth()->id() ?? 1;
+            $data['created_at'] = now();
+            DB::table('tbl_membership_card')->insert($data);
         }
 
-   
-        
-
-        return response()->json(['success' => 'Card created successfully.']);
+        return response()->json(['success' => 'Card saved successfully.']);
     }
     
     
