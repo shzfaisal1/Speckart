@@ -1085,7 +1085,7 @@
     --}}
 
     <!-- 3. Live Orders Command Center -->
-    <div class="command-card">
+    <!-- <div class="command-card">
         <div class="command-header">
             <h3 class="command-title">
                 <i class="fa fa-bolt" style="color: #07484A;"></i> Live Orders Command Center
@@ -1177,7 +1177,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </div> -->
 
     <!-- ══════════════════════════════════════════════════════════════════════════
          4. INTERACTIVE VISUAL ANALYTICS SUITE (ApexCharts + Vanilla JS)
@@ -1185,7 +1185,7 @@
     
 
     <!-- CHART 1: Performance Combo Chart (Full Width) -->
-    <div class="chart-panel-card">
+   <!--  <div class="chart-panel-card">
         <div class="chart-header-flex">
             <div>
                 <h3 class="chart-main-title">
@@ -1194,9 +1194,9 @@
                 <p class="chart-subtitle">Order volume (Units) & collected revenue (₹) on dual Y-axes with dynamic multi-granularity aggregation</p>
             </div>
 
-            <!-- Filter Controls -->
+             Filter Controls
             <div class="filter-controls-wrap">
-                <!-- Granularity Chips -->
+               Granularity Chips 
                 <div class="chip-group" id="granularityGroup">
                     <button type="button" class="chip-btn active" data-gran="daily">Daily</button>
                     <button type="button" class="chip-btn" data-gran="monthly">Monthly</button>
@@ -1204,7 +1204,7 @@
                     <button type="button" class="chip-btn" data-gran="custom">Custom</button>
                 </div>
 
-                <!-- Year Dropdown (for Daily & Monthly) -->
+              Year Dropdown (for Daily & Monthly) 
                 <div id="yearSelectWrap">
                     <select id="trendYearSelect" class="select-sm-custom">
                         @foreach($availableYears ?? [date('Y')] as $yr)
@@ -1213,7 +1213,7 @@
                     </select>
                 </div>
 
-                <!-- Month Dropdown (for Daily only) -->
+                 Month Dropdown (for Daily only)
                 <div id="monthSelectWrap">
                     <select id="trendMonthSelect" class="select-sm-custom">
                         <option value="all">All Months</option>
@@ -1232,7 +1232,7 @@
                     </select>
                 </div>
 
-                <!-- Custom Range Inputs (for Custom only) -->
+                 Custom Range Inputs (for Custom only) 
                 <div id="customRangeWrap" style="display: none; align-items: center; gap: 6px;">
                     <input type="date" id="customDateFrom" class="input-date-sm" value="{{ $minDateStr ?? date('Y-01-01') }}" min="{{ $minDateStr ?? '2025-01-01' }}" max="{{ $maxDateStr ?? date('Y-m-d') }}">
                     <span style="font-size: 11px; color: #64748b;">to</span>
@@ -1240,14 +1240,14 @@
                 </div>
             </div>
         </div>
-
+ -->
         <!-- Inline Validation Error -->
-        <div id="customDateError" class="range-error-text">
+        <!-- <div id="customDateError" class="range-error-text">
             ⚠️ "From" date cannot be after "To" date. Please adjust your range.
-        </div>
+        </div> -->
 
         <!-- Summary Line -->
-        <div class="summary-metrics-strip" id="summaryStrip">
+        <!-- <div class="summary-metrics-strip" id="summaryStrip">
             <div class="summary-metric-item">
                 <i class="fa fa-shopping-cart" style="color: #0d5c56;"></i>
                 <span>Selected Orders:</span>
@@ -1265,17 +1265,17 @@
                 <span>Avg Order Value (AOV):</span>
                 <strong id="sumAOV">₹0</strong>
             </div>
-        </div>
+        </div> -->
 
         <!-- Anomaly Callout -->
-        <div class="anomaly-callout" id="anomalyCallout">
+        <!-- <div class="anomaly-callout" id="anomalyCallout">
             <i class="fa fa-info-circle"></i>
             <span id="anomalyText">Data health: Steady order velocity observed with peak revenue on weekends.</span>
-        </div>
+        </div> -->
 
         <!-- Combo Chart Container -->
-        <div id="performanceComboChart" style="min-height: 350px;"></div>
-    </div>
+        <!-- <div id="performanceComboChart" style="min-height: 350px;"></div>
+    </div> -->
     
      {{-- Date Filter --}}
     <!-- Multi-Filter & Search Bar -->
