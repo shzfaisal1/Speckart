@@ -13,7 +13,7 @@
       cursor: pointer;
     }
     .report-card:hover {
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 5px 15px rgba(226, 226, 226, 0.1);
       transform: translateY(-3px);
     }
     .report-card i {
