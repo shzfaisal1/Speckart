@@ -106,6 +106,108 @@ class CartController extends Controller
                     ], 400);
                 }
             }
+
+            // 3. Validate Prescription Powers against Lens Package Limits
+            if (!empty($prescriptionData)) {
+                $parsedRx = is_array($prescriptionData) ? $prescriptionData : json_decode($prescriptionData, true);
+                if (is_array($parsedRx) && (!isset($parsedRx['type']) || $parsedRx['type'] !== 'upload')) {
+                    $rSph = isset($parsedRx['GL_EYE_RS_D']) && $parsedRx['GL_EYE_RS_D'] !== '' && is_numeric($parsedRx['GL_EYE_RS_D']) ? (float)$parsedRx['GL_EYE_RS_D'] : null;
+                    $lSph = isset($parsedRx['GL_EYE_LS_D']) && $parsedRx['GL_EYE_LS_D'] !== '' && is_numeric($parsedRx['GL_EYE_LS_D']) ? (float)$parsedRx['GL_EYE_LS_D'] : null;
+                    $rCyl = isset($parsedRx['GL_EYE_RC_D']) && $parsedRx['GL_EYE_RC_D'] !== '' && is_numeric($parsedRx['GL_EYE_RC_D']) ? (float)$parsedRx['GL_EYE_RC_D'] : null;
+                    $lCyl = isset($parsedRx['GL_EYE_LC_D']) && $parsedRx['GL_EYE_LC_D'] !== '' && is_numeric($parsedRx['GL_EYE_LC_D']) ? (float)$parsedRx['GL_EYE_LC_D'] : null;
+                    $rAxis = isset($parsedRx['GL_EYE_RA_D']) && $parsedRx['GL_EYE_RA_D'] !== '' && is_numeric($parsedRx['GL_EYE_RA_D']) ? (int)$parsedRx['GL_EYE_RA_D'] : null;
+                    $lAxis = isset($parsedRx['GL_EYE_LA_D']) && $parsedRx['GL_EYE_LA_D'] !== '' && is_numeric($parsedRx['GL_EYE_LA_D']) ? (int)$parsedRx['GL_EYE_LA_D'] : null;
+
+                    $minSph = $lensPackage->min_sph !== null ? (float)$lensPackage->min_sph : null;
+                    $maxSph = $lensPackage->max_sph !== null ? (float)$lensPackage->max_sph : null;
+                    $minCyl = $lensPackage->min_cyl !== null ? (float)$lensPackage->min_cyl : null;
+                    $maxCyl = $lensPackage->max_cyl !== null ? (float)$lensPackage->max_cyl : null;
+                    $minAxis = $lensPackage->min_axis !== null ? (int)$lensPackage->min_axis : null;
+                    $maxAxis = $lensPackage->max_axis !== null ? (int)$lensPackage->max_axis : null;
+
+                    $fmt = fn($v) => ($v > 0 ? '+' : '') . number_format($v, 2);
+
+                    // SPH Validation
+                    $eyes = ['Right eye' => $rSph, 'Left eye' => $lSph];
+                    foreach ($eyes as $eyeName => $sph) {
+                        if ($sph !== null) {
+                            if ($minSph !== null && $sph < $minSph) {
+                                $rangeStr = ($minSph !== null && $maxSph !== null) ? "from {$fmt($minSph)} to {$fmt($maxSph)}" : "min {$fmt($minSph)}";
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "The selected package ({$lensPackage->name}) only supports SPH {$rangeStr}. Your {$eyeName} SPH ({$fmt($sph)}) exceeds this limit."
+                                ], 422);
+                            }
+                            if ($maxSph !== null && $sph > $maxSph) {
+                                $rangeStr = ($minSph !== null && $maxSph !== null) ? "from {$fmt($minSph)} to {$fmt($maxSph)}" : "max {$fmt($maxSph)}";
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "The selected package ({$lensPackage->name}) only supports SPH {$rangeStr}. Your {$eyeName} SPH ({$fmt($sph)}) exceeds this limit."
+                                ], 422);
+                            }
+                        }
+                    }
+
+                    // CYL Validation
+                    $cylEyes = ['Right eye' => $rCyl, 'Left eye' => $lCyl];
+                    foreach ($cylEyes as $eyeName => $cyl) {
+                        if ($cyl !== null && $cyl != 0) {
+                            if ($minCyl !== null && $cyl < $minCyl) {
+                                $rangeStr = ($minCyl !== null && $maxCyl !== null) ? "from {$fmt($minCyl)} to {$fmt($maxCyl)}" : "min {$fmt($minCyl)}";
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "The selected package ({$lensPackage->name}) only supports CYL {$rangeStr}. Your {$eyeName} CYL ({$fmt($cyl)}) exceeds this limit."
+                                ], 422);
+                            }
+                            if ($maxCyl !== null && $cyl > $maxCyl) {
+                                $rangeStr = ($minCyl !== null && $maxCyl !== null) ? "from {$fmt($minCyl)} to {$fmt($maxCyl)}" : "max {$fmt($maxCyl)}";
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "The selected package ({$lensPackage->name}) only supports CYL {$rangeStr}. Your {$eyeName} CYL ({$fmt($cyl)}) exceeds this limit."
+                                ], 422);
+                            }
+                        }
+                    }
+
+                    // Axis Validation (1 to 180 degrees, and package-specific axis constraints)
+                    $axisEyes = [
+                        'Right eye' => ['axis' => $rAxis, 'cyl' => $rCyl],
+                        'Left eye'  => ['axis' => $lAxis, 'cyl' => $lCyl],
+                    ];
+                    foreach ($axisEyes as $eyeName => $info) {
+                        $axis = $info['axis'];
+                        $cyl  = $info['cyl'];
+
+                        if ($axis !== null) {
+                            if ($axis < 1 || $axis > 180) {
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "Invalid {$eyeName} Axis ({$axis}°). Axis must be a whole number between 1° and 180°."
+                                ], 422);
+                            }
+                            if ($minAxis !== null && $axis < $minAxis) {
+                                $rangeStr = ($minAxis !== null && $maxAxis !== null) ? "from {$minAxis}° to {$maxAxis}°" : "min {$minAxis}°";
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "The selected package ({$lensPackage->name}) only supports Axis {$rangeStr}. Your {$eyeName} Axis ({$axis}°) exceeds this limit."
+                                ], 422);
+                            }
+                            if ($maxAxis !== null && $axis > $maxAxis) {
+                                $rangeStr = ($minAxis !== null && $maxAxis !== null) ? "from {$minAxis}° to {$maxAxis}°" : "max {$maxAxis}°";
+                                return response()->json([
+                                    'status'  => false,
+                                    'message' => "The selected package ({$lensPackage->name}) only supports Axis {$rangeStr}. Your {$eyeName} Axis ({$axis}°) exceeds this limit."
+                                ], 422);
+                            }
+                        } elseif ($cyl !== null && $cyl != 0) {
+                            return response()->json([
+                                'status'  => false,
+                                'message' => "{$eyeName} Axis is required when CYL power is specified."
+                            ], 422);
+                        }
+                    }
+                }
+            }
         }
 
         if ($request->hasFile('prescription_file')) {

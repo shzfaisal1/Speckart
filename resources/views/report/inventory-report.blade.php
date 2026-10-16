@@ -121,7 +121,7 @@
                 </div> 
                 
                 
-                @if($usr->roles[0]->name == 'Admin')
+                @if($usr->roles[0]->name == ' ')
                 <div class="col-lg-3">
                      <div class="form-group">
                         <select class="form-control select" style="height: 32px !important;" id="store_id" name="store_id">

@@ -45,12 +45,17 @@ class LensPackageController extends Controller
                     ? '<small class="text-muted d-block" style="font-size:11px;">' . e($row->powerTypes->pluck('description')->implode(', ')) . '</small>'
                     : '';
 
+                $powerRangeBadge = $row->power_range_text
+                    ? '<small class="text-primary d-block mt-1" style="font-size:11px; font-weight:600;"><i class="fa fa-sliders me-1"></i>' . e($row->power_range_text) . '</small>'
+                    : '';
+
                 return '
                     <div class="d-flex align-items-center" style="gap: 10px;">
                         <img src="' . $imgUrl . '" alt="' . e($row->name) . '" class="rounded border" style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0; background: #f8f9fa;">
                         <div>
                             <strong class="text-dark d-block" style="font-size:13px;">' . e($row->name) . '</strong>
                             ' . $powerTypesText . '
+                            ' . $powerRangeBadge . '
                         </div>
                     </div>';
             })
@@ -59,7 +64,9 @@ class LensPackageController extends Controller
                     return '<span class="badge badge-light border text-dark" style="font-family:monospace; font-size:11px; font-weight:600; padding:4px 8px; letter-spacing:0.5px;">' . e($row->product_code) . '
                             </span>';
                 }
-                return '<span class="text-muted" style="font-size:11px;">—</span>';
+                return '<button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 btn-generate-table" data-id="' . $row->id . '" data-name="' . e($row->name) . '" style="font-size:11px; border-radius:4px; font-weight:600;" title="Auto-generate physical product in product master">
+                            <i class="fa fa-magic me-1"></i>Generate Product
+                        </button>';
             })
             ->addColumn('price', function ($row) {
                 $current  = '₹' . number_format($row->current_price, 2);
@@ -145,19 +152,38 @@ class LensPackageController extends Controller
             'current_price'     => 'required|numeric|min:0',
             'original_price'    => 'nullable|numeric|min:0',
             'warranty_months'   => 'nullable|integer|min:0',
+            'min_sph'           => 'nullable|numeric|between:-25,25',
+            'max_sph'           => 'nullable|numeric|between:-25,25',
+            'min_cyl'           => 'nullable|numeric|between:-15,15',
+            'max_cyl'           => 'nullable|numeric|between:-15,15',
+            'min_axis'          => 'nullable|integer|between:1,180',
+            'max_axis'          => 'nullable|integer|between:1,180',
             'is_free_lens'      => 'nullable|boolean',
             'package_type'      => 'nullable|string|in:frame_and_lens,free_lens,free_frame,lens_only,frame_only',
             'is_active'         => 'nullable|boolean',
             'sort_order'        => 'nullable|integer|min:0',
         ]);
 
-        $validated['product_code']    = $request->filled('product_code') ? trim($request->input('product_code')) : null;
+        $validated['product_code']    = $request->filled('product_code') 
+            ? trim($request->input('product_code')) 
+            : $this->makeUniqueProductCode(
+                $request->input('name', ''),
+                $request->input('company', ''),
+                $request->input('lens_index', ''),
+                $request->input('coating', '')
+            );
         $validated['company']         = $request->filled('company') ? trim($request->input('company')) : null;
         $validated['quality']         = $request->filled('quality') ? trim($request->input('quality')) : null;
         $validated['lens_index']      = $request->filled('lens_index') ? trim($request->input('lens_index')) : null;
         $validated['coating']         = $request->filled('coating') ? trim($request->input('coating')) : null;
         $validated['material']        = $request->filled('material') ? trim($request->input('material')) : null;
         $validated['design']          = $request->filled('design') ? trim($request->input('design')) : null;
+        $validated['min_sph']         = $request->filled('min_sph') ? (float)$request->input('min_sph') : null;
+        $validated['max_sph']         = $request->filled('max_sph') ? (float)$request->input('max_sph') : null;
+        $validated['min_cyl']         = $request->filled('min_cyl') ? (float)$request->input('min_cyl') : null;
+        $validated['max_cyl']         = $request->filled('max_cyl') ? (float)$request->input('max_cyl') : null;
+        $validated['min_axis']        = $request->filled('min_axis') ? (int)$request->input('min_axis') : null;
+        $validated['max_axis']        = $request->filled('max_axis') ? (int)$request->input('max_axis') : null;
         $validated['purchase_price']  = $request->filled('purchase_price') ? (float)$request->input('purchase_price') : 0;
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
@@ -256,6 +282,12 @@ class LensPackageController extends Controller
             'current_price'     => 'required|numeric|min:0',
             'original_price'    => 'nullable|numeric|min:0',
             'warranty_months'   => 'nullable|integer|min:0',
+            'min_sph'           => 'nullable|numeric|between:-25,25',
+            'max_sph'           => 'nullable|numeric|between:-25,25',
+            'min_cyl'           => 'nullable|numeric|between:-15,15',
+            'max_cyl'           => 'nullable|numeric|between:-15,15',
+            'min_axis'          => 'nullable|integer|between:1,180',
+            'max_axis'          => 'nullable|integer|between:1,180',
             'is_free_lens'      => 'nullable|boolean',
             'package_type'      => 'nullable|string|in:frame_and_lens,free_lens,free_frame,lens_only,frame_only',
             'is_active'         => 'nullable|boolean',
@@ -269,6 +301,12 @@ class LensPackageController extends Controller
         $validated['coating']         = $request->filled('coating') ? trim($request->input('coating')) : null;
         $validated['material']        = $request->filled('material') ? trim($request->input('material')) : null;
         $validated['design']          = $request->filled('design') ? trim($request->input('design')) : null;
+        $validated['min_sph']         = $request->filled('min_sph') ? (float)$request->input('min_sph') : null;
+        $validated['max_sph']         = $request->filled('max_sph') ? (float)$request->input('max_sph') : null;
+        $validated['min_cyl']         = $request->filled('min_cyl') ? (float)$request->input('min_cyl') : null;
+        $validated['max_cyl']         = $request->filled('max_cyl') ? (float)$request->input('max_cyl') : null;
+        $validated['min_axis']        = $request->filled('min_axis') ? (int)$request->input('min_axis') : null;
+        $validated['max_axis']        = $request->filled('max_axis') ? (int)$request->input('max_axis') : null;
         $validated['purchase_price']  = $request->filled('purchase_price') ? (float)$request->input('purchase_price') : 0;
         $validated['is_active']       = $request->boolean('is_active', false);
         $validated['package_type']    = $request->input('package_type', 'frame_and_lens');
@@ -537,5 +575,101 @@ class LensPackageController extends Controller
                 'updated_at'               => now(),
             ]);
         }
+    }
+
+    /**
+     * AJAX endpoint to auto-generate a unique Product Code / SKU.
+     */
+    public function generateProductCode(Request $request)
+    {
+        $code = $this->makeUniqueProductCode(
+            $request->input('name', ''),
+            $request->input('company', ''),
+            $request->input('lens_index', ''),
+            $request->input('coating', '')
+        );
+
+        return response()->json([
+            'success'      => true,
+            'product_code' => $code,
+        ]);
+    }
+
+    /**
+     * One-click generation of product code and sync with physical product master.
+     */
+    public function generateProductForPackage($id)
+    {
+        $package = LensPackage::findOrFail($id);
+
+        if (empty($package->product_code)) {
+            $package->product_code = $this->makeUniqueProductCode(
+                $package->name,
+                $package->company,
+                $package->lens_index,
+                $package->coating
+            );
+            $package->save();
+        }
+
+        $this->syncWithProductMaster($package);
+
+        return response()->json([
+            'success'      => true,
+            'message'      => 'Physical ERP Product successfully generated for <strong>' . e($package->name) . '</strong> (Code: <code>' . e($package->product_code) . '</code>).',
+            'product_code' => $package->product_code,
+        ]);
+    }
+
+    /**
+     * Generate a unique SKU / Product Code for Lens Packages.
+     */
+    public function makeUniqueProductCode(?string $name = '', ?string $company = '', ?string $index = '', ?string $coating = ''): string
+    {
+        $parts = ['GLS'];
+
+        if (!empty($company)) {
+            $compClean = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $company));
+            if (strlen($compClean) >= 2) {
+                $parts[] = substr($compClean, 0, 3);
+            }
+        } elseif (!empty($coating)) {
+            $coatClean = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $coating));
+            if (strlen($coatClean) >= 2) {
+                $parts[] = substr($coatClean, 0, 3);
+            }
+        } elseif (!empty($name)) {
+            $nameClean = strtoupper(preg_replace('/[^A-Z0-9]/i', '', $name));
+            if (strlen($nameClean) >= 2) {
+                $parts[] = substr($nameClean, 0, 3);
+            }
+        }
+
+        if (!empty($index)) {
+            $idxClean = preg_replace('/[^0-9]/', '', $index);
+            if (strlen($idxClean) >= 2) {
+                $parts[] = substr($idxClean, 0, 3);
+            }
+        }
+
+        $basePrefix = implode('-', $parts);
+
+        $attempts = 0;
+        do {
+            $rand = random_int(100, 9999);
+            $code = $basePrefix . '-' . sprintf('%03d', $rand);
+
+            $existsInProducts = DB::table('tbl_product_code')
+                ->where('product_code', $code)
+                ->exists();
+            $existsInPackages = DB::table('lens_packages')
+                ->where('product_code', $code)
+                ->exists();
+
+            $exists = $existsInProducts || $existsInPackages;
+            $attempts++;
+        } while ($exists && $attempts < 100);
+
+        return $code;
     }
 }

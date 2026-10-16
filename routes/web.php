@@ -434,6 +434,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
      ->group(function () {
          Route::get('/',              'index')        ->name('index');
          Route::get('/data',          'data')         ->name('data');
+         Route::get('/generate-code', 'generateProductCode')->name('generate-code');
+         Route::post('/{id}/generate-product', 'generateProductForPackage')->name('generate-product');
          Route::post('/',             'store')        ->name('store');
          Route::get('/{id}/edit',     'edit')         ->name('edit');
          Route::put('/{id}',          'update')       ->name('update');

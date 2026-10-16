@@ -2121,6 +2121,14 @@
                                 @endphp
                                 <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white {{ ($isLensOutOfStock || $isFrameOutOfStock) ? 'lens-package-out-of-stock' : '' }}"
                                     data-package-id="{{ $package->id }}"
+                                    data-package-name="{{ $package->name }}"
+                                    data-min-sph="{{ $package->min_sph !== null ? $package->min_sph : '' }}"
+                                    data-max-sph="{{ $package->max_sph !== null ? $package->max_sph : '' }}"
+                                    data-min-cyl="{{ $package->min_cyl !== null ? $package->min_cyl : '' }}"
+                                    data-max-cyl="{{ $package->max_cyl !== null ? $package->max_cyl : '' }}"
+                                    data-min-axis="{{ $package->min_axis !== null ? $package->min_axis : '' }}"
+                                    data-max-axis="{{ $package->max_axis !== null ? $package->max_axis : '' }}"
+                                    data-power-range-text="{{ $package->power_range_text ?? '' }}"
                                     data-tags="{{ $tagSlugs }}"
                                     data-power-types="{{ $powerTypeIds }}"
                                     data-stock="{{ $lensStock }}"
@@ -2216,6 +2224,13 @@
                                                     </li>
                                                     @endforeach
                                                 </ul>
+                                                @if($package->has_power_limits)
+                                                <div class="mt-1 mb-2">
+                                                    <span class="badge border bg-light text-primary py-1 px-2" style="font-size: 11px; font-weight: 600; border-radius: 4px; letter-spacing: 0.2px;">
+                                                        <i class="fa fa-sliders me-1"></i>{{ $package->power_range_text }}
+                                                    </span>
+                                                </div>
+                                                @endif
                                                 <span class="view-details text-decoration-none fw-semibold" style="color: #00b9b9; cursor: pointer; font-size: 13px;" data-id="{{ $package->id }}"
                                                     data-name="{{ $package->name }}"
                                                     data-price="₹{{ number_format($combinedPrice, 0) }}"
@@ -2375,7 +2390,7 @@
                             <div class="prescription-card p-3 p-md-4">
 
                                 <!-- Top Bar (Same power checkbox + Quick Upload Switch) -->
-                                <div class="lenskart-rx-checkboxes mb-4 text-start d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2 border-bottom">
+                                <div class="lenskart-rx-checkboxes mb-3 text-start d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2 border-bottom">
                                     <div class="form-check custom-lenskart-check mb-0">
                                         <input class="form-check-input" type="checkbox" id="rx_same_power">
                                         <label class="form-check-label fw-semibold" for="rx_same_power" style="color: #1e293b; font-size: 14px; cursor: pointer;">
@@ -2387,6 +2402,17 @@
                                             <i class="bi bi-cloud-arrow-up me-1"></i> Upload Prescription Image Instead
                                         </button>
                                     </div>
+                                </div>
+
+                                <!-- Package Power Limits Notice Banner -->
+                                <div id="rx_package_limits_banner" class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-xs" style="display:none; font-size:12.5px; background:#f0fdfa; border:1.5px solid #99f6e4; color:#0f766e; border-radius:8px;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-check me-2 fs-6"></i>
+                                        <span><strong><span id="rx_package_name_label">Package</span></strong> supported range: <span id="rx_package_range_label" class="fw-bold"></span></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link p-0 text-decoration-underline fw-semibold" style="font-size:12px; color:#0d9488;" onclick="showLensStep(3)">
+                                        <i class="bi bi-arrow-left me-1"></i>Change Package
+                                    </button>
                                 </div>
 
                                 <!-- Lenskart 3-Column Grid (Power | Right | Left) -->
@@ -2595,6 +2621,12 @@
                                     </p>
                                 </div> -->
 
+                                <!-- Upload Package Power Advisory Banner -->
+                                <div id="upload_package_notice" class="alert alert-light border py-2 px-3 mb-3 d-flex align-items-center" style="display:none; font-size:12.5px; color:#475569; border-radius:8px; background:#f8fafc;">
+                                    <i class="bi bi-info-circle-fill text-primary me-2 fs-6"></i>
+                                    <span id="upload_package_notice_text"></span>
+                                </div>
+
                                 <div class="upload-area">
                                     <input
                                         class="form-control upload-input"
@@ -2800,6 +2832,14 @@
         let selectedPowerTypeId = null;
         let selectedLensPackageId = null;
         let isFreeLens = false;
+        let selectedPackageName = '';
+        let selectedPackageMinSph = null;
+        let selectedPackageMaxSph = null;
+        let selectedPackageMinCyl = null;
+        let selectedPackageMaxCyl = null;
+        let selectedPackageMinAxis = null;
+        let selectedPackageMaxAxis = null;
+        let selectedPackagePowerText = '';
 
         function updateVariantDetails() {
             // Find active variants matching selected color
@@ -3344,6 +3384,23 @@
             return val;
         }
 
+        function formatPowerVal(v) {
+            if (v === null || v === undefined) return '';
+            let n = Number(v);
+            return (n > 0 ? '+' : '') + n.toFixed(2);
+        }
+
+        function formatPowerRangeStr(min, max) {
+            if (min !== null && max !== null) {
+                return `${formatPowerVal(min)} to ${formatPowerVal(max)}`;
+            } else if (min !== null) {
+                return `min ${formatPowerVal(min)}`;
+            } else if (max !== null) {
+                return `max ${formatPowerVal(max)}`;
+            }
+            return '';
+        }
+
         function validateRxField(fieldId) {
             const $field = $('#' + fieldId);
             if (!$field.length) return true;
@@ -3356,32 +3413,70 @@
 
             const val = $field.val().trim();
 
-            // ── SPH (-20 to +20) ── (Mandatory)
+            // ── SPH ── (Mandatory)
             if (fieldId === 'rx_right_sph' || fieldId === 'rx_left_sph') {
                 if (val === '') {
-                    setRxError(fieldId, 'Enter a number between -20 and 20');
+                    setRxError(fieldId, 'Enter a number between -25 and 25');
                     return false;
                 }
                 let num = Number(val);
-                if (isNaN(num) || num < -20 || num > 20) {
-                    setRxError(fieldId, 'Enter a number between -20 and 20');
+                if (isNaN(num)) {
+                    setRxError(fieldId, 'Enter a valid number between -25 and 25');
                     return false;
                 }
+
+                // Check Selected Lens Package SPH constraints FIRST
+                if (selectedPackageMinSph !== null && num < selectedPackageMinSph) {
+                    let rangeStr = formatPowerRangeStr(selectedPackageMinSph, selectedPackageMaxSph);
+                    setRxError(fieldId, `${selectedPackageName || 'This package'} only supports SPH from ${rangeStr}`);
+                    return false;
+                }
+                if (selectedPackageMaxSph !== null && num > selectedPackageMaxSph) {
+                    let rangeStr = formatPowerRangeStr(selectedPackageMinSph, selectedPackageMaxSph);
+                    setRxError(fieldId, `${selectedPackageName || 'This package'} only supports SPH from ${rangeStr}`);
+                    return false;
+                }
+
+                // General optical boundary fallback (-25 to +25)
+                if (num < -25 || num > 25) {
+                    setRxError(fieldId, 'Enter a number between -25 and 25');
+                    return false;
+                }
+
                 clearRxError(fieldId);
                 return true;
             }
 
-            // ── CYL (-10 to +10) ── (Optional; but if entered must be between -10 and 10)
+            // ── CYL ── (Optional; but if entered must be within limits)
             if (fieldId === 'rx_right_cyl' || fieldId === 'rx_left_cyl') {
                 if (val === '' || val === '0' || val === '0.00' || val === '+0.00' || val === '-0.00') {
                     clearRxError(fieldId);
                     return true;
                 }
                 let num = Number(val);
-                if (isNaN(num) || num < -10 || num > 10) {
-                    setRxError(fieldId, 'Enter a number between -10 and 10');
+                if (isNaN(num)) {
+                    setRxError(fieldId, 'Enter a valid number between -15 and 15');
                     return false;
                 }
+
+                // Check Selected Lens Package CYL constraints FIRST
+                if (selectedPackageMinCyl !== null && num < selectedPackageMinCyl) {
+                    let rangeStr = formatPowerRangeStr(selectedPackageMinCyl, selectedPackageMaxCyl);
+                    setRxError(fieldId, `${selectedPackageName || 'This package'} only supports CYL from ${rangeStr}`);
+                    return false;
+                }
+                if (selectedPackageMaxCyl !== null && num > selectedPackageMaxCyl) {
+                    let rangeStr = formatPowerRangeStr(selectedPackageMinCyl, selectedPackageMaxCyl);
+                    setRxError(fieldId, `${selectedPackageName || 'This package'} only supports CYL from ${rangeStr}`);
+                    return false;
+                }
+
+                // General optical boundary fallback (-15 to +15)
+                if (num < -15 || num > 15) {
+                    setRxError(fieldId, 'Enter a number between -15 and 15');
+                    return false;
+                }
+
                 clearRxError(fieldId);
                 return true;
             }
@@ -3408,10 +3503,31 @@
                 }
 
                 let num = parseInt(val, 10);
-                if (isNaN(num) || !/^\d+$/.test(val) || num < 1 || num > 180) {
+                if (isNaN(num) || !/^\d+$/.test(val)) {
                     setRxError(fieldId, 'Enter a whole number between 1 and 180');
                     return false;
                 }
+
+                // Check Selected Lens Package Axis constraints FIRST
+                if (selectedPackageMinAxis !== null && num < selectedPackageMinAxis) {
+                    let minA = selectedPackageMinAxis;
+                    let maxA = selectedPackageMaxAxis !== null ? selectedPackageMaxAxis : 180;
+                    setRxError(fieldId, `${selectedPackageName || 'This package'} only supports Axis from ${minA}° to ${maxA}°`);
+                    return false;
+                }
+                if (selectedPackageMaxAxis !== null && num > selectedPackageMaxAxis) {
+                    let minA = selectedPackageMinAxis !== null ? selectedPackageMinAxis : 1;
+                    let maxA = selectedPackageMaxAxis;
+                    setRxError(fieldId, `${selectedPackageName || 'This package'} only supports Axis from ${minA}° to ${maxA}°`);
+                    return false;
+                }
+
+                // General optical boundary fallback (1 to 180)
+                if (num < 1 || num > 180) {
+                    setRxError(fieldId, 'Enter a whole number between 1 and 180');
+                    return false;
+                }
+
                 clearRxError(fieldId);
                 return true;
             }
@@ -3707,7 +3823,51 @@
             selectedLensPackageId = packageId;
             isFreeLens = freeLensFlag;
 
-            console.log('Selected Package ID:', selectedLensPackageId, 'Type:', selectedLensType);
+            // Extract power limits from the selected lens package card
+            selectedPackageName = card.data('package-name') || card.find('h5').first().text().trim() || 'Selected Package';
+            const rawMinSph = card.data('min-sph');
+            const rawMaxSph = card.data('max-sph');
+            const rawMinCyl = card.data('min-cyl');
+            const rawMaxCyl = card.data('max-cyl');
+            const rawMinAxis = card.data('min-axis');
+            const rawMaxAxis = card.data('max-axis');
+
+            selectedPackageMinSph = (rawMinSph !== '' && rawMinSph !== undefined && !isNaN(Number(rawMinSph))) ? parseFloat(rawMinSph) : null;
+            selectedPackageMaxSph = (rawMaxSph !== '' && rawMaxSph !== undefined && !isNaN(Number(rawMaxSph))) ? parseFloat(rawMaxSph) : null;
+            selectedPackageMinCyl = (rawMinCyl !== '' && rawMinCyl !== undefined && !isNaN(Number(rawMinCyl))) ? parseFloat(rawMinCyl) : null;
+            selectedPackageMaxCyl = (rawMaxCyl !== '' && rawMaxCyl !== undefined && !isNaN(Number(rawMaxCyl))) ? parseFloat(rawMaxCyl) : null;
+            selectedPackageMinAxis = (rawMinAxis !== '' && rawMinAxis !== undefined && !isNaN(Number(rawMinAxis))) ? parseInt(rawMinAxis, 10) : null;
+            selectedPackageMaxAxis = (rawMaxAxis !== '' && rawMaxAxis !== undefined && !isNaN(Number(rawMaxAxis))) ? parseInt(rawMaxAxis, 10) : null;
+            selectedPackagePowerText = card.data('power-range-text') || '';
+
+            // Update prescription modal limits banner in Step 4
+            if (selectedPackagePowerText) {
+                $('#rx_package_limits_banner').show();
+                $('#rx_package_name_label').text(selectedPackageName);
+                $('#rx_package_range_label').text(selectedPackagePowerText);
+
+                $('#upload_package_notice').show();
+                $('#upload_package_notice_text').text(`This package (${selectedPackageName}) supports ${selectedPackagePowerText}. If your prescription requires higher power, our team will assist you in upgrading.`);
+            } else {
+                $('#rx_package_limits_banner').hide();
+                $('#upload_package_notice').hide();
+            }
+
+            // Re-validate fields if values are already entered
+            ['rx_right_sph', 'rx_left_sph', 'rx_right_cyl', 'rx_left_cyl', 'rx_right_axis', 'rx_left_axis'].forEach(function(fieldId) {
+                if ($('#' + fieldId).val().trim() !== '') {
+                    validateRxField(fieldId);
+                }
+            });
+
+            console.log('Selected Package ID:', selectedLensPackageId, 'Type:', selectedLensType, 'Limits:', {
+                minSph: selectedPackageMinSph,
+                maxSph: selectedPackageMaxSph,
+                minCyl: selectedPackageMinCyl,
+                maxCyl: selectedPackageMaxCyl,
+                minAxis: selectedPackageMinAxis,
+                maxAxis: selectedPackageMaxAxis
+            });
 
             // Conditionally show ADD row if Bifocal or Progressive
             if (selectedLensType && (selectedLensType.toLowerCase().includes('progressive') || selectedLensType.toLowerCase().includes('bifocal'))) {

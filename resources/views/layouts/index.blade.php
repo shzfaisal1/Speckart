@@ -1012,7 +1012,7 @@
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'pending']) }}" class="dash-kpi-card">
             <div>
                 <div class="dash-kpi-title">Pending Orders</div>
-                <div class="dash-kpi-val" style="color: {{ ($kpis['pending_orders'] ?? 0) > 0 ? '#d97706' : '#0f172a' }};">
+                <div class="dash-kpi-val" style="color: {{ ($kpis['pending_orders'] ?? 0) > 0 ? '#88964c5b' : '#0f172a' }};">
                     {{ $kpis['pending_orders'] ?? 0 }}
                 </div>
                 <div class="dash-kpi-sub">Awaiting Processing</div>
@@ -1048,7 +1048,7 @@
         <a href="{{ route('admin.b2c-orders.index', ['order_status' => 'returned']) }}" class="dash-kpi-card">
             <div>
                 <div class="dash-kpi-title">Returns / RTO</div>
-                <div class="dash-kpi-val" style="color: {{ ($kpis['returns_count'] ?? 0) > 0 ? '#9333ea' : '#0f172a' }};">
+                <div class="dash-kpi-val" style="color: {{ ($kpis['returns_count'] ?? 0) > 0 ? '#679e9704' : '#0f172a' }};">
                     {{ $kpis['returns_count'] ?? 0 }}
                 </div>
                 <div class="dash-kpi-sub">Reverse Logistics</div>
@@ -1122,7 +1122,7 @@
                             <div style="font-weight: 500; color: #1e293b;">
                                 {{ $order->items->first()->product_name ?? 'Eyewear Frame' }}
                                 @if($order->items->count() > 1)
-                                <span style="font-size: 10.5px; color: #0284c7; font-weight: 600;">+{{ $order->items->count() - 1 }} more</span>
+                                <span style="font-size: 10.5px; color: #c78202ff; font-weight: 600;">+{{ $order->items->count() - 1 }} more</span>
                                 @endif
                             </div>
                             <div style="font-size: 11px; color: #64748b;">
