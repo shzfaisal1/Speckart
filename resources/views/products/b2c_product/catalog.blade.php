@@ -98,7 +98,7 @@
 }
 .qv-badge {
     background: #e0e7ff;
-    color: #3730a3;
+    color: #2213f0;
     font-size: 0.72rem;
     font-weight: 600;
     padding: 2px 7px;
@@ -117,7 +117,7 @@
 }
 .qv-variant-box:hover {
     border-color: #c7d2fe;
-    box-shadow: 0 4px 14px rgba(79,70,229,0.08);
+    box-shadow: 0 4px 14px rgba(25, 14, 241, 0.08);
 }
 .qv-thumb {
     width: 110px;

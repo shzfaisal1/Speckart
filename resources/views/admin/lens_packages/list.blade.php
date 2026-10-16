@@ -65,19 +65,33 @@
 
                     {{-- Row 1: Package Name + Package Mode (side by side) --}}
                     <div class="row">
-                           <div class="col-md-3">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label class="form-label fw-medium">
-                                 Product Code
-                                </label>
-                                <input type="text" class="form-control text-uppercase" id="pkg_product_code" name="product_code"
-                                       placeholder="e.g. GLS-BLU-156">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label fw-medium mb-0">
+                                        Product Code
+                                    </label>
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" id="btn_generate_product_code"
+                                            style="font-size:11px; height:22px; line-height:20px; font-weight:600; border-radius:4px;"
+                                            title="Click to automatically generate a unique product code / SKU">
+                                        <i class="fa fa-magic me-1"></i> Auto Generate
+                                    </button>
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" class="form-control text-uppercase font-monospace" id="pkg_product_code" name="product_code"
+                                           placeholder="e.g. GLS-BLU-156">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" id="btn_generate_product_code_addon" title="Generate New Unique Code">
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <small class="text-muted" style="font-size:11px; margin-top:4px; display:block;">
-                                    Lens SKU for inventory
+                                    <i class="fa fa-cube text-primary me-1"></i> Auto-syncs with Glass Product Master
                                 </small>
                             </div>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label fw-medium">
                                     Package Name <span class="text-danger">*</span>
@@ -209,6 +223,86 @@
                         <label class="form-label fw-medium">Short Description</label>
                         <textarea class="form-control" id="pkg_description" name="short_description"
                                   rows="2" placeholder="e.g. Advanced blue light filtration with anti-glare double coating..."></textarea>
+                    </div>
+
+                    {{-- Row 3.5: Power Range Limits (Optometry Constraints) --}}
+                    <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1.5px solid #e2e8f0;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-bold mb-0" style="color: #0f172a; font-size: 13px;">
+                                <i class="fa fa-sliders text-primary me-1"></i> Power Range Limits (Optometry Prescription Caps)
+                            </label>
+                            <span class="badge badge-light border text-muted" style="font-size: 10.5px; font-weight: normal;">
+                                Leave blank if unlimited / custom
+                            </span>
+                        </div>
+                        <p class="text-muted mb-2" style="font-size: 11px;">
+                            If a customer enters prescription power outside these boundaries on the product page, the form will display an error informing them of the package limits.
+                        </p>
+                        <div class="row g-2">
+                            <!-- SPH Limits -->
+                            <div class="col-md-4">
+                                <div class="p-2 bg-white rounded border h-100">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-semibold text-dark" style="font-size:12px;">SPH Limits</span>
+                                        <small class="text-muted" style="font-size:10px;">-25 to +25</small>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="text-muted mb-1 d-block" style="font-size:10.5px; font-weight:600;">Min SPH</label>
+                                            <input type="number" step="0.25" min="-25" max="25" class="form-control form-control-sm text-center font-monospace"
+                                                   id="pkg_min_sph" name="min_sph" placeholder="-6.00">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="text-muted mb-1 d-block" style="font-size:10.5px; font-weight:600;">Max SPH</label>
+                                            <input type="number" step="0.25" min="-25" max="25" class="form-control form-control-sm text-center font-monospace"
+                                                   id="pkg_max_sph" name="max_sph" placeholder="+4.00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- CYL Limits -->
+                            <div class="col-md-4">
+                                <div class="p-2 bg-white rounded border h-100">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-semibold text-dark" style="font-size:12px;">CYL Limits</span>
+                                        <small class="text-muted" style="font-size:10px;">-15 to +15</small>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="text-muted mb-1 d-block" style="font-size:10.5px; font-weight:600;">Min CYL</label>
+                                            <input type="number" step="0.25" min="-15" max="15" class="form-control form-control-sm text-center font-monospace"
+                                                   id="pkg_min_cyl" name="min_cyl" placeholder="-2.00">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="text-muted mb-1 d-block" style="font-size:10.5px; font-weight:600;">Max CYL</label>
+                                            <input type="number" step="0.25" min="-15" max="15" class="form-control form-control-sm text-center font-monospace"
+                                                   id="pkg_max_cyl" name="max_cyl" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Axis Limits -->
+                            <div class="col-md-4">
+                                <div class="p-2 bg-white rounded border h-100">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="fw-semibold text-dark" style="font-size:12px;">Axis Limits</span>
+                                        <small class="text-muted" style="font-size:10px;">1° to 180°</small>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="text-muted mb-1 d-block" style="font-size:10.5px; font-weight:600;">Min Axis</label>
+                                            <input type="number" step="1" min="1" max="180" class="form-control form-control-sm text-center font-monospace"
+                                                   id="pkg_min_axis" name="min_axis" placeholder="1">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="text-muted mb-1 d-block" style="font-size:10.5px; font-weight:600;">Max Axis</label>
+                                            <input type="number" step="1" min="1" max="180" class="form-control form-control-sm text-center font-monospace"
+                                                   id="pkg_max_axis" name="max_axis" placeholder="180">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <hr class="my-2">
@@ -606,6 +700,12 @@ $(document).ready(function() {
             $('#pkg_coating').val(data.coating || '');
             $('#pkg_material').val(data.material || '');
             $('#pkg_design').val(data.design || '');
+            $('#pkg_min_sph').val(data.min_sph !== null && data.min_sph !== undefined ? data.min_sph : '');
+            $('#pkg_max_sph').val(data.max_sph !== null && data.max_sph !== undefined ? data.max_sph : '');
+            $('#pkg_min_cyl').val(data.min_cyl !== null && data.min_cyl !== undefined ? data.min_cyl : '');
+            $('#pkg_max_cyl').val(data.max_cyl !== null && data.max_cyl !== undefined ? data.max_cyl : '');
+            $('#pkg_min_axis').val(data.min_axis !== null && data.min_axis !== undefined ? data.min_axis : '');
+            $('#pkg_max_axis').val(data.max_axis !== null && data.max_axis !== undefined ? data.max_axis : '');
             $('#pkg_slug').val(data.slug);
             $('#pkg_description').val(data.short_description);
             $('#pkg_purchase_price').val(data.purchase_price || '');
@@ -875,6 +975,12 @@ function resetForm() {
     $('#pkg_coating').val('');
     $('#pkg_material').val('');
     $('#pkg_design').val('');
+    $('#pkg_min_sph').val('');
+    $('#pkg_max_sph').val('');
+    $('#pkg_min_cyl').val('');
+    $('#pkg_max_cyl').val('');
+    $('#pkg_min_axis').val('');
+    $('#pkg_max_axis').val('');
     $('#pkg_purchase_price').val('');
     // Reset hidden fields
     $('#pkg_slug').val('');
@@ -1035,6 +1141,100 @@ function deleteExistingMedia(mediaId, btnEl) {
         });
     });
 }
+
+// ── Auto-Generate Product Code & Sync ──
+$(document).on('click', '#btn_generate_product_code, #btn_generate_product_code_addon', function(e) {
+    e.preventDefault();
+    var $btn = $('#btn_generate_product_code');
+    var $addon = $('#btn_generate_product_code_addon');
+    var origBtnHtml = $btn.html();
+
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i> Generating...');
+    $addon.prop('disabled', true).find('i').addClass('fa-spin');
+
+    $.ajax({
+        url: "{{ route('admin.lens-packages.generate-code') }}",
+        type: 'GET',
+        data: {
+            name: $('#pkg_name').val(),
+            company: $('#pkg_company').val(),
+            lens_index: $('#pkg_lens_index').val(),
+            coating: $('#pkg_coating').val()
+        },
+        success: function(res) {
+            if (res.success && res.product_code) {
+                var $input = $('#pkg_product_code');
+                $input.val(res.product_code);
+                $input.css({
+                    'border-color': '#28a745',
+                    'background-color': '#e8f5e9',
+                    'transition': 'all 0.3s ease'
+                });
+                setTimeout(function() {
+                    $input.css({
+                        'border-color': '',
+                        'background-color': ''
+                    });
+                }, 1200);
+
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Generated Product Code: ' + res.product_code
+                });
+            }
+        },
+        error: function(xhr) {
+            var fallback = 'GLS-' + Math.floor(100000 + Math.random() * 900000);
+            $('#pkg_product_code').val(fallback);
+            Toast.fire({
+                icon: 'info',
+                title: 'Generated: ' + fallback
+            });
+        },
+        complete: function() {
+            $btn.prop('disabled', false).html(origBtnHtml);
+            $addon.prop('disabled', false).find('i').removeClass('fa-spin');
+        }
+    });
+});
+
+// ── One-click table generation for existing packages without a product code ──
+$(document).on('click', '.btn-generate-table', function(e) {
+    e.preventDefault();
+    var id = $(this).data('id');
+    var name = $(this).data('name') || 'this package';
+    var $btn = $(this);
+    var origHtml = $btn.html();
+
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i>Generating...');
+
+    $.ajax({
+        url: "{{ url('admin/lens-packages') }}/" + id + "/generate-product",
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}'
+        },
+        success: function(res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Product Generated!',
+                    html: res.message,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+                table.ajax.reload(null, false);
+            }
+        },
+        error: function(xhr) {
+            Toast.fire({
+                icon: 'error',
+                title: xhr.responseJSON?.message || 'Could not generate product.'
+            });
+            $btn.prop('disabled', false).html(origHtml);
+        }
+    });
+});
 </script>
 @endsection
 
