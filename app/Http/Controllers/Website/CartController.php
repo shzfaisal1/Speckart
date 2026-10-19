@@ -75,12 +75,24 @@ class CartController extends Controller
         }
 
         // 1. Frame Stock Validation (Backend Rule)
-        // If Frame stock <= 0, strictly block adding to cart
-        if ($frameStock <= 0) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Selected frame is out of stock. Lens package cannot be purchased.'
-            ], 400);
+        $frameTrackInv = isset($frame->Track_Inventory) ? (int)$frame->Track_Inventory : 1;
+        $frameAllowNeg = isset($frame->Allow_Negative_Inventory) ? (int)$frame->Allow_Negative_Inventory : 1;
+
+        if ($frameTrackInv === 1 && $frameAllowNeg === 0) {
+            if ($frameStock <= 0) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => !empty($lensPackageId) 
+                        ? 'Selected frame is out of stock. Lens package cannot be purchased.' 
+                        : 'Sorry, this product is currently out of stock.'
+                ], 400);
+            }
+            if ($quantity > $frameStock) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => "Only {$frameStock} piece(s) available in stock."
+                ], 400);
+            }
         }
 
         // 2. Validate selected Lens Package stock/availability
@@ -98,12 +110,23 @@ class CartController extends Controller
             }
 
             if (!empty($lensPackage->product_code)) {
-                $lensStock = \App\Services\StockSyncService::getLiveStock($lensPackage->product_code);
-                if ($lensStock <= 0) {
-                    return response()->json([
-                        'status'  => false,
-                        'message' => 'Selected lens package is out of stock.'
-                    ], 400);
+                $pkgTrackInv = (int)($lensPackage->track_inventory ?? 1);
+                $pkgAllowNeg = (int)($lensPackage->allow_negative_inventory ?? 1);
+                // Only enforce strict live stock check if inventory tracking is ON and negative inventory is NOT allowed
+                if ($pkgTrackInv === 1 && $pkgAllowNeg === 0) {
+                    $lensStock = \App\Services\StockSyncService::getLiveStock($lensPackage->product_code);
+                    if ($lensStock <= 0) {
+                        return response()->json([
+                            'status'  => false,
+                            'message' => 'Selected lens package is out of stock.'
+                        ], 400);
+                    }
+                    if ($quantity > $lensStock) {
+                        return response()->json([
+                            'status'  => false,
+                            'message' => "Only {$lensStock} piece(s) available in stock for {$lensPackage->name}."
+                        ], 400);
+                    }
                 }
             }
 

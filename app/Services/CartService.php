@@ -36,22 +36,28 @@ class CartService
             $frameStock = (int)($frame->stock_quantity ?? 0);
         }
 
-        // Frame Stock Validation: Customer cannot select/purchase Lens Package if Frame is out of stock
-        if ($frameStock <= 0) {
-            if (!empty($lensPackageId)) {
+        $frameTrackInv = isset($frame->Track_Inventory) ? (int)$frame->Track_Inventory : 1;
+        $frameAllowNeg = isset($frame->Allow_Negative_Inventory) ? (int)$frame->Allow_Negative_Inventory : 1;
+
+        // Frame Stock Validation:
+        // Only enforce strict live stock check if inventory tracking is ON and negative inventory is NOT allowed
+        if ($frameTrackInv === 1 && $frameAllowNeg === 0) {
+            if ($frameStock <= 0) {
+                if (!empty($lensPackageId)) {
+                    return [
+                        'status'  => false,
+                        'message' => 'Selected frame is out of stock. Lens package cannot be purchased.'
+                    ];
+                }
                 return [
                     'status'  => false,
-                    'message' => 'Selected frame is out of stock. Lens package cannot be purchased.'
+                    'message' => 'Sorry, this product is currently out of stock.'
                 ];
             }
-            return [
-                'status'  => false,
-                'message' => 'Sorry, this product is currently out of stock.'
-            ];
-        }
 
-        if ($quantity > $frameStock) {
-            return ['status' => false, 'message' => "Only {$frameStock} piece(s) available in stock."];
+            if ($quantity > $frameStock) {
+                return ['status' => false, 'message' => "Only {$frameStock} piece(s) available in stock."];
+            }
         }
 
         // Fetch & Validate Lens Package if selected
@@ -75,12 +81,23 @@ class CartService
             // Verify live stock of lens package if product_code exists
             $lensCode = $lens->product_code ?? null;
             if (!empty($lensCode)) {
-                $lensStock = \App\Services\StockSyncService::getLiveStock($lensCode);
-                if ($lensStock <= 0) {
-                    return [
-                        'status'  => false,
-                        'message' => 'Selected lens package is out of stock.'
-                    ];
+                $pkgTrackInv = (int)($lens->track_inventory ?? 1);
+                $pkgAllowNeg = (int)($lens->allow_negative_inventory ?? 1);
+                // Only enforce strict live stock check if inventory tracking is ON and negative inventory is NOT allowed
+                if ($pkgTrackInv === 1 && $pkgAllowNeg === 0) {
+                    $lensStock = \App\Services\StockSyncService::getLiveStock($lensCode);
+                    if ($lensStock <= 0) {
+                        return [
+                            'status'  => false,
+                            'message' => 'Selected lens package is out of stock.'
+                        ];
+                    }
+                    if ($quantity > $lensStock) {
+                        return [
+                            'status'  => false,
+                            'message' => "Only {$lensStock} piece(s) available in stock for " . ($lens->name ?? 'selected lens package') . "."
+                        ];
+                    }
                 }
             }
         }
@@ -168,11 +185,13 @@ class CartService
             }
         }
 
-        if (($existingQtyInCart + $quantity) > $frameStock) {
-            $msg = $existingQtyInCart > 0 
-                ? "Only {$frameStock} piece(s) available in stock. You already have {$existingQtyInCart} in your cart."
-                : "Only {$frameStock} piece(s) available in stock.";
-            return ['status' => false, 'message' => $msg];
+        if ($frameTrackInv === 1 && $frameAllowNeg === 0) {
+            if (($existingQtyInCart + $quantity) > $frameStock) {
+                $msg = $existingQtyInCart > 0 
+                    ? "Only {$frameStock} piece(s) available in stock. You already have {$existingQtyInCart} in your cart."
+                    : "Only {$frameStock} piece(s) available in stock.";
+                return ['status' => false, 'message' => $msg];
+            }
         }
 
         if (isset($cart[$cartKey])) {
@@ -248,15 +267,20 @@ class CartService
                 $item = $cart[$cartKey] ?? [];
                 $frameCode = $item['frame_code'] ?? null;
                 if ($frameCode) {
-                    $liveStock = \App\Services\StockSyncService::getLiveStock($frameCode);
-                    $otherQty = 0;
-                    foreach ($cart as $k => $cItem) {
-                        if ($k !== $cartKey && ($cItem['frame_code'] ?? null) === $frameCode) {
-                            $otherQty += (int)($cItem['quantity'] ?? 0);
+                    $frameRow = DB::table('tbl_product_code')->where('product_code', $frameCode)->first();
+                    $fTrack = isset($frameRow->Track_Inventory) ? (int)$frameRow->Track_Inventory : 1;
+                    $fAllow = isset($frameRow->Allow_Negative_Inventory) ? (int)$frameRow->Allow_Negative_Inventory : 1;
+                    if ($fTrack === 1 && $fAllow === 0) {
+                        $liveStock = \App\Services\StockSyncService::getLiveStock($frameCode);
+                        $otherQty = 0;
+                        foreach ($cart as $k => $cItem) {
+                            if ($k !== $cartKey && ($cItem['frame_code'] ?? null) === $frameCode) {
+                                $otherQty += (int)($cItem['quantity'] ?? 0);
+                            }
                         }
-                    }
-                    if (($otherQty + $requestedQty) > $liveStock) {
-                        return false;
+                        if (($otherQty + $requestedQty) > $liveStock) {
+                            return false;
+                        }
                     }
                 }
                 $cart[$cartKey]['quantity'] = $requestedQty;
@@ -773,7 +797,12 @@ class CartService
             if (!empty($frameCode) && empty($item['is_membership'])) {
                 $itemLiveStock = \App\Services\StockSyncService::getLiveStock($frameCode);
                 $item['frame_stock'] = $itemLiveStock;
-                if ($itemLiveStock <= 0) {
+
+                $frameRecord = DB::table('tbl_product_code')->where('product_code', $frameCode)->first();
+                $fTrack = isset($frameRecord->Track_Inventory) ? (int)$frameRecord->Track_Inventory : 1;
+                $fAllow = isset($frameRecord->Allow_Negative_Inventory) ? (int)$frameRecord->Allow_Negative_Inventory : 1;
+
+                if ($fTrack === 1 && $fAllow === 0 && $itemLiveStock <= 0) {
                     $itemOutOfStock = true;
                     $hasOutOfStockItems = true;
                 }
