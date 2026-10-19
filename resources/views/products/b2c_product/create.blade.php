@@ -1113,39 +1113,45 @@ body { background: var(--bg); }
                 </div>
 
                 {{-- Inventory Settings --}}
-                <!--<div class="pb-card sb-card">-->
-                <!--    <div class="pb-card-header">-->
-                <!--        <h5><span class="icon"><i class="fa fa-boxes"></i></span> Inventory</h5>-->
-                <!--    </div>-->
-                <!--    <div class="pb-card-body">-->
-                <!--        <div class="mb-3">-->
-                <!--            <label class="pb-label">Track Inventory</label>-->
-                <!--            <div class="pb-radio-group">-->
-                <!--                <label class="pb-radio-btn">-->
-                <!--                    <input type="radio" name="Track_Inventory" value="1" {{ ($editFirst?->Track_Inventory ?? '1') == '1' ? 'checked' : '' }}>-->
-                <!--                    <span><i class="fa fa-check-circle"></i> Yes</span>-->
-                <!--                </label>-->
-                <!--                <label class="pb-radio-btn">-->
-                <!--                    <input type="radio" name="Track_Inventory" value="0" {{ ($editFirst?->Track_Inventory ?? '1') == '0' ? 'checked' : '' }}>-->
-                <!--                    <span><i class="fa fa-times-circle"></i> No</span>-->
-                <!--                </label>-->
-                <!--            </div>-->
-                <!--        </div>-->
-                <!--        <div class="mb-0">-->
-                <!--            <label class="pb-label">Allow Negative Inventory</label>-->
-                <!--            <div class="pb-radio-group">-->
-                <!--                <label class="pb-radio-btn">-->
-                <!--                    <input type="radio" name="Allow_Negative_Inventory" value="1" {{ ($editFirst?->Allow_Negative_Inventory ?? '1') == '1' ? 'checked' : '' }}>-->
-                <!--                    <span><i class="fa fa-check-circle"></i> Yes</span>-->
-                <!--                </label>-->
-                <!--                <label class="pb-radio-btn">-->
-                <!--                    <input type="radio" name="Allow_Negative_Inventory" value="0" {{ ($editFirst?->Allow_Negative_Inventory ?? '1') == '0' ? 'checked' : '' }}>-->
-                <!--                    <span><i class="fa fa-times-circle"></i> No</span>-->
-                <!--                </label>-->
-                <!--            </div>-->
-                <!--        </div>-->
-                <!--    </div>-->
-                <!--</div>-->
+                <div class="pb-card sb-card">
+                    <div class="pb-card-header">
+                        <h5><span class="icon"><i class="fa fa-boxes"></i></span> Inventory Settings</h5>
+                    </div>
+                    <div class="pb-card-body">
+                        <div class="mb-3">
+                            <label class="pb-label">Track Inventory</label>
+                            <div class="pb-radio-group">
+                                <label class="pb-radio-btn">
+                                    <input type="radio" name="Track_Inventory" id="track_inv_1" value="1" {{ ($editFirst?->Track_Inventory ?? '1') == '1' ? 'checked' : '' }}>
+                                    <span><i class="fa fa-check-circle" style="color:var(--success);"></i> Yes</span>
+                                </label>
+                                <label class="pb-radio-btn">
+                                    <input type="radio" name="Track_Inventory" id="track_inv_0" value="0" {{ ($editFirst?->Track_Inventory ?? '1') == '0' ? 'checked' : '' }}>
+                                    <span><i class="fa fa-times-circle" style="color:var(--danger);"></i> No</span>
+                                </label>
+                            </div>
+                            <small style="color:var(--muted); margin-top:6px; display:block; font-size:0.75rem;">
+                                <i class="fa fa-info-circle"></i> Track physical stock count in stores and warehouse.
+                            </small>
+                        </div>
+                        <div class="mb-0">
+                            <label class="pb-label">Allow Negative Inventory</label>
+                            <div class="pb-radio-group">
+                                <label class="pb-radio-btn">
+                                    <input type="radio" name="Allow_Negative_Inventory" id="allow_neg_1" value="1" {{ ($editFirst?->Allow_Negative_Inventory ?? '1') == '1' ? 'checked' : '' }}>
+                                    <span><i class="fa fa-check-circle" style="color:var(--success);"></i> Yes (Allowed)</span>
+                                </label>
+                                <label class="pb-radio-btn">
+                                    <input type="radio" name="Allow_Negative_Inventory" id="allow_neg_0" value="0" {{ ($editFirst?->Allow_Negative_Inventory ?? '1') == '0' ? 'checked' : '' }}>
+                                    <span><i class="fa fa-times-circle" style="color:var(--danger);"></i> No (Strict)</span>
+                                </label>
+                            </div>
+                            <small id="neg_inv_hint" style="color:var(--muted); margin-top:6px; display:block; font-size:0.75rem;">
+                                <i class="fa fa-info-circle"></i> <strong>Yes:</strong> Allows sales when stock is 0 (backorder / lab order). <strong>No:</strong> Shows Out of Stock and blocks buy button when stock &le; 0.
+                            </small>
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Readiness Checklist --}}
                 <div class="pb-card sb-card">
@@ -1639,6 +1645,24 @@ function initializeProductType() {
     if (badge) badge.textContent = badgeNames[currentProductType] || currentProductType;
     const prodTypeInput = document.getElementById('product_type');
     if (prodTypeInput) prodTypeInput.value = currentProductType;
+
+    // Auto-suggest Negative Inventory policy based on product type
+    const allowNeg1 = document.getElementById('allow_neg_1');
+    const allowNeg0 = document.getElementById('allow_neg_0');
+    const negHint   = document.getElementById('neg_inv_hint');
+
+    if (currentProductType === 'Lens' || currentProductType === 'Solution') {
+        @if(!$isEdit)
+        if (allowNeg0) allowNeg0.checked = true;
+        @endif
+        if (negHint) {
+            negHint.innerHTML = '<i class="fa fa-exclamation-triangle text-warning"></i> <strong>Physical Barcode Goods:</strong> Sealed Contact Lenses & Solutions should have Negative Inventory disabled (Strictly in-stock items).';
+        }
+    } else {
+        if (negHint) {
+            negHint.innerHTML = '<i class="fa fa-info-circle"></i> <strong>Yes:</strong> Allows sales when stock is 0 (backorders / made-to-order). <strong>No:</strong> Shows Out of Stock when stock &le; 0.';
+        }
+    }
 }
 
 function loadSubcategories(categoryId, selectedSubcategoryId = null) {

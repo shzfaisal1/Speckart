@@ -168,21 +168,37 @@ class ProductController extends Controller
      */
     public function checkSku(Request $request)
     {
-        $sku = $request->input('sku');
+        $sku = trim($request->input('sku', ''));
         $excludeId = $request->input('exclude_id');
         
         if (empty($sku)) {
             return response()->json(['exists' => false]);
         }
 
-        $query = DB::table('tbl_product_code')->where('product_code', $sku);
-        if ($excludeId) {
-            // Fetch parent_product_code of the excluded ID to exclude all its variants
-            $product = DB::table('tbl_product_code')->where('id', $excludeId)->first();
-            if ($product && !empty($product->parent_product_code)) {
-                $query->where('parent_product_code', '!=', $product->parent_product_code);
+        $query = DB::table('tbl_product_code')
+            ->where('product_code', $sku)
+            ->where('is_b2c', 1);
+
+        if (!empty($excludeId)) {
+            // Find product by id, product_id, or parent_product_code
+            $product = DB::table('tbl_product_code')
+                ->where('id', $excludeId)
+                ->orWhere('product_id', $excludeId)
+                ->orWhere('parent_product_code', $excludeId)
+                ->first();
+
+            if ($product) {
+                if (!empty($product->parent_product_code)) {
+                    $query->where(function($q) use ($product) {
+                        $q->whereNull('parent_product_code')
+                          ->orWhere('parent_product_code', '!=', $product->parent_product_code);
+                    });
+                }
+                $query->where('id', '!=', $product->id);
+                $query->where('product_id', '!=', $product->product_id);
             } else {
-                $query->where('id', '!=', $excludeId);
+                $query->where('id', '!=', $excludeId)
+                      ->where('product_id', '!=', $excludeId);
             }
         }
 
@@ -545,7 +561,7 @@ class ProductController extends Controller
             }
             $seenSkus[] = $skuLower;
 
-            if (DB::table('tbl_product_code')->where('product_code', $sku)->exists()) {
+            if (DB::table('tbl_product_code')->where('product_code', $sku)->where('is_b2c', 1)->exists()) {
                 $validationErrors[] = "Variant #{$variantNum}: SKU '{$sku}' already exists.";
             }
 
@@ -1044,6 +1060,16 @@ class ProductController extends Controller
         // Validate each variant SKU, pricing, and check for intra-payload duplicates
         $validationErrors = [];
         $seenSkus  = [];
+
+        // Collect existing variant IDs and product IDs for this product group to exclude them from collision checks
+        $existingGroupVariantIds = Product::where(function($q) use ($firstVariant, $parentProductCode) {
+            $q->where('product_id', $firstVariant->product_id)
+              ->orWhere('id', $firstVariant->id);
+            if (!empty($parentProductCode)) {
+                $q->orWhere('parent_product_code', $parentProductCode);
+            }
+        })->where('is_b2c', 1)->pluck('id')->toArray();
+
         foreach ($variants as $idx => $variant) {
             $variantNum = $idx + 1;
             $variantId = $variant['id'] ?? null;
@@ -1063,9 +1089,21 @@ class ProductController extends Controller
             }
             $seenSkus[] = $skuLower;
 
-            $duplicateQuery = DB::table('tbl_product_code')->where('product_code', $sku);
+            $duplicateQuery = DB::table('tbl_product_code')
+                ->where('product_code', $sku)
+                ->where('is_b2c', 1);
+
             if (!empty($variantId)) {
                 $duplicateQuery->where('id', '!=', $variantId);
+            }
+            if (!empty($existingGroupVariantIds)) {
+                $duplicateQuery->whereNotIn('id', $existingGroupVariantIds);
+            }
+            if (!empty($parentProductCode)) {
+                $duplicateQuery->where(function ($q) use ($parentProductCode) {
+                    $q->whereNull('parent_product_code')
+                      ->orWhere('parent_product_code', '!=', $parentProductCode);
+                });
             }
             if ($duplicateQuery->exists()) {
                 $validationErrors[] = "Variant #{$variantNum}: SKU '{$sku}' already exists.";
@@ -1223,6 +1261,8 @@ class ProductController extends Controller
             }
 
             $sharedData = [
+                'product_type'             => $type,
+                'product_code'             => $sku,
                 'product_name'             => $productName,
                 'productdetails'           => $details,
                 'Company'                  => $company,
@@ -1308,7 +1348,7 @@ class ProductController extends Controller
             } else {
                 // New variant added during edit
                 if (empty($sku)) continue;
-                if (DB::table('tbl_product_code')->where('product_code', $sku)->exists()) continue;
+                if (DB::table('tbl_product_code')->where('product_code', $sku)->where('is_b2c', 1)->exists()) continue;
 
                 $sharedData['product_id']    = $this->generateUniqueProductId();
                 $sharedData['product_type']  = $type;

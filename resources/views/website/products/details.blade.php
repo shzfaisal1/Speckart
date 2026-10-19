@@ -848,9 +848,11 @@
                     $isFrame = $isEyeglassFrame;
                     $isReading = str_contains($catLower, 'reading') || str_contains($typeLower, 'reading');
 
-                    // Stock determination: Strictly based on color variant warehouse stock (stock <= 0 = out of stock)
+                    // Stock determination: Strictly based on color variant warehouse stock when tracking is enabled and negative inventory disallowed
+                    $prodTrackInv = isset($product->Track_Inventory) ? (int)$product->Track_Inventory : 1;
+                    $prodAllowNeg = isset($product->Allow_Negative_Inventory) ? (int)$product->Allow_Negative_Inventory : 1;
                     $stockQty = (int)($product->stock_quantity ?? 0);
-                    $isFrameOutOfStock = ($stockQty <= 0);
+                    $isFrameOutOfStock = ($prodTrackInv === 1 && $prodAllowNeg === 0 && $stockQty <= 0);
 
                     // ── Resolve Contact Lens Pack Size & Subtitle ────────────────────────
                     $currentPackCount = null;
@@ -970,7 +972,9 @@
                                 $c2 = $variant->color_secondary ?? null;
                                 $variantUrl = $variant->detail_url ?? url('/product/' . ($variant->product_id ?? $variant->id));
                                 $vStock = (int)($variant->stock_quantity ?? 0);
-                                $isVarInStock = ($vStock > 0);
+                                $vTrack = isset($variant->Track_Inventory) ? (int)$variant->Track_Inventory : 1;
+                                $vAllow = isset($variant->Allow_Negative_Inventory) ? (int)$variant->Allow_Negative_Inventory : 1;
+                                $isVarInStock = ($vTrack === 0 || $vAllow === 1 || $vStock > 0);
 
                                 // Build background: split diagonal if dual-color
                                 $bgStyle = $c2
@@ -1364,7 +1368,7 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex flex-wrap align-items-center gap-3 mt-4" style="gap: 14px !important;">
-                    @if($stockQty <= 0)
+                    @if($isFrameOutOfStock)
                         {{-- Out of stock state: Disabled OUT OF STOCK button, NO Notify Me, Try on you preserved --}}
                         <button type="button" 
                                 class="btn btn-secondary btn-oos-disabled px-4 py-2.5 fw-bold" 
@@ -2117,7 +2121,10 @@
                                     $lensStock = (!empty($lensProductCode) && isset($lensLiveStockMap[$lensProductCode]))
                                         ? max(0, (int)$lensLiveStockMap[$lensProductCode])
                                         : 0;
-                                    $isLensOutOfStock = ($lensStock <= 0);
+                                    $pkgTrackInv = (int)($package->track_inventory ?? 1);
+                                    $pkgAllowNeg = (int)($package->allow_negative_inventory ?? 1);
+                                    // Strictly out-of-stock only if inventory tracking is enabled (1) AND negative inventory is disabled (0) AND stock <= 0
+                                    $isLensOutOfStock = ($pkgTrackInv === 1 && $pkgAllowNeg === 0 && $lensStock <= 0);
                                 @endphp
                                 <div class="lens-package-card text-start border rounded position-relative align-items-center justify-content-between mb-3 p-3 shadow-xs bg-white {{ ($isLensOutOfStock || $isFrameOutOfStock) ? 'lens-package-out-of-stock' : '' }}"
                                     data-package-id="{{ $package->id }}"
@@ -2822,6 +2829,8 @@
         const defaultPrice = {{ $calcMrp }};
         const defaultDiscountPrice = {{ $calcSellingPrice }};
         const isFrameInStock = {{ $isFrameOutOfStock ? 'false' : 'true' }};
+        const frameTrackInventory = {{ $prodTrackInv }};
+        const frameAllowNegativeInventory = {{ $prodAllowNeg }};
         let currentFrameStock = {{ $stockQty }};
 
         let selectedColor = $('.color-swatch.active').data('color-label') || '';
@@ -3212,7 +3221,7 @@
             }
 
             // Frontend validation: do not allow lens package purchase if frame is out of stock
-            if (lensPackageId && (!isFrameInStock || currentFrameStock <= 0)) {
+            if (lensPackageId && !isFrameInStock) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Frame Out of Stock',
@@ -3802,7 +3811,7 @@
         // Lens Package selection in Step 3
         function selectLensPackage(packageId, freeLensFlag) {
             // Guard against out of stock frame
-            if (!isFrameInStock || currentFrameStock <= 0) {
+            if (!isFrameInStock) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Frame Out of Stock',
@@ -4709,7 +4718,7 @@
 
         @if(!$isContactLens && !$isSolution && !$isAccessory && !$isSunglass)
         $('#main-action-btn').on('click', function() {
-            if (!isFrameInStock || currentFrameStock <= 0) {
+            if (!isFrameInStock) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Frame Out of Stock',
@@ -4782,7 +4791,7 @@
 
         // Sunglass: "BUY WITH POWER" button opens the standard lens modal starting at Step 2 (Power Type)
         function openLensModal() {
-            if (!isFrameInStock || currentFrameStock <= 0) {
+            if (!isFrameInStock) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Frame Out of Stock',
@@ -4797,7 +4806,7 @@
 
         // Helper function when select button in details modal is clicked
         function selectLensFromDetails(packageId, isFree) {
-            if (!isFrameInStock || currentFrameStock <= 0) {
+            if (!isFrameInStock) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Frame Out of Stock',

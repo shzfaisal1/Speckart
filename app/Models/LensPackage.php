@@ -15,22 +15,24 @@ class LensPackage extends Model
     protected $fillable = [
         'name', 'slug', 'product_code', 'company', 'quality', 'lens_index', 'coating', 'material', 'design',
         'min_sph', 'max_sph', 'min_cyl', 'max_cyl', 'min_axis', 'max_axis',
-        'short_description', 'purchase_price', 'current_price', 'original_price', 'warranty_months',
+        'short_description', 'purchase_price', 'track_inventory', 'allow_negative_inventory', 'current_price', 'original_price', 'warranty_months',
         'is_free_lens', 'package_type', 'sort_order', 'is_active',
     ];
 
     protected $casts = [
-        'purchase_price' => 'decimal:2',
-        'current_price'  => 'decimal:2',
-        'original_price' => 'decimal:2',
-        'min_sph'        => 'decimal:2',
-        'max_sph'        => 'decimal:2',
-        'min_cyl'        => 'decimal:2',
-        'max_cyl'        => 'decimal:2',
-        'min_axis'       => 'integer',
-        'max_axis'       => 'integer',
-        'is_free_lens'   => 'boolean',
-        'is_active'      => 'boolean',
+        'purchase_price'           => 'decimal:2',
+        'current_price'            => 'decimal:2',
+        'original_price'           => 'decimal:2',
+        'min_sph'                  => 'decimal:2',
+        'max_sph'                  => 'decimal:2',
+        'min_cyl'                  => 'decimal:2',
+        'max_cyl'                  => 'decimal:2',
+        'min_axis'                 => 'integer',
+        'max_axis'                 => 'integer',
+        'track_inventory'          => 'integer',
+        'allow_negative_inventory' => 'integer',
+        'is_free_lens'             => 'boolean',
+        'is_active'                => 'boolean',
     ];
 
     // ── Relationships ──

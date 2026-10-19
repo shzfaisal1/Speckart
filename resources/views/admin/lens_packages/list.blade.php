@@ -218,6 +218,64 @@
                         </div>
                     </div>
 
+                    {{-- Row 2.5: Inventory & Negative Stock Settings --}}
+                    <div class="card p-3 mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-bold mb-0" style="color: #0f172a; font-size: 13px;">
+                                <i class="fa fa-boxes text-primary me-1"></i> Inventory & Stock Policies (ERP Product Master Sync)
+                            </label>
+                            <span class="badge badge-light border text-muted" style="font-size: 10.5px; font-weight: normal;">
+                                Auto-syncs to tbl_product_code
+                            </span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-semibold" style="font-size:12px;">Track Inventory</label>
+                                    <div class="d-flex" style="gap:15px; margin-top:4px;">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="track_inventory" id="pkg_track_inv_1" value="1" checked>
+                                            <label class="form-check-label fw-medium" for="pkg_track_inv_1" style="font-size:12px; cursor:pointer;">
+                                                <i class="fa fa-check-circle text-success me-1"></i> Yes (Track Count)
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="track_inventory" id="pkg_track_inv_0" value="0">
+                                            <label class="form-check-label fw-medium" for="pkg_track_inv_0" style="font-size:12px; cursor:pointer;">
+                                                <i class="fa fa-times-circle text-danger me-1"></i> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted" style="font-size:10.5px; display:block; margin-top:4px;">
+                                        Maintain stock ledger and available counts in store/warehouse.
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-1">
+                                    <label class="form-label fw-semibold" style="font-size:12px;">Allow Negative Inventory</label>
+                                    <div class="d-flex" style="gap:15px; margin-top:4px;">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="allow_negative_inventory" id="pkg_allow_neg_1" value="1" checked>
+                                            <label class="form-check-label fw-medium" for="pkg_allow_neg_1" style="font-size:12px; cursor:pointer;">
+                                                <i class="fa fa-check-circle text-success me-1"></i> Yes (On-Demand / Lab Order)
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="allow_negative_inventory" id="pkg_allow_neg_0" value="0">
+                                            <label class="form-check-label fw-medium" for="pkg_allow_neg_0" style="font-size:12px; cursor:pointer;">
+                                                <i class="fa fa-times-circle text-danger me-1"></i> No (Strict Physical Stock)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <small id="pkg_neg_inv_hint" class="text-muted" style="font-size:10.5px; display:block; margin-top:4px;">
+                                        <span class="text-success fw-bold"><i class="fa fa-info-circle"></i> Recommended: Yes</span> for custom prescription lenses surfaced on-demand. Choose <strong>No</strong> only if this is a finished barcode box lens.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Row 3: Short Description --}}
                     <div class="form-group">
                         <label class="form-label fw-medium">Short Description</label>
@@ -716,6 +774,13 @@ $(document).ready(function() {
             $('#pkg_package_type').val(data.package_type || 'free_lens').trigger('change');
             $('#pkg_status').prop('checked', data.is_active == 1);
 
+            // Pre-select inventory settings
+            var trackVal = (data.track_inventory !== undefined && data.track_inventory !== null) ? data.track_inventory : '1';
+            $(`input[name="track_inventory"][value="${trackVal}"]`).prop('checked', true);
+
+            var allowNegVal = (data.allow_negative_inventory !== undefined && data.allow_negative_inventory !== null) ? data.allow_negative_inventory : '1';
+            $(`input[name="allow_negative_inventory"][value="${allowNegVal}"]`).prop('checked', true).trigger('change');
+
             // Pre-select tags
             $('.tag-checkbox').prop('checked', false);
             if (data.tags) {
@@ -965,6 +1030,15 @@ function updateBadgePreview() {
 $(document).on('change', '#pkg_badge_preset', updateBadgePreview);
 $(document).on('input change', '#pkg_badge_custom_label, #pkg_badge_custom_bg, #pkg_badge_custom_text', updateBadgePreview);
 
+$(document).on('change', 'input[name="allow_negative_inventory"]', function () {
+    var val = $(this).val();
+    if (val === '0') {
+        $('#pkg_neg_inv_hint').html('<span class="text-danger fw-bold"><i class="fa fa-exclamation-triangle"></i> Caution: Strict Stock enabled!</span> This package will display "Out of Stock" on the website unless physical stock exists in warehouse inventory levels.');
+    } else {
+        $('#pkg_neg_inv_hint').html('<span class="text-success fw-bold"><i class="fa fa-info-circle"></i> Recommended: Yes</span> for custom prescription lenses surfaced on-demand. Choose <strong>No</strong> only if this is a finished barcode box lens.');
+    }
+});
+
 function resetForm() {
     document.getElementById('lensPackageForm').reset();
     document.getElementById('record_id').value = '';
@@ -982,6 +1056,9 @@ function resetForm() {
     $('#pkg_min_axis').val('');
     $('#pkg_max_axis').val('');
     $('#pkg_purchase_price').val('');
+    // Reset inventory settings
+    $('#pkg_track_inv_1').prop('checked', true);
+    $('#pkg_allow_neg_1').prop('checked', true).trigger('change');
     // Reset hidden fields
     $('#pkg_slug').val('');
     $('#pkg_free_lens').val('0');

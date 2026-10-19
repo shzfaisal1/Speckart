@@ -15,8 +15,10 @@
 
                 {{-- PRODUCT LINK & IMAGE --}}
                 @php
+                    $cardTrackInv = isset($product->Track_Inventory) ? (int)$product->Track_Inventory : 1;
+                    $cardAllowNeg = isset($product->Allow_Negative_Inventory) ? (int)$product->Allow_Negative_Inventory : 1;
                     $cardStockQty = (int)($product->stock_quantity ?? 0);
-                    $cardIsOOS    = ($cardStockQty <= 0);
+                    $cardIsOOS    = ($cardTrackInv === 1 && $cardAllowNeg === 0 && $cardStockQty <= 0);
                 @endphp
                 <a href="{{ $product->detail_url }}" class="product-card-link text-decoration-none">
                     <div class="product-image">
@@ -77,7 +79,10 @@
                             : [$product];
 
                         foreach ($rawList as $varObj) {
+                            $vTrackInv = isset($varObj->Track_Inventory) ? (int)$varObj->Track_Inventory : 1;
+                            $vAllowNeg = isset($varObj->Allow_Negative_Inventory) ? (int)$varObj->Allow_Negative_Inventory : 1;
                             $vStockQty = (int)($varObj->stock_quantity ?? 0);
+                            $isVarOOS  = ($vTrackInv === 1 && $vAllowNeg === 0 && $vStockQty <= 0);
                             $variantsToDisplay[] = [
                                 'id'             => $varObj->id,
                                 'product_id'     => $varObj->product_id ?: $varObj->id,
@@ -92,7 +97,7 @@
                                 'purchase_price' => (float)($varObj->Purchase_Price ?? 0),
                                 'discount_price' => (float)($varObj->discount_price ?? 0),
                                 'is_current'     => ($varObj->id == $product->id),
-                                'is_oos'         => ($vStockQty <= 0),
+                                'is_oos'         => $isVarOOS,
                             ];
                         }
 
