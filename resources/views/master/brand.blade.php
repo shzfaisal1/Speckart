@@ -8,10 +8,24 @@ input.loading {
     background-size: 20px 20px;
 }
 
-
+/* Custom styling for loyalty toggle button */
+.toggle-btn {
+    display: inline-block;
+    vertical-align: middle;
+}
+.toggle-btn label {
+    margin-bottom: 0 !important;
+}
+.loyalty-toggle-switch:checked + label {
+    background: #07484A !important;
+}
+.loyalty-status-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition: color 0.2s ease-in-out;
+}
 </style>  
-    
-
 @endsection
 @section('content')
 <section class="domestic-orders mt-0">
@@ -51,6 +65,7 @@ input.loading {
                                 <th class="wd-10p">Sr.No</th>
                                 <th class="wd-15p">Logo / Image</th>
                                 <th class="wd-20p">Company / Brand Name</th>
+                                <th class="wd-15p">Loyalty Points</th>
                                 <!--<th class="wd-15p">Product</th>-->
                                 <!--<th class="wd-15p">By One Get One</th>-->
                                 <!--<th class="wd-15p">Store</th>-->
@@ -67,7 +82,7 @@ input.loading {
     </div>
 </section>
 <div class="modal fade" data-backdrop="static" id="brandModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalTitle">Brand / Company</h5>
@@ -108,6 +123,25 @@ input.loading {
                                         <div class="position-relative d-inline-block">
                                             <img id="brandImagePreview" src="" alt="Brand Logo Preview" style="max-height: 70px; max-width: 130px; object-fit: contain; border: 1px solid #e2e8f0; padding: 4px; border-radius: 6px; background: #f8f9fa;">
                                             <button type="button" class="btn btn-sm btn-danger position-absolute" style="top: -6px; right: -6px; border-radius: 50%; padding: 2px 6px; font-size: 10px; line-height: 1;" onclick="removeBrandImagePreview()" title="Remove Image">&times;</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Loyalty Program Eligibility Toggle -->
+                            <div class="card mt-3 mb-0" style="border: 1px dashed #2563eb; background: #f8fafc; border-radius: 8px;">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <label class="mb-0 fw-bold text-primary" style="font-size: 13px;">
+                                                <i class="fa fa-gift me-1"></i> Earn Loyalty Points
+                                            </label>
+                                            <small class="text-muted d-block" style="font-size: 11px;">Allow customers to earn loyalty points on this brand as per Loyalty Program rules</small>
+                                        </div>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="loyalty_eligible_toggle" checked onchange="toggleLoyaltyFields()">
+                                            <label class="custom-control-label" for="loyalty_eligible_toggle" id="loyalty_status_label" style="font-size: 12px; font-weight: 600; color: #16a34a; cursor: pointer;">Yes</label>
+                                            <input type="hidden" name="loyalty_eligible" id="loyalty_eligible" value="1">
                                         </div>
                                     </div>
                                 </div>
@@ -154,12 +188,24 @@ function removeBrandImagePreview() {
 }
 </script>
 <script>
+function toggleLoyaltyFields() {
+    let isChecked = $('#loyalty_eligible_toggle').is(':checked');
+    $('#loyalty_eligible').val(isChecked ? 1 : 0);
+    if (isChecked) {
+        $('#loyalty_status_label').text('Yes').css('color', '#16a34a');
+    } else {
+        $('#loyalty_status_label').text('No').css('color', '#dc2626');
+    }
+}
+
 function openCreateModal()
 {
     document.getElementById('modalTitle').innerText = 'Add Brand / Company';
     document.getElementById('uid').value = '';
     document.getElementById('brand_name').value = '';
     removeBrandImagePreview();
+    $('#loyalty_eligible_toggle').prop('checked', true);
+    toggleLoyaltyFields();
     $('#brandModal').modal('show');
 }
 
@@ -170,6 +216,10 @@ function openEditModal(brand) {
     document.getElementById('modalTitle').innerText = 'Edit Brand / Company';
     document.getElementById('brand_name').value = brand.brand_name || '';
     document.getElementById('uid').value = brand.brand_id || '';
+
+    let isEligible = (brand.loyalty_eligible === 0 || brand.loyalty_eligible === '0') ? false : true;
+    $('#loyalty_eligible_toggle').prop('checked', isEligible);
+    toggleLoyaltyFields();
 
     $('#brand_image').val('');
     if (brand.image) {
@@ -282,6 +332,10 @@ let dataListView = $('.datatables-basic')
             },
             {
                 "data": "brand_name",
+                orderable: false,
+            },
+            {
+                "data": "loyalty_badge",
                 orderable: false,
             },
             {
@@ -456,6 +510,49 @@ let dataListView = $('.datatables-basic')
             $.toaster({ priority : 'danger', title : 'Opps..!' , message : 'Something went wrong. Please try again' });
         }
     }
+
+    // Inline Table Toggle for Loyalty Points Eligibility
+    $(document).on('change', '.loyalty-toggle-switch', function() {
+        let checkbox = $(this);
+        let brandId = checkbox.data('id');
+        let isChecked = checkbox.prop('checked') ? 1 : 0;
+        let labelSpan = $('#loyalty_text_' + brandId);
+
+        // Instant optimistic feedback
+        if (isChecked) {
+            labelSpan.text('Eligible').css('color', '#07484A');
+        } else {
+            labelSpan.text('Ineligible').css('color', '#dc2626');
+        }
+
+        checkbox.prop('disabled', true);
+
+        $.ajax({
+            url: "{{ route('admin.brand.update.loyalty.toggle') }}",
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                id: brandId,
+                value: isChecked
+            },
+            success: function(response) {
+                checkbox.prop('disabled', false);
+                if (response.success) {
+                    $.toaster({ priority: 'success', title: 'Success..!', message: response.message });
+                } else {
+                    checkbox.prop('checked', !isChecked);
+                    labelSpan.text(!isChecked ? 'Eligible' : 'Ineligible').css('color', !isChecked ? '#07484A' : '#dc2626');
+                    $.toaster({ priority: 'danger', title: 'Error..!', message: response.message || 'Failed to update.' });
+                }
+            },
+            error: function() {
+                checkbox.prop('disabled', false);
+                checkbox.prop('checked', !isChecked);
+                labelSpan.text(!isChecked ? 'Eligible' : 'Ineligible').css('color', !isChecked ? '#07484A' : '#dc2626');
+                $.toaster({ priority: 'danger', title: 'Error..!', message: 'Something went wrong! Please try again.' });
+            }
+        });
+    });
         
 </script>
 

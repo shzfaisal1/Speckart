@@ -223,6 +223,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
     Route::post('/brand-list', [MasterController::class, 'brandDatatable'])->name('brand-list');
     Route::post('/brand-stored', [MasterController::class, 'brandstored'])->name('brand-stored');
     Route::post('/brand/{id}/destroy', [MasterController::class, 'branddestroy'])->name('brand.delete');
+    Route::post('/brand/update-loyalty-toggle', [MasterController::class, 'updateLoyaltyToggle'])->name('brand.update.loyalty.toggle');
     
     
     /***************** SIZE MASTER ******************/

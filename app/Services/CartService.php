@@ -881,7 +881,7 @@ class CartService
             $hasNonAgBifocal = false;
             foreach ($items as $item) {
                 if (isset($item['is_bogo_eligible']) && !empty($item['is_bogo_eligible'])) {
-                    $lensNameLower = strtolower($item['lens_name']);
+                    $lensNameLower = strtolower($item['lens_name'] ?? '');
                     if (strpos($lensNameLower, 'bifocal') !== false && 
                         strpos($lensNameLower, 'anti-glare') === false && 
                         strpos($lensNameLower, 'ar') === false) {
@@ -1175,9 +1175,55 @@ class CartService
             $earningBaseAmount = $grandTotal;
         }
 
-        // Pending Loyalty Points / Cashback calculation on selected sales basis amount
+        // ── Brand-Level Loyalty Points Earning Calculation ──
+        // Check if any brand in cart has loyalty eligibility disabled
+        $brandMasterRows = DB::table('tbl_brand')
+            ->where('status', '1')
+            ->get(['brand_name', 'loyalty_eligible'])
+            ->keyBy(function ($b) {
+                return strtolower(trim($b->brand_name));
+            });
+
+        $totalProductGross = 0;
+        $productItems = [];
+        foreach ($items as $k => $item) {
+            if (!empty($item['is_membership'])) {
+                continue; // Membership fee does not earn loyalty points
+            }
+            $itemGross = ((float)($item['discounted_frame_price'] ?? $item['frame_price']) + (float)($item['lens_price'] ?? 0)) * (int)($item['quantity'] ?? 1);
+            $totalProductGross += $itemGross;
+            $productItems[] = [
+                'brand' => trim($item['brand'] ?? ''),
+                'gross' => $itemGross,
+            ];
+        }
+
+        $calculatedRewardPts = 0;
         $cashbackDelayDays   = 14;
-        $orderRewardPts      = (int) round(($earningBaseAmount * $cashbackPercent) / 100);
+
+        if ($totalProductGross > 0 && $earningBaseAmount > 0) {
+            foreach ($productItems as $pItem) {
+                $bKey = strtolower($pItem['brand']);
+                $bRecord = $brandMasterRows[$bKey] ?? null;
+
+                // Check brand eligibility: 1 = Eligible (default), 0 = Ineligible
+                $isBrandEligible = true;
+
+                if ($bRecord && isset($bRecord->loyalty_eligible) && (int)$bRecord->loyalty_eligible === 0) {
+                    $isBrandEligible = false;
+                }
+
+                if ($isBrandEligible) {
+                    // Item share of the earning base amount (handles gross, net, or payable amount)
+                    $itemShareRatio  = ($pItem['gross'] / $totalProductGross);
+                    $itemEarningBase = $earningBaseAmount * $itemShareRatio;
+                    // Rate is strictly governed by Loyalty Program / Membership Tier (Single Source of Truth)
+                    $calculatedRewardPts += ($itemEarningBase * $cashbackPercent) / 100.0;
+                }
+            }
+        }
+
+        $orderRewardPts      = (int) round($calculatedRewardPts);
         $cashbackReleaseDate = \Carbon\Carbon::now()->addDays($cashbackDelayDays)->format('d M Y');
 
         // ── Generic 3-State Banner State Machine ──
