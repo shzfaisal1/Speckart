@@ -10,7 +10,7 @@ class Brand extends Model
     protected $primaryKey = 'brand_id';
 
     protected $fillable = [
-        'brand_name', 'product_type', 'status', 'added_by', 'store_id'
+        'brand_name', 'product_type', 'image', 'by_one_get_one', 'loyalty_eligible', 'status', 'added_by', 'store_id'
     ];
 
     public function lensPackages()

@@ -91,18 +91,36 @@ class MasterController extends Controller
             } else {
                 $brand_img = '<span class="badge badge-light text-muted" style="border:1px dashed #cbd5e1; padding:6px 8px;"><i class="fa fa-image me-1"></i> No Image</span>';
             }
+
+            $isLoyalty = (isset($template->loyalty_eligible) && (int)$template->loyalty_eligible === 0) ? 0 : 1;
+            $toggleId = 'loyalty_brand_' . $template->brand_id;
+            $statusLabel = $isLoyalty ? 'Eligible' : 'Ineligible';
+            $statusColor = $isLoyalty ? '#07484A' : '#dc2626';
+
+            $loyalty_badge = '
+                <div class="d-flex align-items-center" style="gap: 8px;">
+                    <div class="toggle-btn" style="margin: 0;">
+                        <input type="checkbox" id="' . $toggleId . '" class="toggle-switch loyalty-toggle-switch" data-id="' . $template->brand_id . '" ' . ($isLoyalty ? 'checked' : '') . '>
+                        <label for="' . $toggleId . '" style="margin: 0;">Toggle</label>
+                    </div>
+                    <span class="loyalty-status-text font-weight-bold" id="loyalty_text_' . $template->brand_id . '" style="font-size: 11px; color: ' . $statusColor . '; min-width: 65px;">
+                        ' . $statusLabel . '
+                    </span>
+                </div>';
             
-            $nestedData['sr_no']          = $i++;
-            $nestedData['brand_image']    = $brand_img;
-            $nestedData['image']          = $template->image;
-            $nestedData['brand_name']     = $template->brand_name;
-            $nestedData['product_type']   = $template->product_type;
-            $nestedData['created_at']     = date('d M, Y h:i A', strtotime($template->created_at))
+            $nestedData['sr_no']            = $i++;
+            $nestedData['brand_image']      = $brand_img;
+            $nestedData['image']            = $template->image;
+            $nestedData['brand_name']       = $template->brand_name;
+            $nestedData['product_type']     = $template->product_type;
+            $nestedData['loyalty_badge']    = $loyalty_badge;
+            $nestedData['loyalty_eligible'] = $isLoyalty;
+            $nestedData['created_at']       = date('d M, Y h:i A', strtotime($template->created_at))
                                          . '<BR> (' . ($created_by->name ?? '') . ')';
-            $nestedData['brand_id']       = $template->brand_id;
-            $nestedData['store_name']     = $store_name;
-            $nestedData['by_one_get_one'] = $by_one_get_one;
-            $nestedData['byonegetone']   = $template->by_one_get_one;
+            $nestedData['brand_id']         = $template->brand_id;
+            $nestedData['store_name']       = $store_name;
+            $nestedData['by_one_get_one']   = $by_one_get_one;
+            $nestedData['byonegetone']     = $template->by_one_get_one;
     
             $data[] = $nestedData;
         }
@@ -121,9 +139,10 @@ class MasterController extends Controller
         $user = auth()->user();
         
         $validator = Validator::make($request->all(), [
-            'brand_name'      => 'required|string|max:150',
-            'product_type'    => 'nullable|string',
-            'image'           => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'brand_name'       => 'required|string|max:150',
+            'product_type'     => 'nullable|string',
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'loyalty_eligible' => 'nullable|in:0,1',
         ]);
     
         if ($validator->fails()) 
@@ -146,17 +165,20 @@ class MasterController extends Controller
             $imagePath = 'uploads/brands/' . $imageName;
         }
         
+        $loyaltyEligible = $request->has('loyalty_eligible') ? (int)$request->loyalty_eligible : 1;
+
         if (empty($request->uid))
         {
             $insertData = [
-                'brand_name'     => $request->brand_name,
-                'product_type'   => $request->product_type,
-                'by_one_get_one' => $request->by_one_get_one ?? 1,
-                'image'          => $imagePath,
-                'added_by'       => $user->id,
-                'store_id'       => $user->store_id ?? 1,
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'brand_name'       => $request->brand_name,
+                'product_type'     => $request->product_type,
+                'by_one_get_one'   => $request->by_one_get_one ?? 1,
+                'loyalty_eligible' => $loyaltyEligible,
+                'image'            => $imagePath,
+                'added_by'         => $user->id,
+                'store_id'         => $user->store_id ?? 1,
+                'created_at'       => now(),
+                'updated_at'       => now(),
             ];
 
             $brandId = DB::table('tbl_brand')->insertGetId($insertData);
@@ -166,10 +188,11 @@ class MasterController extends Controller
         else
         {
             $updateData = [
-                'brand_name'     => $request->brand_name,
-                'product_type'   => $request->product_type,
-                'by_one_get_one' => $request->by_one_get_one,
-                'updated_at'     => now(),
+                'brand_name'       => $request->brand_name,
+                'product_type'     => $request->product_type,
+                'by_one_get_one'   => $request->by_one_get_one,
+                'loyalty_eligible' => $loyaltyEligible,
+                'updated_at'       => now(),
             ];
 
             if ($imagePath) {
@@ -204,6 +227,34 @@ class MasterController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'Brand was successfully deleted',
+        ]);
+    }
+    
+    public function updateLoyaltyToggle(Request $request)
+    {
+        $request->validate([
+            'id'    => 'required|exists:tbl_brand,brand_id',
+            'value' => 'required|in:0,1',
+        ]);
+
+        $brandId = $request->id;
+        $val     = (int) $request->value;
+
+        DB::table('tbl_brand')
+            ->where('brand_id', $brandId)
+            ->update([
+                'loyalty_eligible' => $val,
+                'updated_at'       => now(),
+            ]);
+
+        $brand = DB::table('tbl_brand')->where('brand_id', $brandId)->first();
+        $brandName = $brand ? $brand->brand_name : 'Brand';
+        $statusText = ($val === 1) ? 'Eligible' : 'Ineligible';
+
+        return response()->json([
+            'success' => true,
+            'status'  => $val,
+            'message' => "Loyalty points for {$brandName} are now {$statusText}!",
         ]);
     }
     
