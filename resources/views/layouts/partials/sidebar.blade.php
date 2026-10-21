@@ -145,7 +145,7 @@
         @endif
 
         {{-- ==================== B2C Online Orders (NEW) ==================== --}}
-        @if ($usr->can('B2C-Orders') || $usr->can('B2C-Orders-List') || $usr->can('B2C-Shipping-Charges'))
+        <!-- @if ($usr->can('B2C-Orders') || $usr->can('B2C-Orders-List') || $usr->can('B2C-Shipping-Charges'))
         <li class="slide">
             <a class="side-menu__item" data-toggle="slide" href="#">
                 <img src="{{ asset('/assets/images/speckart-Icons/NDR.png') }}" class="avatar-xl mb-1">
@@ -160,7 +160,7 @@
                 @endif
             </ul>
         </li>
-        @endif
+        @endif -->
 
         {{-- ==================== Lens System (NEW) ==================== --}}
         @if ($usr->can('Lens-System') || $usr->can('Lens-Packages') || $usr->can('Lens-Benefits') || $usr->can('Lens-Tags'))
