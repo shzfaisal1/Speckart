@@ -1037,12 +1037,20 @@
                             $ptypeSlug = strtolower(trim($ptype->name));
                             $ptypeSlug = str_replace(' ', '_', $ptypeSlug); // e.g. "reading_glasses", "zero_power", "powered_eyeglass"
                             $defaultZeroPackageId = ($ptypeSlug === 'zero_power') ? ($ptype->default_lens_package_id ?? '') : '';
+
+                            $powersForThisType = $ptype->default_powers ?: [];
+                            if (str_contains($ptypeSlug, 'reading') && !empty($product->reading_powers)) {
+                                $customPowers = is_array($product->reading_powers) ? $product->reading_powers : json_decode($product->reading_powers, true);
+                                if (!empty($customPowers) && is_array($customPowers)) {
+                                    $powersForThisType = $customPowers;
+                                }
+                            }
                         @endphp
                         <div class="ptype-tab {{ $index === 0 ? 'active' : '' }}"
                             data-type-id="{{ $ptype->id }}"
                             data-type-slug="{{ $ptypeSlug }}"
                             data-has-power="{{ $ptype->has_power ? '1' : '0' }}"
-                            data-powers="{{ json_encode($ptype->default_powers ?: []) }}"
+                            data-powers="{{ json_encode($powersForThisType) }}"
                             data-zero-package-id="{{ $defaultZeroPackageId }}"
                             onclick="selectProductType(this)">
                             <span class="ptype-name">{{ $ptype->name }}</span>
@@ -1053,11 +1061,21 @@
 
                     @foreach($productTypes as $index => $ptype)
                         @if(strtolower(trim($ptype->name)) !== 'powered eyeglass')
+                        @php
+                            $ptSlug = strtolower(trim($ptype->name));
+                            $displayPowers = $ptype->default_powers ?: [];
+                            if (str_contains($ptSlug, 'reading') && !empty($product->reading_powers)) {
+                                $customP = is_array($product->reading_powers) ? $product->reading_powers : json_decode($product->reading_powers, true);
+                                if (!empty($customP) && is_array($customP)) {
+                                    $displayPowers = $customP;
+                                }
+                            }
+                        @endphp
                         <div class="power-chips-wrap mt-3 {{ $index === 0 && strtolower(trim($productTypes[0]->name)) !== 'powered eyeglass' ? '' : 'd-none' }}" id="powers-{{ $ptype->id }}">
                             <p class="option-label mb-2">Select Power :</p>
                             <div class="d-flex flex-wrap gap-2">
-                                @if(!empty($ptype->default_powers))
-                                    @foreach($ptype->default_powers as $power)
+                                @if(!empty($displayPowers))
+                                    @foreach($displayPowers as $power)
                                     <button type="button" class="power-chip">{{ $power }}</button>
                                     @endforeach
                                 @endif
@@ -1604,11 +1622,15 @@
                                                 @php
                                                     $genderStr = 'Unisex';
                                                     if(!empty($product->Gender)){
-                                                        $genders = json_decode($product->Gender, true);
-                                                        if(is_array($genders)){
-                                                            $genderStr = implode(', ', array_unique($genders));
+                                                        if (is_array($product->Gender)) {
+                                                            $genderStr = implode(', ', array_unique($product->Gender));
                                                         } else {
-                                                            $genderStr = $product->Gender;
+                                                            $genders = json_decode($product->Gender, true);
+                                                            if(is_array($genders)){
+                                                                $genderStr = implode(', ', array_unique($genders));
+                                                            } else {
+                                                                $genderStr = $product->Gender;
+                                                            }
                                                         }
                                                     }
                                                 @endphp

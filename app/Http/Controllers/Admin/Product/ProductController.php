@@ -645,6 +645,35 @@ class ProductController extends Controller
             $shapeTop          = $request->input('Shape');
             $supportedProductTypes = $request->input('supported_product_types');
             $selectedLensPackages  = $request->input('selected_lens_packages');
+            $readingPowerFrom      = $request->input('reading_power_from');
+            $readingPowerTo        = $request->input('reading_power_to');
+            $readingPowers         = $request->input('reading_powers');
+            if (is_string($readingPowers)) {
+                $decoded = json_decode($readingPowers, true);
+                if (is_array($decoded)) {
+                    $readingPowers = $decoded;
+                }
+            }
+            if (is_array($readingPowers)) {
+                $readingPowers = array_values(array_filter($readingPowers, function($p) {
+                    $val = floatval(str_replace('+', '', trim((string)$p)));
+                    return $val > 0 && $val <= 6.0;
+                }));
+            }
+
+            // If Category is Reading Glasses (id 4 or name contains reading)
+            $catRecord = $categoryId ? Category::find($categoryId) : null;
+            $isReadingCategory = $catRecord && (str_contains(strtolower($catRecord->name), 'reading') || $catRecord->id == 4);
+
+            if ($isReadingCategory) {
+                $readingTypeId = 7;
+                $currentTypes = is_array($supportedProductTypes) ? $supportedProductTypes : [];
+                if (!in_array($readingTypeId, $currentTypes) && !in_array((string)$readingTypeId, $currentTypes)) {
+                    $currentTypes[] = $readingTypeId;
+                }
+                $supportedProductTypes = $currentTypes;
+                $selectedLensPackages = null;
+            }
 
             $createdCount = 0;
 
@@ -758,6 +787,9 @@ class ProductController extends Controller
                     'Purchase_Base_Price'      => $purBase,
                     'supported_product_types'  => $supportedProductTypes,
                     'selected_lens_packages'   => $selectedLensPackages,
+                    'reading_power_from'       => $readingPowerFrom,
+                    'reading_power_to'         => $readingPowerTo,
+                    'reading_powers'           => $readingPowers,
                     'Purchase_Price'           => $purPrice,
                     'Retail_Price'             => $retailPrice,
                     'BB_Price'                 => $bbPrice,
@@ -1181,6 +1213,35 @@ class ProductController extends Controller
         $shapeTop          = $request->input('Shape');
         $supportedProductTypes = $request->input('supported_product_types');
         $selectedLensPackages  = $request->input('selected_lens_packages');
+        $readingPowerFrom      = $request->input('reading_power_from');
+        $readingPowerTo        = $request->input('reading_power_to');
+        $readingPowers         = $request->input('reading_powers');
+        if (is_string($readingPowers)) {
+            $decoded = json_decode($readingPowers, true);
+            if (is_array($decoded)) {
+                $readingPowers = $decoded;
+            }
+        }
+        if (is_array($readingPowers)) {
+            $readingPowers = array_values(array_filter($readingPowers, function($p) {
+                $val = floatval(str_replace('+', '', trim((string)$p)));
+                return $val > 0 && $val <= 6.0;
+            }));
+        }
+
+        // If Category is Reading Glasses (id 4 or name contains reading)
+        $catRecord = $categoryId ? Category::find($categoryId) : null;
+        $isReadingCategory = $catRecord && (str_contains(strtolower($catRecord->name), 'reading') || $catRecord->id == 4);
+
+        if ($isReadingCategory) {
+            $readingTypeId = 7;
+            $currentTypes = is_array($supportedProductTypes) ? $supportedProductTypes : [];
+            if (!in_array($readingTypeId, $currentTypes) && !in_array((string)$readingTypeId, $currentTypes)) {
+                $currentTypes[] = $readingTypeId;
+            }
+            $supportedProductTypes = $currentTypes;
+            $selectedLensPackages = null;
+        }
 
         $folderPath = public_path("uploads/{$typeLower}/product/{$parentProductCode}");
         if (!is_dir($folderPath)) {
@@ -1294,6 +1355,9 @@ class ProductController extends Controller
                 'Purchase_Base_Price'      => $purBase,
                 'supported_product_types'  => $supportedProductTypes,
                 'selected_lens_packages'   => $selectedLensPackages,
+                'reading_power_from'       => $readingPowerFrom,
+                'reading_power_to'         => $readingPowerTo,
+                'reading_powers'           => $readingPowers,
                 'Purchase_Price'           => $purPrice,
                 'Retail_Price'             => $retailPrice,
                 'BB_Price'                 => $bbPrice,

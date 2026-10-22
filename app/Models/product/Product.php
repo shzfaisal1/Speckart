@@ -22,7 +22,8 @@ class Product extends Model
         'stock_quantity', 'stock_status', 'polarized', 'uv_protection', 'barcode',
         'discount_price', 'hsn_code', 'base_carve', 'Diameter', 'supported_product_types',
         'selected_lens_packages', 'No_Of_Boxes', 'Pieces_Per_Box', 'Power_Type', 'Batch_Number',
-        'Mfg_Date', 'Expiry_Date', 'invoice_description', 'sunglass_colour', 'tax_hsn_code'
+        'Mfg_Date', 'Expiry_Date', 'invoice_description', 'sunglass_colour', 'tax_hsn_code',
+        'reading_power_from', 'reading_power_to', 'reading_powers'
     ];
 
     protected $casts = [
@@ -32,5 +33,6 @@ class Product extends Model
         'Gender' => 'array',
         'supported_product_types' => 'array',
         'selected_lens_packages' => 'array',
+        'reading_powers' => 'array',
     ];
 }

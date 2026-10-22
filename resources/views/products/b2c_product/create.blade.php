@@ -590,6 +590,112 @@ body { background: var(--bg); }
 .promo-tag-item span .tag-icon {
     font-size: .95rem;
 }
+
+/* ---------- Reading Glasses Power Configuration ---------- */
+.reading-power-card {
+    border: 2px solid #bfdbfe;
+    border-radius: 14px;
+    background: #ffffff;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.06);
+}
+.reading-power-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.reading-power-header .header-title {
+    color: #ffffff;
+    font-size: .92rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.reading-power-header .header-badge {
+    background: rgba(255, 255, 255, .2);
+    color: #ffffff;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.reading-power-body {
+    padding: 18px;
+    background: #f8fafc;
+}
+.reading-power-range-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 14px;
+    align-items: flex-end;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+@media (max-width: 768px) {
+    .reading-power-range-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.reading-power-pill {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+}
+.reading-power-pill input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.reading-power-pill .pill-body {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    font-size: .85rem;
+    font-weight: 600;
+    transition: all .15s ease-in-out;
+}
+.reading-power-pill:hover .pill-body {
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+.reading-power-pill input:checked + .pill-body {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+}
+.reading-power-pill .pill-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    font-size: .65rem;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: transparent;
+    transition: all .15s ease-in-out;
+}
+.reading-power-pill input:checked + .pill-body .pill-check {
+    background: #2563eb;
+    color: #ffffff;
+}
 </style>
 @endsection
 
@@ -738,8 +844,16 @@ body { background: var(--bg); }
                                 <span class="pb-err" id="TypeError"></span>
                             </div>
 
-                            {{-- Step 1: What type of product is this frame? --}}
-                            <div class="col-md-12 mb-3 frame-only-field" id="product-types-section">
+                            @php
+                                $catNameLower = strtolower($editFirst?->category?->name ?? '');
+                                $isEditReading = str_contains($catNameLower, 'reading') || (($editFirst?->category_id ?? 0) == 4);
+                            @endphp
+
+                            {{-- Hidden fallback ensuring Reading Glasses product type (ID 7) is always submitted when Category is Reading Glasses --}}
+                            <input type="hidden" name="supported_product_types[]" id="reading-auto-supported-type" value="7" {{ $isEditReading ? '' : 'disabled' }}>
+
+                            {{-- Step 1: What type of product is this frame? (Hidden if Category is Reading Glasses) --}}
+                            <div class="col-md-12 mb-3 frame-only-field" id="product-types-section" style="display: {{ $isEditReading ? 'none' : 'block' }};">
                                 <label class="pb-label">
                                     <span style="background: var(--primary); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; margin-right: 8px;">1</span>
                                     What type of product is this frame?
@@ -778,9 +892,140 @@ body { background: var(--bg); }
                                 <span class="pb-err" id="supported_product_typesError"></span>
                             </div>
 
+                            {{-- Reading Glasses Power Number Configuration (From ... To ...) --}}
+                            @php
+                                $catNameLower = strtolower($editFirst?->category?->name ?? '');
+                                $isEditReading = str_contains($catNameLower, 'reading') || (($editFirst?->category_id ?? 0) == 4);
+                                $hasNonReadingSelected = false;
+                                foreach ($productTypes as $pt) {
+                                    if (in_array($pt->id, $selectedProductTypeIds) && !str_contains(strtolower($pt->name), 'reading')) {
+                                        $hasNonReadingSelected = true;
+                                        break;
+                                    }
+                                }
+
+                                $isReadingTypeChecked = in_array(7, $selectedProductTypeIds) || in_array('7', $selectedProductTypeIds);
+                                $showReadingPowers = $isEditReading || $isReadingTypeChecked;
+
+                                $savedPowerFrom = $editFirst?->reading_power_from ?: '+1.00';
+                                $savedPowerTo   = $editFirst?->reading_power_to   ?: '+3.00';
+                                $savedPowers    = $editFirst?->reading_powers     ?: [];
+                                if (is_string($savedPowers)) {
+                                    $savedPowers = json_decode($savedPowers, true) ?: [];
+                                }
+
+                                $allReadingDiopters = [
+                                    '+0.50', '+0.75', '+1.00', '+1.25', '+1.50', '+1.75',
+                                    '+2.00', '+2.25', '+2.50', '+2.75', '+3.00', '+3.25',
+                                    '+3.50', '+3.75', '+4.00'
+                                ];
+
+                                if (empty($savedPowers)) {
+                                    $fromIdx = array_search($savedPowerFrom, $allReadingDiopters);
+                                    $toIdx   = array_search($savedPowerTo, $allReadingDiopters);
+                                    if ($fromIdx === false) $fromIdx = 2; // +1.00
+                                    if ($toIdx === false) $toIdx = 10;   // +3.00
+                                    if ($fromIdx > $toIdx) { $tmp = $fromIdx; $fromIdx = $toIdx; $toIdx = $tmp; }
+                                    $savedPowers = array_slice($allReadingDiopters, $fromIdx, ($toIdx - $fromIdx + 1));
+                                }
+                            @endphp
+
+                            <div class="col-md-12 mb-3 frame-only-field" id="reading-powers-section" style="display: {{ $showReadingPowers ? 'block' : 'none' }};">
+                                <div class="reading-power-card">
+                                    <div class="reading-power-header">
+                                        <div class="header-title">
+                                            <span>👓</span>
+                                            <span>Ready-to-Wear Reading Glasses: Power Configuration</span>
+                                        </div>
+                                        <span class="header-badge" id="reading-powers-count-badge">
+                                            {{ count($savedPowers) }} powers active
+                                        </span>
+                                    </div>
+                                    <div class="reading-power-body">
+                                        <div class="mb-3" style="font-size: .8rem; color: #475569; line-height: 1.5;">
+                                            Reading glasses come pre-fitted with factory magnification lenses. Customers select their power number directly on the website product page and checkout with <strong>Buy Now</strong>. <strong>Lens package selection is disabled</strong> for reading glasses.
+                                        </div>
+
+                                        {{-- Range Selectors (From ... To ...) --}}
+                                        <div class="reading-power-range-grid">
+                                            <div>
+                                                <label class="pb-label" style="font-size: .8rem; margin-bottom: 4px;">
+                                                    <i class="fa fa-arrow-circle-right text-primary me-1"></i> Power Number (From)
+                                                </label>
+                                                <select name="reading_power_from" id="reading_power_from" class="pb-input" style="height: 38px;">
+                                                    @foreach($allReadingDiopters as $diopter)
+                                                        <option value="{{ $diopter }}" {{ $savedPowerFrom === $diopter ? 'selected' : '' }}>
+                                                            {{ $diopter }} D
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="pb-label" style="font-size: .8rem; margin-bottom: 4px;">
+                                                    <i class="fa fa-arrow-circle-right text-primary me-1"></i> Power Number (To)
+                                                </label>
+                                                <select name="reading_power_to" id="reading_power_to" class="pb-input" style="height: 38px;">
+                                                    @foreach($allReadingDiopters as $diopter)
+                                                        <option value="{{ $diopter }}" {{ $savedPowerTo === $diopter ? 'selected' : '' }}>
+                                                            {{ $diopter }} D
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="button" class="btn btn-sm btn-primary" id="btn-generate-reading-powers" style="height: 38px; padding: 0 16px; font-weight: 600; border-radius: 8px;">
+                                                    <i class="fa fa-sync me-1"></i> Generate Range
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Active Powers Preview / Toggleable Chips --}}
+                                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                                            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                                                <span style="font-size: .82rem; font-weight: 700; color: #1e293b;">
+                                                    Active Power Options for Website:
+                                                </span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <button type="button" class="btn btn-link p-0 text-decoration-none" id="btn-select-all-reading-powers" style="font-size: .75rem; font-weight: 600; color: #2563eb;">
+                                                        Select All
+                                                    </button>
+                                                    <span style="color: #cbd5e1;">|</span>
+                                                    <button type="button" class="btn btn-link p-0 text-decoration-none" id="btn-deselect-all-reading-powers" style="font-size: .75rem; font-weight: 600; color: #64748b;">
+                                                        Deselect All
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex flex-wrap gap-2" id="reading-power-chips-wrap">
+                                                @foreach($savedPowers as $pVal)
+                                                    <label class="reading-power-pill">
+                                                        <input type="checkbox" name="reading_powers[]" value="{{ $pVal }}" checked onchange="updateReadingPowersCount()">
+                                                        <span class="pill-body">
+                                                            <span class="pill-check"><i class="fa fa-check"></i></span>
+                                                            <span class="pill-val">{{ $pVal }}</span>
+                                                        </span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+
+                                            {{-- Add custom single power if needed --}}
+                                            <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2 flex-wrap">
+                                                <span style="font-size: .78rem; color: #64748b;">Add single custom power:</span>
+                                                <div style="width: 120px;">
+                                                    <input type="text" id="custom-reading-power-input" class="pb-input" placeholder="+2.25" style="height: 32px; font-size: .8rem; padding: 4px 8px;">
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-add-custom-reading-power" style="height: 32px; font-size: .78rem; font-weight: 600; border-radius: 6px;">
+                                                    + Add Power
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {{-- Step 2: Assign Packages (auto-appears when product types are selected) --}}
                             @if(isset($lensPackages) && $lensPackages->count())
-                            <div class="col-md-12 mb-3 frame-only-field" id="package-section" style="display: {{ !empty($selectedProductTypeIds) || !empty($savedLensPackageIds) ? 'block' : 'none' }};">
+                            <div class="col-md-12 mb-3 frame-only-field" id="package-section" style="display: {{ !$isEditReading && $hasNonReadingSelected && (!empty($selectedProductTypeIds) || !empty($savedLensPackageIds)) ? 'block' : 'none' }};">
                                 <div style="border: 2px solid #e0e7ff; border-radius: 12px; overflow: hidden;">
 
                                     {{-- Section header --}}
@@ -820,13 +1065,12 @@ body { background: var(--bg); }
                                                         // Zero Power -> requires "Zero Power"
                                                         return in_array('zero power', $lpPowerTypeDescs);
                                                     }
-                                                    if (str_contains($ptNameLower, 'reading') || str_contains($ptNameLower, 'glass')) {
-                                                        // Reading Glasses -> requires "Progressive/Bifocals" or "Reading Glasses"
-                                                        return in_array('progressive/bifocals', $lpPowerTypeDescs) || in_array('reading glasses', $lpPowerTypeDescs);
+                                                    if (str_contains($ptNameLower, 'progressive') || str_contains($ptNameLower, 'bifocal')) {
+                                                        // Progressive / Bifocals
+                                                        return in_array('progressive/bifocals', $lpPowerTypeDescs);
                                                     }
-                                                    if (str_contains($ptNameLower, 'Progressive/Bifocals')) {
-                                                        // Sunglass -> requires "Frame Only" or "Sunglass"
-                                                        return in_array('frame only', $lpPowerTypeDescs) || in_array('Progressive/Bifocals', $lpPowerTypeDescs);
+                                                    if (str_contains($ptNameLower, 'frame only') || str_contains($ptNameLower, 'sunglass')) {
+                                                        return in_array('frame only', $lpPowerTypeDescs);
                                                     }
                                                 }
                                                 return false;
@@ -836,6 +1080,11 @@ body { background: var(--bg); }
                                         {{-- Per product-type group --}}
                                         @foreach($productTypes as $pt)
                                             @php
+                                                $ptSlug = strtolower(trim($pt->name));
+                                                // Reading Glasses do NOT use lens packages
+                                                if (str_contains($ptSlug, 'reading')) {
+                                                    continue;
+                                                }
                                                 $ptPackages = $lensPackages->filter(function($lp) use ($pt, $lpMatchesProductType) {
                                                     return $lpMatchesProductType($lp, $pt);
                                                 });
@@ -1555,11 +1804,59 @@ function updateVariantFields() {
     if (prodTypeInput) prodTypeInput.value = currentProductType;
 
     const isNonFrame = isLens || isSolution || isAccessory;
+    const isReading = catName.includes('reading') || selectedOption?.value == '4';
 
     // ── 1. Show/Hide Frame-only fields in Card 1 (Shape, Type, Step 1 & Step 2 Lens Packages) ──
     document.querySelectorAll('.frame-only-field').forEach(el => {
         el.style.display = isNonFrame ? 'none' : 'block';
     });
+
+    // ── 1b. Handle Reading Glasses specific visibility (hide lens packages, show power range) ──
+    const ptSection = document.getElementById('product-types-section');
+    const autoPt = document.getElementById('reading-auto-supported-type');
+    const readingSec = document.getElementById('reading-powers-section');
+    const pkgSection = document.getElementById('package-section');
+
+    if (isReading && !isNonFrame) {
+        // When Category is Reading Glasses:
+        // 1. Hide Step 1 product types selection (it is strictly reading glasses)
+        if (ptSection) ptSection.style.display = 'none';
+        if (autoPt) autoPt.disabled = false;
+
+        // Auto-check reading glasses chip, uncheck others
+        document.querySelectorAll('input[name="supported_product_types[]"]').forEach(input => {
+            if (input === autoPt) return;
+            const card = input.closest('.pb-chip');
+            const chipText = (card?.textContent || '').toLowerCase();
+            input.checked = chipText.includes('reading') || input.value == '7';
+        });
+
+        // 2. Show the dedicated Reading Glasses Power Range section
+        if (readingSec) readingSec.style.display = 'block';
+
+        // 3. Hide package section completely and clear selected packages
+        if (pkgSection) {
+            pkgSection.style.display = 'none';
+            pkgSection.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+        const badge = document.getElementById('pkg-selected-badge');
+        if (badge) badge.style.display = 'none';
+    } else {
+        // When Category is NOT Reading Glasses:
+        if (autoPt) autoPt.disabled = true;
+        if (ptSection) ptSection.style.display = isNonFrame ? 'none' : 'block';
+
+        // Check if Reading Glasses is checked inside Step 1
+        const readingChip = document.querySelector('input[name="supported_product_types[]"][value="7"]');
+        const isReadingChecked = readingChip && readingChip.checked;
+        if (readingSec) readingSec.style.display = (isReadingChecked && !isNonFrame) ? 'block' : 'none';
+
+        if (typeof window.refreshPackageSection === 'function') {
+            window.refreshPackageSection();
+        }
+    }
 
     // ── 2. Update optical spec fields in all existing variant cards ──
     document.querySelectorAll('.variant-card').forEach(card => {
@@ -1645,6 +1942,27 @@ function initializeProductType() {
     if (badge) badge.textContent = badgeNames[currentProductType] || currentProductType;
     const prodTypeInput = document.getElementById('product_type');
     if (prodTypeInput) prodTypeInput.value = currentProductType;
+
+    // Reading Glasses check on load
+    const catSelectObj = document.getElementById('category_id');
+    const selectedOpt = catSelectObj?.options[catSelectObj.selectedIndex];
+    const catTextName = (selectedOpt?.text || '').trim().toLowerCase();
+    const isInitReading = catTextName.includes('reading') || selectedOpt?.value == '4';
+    const initPtSection = document.getElementById('product-types-section');
+    const initAutoPt = document.getElementById('reading-auto-supported-type');
+    const initReadingSec = document.getElementById('reading-powers-section');
+    const initPkgSection = document.getElementById('package-section');
+
+    if (isInitReading) {
+        if (initPtSection) initPtSection.style.display = 'none';
+        if (initAutoPt) initAutoPt.disabled = false;
+        if (initReadingSec) initReadingSec.style.display = 'block';
+        if (initPkgSection) initPkgSection.style.display = 'none';
+    } else {
+        if (initAutoPt) initAutoPt.disabled = true;
+        const readingChip = document.querySelector('input[name="supported_product_types[]"][value="7"]');
+        if (initReadingSec) initReadingSec.style.display = (readingChip && readingChip.checked) ? 'block' : 'none';
+    }
 
     // Auto-suggest Negative Inventory policy based on product type
     const allowNeg1 = document.getElementById('allow_neg_1');
@@ -2855,15 +3173,39 @@ function showError(errors) {
         }
     }
 
+    function isCurrentCategoryReading() {
+        const catSelect = document.getElementById('category_id');
+        if (!catSelect) return false;
+        const selectedOption = catSelect.options[catSelect.selectedIndex];
+        const catName = (selectedOption?.text || '').trim().toLowerCase();
+        return catName.includes('reading') || selectedOption?.value == '4';
+    }
+
     function showHideSection() {
         if (!packageSection) return;
-        const anyChecked = getCheckedTypeIds().length > 0;
-        if (anyChecked) {
+        // Never show lens package section if category is Reading Glasses
+        if (isCurrentCategoryReading()) {
+            packageSection.style.display = 'none';
+            return;
+        }
+
+        const checkedInputs = Array.from(typeInputs).filter(i => i.checked);
+        const nonReadingChecked = checkedInputs.some(i => {
+            const card = i.closest('.pb-chip');
+            return !(card?.textContent || '').toLowerCase().includes('reading');
+        });
+
+        if (checkedInputs.length > 0 && nonReadingChecked) {
             packageSection.style.display = 'block';
         } else {
             packageSection.style.display = 'none';
         }
     }
+
+    window.refreshPackageSection = function() {
+        showHideSection();
+        refreshGroups();
+    };
 
     function refreshGroups() {
         const checkedIds = getCheckedTypeIds();
@@ -2897,6 +3239,15 @@ function showError(errors) {
         input.addEventListener('change', function () {
             showHideSection();
             refreshGroups();
+
+            // If Reading Glasses chip was toggled and category is NOT reading glasses
+            const isReadingChip = (this.value === '7') || (this.closest('.pb-chip')?.textContent || '').toLowerCase().includes('reading');
+            if (isReadingChip) {
+                const readingSec = document.getElementById('reading-powers-section');
+                if (readingSec && !isCurrentCategoryReading()) {
+                    readingSec.style.display = this.checked ? 'block' : 'none';
+                }
+            }
 
             // Smooth scroll into view when section appears
             if (this.checked && packageSection && packageSection.style.display !== 'none') {
@@ -2956,6 +3307,131 @@ function showError(errors) {
     /* ── Initial run on page load ── */
     showHideSection();
     refreshGroups();
+})();
+
+/* ═══════════════════════════════════════════════
+   Reading Glasses Power Number Generator & Chips
+═══════════════════════════════════════════════ */
+(function() {
+    const fromSelect = document.getElementById('reading_power_from');
+    const toSelect   = document.getElementById('reading_power_to');
+    const btnGen     = document.getElementById('btn-generate-reading-powers');
+    const btnSelAll  = document.getElementById('btn-select-all-reading-powers');
+    const btnDeselAll= document.getElementById('btn-deselect-all-reading-powers');
+    const btnAddCust = document.getElementById('btn-add-custom-reading-power');
+    const custInput  = document.getElementById('custom-reading-power-input');
+    const chipsWrap  = document.getElementById('reading-power-chips-wrap');
+    const countBadge = document.getElementById('reading-powers-count-badge');
+
+    window.updateReadingPowersCount = function() {
+        if (!chipsWrap || !countBadge) return;
+        const total = chipsWrap.querySelectorAll('input[type="checkbox"]:checked').length;
+        countBadge.textContent = total + (total === 1 ? ' power active' : ' powers active');
+    };
+
+    function generatePowers() {
+        if (!fromSelect || !toSelect || !chipsWrap) return;
+        const fromVal = parseFloat(fromSelect.value) || 1.00;
+        const toVal   = parseFloat(toSelect.value)   || 3.00;
+        const minP    = Math.min(fromVal, toVal);
+        const maxP    = Math.max(fromVal, toVal);
+
+        const generated = [];
+        for (let p = minP; p <= maxP + 0.001; p += 0.25) {
+            generated.push('+' + p.toFixed(2));
+        }
+
+        chipsWrap.innerHTML = '';
+        generated.forEach(val => {
+            const label = document.createElement('label');
+            label.className = 'reading-power-pill';
+            label.innerHTML = `
+                <input type="checkbox" name="reading_powers[]" value="${val}" checked onchange="updateReadingPowersCount()">
+                <span class="pill-body">
+                    <span class="pill-check"><i class="fa fa-check"></i></span>
+                    <span class="pill-val">${val}</span>
+                </span>
+            `;
+            chipsWrap.appendChild(label);
+        });
+
+        window.updateReadingPowersCount();
+    }
+
+    if (btnGen) {
+        btnGen.addEventListener('click', generatePowers);
+    }
+
+    if (fromSelect && toSelect) {
+        fromSelect.addEventListener('change', generatePowers);
+        toSelect.addEventListener('change', generatePowers);
+    }
+
+    if (btnSelAll && chipsWrap) {
+        btnSelAll.addEventListener('click', function(e) {
+            e.preventDefault();
+            chipsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            window.updateReadingPowersCount();
+        });
+    }
+
+    if (btnDeselAll && chipsWrap) {
+        btnDeselAll.addEventListener('click', function(e) {
+            e.preventDefault();
+            chipsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            window.updateReadingPowersCount();
+        });
+    }
+
+    if (btnAddCust && custInput && chipsWrap) {
+        const handleAddCustom = function(e) {
+            e.preventDefault();
+            let raw = (custInput.value || '').trim();
+            if (!raw) return;
+            let num = parseFloat(raw);
+            if (isNaN(num)) {
+                alert('Please enter a valid numeric power (e.g. +2.25)');
+                return;
+            }
+            if (num <= 0) {
+                alert('Reading glasses magnification must be a positive number (e.g. +1.50, +2.00). Negative diopters are not allowed for reading glasses.');
+                return;
+            }
+            if (num > 6.00) {
+                alert('Maximum reading magnification power is +6.00 D.');
+                return;
+            }
+            let formatted = '+' + num.toFixed(2);
+            // Check if already exists
+            const existing = Array.from(chipsWrap.querySelectorAll('input[name="reading_powers[]"]')).find(i => i.value === formatted);
+            if (existing) {
+                existing.checked = true;
+            } else {
+                const label = document.createElement('label');
+                label.className = 'reading-power-pill';
+                label.innerHTML = `
+                    <input type="checkbox" name="reading_powers[]" value="${formatted}" checked onchange="updateReadingPowersCount()">
+                    <span class="pill-body">
+                        <span class="pill-check"><i class="fa fa-check"></i></span>
+                        <span class="pill-val">${formatted}</span>
+                    </span>
+                `;
+                chipsWrap.appendChild(label);
+            }
+            custInput.value = '';
+            window.updateReadingPowersCount();
+        };
+
+        btnAddCust.addEventListener('click', handleAddCustom);
+        custInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustom(e);
+            }
+        });
+    }
+
+    window.updateReadingPowersCount();
 })();
 
 </script>
