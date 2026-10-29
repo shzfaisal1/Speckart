@@ -731,59 +731,18 @@
         })
         ->get();
 
-    $profilePts = $loyaltyPoints ?? 0;
-    if (!isset($loyaltyPoints) || $profilePts === 0) {
-        if (session()->has('test_loyalty_points')) {
-            $profilePts = (int) session()->get('test_loyalty_points');
-        } elseif ($user) {
-            if (\Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
-                $custRec = DB::table('tbl_customer')
-                    ->where(function ($q) use ($user) {
-                        if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
-                        if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
-                        if (!empty($user->email)) $q->orWhere('email_id', $user->email);
-                        $q->orWhere('customer_id', $user->id);
-                        $q->orWhere('added_by', $user->id);
-                    })
-                    ->first();
-                if ($custRec) {
-                    if (isset($custRec->Loyalty_Points_Bal) && $custRec->Loyalty_Points_Bal !== null) {
-                        $profilePts = (int) $custRec->Loyalty_Points_Bal;
-                    } elseif (isset($custRec->Loyalty_Points)) {
-                        $profilePts = max(0, (int) ($custRec->Loyalty_Points - ($custRec->Loyalty_Points_Redeem ?? 0)));
-                    }
-                }
-            }
-            if ($profilePts === 0 && \Illuminate\Support\Facades\Schema::hasTable('tbl_sales')) {
-                $earned = (int) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('earnedPoints');
-                $used   = (int) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('loyalty_point_amount');
-                $profilePts = max(0, $earned - $used);
-            }
-        }
+    if (!isset($loyaltyData)) {
+        $loyaltyData = app(\App\Services\LoyaltyService::class)->getUserLoyaltyData($user);
     }
+    $profilePts          = $loyaltyData['balance'] ?? ($loyaltyPoints ?? 0);
+    $profileWorth        = $loyaltyData['worth_in_rupees'] ?? 0;
+    $profilePointVal     = $loyaltyData['point_value'] ?? 2.0;
+    $profileLoyaltyHistory = $loyaltyData['history'] ?? collect();
+    $profileLoyaltyEarned  = $loyaltyData['earned'] ?? $profilePts;
+    $profileLoyaltyRedeemed= $loyaltyData['redeemed'] ?? 0;
 
     if (!isset($profileMembership) || empty($profileMembership)) {
-        $profileMembership = null;
-        if ($user && \Illuminate\Support\Facades\Schema::hasTable('tbl_customer')) {
-            $custMem = DB::table('tbl_customer')
-                ->where(function ($q) use ($user) {
-                    if (!empty($user->phone)) $q->orWhere('contact_no', $user->phone);
-                    if (!empty($user->mobile)) $q->orWhere('contact_no', $user->mobile);
-                    if (!empty($user->email)) $q->orWhere('email_id', $user->email);
-                    $q->orWhere('customer_id', $user->id);
-                    $q->orWhere('added_by', $user->id);
-                })
-                ->first();
-            if ($custMem && !empty($custMem->membership_card_id) && !empty($custMem->membership_expiry) && \Carbon\Carbon::parse($custMem->membership_expiry)->isFuture()) {
-                $dbCard = DB::table('tbl_membership_card')->where('card_id', $custMem->membership_card_id)->first();
-                if ($dbCard) {
-                    $profileMembership = [
-                        'name' => $dbCard->card_name,
-                        'expiry' => \Carbon\Carbon::parse($custMem->membership_expiry)->format('d M Y')
-                    ];
-                }
-            }
-        }
+        $profileMembership = $loyaltyData['membership'] ?? null;
         if (!$profileMembership && session()->has('active_membership')) {
             $sessM = session()->get('active_membership');
             if (\Carbon\Carbon::parse($sessM['expiry'])->isFuture()) {
@@ -862,7 +821,7 @@
                         </div>
 
                         <!-- Loyalty Points Badge -->
-                        <a href="{{ route('cart') }}" class="pf-points-pill" title="View loyalty points on cart">
+                        <a href="javascript:void(0);" class="pf-points-pill" data-bs-toggle="modal" data-bs-target="#loyaltyRewardsModal" role="button" title="View loyalty rewards passbook (₹{{ number_format($profileWorth) }} Value)">
                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="2"/>
                                 <path d="M3 9H21" stroke="currentColor" stroke-width="2"/>
@@ -978,7 +937,7 @@
                         </a>
 
                         <!-- 6. Loyalty Points -->
-                        <a href="{{ route('cart') }}" class="pf-service-card">
+                        <a href="javascript:void(0);" class="pf-service-card pf-loyalty-card-trigger" data-bs-toggle="modal" data-bs-target="#loyaltyRewardsModal" role="button" title="View Loyalty Rewards Statement & Passbook">
                             <div class="pf-service-icon-box icon-box-points">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="2"/>
@@ -1165,6 +1124,188 @@
             </div>
         </div>
     </div>
+
+<!-- ── Interactive Loyalty Rewards & Passbook Modal ── -->
+<div class="modal fade" id="loyaltyRewardsModal" tabindex="-1" aria-labelledby="loyaltyRewardsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 18px; border: none; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
+            
+            <!-- Modal Header -->
+            <div class="modal-header py-3 px-4" style="background: #ffffff; border-bottom: 1px solid #f1f5f9;">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="bi bi-coin"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="loyaltyRewardsModalLabel" style="color: #0f172a; font-size: 17px;">
+                            Speckart Loyalty Rewards & Passbook
+                        </h5>
+                        <small class="text-muted" style="font-size: 12px;">Earn points on every order & save instantly at checkout</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4" style="background: #f8fafc; max-height: 75vh; overflow-y: auto;">
+                
+                <!-- Main Gradient Card: Balance & Value -->
+                <div class="p-4 mb-4 text-white position-relative overflow-hidden" 
+                     style="background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%); border-radius: 16px; box-shadow: 0 10px 25px rgba(5, 150, 105, 0.25);">
+                    <div class="row align-items-center">
+                        <div class="col-md-7 mb-3 mb-md-0">
+                            <span class="badge mb-2 text-uppercase fw-bold" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; letter-spacing: 0.5px; padding: 5px 10px; border-radius: 6px;">
+                                <i class="bi bi-stars me-1 text-warning"></i> Active Points Balance
+                            </span>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <h1 class="display-5 fw-bold mb-0 text-white">{{ number_format($profilePts) }}</h1>
+                                <span class="fs-5 text-white-50 fw-semibold">Points</span>
+                            </div>
+                            <div class="mt-2 d-flex flex-wrap align-items-center gap-2">
+                                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5" style="font-size: 12.5px; border-radius: 6px;">
+                                    Worth ₹{{ number_format($profileWorth, 2) }}
+                                </span>
+                                <span class="text-white-50" style="font-size: 12px;">
+                                    (1 Pt = ₹{{ number_format($profilePointVal, 2) }} Checkout Discount)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-md-end">
+                            <a href="{{ route('cart') }}" class="btn btn-warning fw-bold px-3 py-2 text-dark shadow-sm" style="border-radius: 10px; font-size: 13px;">
+                                <i class="bi bi-cart3 me-1"></i> Redeem on Cart
+                            </a>
+                            <div class="text-white-50 mt-2" style="font-size: 11.5px;">
+                                1-Click apply at cart checkout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 Mini Stats -->
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <div class="p-3 bg-white text-center" style="border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="text-muted text-uppercase mb-1" style="font-size: 11px; font-weight: 600;">Total Earned</div>
+                            <div class="fw-bold text-success" style="font-size: 16px;">
+                                +{{ number_format($profileLoyaltyEarned) }} <small style="font-size: 11px;">Pts</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 bg-white text-center" style="border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="text-muted text-uppercase mb-1" style="font-size: 11px; font-weight: 600;">Total Redeemed</div>
+                            <div class="fw-bold text-danger" style="font-size: 16px;">
+                                -{{ number_format($profileLoyaltyRedeemed) }} <small style="font-size: 11px;">Pts</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 bg-white text-center" style="border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <div class="text-muted text-uppercase mb-1" style="font-size: 11px; font-weight: 600;">Available Now</div>
+                            <div class="fw-bold text-primary" style="font-size: 16px;">
+                                {{ number_format($profilePts) }} <small style="font-size: 11px;">Pts</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passbook Statement List -->
+                <div class="bg-white p-3.5 p-md-4" style="border-radius: 14px; border: 1px solid #e2e8f0;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="fw-bold mb-0" style="color: #0f172a; font-size: 14.5px;">
+                            <i class="bi bi-clock-history text-teal me-2"></i>Points Passbook History
+                        </h6>
+                        <span class="badge bg-light text-secondary border" style="font-size: 11px;">
+                            {{ $profileLoyaltyHistory->count() }} Record{{ $profileLoyaltyHistory->count() == 1 ? '' : 's' }}
+                        </span>
+                    </div>
+
+                    @if($profileLoyaltyHistory->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0" style="font-size: 13px;">
+                                <thead style="background: #f8fafc; font-size: 11.5px; text-transform: uppercase; color: #64748b;">
+                                    <tr>
+                                        <th class="py-2.5">Date & Time</th>
+                                        <th class="py-2.5">Description</th>
+                                        <th class="py-2.5 text-center">Type</th>
+                                        <th class="py-2.5 text-end">Points</th>
+                                        <th class="py-2.5 text-end">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($profileLoyaltyHistory as $item)
+                                        <tr>
+                                            <td class="text-muted" style="white-space: nowrap; font-size: 12px;">
+                                                {{ $item->formatted_date ?? \Carbon\Carbon::parse($item->created_at)->format('d M Y, h:i A') }}
+                                            </td>
+                                            <td class="fw-semibold text-dark">
+                                                {{ $item->description ?: 'Loyalty Points Adjustment' }}
+                                            </td>
+                                            <td class="text-center">
+                                                @if((int)($item->add_remove ?? 1) === 1)
+                                                    <span class="badge" style="background:#dcfce7; color:#15803d; font-size:10.5px; border-radius:4px; font-weight:700;">EARNED</span>
+                                                @else
+                                                    <span class="badge" style="background:#fee2e2; color:#b91c1c; font-size:10.5px; border-radius:4px; font-weight:700;">REDEEMED</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-end fw-bold {{ (int)($item->add_remove ?? 1) === 1 ? 'text-success' : 'text-danger' }}">
+                                                {{ (int)($item->add_remove ?? 1) === 1 ? '+' : '-' }}{{ number_format($item->redeem ?? 0) }}
+                                            </td>
+                                            <td class="text-end text-muted fw-semibold">
+                                                {{ number_format($item->bal_point ?? 0) }} Pts
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-gift text-warning display-6 d-block mb-2"></i>
+                            <p class="mb-1 fw-bold text-dark" style="font-size: 14px;">No Points Activity Yet</p>
+                            <small>Order eyeglasses, sunglasses, or contact lenses to start earning loyalty points!</small>
+                            <div class="mt-3">
+                                <a href="{{ route('products') }}" class="btn btn-sm btn-outline-primary px-3 py-1.5 rounded-pill fw-semibold" style="font-size: 12px;">
+                                    Browse Eyewear
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- How It Works Strip -->
+                <div class="mt-3 p-3 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-lightbulb-fill text-warning"></i>
+                        <span class="fw-bold" style="font-size: 12.5px; color: #1e293b;">How Speckart Loyalty Rewards Work</span>
+                    </div>
+                    <div class="row g-2 text-muted" style="font-size: 11.5px;">
+                        <div class="col-md-4">
+                            <strong>1. Shop & Earn:</strong> Earn reward points automatically on every eligible eyewear purchase.
+                        </div>
+                        <div class="col-md-4">
+                            <strong>2. Auto Credit:</strong> Points are credited to your passbook upon successful order delivery.
+                        </div>
+                        <div class="col-md-4">
+                            <strong>3. Instant Savings:</strong> Select "Use Loyalty Points" on your cart to redeem direct cash off.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer py-2.5 px-4 bg-white" style="border-top: 1px solid #f1f5f9;">
+                <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal" style="border-radius: 8px;">Close</button>
+                <a href="{{ route('cart') }}" class="btn btn-sm px-3 text-white fw-semibold" style="background: #0d9488; border-radius: 8px;">
+                    <i class="bi bi-bag-check me-1"></i> Go to Cart
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -1238,6 +1379,15 @@ $(document).ready(function() {
     $(document).on('change', '#imageUpload', function() {
         readURL(this);
     });
+
+    // Auto-open Loyalty Passbook Modal if #loyalty hash is in URL
+    if (window.location.hash === '#loyalty') {
+        var loyaltyModalEl = document.getElementById('loyaltyRewardsModal');
+        if (loyaltyModalEl && typeof bootstrap !== 'undefined') {
+            var loyaltyModal = new bootstrap.Modal(loyaltyModalEl);
+            loyaltyModal.show();
+        }
+    }
 });
 </script>
 @endsection

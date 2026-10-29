@@ -666,7 +666,7 @@ $(document).ready(function() {
                     badges.push({
                         label: customLabel,
                         bg_color: $('#pkg_badge_custom_bg').val() || '#07484A',
-                        text_color: $('#pkg_badge_custom_text').val() || '#ffffff'
+                        text_color: $('#pkg_badge_custom_text').val() || '#8e9e00ff'
                     });
                 }
             } else if (badgePreset) {

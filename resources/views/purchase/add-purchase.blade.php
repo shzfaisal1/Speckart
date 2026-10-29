@@ -1678,7 +1678,7 @@ $(document).ready(function () {
                 message: 'Product Code or Product ID required.',
                 timeout: 3000
             }); 
-            return; 
+            return; 1
         }
         
         if(product_type == 'Frame' || product_type == 'Goggles')

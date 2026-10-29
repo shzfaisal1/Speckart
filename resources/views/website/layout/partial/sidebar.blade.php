@@ -1915,6 +1915,16 @@
                                                 <div class="user-dropdown-header">
                                                     <div class="user-dropdown-header-name" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
                                                     <div class="user-dropdown-header-email">{{ Auth::user()->email ?? (Auth::user()->mobile ?? '') }}</div>
+                                                    <div class="user-dropdown-loyalty-strip mt-2 pt-2 border-top">
+                                                        <a href="{{ route('profile') }}#loyalty" class="d-flex align-items-center justify-content-between text-decoration-none px-2 py-1.5 rounded" style="background: #f0fdf4; border: 1px solid #bbf7d0;" title="Click to view Loyalty Rewards Passbook">
+                                                            <span style="font-size: 11.5px; font-weight: 600; color: #166534;">
+                                                                <i class="bi bi-coin text-warning me-1"></i> Loyalty Points
+                                                            </span>
+                                                            <span class="badge" style="background: #16a34a; color: #fff; font-weight: 700; font-size: 10.5px;">
+                                                                {{ number_format($headerLoyaltyPoints ?? 0) }} Pts
+                                                            </span>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                                 <ul class="user-dropdown-list">
                                                     <li>
@@ -3774,6 +3784,11 @@
                                 {{ Auth::user()->phone ?? (Auth::user()->mobile ?? (Auth::user()->email ?? 'Speckarts Member')) }}
                             </div>
                             <span class="mobile-user-badge"><i class="bi bi-patch-check-fill"></i> Gold Member</span>
+                            <div class="mt-1">
+                                <a href="{{ route('profile') }}#loyalty" class="badge text-decoration-none" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; font-size:11px; padding:3px 8px; border-radius:12px;">
+                                    <i class="bi bi-coin text-warning me-1"></i>{{ number_format($headerLoyaltyPoints ?? 0) }} Loyalty Pts
+                                </a>
+                            </div>
                         </div>
                     </div>
 
