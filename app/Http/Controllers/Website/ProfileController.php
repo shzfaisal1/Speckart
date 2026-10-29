@@ -23,68 +23,13 @@ class ProfileController extends Controller
                 ->with('info', 'Please sign in to access your profile.');
         }
 
-        // Calculate dynamic loyalty points
-        $loyaltyPoints = 0;
-        $customerRecord = null;
+        // Calculate dynamic loyalty points & passbook via LoyaltyService
+        $loyaltyService    = app(\App\Services\LoyaltyService::class);
+        $loyaltyData       = $loyaltyService->getUserLoyaltyData($user);
+        $loyaltyPoints     = $loyaltyData['balance'];
+        $profileMembership = $loyaltyData['membership'];
 
-        if (Schema::hasTable('tbl_customer')) {
-            $customerRecord = DB::table('tbl_customer')
-                ->where(function ($q) use ($user) {
-                    if (!empty($user->phone)) {
-                        $q->orWhere('contact_no', $user->phone);
-                    }
-                    if (!empty($user->mobile)) {
-                        $q->orWhere('contact_no', $user->mobile);
-                    }
-                    if (!empty($user->email)) {
-                        $q->orWhere('email_id', $user->email);
-                    }
-                    $q->orWhere('customer_id', $user->id);
-                    $q->orWhere('added_by', $user->id);
-                })
-                ->first();
-
-            if ($customerRecord) {
-                if (isset($customerRecord->Loyalty_Points_Bal) && $customerRecord->Loyalty_Points_Bal !== null) {
-                    $loyaltyPoints = (int) $customerRecord->Loyalty_Points_Bal;
-                } elseif (isset($customerRecord->Loyalty_Points)) {
-                    $loyaltyPoints = max(0, (int) ($customerRecord->Loyalty_Points - ($customerRecord->Loyalty_Points_Redeem ?? 0)));
-                }
-            }
-        }
-
-        // Check if user model has loyalty_points column
-        if ($loyaltyPoints === 0 && isset($user->loyalty_points) && (int)$user->loyalty_points > 0) {
-            $loyaltyPoints = (int) $user->loyalty_points;
-        }
-
-        // Fallback: check earned minus used from tbl_sales
-        if ($loyaltyPoints === 0 && Schema::hasTable('tbl_sales')) {
-            $earned = (int) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('earnedPoints');
-            $used   = (int) DB::table('tbl_sales')->where('user_id', $user->id)->where('sales_type', 0)->sum('loyalty_point_amount');
-            $loyaltyPoints = max(0, $earned - $used);
-        }
-
-        // Session test override if explicitly set
-        if (session()->has('test_loyalty_points')) {
-            $loyaltyPoints = (int) session()->get('test_loyalty_points');
-        }
-
-        // Membership details
-        $profileMembership = null;
-        if ($customerRecord && !empty($customerRecord->membership_card_id) && !empty($customerRecord->membership_expiry) && Carbon::parse($customerRecord->membership_expiry)->isFuture()) {
-            if (Schema::hasTable('tbl_membership_card')) {
-                $dbCard = DB::table('tbl_membership_card')->where('card_id', $customerRecord->membership_card_id)->first();
-                if ($dbCard) {
-                    $profileMembership = [
-                        'name'   => $dbCard->card_name ?? 'VIP Member',
-                        'expiry' => Carbon::parse($customerRecord->membership_expiry)->format('d M Y')
-                    ];
-                }
-            }
-        }
-
-        return view('website.profile.profile', compact('user', 'loyaltyPoints', 'profileMembership'));
+        return view('website.profile.profile', compact('user', 'loyaltyPoints', 'profileMembership', 'loyaltyData'));
     }
 
     public function update_profile_image(Request $request)

@@ -227,4 +227,5 @@ class B2cOrder extends Model
         $seq  = str_pad($last + 1, 5, '0', STR_PAD_LEFT);
         return "B2C-{$year}-{$seq}";
     }
-}
+}           
+

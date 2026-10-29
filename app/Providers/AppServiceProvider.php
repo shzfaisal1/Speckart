@@ -237,6 +237,30 @@ class AppServiceProvider extends ServiceProvider
                     'navContactTypes' => collect(),
                 ]);
             }
+
+            // Share dynamic loyalty points for logged-in users across all website views
+            try {
+                if (\Illuminate\Support\Facades\Auth::check()) {
+                    $uLoyalty = app(\App\Services\LoyaltyService::class)->getUserLoyaltyData(\Illuminate\Support\Facades\Auth::user());
+                    $view->with([
+                        'headerLoyaltyPoints' => (int) ($uLoyalty['balance'] ?? 0),
+                        'headerLoyaltyWorth'  => (float) ($uLoyalty['worth_in_rupees'] ?? 0),
+                        'headerLoyaltyData'   => $uLoyalty,
+                    ]);
+                } else {
+                    $view->with([
+                        'headerLoyaltyPoints' => 0,
+                        'headerLoyaltyWorth'  => 0,
+                        'headerLoyaltyData'   => null,
+                    ]);
+                }
+            } catch (\Throwable $th) {
+                $view->with([
+                    'headerLoyaltyPoints' => 0,
+                    'headerLoyaltyWorth'  => 0,
+                    'headerLoyaltyData'   => null,
+                ]);
+            }
         });
     }
 }
