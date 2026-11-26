@@ -1421,7 +1421,7 @@ $(document).ready(function () {
                 store_id: storeId
             },
             success: function(response) {
-                tableBody.empty(); // Clear old data
+                tableBody.empty(); 
     
                 if (response.data && response.data.length > 0) {
                     response.data.forEach(function(purchasevalue) 

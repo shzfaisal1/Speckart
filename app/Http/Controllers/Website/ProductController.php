@@ -793,7 +793,7 @@ class ProductController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Product not found'], 404);
         }
 
-        // Query similar products based on category, shape, rim type or company
+        // Query similar products based on category, shape, type or company
         $query = DB::table('tbl_product_code')
             ->where('status', 1)
             ->where('id', '!=', $product->id);
@@ -802,15 +802,15 @@ class ProductController extends Controller
             $query->where('category_id', $product->category_id);
         }
 
-        // Prioritize matching Shape, Rim_Type, or Company
+        // Prioritize matching Shape, Type, or Company
         $query->where(function($q) use ($product) {
             $hasCondition = false;
             if (!empty($product->Shape)) {
                 $q->orWhere('Shape', $product->Shape);
                 $hasCondition = true;
             }
-            if (!empty($product->Rim_Type)) {
-                $q->orWhere('Rim_Type', $product->Rim_Type);
+            if (!empty($product->Type)) {
+                $q->orWhere('Type', $product->Type);
                 $hasCondition = true;
             }
             if (!empty($product->Company)) {
@@ -834,14 +834,29 @@ class ProductController extends Controller
                 return $p;
             });
 
-        // Fallback: If not enough similar products found, get latest products from same category or catalog
-        if ($similarProducts->count() < 4) {
+        // Layer 1 Fallback: Match Shape / Type / Company across ALL categories if less than 8 results
+        if ($similarProducts->count() < 8) {
             $existingIds = $similarProducts->pluck('id')->push($product->id)->toArray();
-            $fallback = DB::table('tbl_product_code')
+            $broadMatch = DB::table('tbl_product_code')
                 ->where('status', 1)
                 ->whereNotIn('id', $existingIds)
-                ->when(!empty($product->category_id), function($q) use ($product) {
-                    return $q->where('category_id', $product->category_id);
+                ->where(function($q) use ($product) {
+                    $hasCondition = false;
+                    if (!empty($product->Shape)) {
+                        $q->orWhere('Shape', $product->Shape);
+                        $hasCondition = true;
+                    }
+                    if (!empty($product->Type)) {
+                        $q->orWhere('Type', $product->Type);
+                        $hasCondition = true;
+                    }
+                    if (!empty($product->Company)) {
+                        $q->orWhere('Company', $product->Company);
+                        $hasCondition = true;
+                    }
+                    if (!$hasCondition) {
+                        $q->where('status', 1);
+                    }
                 })
                 ->orderByRaw('CASE WHEN main_image IS NOT NULL AND main_image != "" THEN 0 ELSE 1 END')
                 ->orderBy('id', 'desc')
@@ -853,7 +868,29 @@ class ProductController extends Controller
                     return $p;
                 });
 
-            $similarProducts = $similarProducts->concat($fallback);
+            $similarProducts = $similarProducts->concat($broadMatch);
+        }
+
+        // Layer 2 Fallback: If still under 4 items, get active products of same product_type or general catalog
+        if ($similarProducts->count() < 4) {
+            $existingIds = $similarProducts->pluck('id')->push($product->id)->toArray();
+            $catalogFallback = DB::table('tbl_product_code')
+                ->where('status', 1)
+                ->whereNotIn('id', $existingIds)
+                ->when(!empty($product->product_type), function($q) use ($product) {
+                    return $q->where('product_type', $product->product_type);
+                })
+                ->orderByRaw('CASE WHEN main_image IS NOT NULL AND main_image != "" THEN 0 ELSE 1 END')
+                ->orderBy('id', 'desc')
+                ->limit(12 - $similarProducts->count())
+                ->get()
+                ->map(function ($p) {
+                    $p->image_url  = getProductImageUrl($p, $p->main_image);
+                    $p->detail_url = url('/product/' . ($p->product_id ?: $p->id));
+                    return $p;
+                });
+
+            $similarProducts = $similarProducts->concat($catalogFallback);
         }
 
         // Fetch sibling color variants for similar products

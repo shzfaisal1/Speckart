@@ -659,6 +659,10 @@ class CartService
      */
     public function getCartCalculations($appliedCoupon = null)
     {
+        if ($appliedCoupon === null) {
+            $appliedCoupon = session()->get('applied_coupon', null);
+        }
+
         $cart = session()->get('cart', []);
         if (empty($cart)) {
             $cart = $this->loadCartFromDbToSession();
@@ -961,7 +965,11 @@ class CartService
         }
 
         // Calculate Frame Subtotal after discounts
+        $membershipFee = $hasMembershipInCart ? (float)($cartMembership['price'] ?? 600) : 0.0;
+        $physicalFrameSubtotal = max(0, $frameSubtotal - $membershipFee);
+
         $totalFrameDiscount = $bogoSavings + $thirdItemSavings + $firstFrameFreeSavings;
+        $netPhysicalFrameSubtotal = max(0, $physicalFrameSubtotal - $totalFrameDiscount);
         $netFrameSubtotal   = max(0, $frameSubtotal - $totalFrameDiscount);
 
         // Apply Coupon/Membership Discount
@@ -971,16 +979,20 @@ class CartService
         if ($allowCouponStacking) {
             if ($appliedCoupon) {
                 if (isset($appliedCoupon['discount_percent']) && $appliedCoupon['discount_percent'] > 0) {
-                    $couponDiscount = ($netFrameSubtotal * $appliedCoupon['discount_percent']) / 100;
+                    $couponDiscount = ($netPhysicalFrameSubtotal * $appliedCoupon['discount_percent']) / 100;
+                    // Enforce max_discount capping if configured
+                    if (!empty($appliedCoupon['max_discount']) && (float)$appliedCoupon['max_discount'] > 0) {
+                        $couponDiscount = min($couponDiscount, (float)$appliedCoupon['max_discount']);
+                    }
                 } elseif (isset($appliedCoupon['discount_amount']) && $appliedCoupon['discount_amount'] > 0) {
-                    $couponDiscount = min($netFrameSubtotal, (float) $appliedCoupon['discount_amount']);
+                    $couponDiscount = min($netPhysicalFrameSubtotal, (float) $appliedCoupon['discount_amount']);
                 }
-            } elseif ($membershipCouponPercent > 0) {
+            } elseif ($membershipCouponPercent > 0 && $bogoSavings <= 0) {
                 $couponMinOrder    = (float)($membershipCard->coupon_min_order_amount ?? 0);
                 $couponMaxDiscount = !empty($membershipCard->coupon_max_discount) ? (float)$membershipCard->coupon_max_discount : null;
 
-                if ($couponMinOrder <= 0 || $netFrameSubtotal >= $couponMinOrder) {
-                    $couponDiscount = ($netFrameSubtotal * $membershipCouponPercent) / 100;
+                if ($couponMinOrder <= 0 || $netPhysicalFrameSubtotal >= $couponMinOrder) {
+                    $couponDiscount = ($netPhysicalFrameSubtotal * $membershipCouponPercent) / 100;
                     if ($couponMaxDiscount !== null && $couponMaxDiscount > 0) {
                         $couponDiscount = min($couponDiscount, $couponMaxDiscount);
                     }
@@ -1490,6 +1502,9 @@ class CartService
                 ->where(function ($q) use ($now) {
                     $q->whereNull('valid_until')->orWhere('valid_until', '>=', $now);
                 })
+                ->where(function ($q) {
+                    $q->whereNull('max_uses')->orWhereColumn('current_uses', '<', 'max_uses');
+                })
                 ->get();
 
             foreach ($dbCoupons as $c) {
@@ -1503,6 +1518,47 @@ class CartService
                         'max_discount'    => (float) ($c->max_discount_amount ?? 0),
                         'description'     => $c->description ?? '',
                         'title'           => ($c->discount_type === 'fixed') ? ('₹' . (int)$c->discount_value . ' OFF') : ((int)$c->discount_value . '% OFF'),
+                    ];
+                }
+            }
+        }
+
+        // 3. Fetch from tbl_coupon table (Customer -> Discount Coupons)
+        if (\Illuminate\Support\Facades\Schema::hasTable('tbl_coupon')) {
+            $user = auth()->user();
+            $userPhone = $user->phone ?? ($user->mobile ?? null);
+            $last10 = $userPhone ? substr(preg_replace('/[^0-9]/', '', $userPhone), -10) : null;
+
+            $tblCoupons = DB::table('tbl_coupon')
+                ->where('coupon_status', '0')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('valid_from')->orWhere('valid_from', '<=', $now);
+                })
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('valid_to')->orWhere('valid_to', '>=', $now);
+                })
+                ->where(function ($q) use ($last10) {
+                    $q->whereNull('contact_no')->orWhere('contact_no', '');
+                    if ($last10 && strlen($last10) === 10) {
+                        $q->orWhere('contact_no', 'LIKE', '%' . $last10);
+                    }
+                })
+                ->limit(10)
+                ->get();
+
+            foreach ($tblCoupons as $tc) {
+                $code = strtoupper($tc->coupon_code);
+                if (!collect($coupons)->pluck('code')->contains($code)) {
+                    $isPercentage = ((string)$tc->coupon_type === '1');
+                    $val = (float) ($tc->coupon_value ?? 0);
+                    $coupons[] = [
+                        'code'            => $code,
+                        'discount_type'   => $isPercentage ? 'percentage' : 'fixed',
+                        'discount_value'  => $val,
+                        'min_cart_amount' => (float) ($tc->min_sale_vale ?? 0),
+                        'max_discount'    => 0,
+                        'description'     => 'Special Discount ' . $code,
+                        'title'           => $isPercentage ? ((int)$val . '% OFF') : ('₹' . (int)$val . ' OFF'),
                     ];
                 }
             }

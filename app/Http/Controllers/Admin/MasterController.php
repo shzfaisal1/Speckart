@@ -84,12 +84,35 @@ class MasterController extends Controller
                 $by_one_get_one = '<span class="badge badge-success">Yes</span>';
             }
 
-            if (!empty($template->image) && file_exists(public_path($template->image))) {
-                $brand_img = '<a href="' . asset($template->image) . '" target="_blank" title="Click to view full image"><img src="' . asset($template->image) . '" width="45" height="45" style="object-fit:contain; border-radius:6px; background:#f8f9fa; border:1px solid #e2e8f0; padding:2px;" alt="' . htmlspecialchars($template->brand_name, ENT_QUOTES) . '"></a>';
-            } elseif (!empty($template->image)) {
-                $brand_img = '<img src="' . asset($template->image) . '" width="45" height="45" style="object-fit:contain; border-radius:6px; background:#f8f9fa; border:1px solid #e2e8f0; padding:2px;" alt="' . htmlspecialchars($template->brand_name, ENT_QUOTES) . '">';
+            $hasValidImage = false;
+            $imgUrl = '';
+            $noImageBadge = '<span class="badge badge-light text-muted" style="border:1px dashed #cbd5e1; padding:6px 8px;"><i class="fa fa-image me-1"></i> No Image</span>';
+
+            if (!empty($template->image)) {
+                $rawPath = trim($template->image);
+                if (filter_var($rawPath, FILTER_VALIDATE_URL)) {
+                    $imgUrl = $rawPath;
+                    $hasValidImage = true;
+                } else {
+                    $cleanedPath = ltrim($rawPath, '/\\');
+                    if (file_exists(public_path($cleanedPath))) {
+                        $imgUrl = asset($cleanedPath);
+                        $hasValidImage = true;
+                    }
+                }
+            }
+
+            if ($hasValidImage) {
+                $fallbackJs = 'this.closest(\'.brand-img-link\').outerHTML=\'' . addslashes($noImageBadge) . '\';';
+                $brand_img = '<a href="' . $imgUrl . '" target="_blank" title="Click to view full image" class="brand-img-link">'
+                    . '<img src="' . $imgUrl . '" width="45" height="45" '
+                    . 'style="object-fit:contain; border-radius:6px; background:#f8f9fa; border:1px solid #e2e8f0; padding:2px;" '
+                    . 'alt="' . htmlspecialchars($template->brand_name, ENT_QUOTES) . '" '
+                    . 'loading="lazy" '
+                    . 'onerror="' . $fallbackJs . '">'
+                    . '</a>';
             } else {
-                $brand_img = '<span class="badge badge-light text-muted" style="border:1px dashed #cbd5e1; padding:6px 8px;"><i class="fa fa-image me-1"></i> No Image</span>';
+                $brand_img = $noImageBadge;
             }
 
             $isLoyalty = (isset($template->loyalty_eligible) && (int)$template->loyalty_eligible === 0) ? 0 : 1;
@@ -111,6 +134,7 @@ class MasterController extends Controller
             $nestedData['sr_no']            = $i++;
             $nestedData['brand_image']      = $brand_img;
             $nestedData['image']            = $template->image;
+            $nestedData['image_url']        = $hasValidImage ? $imgUrl : null;
             $nestedData['brand_name']       = $template->brand_name;
             $nestedData['product_type']     = $template->product_type;
             $nestedData['loyalty_badge']    = $loyalty_badge;
@@ -202,6 +226,12 @@ class MasterController extends Controller
                     @unlink(public_path($oldBrand->image));
                 }
                 $updateData['image'] = $imagePath;
+            } elseif ($request->input('remove_image') == '1') {
+                $oldBrand = DB::table('tbl_brand')->where('brand_id', $request->uid)->first();
+                if ($oldBrand && !empty($oldBrand->image) && file_exists(public_path($oldBrand->image))) {
+                    @unlink(public_path($oldBrand->image));
+                }
+                $updateData['image'] = null;
             }
 
             DB::table('tbl_brand')
@@ -446,8 +476,12 @@ class MasterController extends Controller
                 $store_name = $store_name->store_id;
             }
             
+            $shapeImg = '';
+            if (!empty($template->image) && file_exists(public_path(ltrim($template->image, '/\\')))) {
+                $shapeImg = '<img src="' . asset(ltrim($template->image, '/\\')) . '" width="50" height="50" style="object-fit:cover; border-radius:5px;" onerror="this.style.display=\'none\';">';
+            }
             $nestedData['sr_no']        = $i++;
-            $nestedData['image']        = isset($template->image) && $template->image ? '<img src="'.asset($template->image).'" width="50" height="50" style="object-fit:cover; border-radius:5px;">' : '';
+            $nestedData['image']        = $shapeImg;
             $nestedData['shape_name']   = $template->shape_name;
             $nestedData['product_type'] = $template->product_type;
             $nestedData['created_at']   = date('d M, Y h:i A', strtotime($template->created_at))
@@ -856,8 +890,12 @@ class MasterController extends Controller
                 $store_name = Store::find($template->store_id);
                 $store_name = $store_name->store_id;
             }
+            $shapeImg = '';
+            if (!empty($template->image) && file_exists(public_path(ltrim($template->image, '/\\')))) {
+                $shapeImg = '<img src="' . asset(ltrim($template->image, '/\\')) . '" width="50" height="50" style="object-fit:cover; border-radius:5px;" onerror="this.style.display=\'none\';">';
+            }
             $nestedData['sr_no']        = $i++;
-            $nestedData['image']        = isset($template->image) && $template->image ? '<img src="'.asset($template->image).'" width="50" height="50" style="object-fit:cover; border-radius:5px;">' : '';
+            $nestedData['image']        = $shapeImg;
             $nestedData['type_name']   = $template->type_name;
             $nestedData['product_type'] = $template->product_type;
             $nestedData['created_at']   = date('d M, Y h:i A', strtotime($template->created_at))

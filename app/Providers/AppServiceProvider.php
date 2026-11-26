@@ -103,9 +103,18 @@ class AppServiceProvider extends ServiceProvider
                     }
 
                     $navBrands = $mergedBrands->values()->take(9)->map(function ($b, $idx) use ($defaultIconPool) {
-                        $iconUrl = (!empty($b->image))
-                            ? asset($b->image)
-                            : asset($defaultIconPool[$idx % count($defaultIconPool)]);
+                        $iconUrl = null;
+                        if (!empty($b->image)) {
+                            $cleanedImg = ltrim(trim($b->image), '/\\');
+                            if (filter_var($b->image, FILTER_VALIDATE_URL)) {
+                                $iconUrl = $b->image;
+                            } elseif (file_exists(public_path($cleanedImg))) {
+                                $iconUrl = asset($cleanedImg);
+                            }
+                        }
+                        if (empty($iconUrl)) {
+                            $iconUrl = asset($defaultIconPool[$idx % count($defaultIconPool)]);
+                        }
 
                         $minPrice = \Illuminate\Support\Facades\DB::table('tbl_product_code')
                             ->where('status', 1)

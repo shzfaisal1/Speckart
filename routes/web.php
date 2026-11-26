@@ -556,7 +556,9 @@ Route::group(['middleware' => ['auth'], 'prefix' => config('app.admin_path'), 'a
      ->prefix('banners')
      ->name('banners.')
      ->group(function () {
-         Route::get('/',                'index')          ->name('index');
+         Route::get('/',       
+         
+         'index')          ->name('index');
          Route::get('/data',            'data')           ->name('data');
          Route::post('/',               'store')          ->name('store');
          Route::get('/{id}/edit',       'edit')           ->name('edit');

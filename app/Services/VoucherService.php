@@ -44,7 +44,10 @@ class VoucherService
         int $addedBy = 0
     ): GiftVoucher {
         $voucherValue = (float) config('vouchers.gold_deferred_voucher_value', 2600.00);
-        $validDays    = (int) config('vouchers.gold_deferred_voucher_days', 30);
+        $card = DB::table('tbl_membership_card')->where('card_id', $cardId)->first();
+        $validDays = ($card && !empty($card->voucher_validity_days) && (int)$card->voucher_validity_days > 0)
+            ? (int)$card->voucher_validity_days
+            : (int) config('vouchers.gold_deferred_voucher_days', 30);
         $prefix       = config('vouchers.gold_voucher_code_prefix', 'GV2600-');
         $expiresAt    = Carbon::now()->addDays($validDays);
 

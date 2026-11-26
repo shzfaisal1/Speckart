@@ -329,11 +329,15 @@ class WebSiteController extends Controller
         $brands = collect($rawBrands)->map(function ($b, $idx) use ($defaultBrandBgs, $defaultBrandLogos) {
             // 1. Logo image
             $logoUrl = null;
-            if (!empty($b->image) && file_exists(public_path($b->image))) {
-                $logoUrl = asset($b->image);
-            } elseif (!empty($b->image)) {
-                $logoUrl = asset($b->image);
-            } else {
+            if (!empty($b->image)) {
+                $cleanedImg = ltrim(trim($b->image), '/\\');
+                if (filter_var($b->image, FILTER_VALIDATE_URL)) {
+                    $logoUrl = $b->image;
+                } elseif (file_exists(public_path($cleanedImg))) {
+                    $logoUrl = asset($cleanedImg);
+                }
+            }
+            if (empty($logoUrl)) {
                 $logoUrl = $defaultBrandLogos[$idx % count($defaultBrandLogos)];
             }
 

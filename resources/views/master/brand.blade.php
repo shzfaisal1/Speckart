@@ -94,6 +94,7 @@ input.loading {
                 <form id="brandForm" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="uid" id="uid">
+                    <input type="hidden" name="remove_image" id="remove_image" value="0">
 
                     <div class="multisteps-form__content">
                         <div class="multisteps-form__content1">
@@ -168,10 +169,16 @@ $(document).ready(function() {
       allowClear: true,
       width:'100%',
     });
+
+    $('#brandImagePreview').on('error', function() {
+        $(this).attr('src', '');
+        $('#brandImagePreviewContainer').hide();
+    });
 });
 
 function previewBrandImage(input) {
     if (input.files && input.files[0]) {
+        $('#remove_image').val('0');
         var reader = new FileReader();
         reader.onload = function(e) {
             $('#brandImagePreview').attr('src', e.target.result);
@@ -183,6 +190,7 @@ function previewBrandImage(input) {
 
 function removeBrandImagePreview() {
     $('#brand_image').val('');
+    $('#remove_image').val('1');
     $('#brandImagePreview').attr('src', '');
     $('#brandImagePreviewContainer').hide();
 }
@@ -203,6 +211,7 @@ function openCreateModal()
     document.getElementById('modalTitle').innerText = 'Add Brand / Company';
     document.getElementById('uid').value = '';
     document.getElementById('brand_name').value = '';
+    $('#remove_image').val('0');
     removeBrandImagePreview();
     $('#loyalty_eligible_toggle').prop('checked', true);
     toggleLoyaltyFields();
@@ -216,14 +225,20 @@ function openEditModal(brand) {
     document.getElementById('modalTitle').innerText = 'Edit Brand / Company';
     document.getElementById('brand_name').value = brand.brand_name || '';
     document.getElementById('uid').value = brand.brand_id || '';
+    $('#remove_image').val('0');
 
     let isEligible = (brand.loyalty_eligible === 0 || brand.loyalty_eligible === '0') ? false : true;
     $('#loyalty_eligible_toggle').prop('checked', isEligible);
     toggleLoyaltyFields();
 
     $('#brand_image').val('');
-    if (brand.image) {
-        var imgUrl = "{{ asset('') }}" + brand.image;
+    if (brand.image_url || brand.image) {
+        var imgUrl = brand.image_url;
+        if (!imgUrl && brand.image) {
+            var base = "{{ asset('') }}".replace(/\/+$/, '');
+            var path = String(brand.image).replace(/^\/+/, '');
+            imgUrl = base + '/' + path;
+        }
         $('#brandImagePreview').attr('src', imgUrl);
         $('#brandImagePreviewContainer').show();
     } else {

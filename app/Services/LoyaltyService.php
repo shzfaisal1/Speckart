@@ -62,15 +62,31 @@ class LoyaltyService
             $balance  = (int) ($customer->Loyalty_Points_Bal ?? 0);
             $earned   = (int) ($customer->Loyalty_Points ?? 0);
             $redeemed = (int) ($customer->Loyalty_Points_Redeem ?? 0);
+
+            // If earned is 0 but customer has passbook history, calculate from history
+            if ($earned === 0 && Schema::hasTable('tbl_loyaltyrogram_histroy')) {
+                $histEarned = (int) DB::table('tbl_loyaltyrogram_histroy')
+                    ->where('customer_id', $customer->customer_id)
+                    ->where('add_remove', 1)
+                    ->sum('redeem');
+                if ($histEarned > 0) {
+                    $earned = $histEarned;
+                }
+            }
+
+            // Earned points should always be at least balance + redeemed
+            $earned = max($earned, $balance + $redeemed);
         }
 
         // Secondary fallback to sales if tbl_customer is still 0
-        if ($balance === 0) {
+        if ($balance === 0 || $earned === 0) {
             $salesSummary = $this->getSalesPointSummary($user, $customer);
             if ($salesSummary['earned'] > 0) {
                 $earned   = max($earned, $salesSummary['earned']);
                 $redeemed = max($redeemed, $salesSummary['used']);
-                $balance  = max(0, $earned - $redeemed);
+                if ($balance === 0) {
+                    $balance = max(0, $earned - $redeemed);
+                }
             }
         }
 
@@ -144,7 +160,7 @@ class LoyaltyService
 
         $customer = DB::table('tbl_customer')
             ->where('is_Deleted', 0)
-            ->where(function ($q) use ($phone, $last10, $email) {
+            ->where(function ($q) use ($phone, $last10, $email, $user) {
                 $has = false;
                 if ($phone) {
                     $q->orWhere('contact_no', $phone);
@@ -156,6 +172,11 @@ class LoyaltyService
                 }
                 if ($email) {
                     $q->orWhere('email_id', $email);
+                    $has = true;
+                }
+                if (!empty($user->id)) {
+                    $q->orWhere('customer_id', $user->id);
+                    $q->orWhere('added_by', $user->id);
                     $has = true;
                 }
                 if (!$has) {
