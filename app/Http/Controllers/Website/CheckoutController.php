@@ -151,6 +151,7 @@ class CheckoutController extends Controller
 
             // Create Sale record (for In-Store POS & Backwards Compatibility & B2C Order)
             $saleData = [
+                'user_id'             => auth()->id(),
                 'sale_date'           => Carbon::now()->toDateString(),
                 'order_no'            => $orderNo,
                 'cust_name'           => $shipping['full_name'],
@@ -437,6 +438,52 @@ class CheckoutController extends Controller
                 }
             }
 
+            // 12b. Redeem / Burn Applied Regular Coupon (coupons, tbl_coupon, offers)
+            if ($appliedCoupon && empty($appliedCoupon['is_gift_voucher']) && !empty($appliedCoupon['code'])) {
+                $cCode = strtoupper(trim($appliedCoupon['code']));
+                $cSource = $appliedCoupon['source'] ?? null;
+                $cId = $appliedCoupon['id'] ?? null;
+
+                // 1. If from coupons table (Admin -> Coupons)
+                if ($cSource === 'coupons' || (!$cSource && \Illuminate\Support\Facades\Schema::hasTable('coupons') && DB::table('coupons')->where('code', $cCode)->exists())) {
+                    $q = DB::table('coupons');
+                    if ($cId) {
+                        $q->where('id', $cId);
+                    } else {
+                        $q->where('code', $cCode);
+                    }
+                    $q->increment('current_uses', 1);
+                }
+
+                // 2. If from tbl_coupon table (Admin -> Customer -> Discount Coupons)
+                if ($cSource === 'tbl_coupon' || (!$cSource && \Illuminate\Support\Facades\Schema::hasTable('tbl_coupon') && DB::table('tbl_coupon')->where('coupon_code', $cCode)->exists())) {
+                    $q = DB::table('tbl_coupon');
+                    if ($cId) {
+                        $q->where('coupon_id', $cId);
+                    } else {
+                        $q->where('coupon_code', $cCode);
+                    }
+                    $q->update([
+                        'coupon_status'      => '1',
+                        'coupon_usages_date' => Carbon::now()->toDateString(),
+                        'sale_order_no'      => $orderNo,
+                        'contact_no'         => $shipping['phone'] ?? ($user->phone ?? null),
+                        'updated_at'         => Carbon::now(),
+                    ]);
+                }
+
+                // 3. If from offers table (Admin -> Offers & Promotions)
+                if ($cSource === 'offers' || (!$cSource && \Illuminate\Support\Facades\Schema::hasTable('offers') && DB::table('offers')->where('coupon_code', $cCode)->exists())) {
+                    $q = DB::table('offers');
+                    if ($cId) {
+                        $q->where('id', $cId);
+                    } else {
+                        $q->where('coupon_code', $cCode);
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('offers', 'total_used')) { $q->increment('total_used', 1); }
+                }
+            }
+
             // 13. Auto-Generate Deferred Gift Voucher via VoucherService (idempotent via source_order_no unique)
             // Triggered: Gold member + >= 1 frame + no BOGO + not redeeming a deferred voucher in this same order
             $isGoldMember = !empty($membershipPurchased)
@@ -453,8 +500,11 @@ class CheckoutController extends Controller
                 }
             }
 
+            $appliedCouponCode = strtoupper(trim($appliedCoupon['code'] ?? ''));
+            $usedInstantSingleDiscount = ($appliedCouponCode === 'SINGLE');
+
             $generatedVoucher = null;
-            if ($isGoldMember && $eligibleFrameCount >= 1 && $bogoDiscount <= 0 && !$redeemedGoldVoucher) {
+            if ($isGoldMember && $eligibleFrameCount >= 1 && $bogoDiscount <= 0 && !$redeemedGoldVoucher && !$usedInstantSingleDiscount) {
                 $cardId   = $membershipPurchased['card_id'] ?? ($customer->membership_card_id ?? 1);
                 $cardDb   = DB::table('tbl_membership_card')->where('card_id', $cardId)->first();
                 $cardName = $cardDb->card_name ?? 'Gold Max Benefit';

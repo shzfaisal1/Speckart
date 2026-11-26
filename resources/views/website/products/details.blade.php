@@ -110,7 +110,7 @@
                 transform: translateY(100%);
                 transition: transform .35s ease;
                 display: flex !important;
-                flex-direction: column !important;
+                flex\-direction: column !important;
                 box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15) !important;
             }
 

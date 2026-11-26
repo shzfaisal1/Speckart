@@ -23,7 +23,7 @@
                 {{-- SUB-IMAGE UTILITY BAR: Color Options --}}
                 <div class="sub-image-bar">
                     <span class="text-muted small fw-medium">
-                        {{ $simProduct->Shape ?: ($simProduct->Rim_Type ?: 'Eyewear') }}
+                        {{ $simProduct->Shape ?: ($simProduct->Type ?? 'Eyewear') }}
                     </span>
 
                     @php
@@ -153,6 +153,13 @@
                         </div>
                     </div>
                 </a>
+
+                {{-- ACTION BUTTON --}}
+                <div class="card-btn-action px-3 pb-3">
+                    <a href="{{ $simProduct->detail_url }}" class="btn-select-lenses text-decoration-none text-center w-100 d-block">
+                        SELECT LENSES <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
 
                 {{-- BOTTOM ON-SALE / PROMO STRIP --}}
                 {{-- @if($hasDiscount)

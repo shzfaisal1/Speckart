@@ -31,7 +31,7 @@
 
                 {{-- SUB-IMAGE UTILITY BAR: View Similar & Color Options --}}
                 <div class="sub-image-bar">
-                    <button type="button" class="view-similar-btn btn-open-similar-modal" data-product-id="{{ $product->product_id ?: $product->id }}" data-product-name="{{ $product->product_name ?: $product->product_code }}" data-product-brand="{{ $product->Company ?: 'Speckart' }}" title="View Similar Products">
+                    <button type="button" class="view-similar-btn btn-open-similar-modal" data-product-id="{{ $product->id ?: $product->product_id }}" data-product-name="{{ $product->product_name ?: $product->product_code }}" data-product-brand="{{ $product->Company ?: 'Speckart' }}" title="View Similar Products">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="14"

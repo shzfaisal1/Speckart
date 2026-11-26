@@ -369,8 +369,9 @@ class CartController extends Controller
             }
         }
 
-        // 1. Search offers table
-        $offer = null;
+        $couponData = null;
+
+        // 1. Search offers table (Admin -> Offers & Promotions)
         if (\Illuminate\Support\Facades\Schema::hasTable('offers')) {
             $offer = DB::table('offers')
                 ->where('coupon_code', $code)
@@ -382,75 +383,212 @@ class CartController extends Controller
                     $q->whereNull('end_date')->orWhere('end_date', '>=', $now);
                 })
                 ->first();
+
+            if ($offer) {
+                // Check total usage limit from tbl_sales
+                if (!empty($offer->usage_limit) && (int)$offer->usage_limit > 0) {
+                    $timesUsed = DB::table('tbl_sales')->where('earncoupon', $code)->where('is_deleted', 0)->count();
+                    if ($timesUsed >= (int)$offer->usage_limit) {
+                        return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' has reached its maximum usage limit."], 400);
+                    }
+                }
+
+                // Check per-user usage limit
+                if (!empty($offer->usage_limit_per_user) && (int)$offer->usage_limit_per_user > 0) {
+                    $currUser = auth()->user();
+                    $currPhone = $currUser->phone ?? ($currUser->mobile ?? null);
+                    if ($currUser || $currPhone) {
+                        $userOrdersCount = DB::table('tbl_sales')
+                            ->where('earncoupon', $code)
+                            ->where('is_deleted', 0)
+                            ->where(function ($sub) use ($currUser, $currPhone) {
+                                if ($currUser) $sub->orWhere('user_id', $currUser->id);
+                                if ($currPhone) {
+                                    $sub->orWhere('contact_no', $currPhone);
+                                    $last10 = substr(preg_replace('/[^0-9]/', '', $currPhone), -10);
+                                    if ($last10 && strlen($last10) === 10) {
+                                        $sub->orWhere('contact_no', 'LIKE', '%' . $last10);
+                                    }
+                                }
+                            })
+                            ->count();
+
+                        if ($userOrdersCount >= (int)$offer->usage_limit_per_user) {
+                            return response()->json(['status' => 'error', 'message' => "You have already used coupon '{$code}' the maximum allowed number of times."], 400);
+                        }
+                    }
+                }
+
+                $discType = $offer->discount_type ?? 'percentage';
+                $discVal  = (float) $offer->discount_value;
+
+                // Support gift voucher offer type dynamically
+                if ($offer->offer_type === 'gift_voucher' && !empty($offer->voucher_value)) {
+                    $discType = 'fixed';
+                    $discVal  = (float) $offer->voucher_value;
+                }
+
+                $couponData = [
+                    'source'                => 'offers',
+                    'id'                    => $offer->id,
+                    'code'                  => strtoupper($offer->coupon_code),
+                    'discount_type'         => $discType,
+                    'discount_value'        => $discVal,
+                    'discount_percent'      => ($discType === 'fixed') ? 0 : $discVal,
+                    'discount_amount'       => ($discType === 'fixed') ? $discVal : 0,
+                    'min_cart_amount'       => (float) ($offer->min_cart_amount ?? 0),
+                    'max_discount'          => (float) ($offer->max_discount ?? 0),
+                    'description'           => $offer->description ?? $offer->name,
+                    'is_gift_voucher'       => ($offer->offer_type === 'gift_voucher'),
+                    'voucher_validity_days' => (int) ($offer->voucher_validity_days ?? 30),
+                ];
+            }
         }
 
-        $couponData = null;
-
-        if ($offer) {
-            $discType = $offer->discount_type ?? 'percentage';
-            $discVal  = (float) $offer->discount_value;
-
-            // Support gift voucher offer type dynamically
-            if ($offer->offer_type === 'gift_voucher' && !empty($offer->voucher_value)) {
-                $discType = 'fixed';
-                $discVal  = (float) $offer->voucher_value;
-            }
-
-            $couponData = [
-                'code'                  => strtoupper($offer->coupon_code),
-                'discount_type'         => $discType,
-                'discount_value'        => $discVal,
-                'discount_percent'      => ($discType === 'fixed') ? 0 : $discVal,
-                'discount_amount'       => ($discType === 'fixed') ? $discVal : 0,
-                'min_cart_amount'       => (float) ($offer->min_cart_amount ?? 0),
-                'max_discount'          => (float) ($offer->max_discount ?? 0),
-                'description'           => $offer->description ?? $offer->name,
-                'is_gift_voucher'       => ($offer->offer_type === 'gift_voucher'),
-                'voucher_validity_days' => (int) ($offer->voucher_validity_days ?? 30),
-            ];
-        } elseif (\Illuminate\Support\Facades\Schema::hasTable('coupons')) {
-            // 2. Search coupons table
+        // 2. Search coupons table (Admin -> Coupons)
+        if (!$couponData && \Illuminate\Support\Facades\Schema::hasTable('coupons')) {
             $c = DB::table('coupons')
                 ->where('code', $code)
                 ->where('is_active', 1)
                 ->first();
 
             if ($c) {
+                $nowTs = \Carbon\Carbon::now();
+                if (!empty($c->valid_from) && $nowTs->lt(\Carbon\Carbon::parse($c->valid_from))) {
+                    return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' is not active yet."], 400);
+                }
+                if (!empty($c->valid_until) && $nowTs->gt(\Carbon\Carbon::parse($c->valid_until))) {
+                    return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' has expired."], 400);
+                }
+
+                if ($c->max_uses !== null && (int)$c->current_uses >= (int)$c->max_uses) {
+                    return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' has reached its maximum usage limit."], 400);
+                }
+
+                // Check lens package restrictions if configured
+                $packageIds = DB::table('lens_package_coupons')
+                    ->where('coupon_id', $c->id)
+                    ->pluck('lens_package_id')
+                    ->toArray();
+
+                if (!empty($packageIds)) {
+                    $cartItems = session()->get('cart', []);
+                    $hasMatchingPackage = false;
+                    foreach ($cartItems as $it) {
+                        if (!empty($it['lens_package_id']) && in_array($it['lens_package_id'], $packageIds)) {
+                            $hasMatchingPackage = true;
+                            break;
+                        }
+                    }
+                    if (!$hasMatchingPackage) {
+                        return response()->json([
+                            'status'  => 'error',
+                            'message' => "Coupon '{$code}' is only applicable on selected lens packages."
+                        ], 400);
+                    }
+                }
+
+                $discType = $c->discount_type ?? 'percentage';
+                $discVal  = (float) $c->discount_value;
+
                 $couponData = [
+                    'source'           => 'coupons',
+                    'id'               => $c->id,
                     'code'             => strtoupper($c->code),
-                    'discount_type'    => $c->discount_type ?? 'percentage',
-                    'discount_value'   => (float) $c->discount_value,
-                    'discount_percent' => ($c->discount_type === 'fixed') ? 0 : (float) $c->discount_value,
-                    'discount_amount'  => ($c->discount_type === 'fixed') ? (float) $c->discount_value : 0,
+                    'discount_type'    => $discType,
+                    'discount_value'   => $discVal,
+                    'discount_percent' => ($discType === 'fixed') ? 0 : $discVal,
+                    'discount_amount'  => ($discType === 'fixed') ? $discVal : 0,
                     'min_cart_amount'  => (float) ($c->min_order_value ?? 0),
                     'max_discount'     => (float) ($c->max_discount_amount ?? 0),
                     'description'      => $c->description ?? '',
+                    'is_gift_voucher'  => false,
                 ];
             }
-        } elseif (\Illuminate\Support\Facades\Schema::hasTable('tbl_coupon')) {
-            // 3. Search tbl_coupon table
+        }
+
+        // 3. Search tbl_coupon table (Admin -> Customer -> Discount Coupons)
+        if (!$couponData && \Illuminate\Support\Facades\Schema::hasTable('tbl_coupon')) {
             $tc = DB::table('tbl_coupon')
                 ->where('coupon_code', $code)
                 ->first();
 
             if ($tc) {
-                $discPct = (float) ($tc->discount_percent ?? $tc->percent ?? 0);
-                $discAmt = (float) ($tc->discount_amount ?? $tc->amount ?? 0);
+                if ((string)$tc->coupon_status === '1' || ((string)$tc->coupon_usages === '0' && !empty($tc->sale_order_no))) {
+                    return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' has already been redeemed."], 400);
+                }
+
+                $todayDate = \Carbon\Carbon::now()->toDateString();
+                if (!empty($tc->valid_from) && $todayDate < $tc->valid_from) {
+                    return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' is not valid yet."], 400);
+                }
+                if (!empty($tc->valid_to) && $todayDate > $tc->valid_to) {
+                    return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' has expired."], 400);
+                }
+
+                // Check customer contact restriction if assigned
+                if (!empty($tc->contact_no)) {
+                    $currentUser = auth()->user();
+                    $userPhone = $currentUser->phone ?? ($currentUser->mobile ?? null);
+                    $shippingData = session()->get('checkout_shipping', []);
+                    $shippingPhone = $shippingData['phone'] ?? null;
+
+                    $cleanCouponPhone = preg_replace('/[^0-9]/', '', $tc->contact_no);
+                    $cleanUserPhone = $userPhone ? preg_replace('/[^0-9]/', '', $userPhone) : '';
+                    $cleanShipPhone = $shippingPhone ? preg_replace('/[^0-9]/', '', $shippingPhone) : '';
+
+                    $match = false;
+                    if ($cleanUserPhone && (substr($cleanUserPhone, -10) === substr($cleanCouponPhone, -10))) {
+                        $match = true;
+                    }
+                    if ($cleanShipPhone && (substr($cleanShipPhone, -10) === substr($cleanCouponPhone, -10))) {
+                        $match = true;
+                    }
+
+                    if (!$match && $currentUser) {
+                        return response()->json(['status' => 'error', 'message' => "Coupon '{$code}' is reserved for a specific customer mobile number."], 400);
+                    }
+                }
+
+                // Map columns correctly:
+                // coupon_type: 0 = Fixed Amount (Rs), 1 = Percentage (%)
+                $isPercentage = ((string)$tc->coupon_type === '1');
+                $discVal = (float) ($tc->coupon_value ?? 0);
+
                 $couponData = [
+                    'source'           => 'tbl_coupon',
+                    'id'               => $tc->coupon_id,
                     'code'             => strtoupper($tc->coupon_code),
-                    'discount_type'    => ($discPct > 0) ? 'percentage' : 'fixed',
-                    'discount_value'   => ($discPct > 0) ? $discPct : $discAmt,
-                    'discount_percent' => $discPct,
-                    'discount_amount'  => $discAmt,
-                    'min_cart_amount'  => (float) ($tc->min_cart_amount ?? 0),
+                    'discount_type'    => $isPercentage ? 'percentage' : 'fixed',
+                    'discount_value'   => $discVal,
+                    'discount_percent' => $isPercentage ? $discVal : 0,
+                    'discount_amount'  => $isPercentage ? 0 : $discVal,
+                    'min_cart_amount'  => (float) ($tc->min_sale_vale ?? 0),
                     'max_discount'     => 0,
-                    'description'      => 'Promo Coupon ' . $code,
+                    'description'      => 'Customer Discount Coupon ' . $code,
+                    'is_gift_voucher'  => false,
+                    'coupon_usages'    => (string) ($tc->coupon_usages ?? '0'),
                 ];
             }
         }
 
         // 4. Fallback SINGLE coupon (Fixed ₹1,500 Off on one pair)
         if (!$couponData && $code === 'SINGLE') {
+            $currentCalc = $this->cartService->getCartCalculations();
+            $eligibleFrameCount = 0;
+            foreach (($currentCalc['items'] ?? []) as $cItem) {
+                if (empty($cItem['is_membership']) && !empty($cItem['is_bogo_eligible'])) {
+                    $eligibleFrameCount += (int)($cItem['quantity'] ?? 1);
+                }
+            }
+
+            if (($currentCalc['bogo_savings'] ?? 0) > 0 || $eligibleFrameCount > 1) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => "Coupon 'SINGLE' is only valid for single pair orders and cannot be combined with Buy 1 Get 1 Free.",
+                ], 400);
+            }
+
             $singleDisc = (float) config('vouchers.single_pair_instant_discount', 1500.00);
             $couponData = [
                 'code'             => 'SINGLE',

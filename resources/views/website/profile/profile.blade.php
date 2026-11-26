@@ -947,7 +947,7 @@
                                 </svg>
                             </div>
                             <span class="pf-service-title">Loyalty Rewards</span>
-                            <span class="pf-service-badge text-warning" style="background:#fffbeb;">{{ number_format($profilePts) }} Points</span>
+                            <span class="pf-service-badge text-warning" style="background:#fffbeb;">{{ number_format($profileLoyaltyEarned) }} Points Earned</span>
                         </a>
 
                     </div>

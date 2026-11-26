@@ -1073,7 +1073,7 @@
 
     {{-- SIMILAR ITEMS MODAL --}}
     <div class="modal fade" id="similarProductsModal" tabindex="-1" aria-labelledby="similarProductsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div class="modal-content similar-modal-content">
                 <div class="modal-header border-bottom px-4 py-3">
                     <div class="d-flex align-items-center gap-2">
@@ -1327,9 +1327,10 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         e.stopPropagation();
 
-        const productId = $(this).data('product-id');
-        const productName = $(this).data('product-name') || 'Selected Product';
-        const productBrand = $(this).data('product-brand') || 'Speckart';
+        const $btn = $(this);
+        const productId = $btn.attr('data-product-id') || $btn.data('product-id');
+        const productName = $btn.attr('data-product-name') || $btn.data('product-name') || 'Selected Product';
+        const productBrand = $btn.attr('data-product-brand') || $btn.data('product-brand') || 'Speckart';
 
         if (!productId) return;
 
@@ -1346,10 +1347,10 @@ document.addEventListener('DOMContentLoaded', function() {
         `);
 
         const modalEl = document.getElementById('similarProductsModal');
-        if (modalEl && typeof bootstrap !== 'undefined') {
+        if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
-        } else if (typeof $ !== 'undefined') {
+        } else if (typeof $ !== 'undefined' && typeof $('#similarProductsModal').modal === 'function') {
             $('#similarProductsModal').modal('show');
         }
 
@@ -1359,6 +1360,12 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
+                if (data.product_name) {
+                    $('#similarProductsModalLabel').text('Similar to: ' + data.product_name);
+                }
+                if (data.product_brand) {
+                    $('#similarProductsModalSubtitle').text((data.count || 0) + ' matching frames & styles from ' + data.product_brand);
+                }
                 $('#similar-modal-body').html(data.html);
             } else {
                 $('#similar-modal-body').html(`
